@@ -1,0 +1,17 @@
+name: Créateur de Fichier
+description: Créer un fichier dans un dossier spécifié
+version: 1.0
+category: Système
+icon: 📄
+config_fields:
+  directory:
+    label: Répertoire
+    type: directory
+    description: Répertoire où créer le fichier
+    required: true
+  filename:
+    label: Nom du fichier
+    type: text
+    description: Nom du fichier à créer
+    required: false
+    placeholder: Laissez vide pour définir plus tard
