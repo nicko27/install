@@ -128,7 +128,7 @@ class SelectedPluginsPanel(Static):
 class Choice(App):
     BINDINGS = [
         ("escape", "quit", "Quitter"),
-        ("c", "configure_selected", "Configurer")
+
     ]
 
     CSS_PATH = os.path.join(os.path.dirname(__file__), "styles/choice.css")

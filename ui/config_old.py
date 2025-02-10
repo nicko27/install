@@ -73,20 +73,7 @@ class TextField(ConfigField):
 
     def on_input_changed(self, event: Input.Changed) -> None:
         if event.input.id == f"input_{self.field_id}":
-            value = event.value
-            
-            # Validation
-            if 'validate' in self.field_config:
-                validate_type = self.field_config['validate']
-                
-                if validate_type == 'no_spaces':
-                    if ' ' in value:
-                        self.input.add_class('error')
-                        return
-                    else:
-                        self.input.remove_class('error')
-                        
-            self.value = value
+            self.value = event.value
 
 class DirectoryField(TextField):
     """Directory selection field"""
@@ -157,17 +144,13 @@ class SelectField(ConfigField):
         if not self.value or self.value not in available_values:
             self.value = available_values[0] if available_values else None
             
-        # Trouver le label correspondant à la valeur actuelle
+        # Trouver le label correspondant à la valeur
         value_label = next((opt[1] for opt in self.options if opt[0] == self.value), None)
-        
-        # Créer les options dans le format (label, value) pour le Select
-        select_options = [(opt[1], opt[1]) for opt in self.options]
             
         self.select = Select(
-            options=select_options,
+            options=self.options,
             value=value_label,
-            id=f"select_{self.field_id}",
-            allow_blank=self.field_config.get('allow_blank', False)
+            id=f"select_{self.field_id}"
         )
         # Toujours initialiser à l'état activé d'abord
         self.select.disabled = False
@@ -214,24 +197,19 @@ class SelectField(ConfigField):
                 data = getattr(module, func_name)()
                 logger.debug(f"Got data: {data}")
                 
-                        # Format the options using the template or label_key
-                value_key = dynamic_config.get('value_key', 'value')
-                label_template = dynamic_config.get('label_template')
-                label_key = dynamic_config.get('label_key', 'label')
+                # Format the options using the template
+                value_key = dynamic_config['value_key']
+                label_template = dynamic_config['label_template']
                 
                 # Ensure we have at least one option
                 if not data:
                     logger.warning("No data returned from script")
-                    return [("no_data", "Aucune donnée disponible")]
-                
-                options = []
-                for item in data:
-                    value = str(item.get(value_key, ''))
-                    if label_template:
-                        label = label_template.format(**item)
-                    else:
-                        label = str(item.get(label_key, value))
-                    options.append((value, label))
+                    return [("no_interfaces", "Aucune interface réseau trouvée")]
+                    
+                options = [
+                    (str(item[value_key]), label_template.format(**item))
+                    for item in data
+                ]
                 logger.debug(f"Final options: {options}")
                 return options
                 
@@ -247,11 +225,8 @@ class SelectField(ConfigField):
 
     def on_select_changed(self, event: Select.Changed) -> None:
         if event.select.id == f"select_{self.field_id}":
-            # event.value contient le label, trouver la valeur correspondante
+            # Trouver la valeur correspondant au label sélectionné
             self.value = next((opt[0] for opt in self.options if opt[1] == event.value), None)
-            logger.debug(f"Select changed to: {self.value} (label: {event.value})")
-            if self.value is None:
-                logger.error(f"Could not find value for label: {event.value}")
             
     def get_value(self) -> str:
         """Get the current value"""
@@ -265,7 +240,7 @@ class PluginConfigContainer(Vertical):
     plugin_icon = reactive("")    # Plugin icon
     plugin_description = reactive("")  # Plugin description
     
-    def __init__(self, plugin: str, name: str, icon: str, description: str, fields_by_plugin: dict, fields_by_id: dict, config_fields: list, **kwargs):
+    def __init__(self, plugin: str, name: str, icon: str, description: str, fields_by_plugin: dict, fields_by_id: dict, config_fields: dict, **kwargs):
         super().__init__(**kwargs)
         # Set the reactive attributes
         self.plugin_id = plugin
@@ -291,11 +266,7 @@ class PluginConfigContainer(Vertical):
             return
 
         # Champs de configuration
-        for field_config in self.config_fields:
-            field_id = field_config.get('id')
-            if not field_id:
-                logger.warning(f"Field without id in plugin {self.plugin_id}")
-                continue
+        for field_id, field_config in self.config_fields.items():
             field_type = field_config.get('type', 'text')
             field_class = {
                 'text': TextField,
@@ -370,9 +341,6 @@ class PluginConfigContainer(Vertical):
 
 class PluginConfig(Screen):
     """Plugin configuration screen"""
-    BINDINGS = [
-        ("esc", "quit", "Quitter"),
-    ]
     CSS_PATH = os.path.join(os.path.dirname(__file__), "styles/config.css")
 
     def __init__(self, plugins: list, name: str | None = None) -> None:
@@ -387,11 +355,11 @@ class PluginConfig(Screen):
         with ScrollableContainer(id="config-container"):
             for plugin in self.plugins:
                 yield self._create_plugin_config(plugin)
-            
+        
         with Horizontal(id="button-container"):
             yield Button("Annuler", id="cancel", variant="error")
             yield Button("Valider", id="validate", variant="primary")
-            
+        
         yield Footer()
 
     def _create_plugin_config(self, plugin: str) -> Widget:
@@ -411,12 +379,7 @@ class PluginConfig(Screen):
         name = settings.get('name', plugin)
         icon = settings.get('icon', '📦')
         description = settings.get('description', '')
-        
-        # Convertir les champs de config_fields (dict) en liste de champs
-        config_fields = []
-        for field_id, field_config in settings.get('config_fields', {}).items():
-            field_config['id'] = field_id
-            config_fields.append(field_config)
+        config_fields = settings.get('config_fields', {})
         
         return PluginConfigContainer(
             plugin=plugin,
@@ -448,21 +411,3 @@ class PluginConfig(Screen):
         elif event.button.id and event.button.id.startswith('browse_'):
             # TODO: Implement directory browser
             pass
-            
-    def action_quit(self) -> None:
-        """Handle escape key"""
-        self.app.pop_screen()
-        
-        
-    def action_validate(self) -> None:
-        """Handle validate binding"""
-        # Collect all field values
-        self.current_config = {}
-        for plugin in self.plugins:
-            plugin_fields = self.query(f"#plugin_{plugin} ConfigField")
-            if plugin_fields:
-                self.current_config[plugin] = {
-                    field.variable_name: field.get_value()
-                    for field in plugin_fields
-                }
-        self.app.pop_screen()
