@@ -1,0 +1,126 @@
+#title {
+    width: 100%;
+    height: 3;
+    content-align: center middle;
+    background: $primary;
+    color: $text;
+}
+
+#execution-container {
+    width: 100%;
+    height: 100%;
+    background: $surface;
+    padding: 1;
+}
+
+.controls-section {
+    margin: 1;
+    height: 3;
+    width: 30%;
+    align: center middle;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.progress-section {
+    margin: 1;
+    height: 4;
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+    background: $boost;
+    border: tall $primary;
+    padding: 1;
+}
+
+.progress-label {
+    padding-bottom: 1;
+    content-align: center middle;
+    text-style: bold;
+}
+
+.plugin-execution {
+    margin: 1;
+    border: heavy $primary;
+    height: auto;
+    background: $boost;
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.plugin-header {
+    height: 3;
+    background: $primary;
+    color: $text;
+    padding: 0 1;
+    margin-bottom: 1;
+}
+
+.plugin-title {
+    width: 70%;
+    content-align: left middle;
+}
+
+.plugin-status {
+    width: 30%;
+    content-align: right middle;
+}
+
+.log-output {
+    margin: 1;
+    height: auto;
+    min-height: 15;
+    background: $surface;
+    color: $text;
+    border: solid $primary;
+    padding: 1;
+    width: 98%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#start {
+    margin-right: 1;
+}
+
+.plugin-title {
+    width: 70%;
+    content-align: left middle;
+    padding: 0 1;
+}
+
+.plugin-status {
+    width: 30%;
+    content-align: right middle;
+    padding: 0 1;
+}
+
+.plugin-status.running {
+    color: yellow;
+}
+
+.plugin-status.success {
+    color: green;
+}
+
+.plugin-status.error {
+    color: red;
+}
+
+.plugin-status.stopped {
+    color: gray;
+}
+
+Log {
+    height: 10;
+    border: tall $primary;
+    background: $boost;
+    margin: 1 0;
+    padding: 0 1;
+}
+
+ProgressBar {
+    width: 100%;
+    margin: 1 0;
+}

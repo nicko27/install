@@ -18,7 +18,6 @@ class ConfigField(Vertical):
         self.plugin_path = plugin_path
         self.field_id = field_id
         self.field_config = field_config
-        self.value = field_config.get('default', None)
         self.fields_by_id = fields_by_id or {}
         
         # Si le champ a une dépendance enabled_if
@@ -27,6 +26,50 @@ class ConfigField(Vertical):
         else:
             self.enabled_if = None
         self.variable_name = field_config.get('variable', field_id)
+        
+        # Gérer la valeur par défaut (statique ou dynamique)
+        if 'dynamic_default' in field_config:
+            self.value = self._get_dynamic_default()
+        else:
+            self.value = field_config.get('default', None)
+            
+    def _get_dynamic_default(self) -> str:
+        """Get dynamic default value from script"""
+        dynamic_config = self.field_config['dynamic_default']
+        script_path = os.path.join('plugins', self.plugin_path, dynamic_config['script'])
+        
+        try:
+            # Import the script module
+            import sys
+            import importlib.util
+            
+            # Add plugin directory to path
+            plugin_dir = os.path.dirname(script_path)
+            if plugin_dir not in sys.path:
+                sys.path.append(plugin_dir)
+            
+            # Import the script
+            spec = importlib.util.spec_from_file_location("dynamic_script", script_path)
+            if not spec:
+                logger.error("Failed to create module spec")
+                return None
+                
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            
+            # Get the data
+            data = module.get_default_ip()
+            
+            # Get the value
+            if isinstance(data, dict):
+                return str(data.get('value', ''))
+            elif isinstance(data, (str, int, float)):
+                return str(data)
+            return None
+            
+        except Exception as e:
+            logger.exception(f"Error loading dynamic default from {script_path}: {e}")
+            return None
 
     def compose(self) -> ComposeResult:
         label = self.field_config.get('label', self.field_id)
@@ -390,7 +433,7 @@ class PluginConfig(Screen):
             
         with Horizontal(id="button-container"):
             yield Button("Annuler", id="cancel", variant="error")
-            yield Button("Valider", id="validate", variant="primary")
+            yield Button("Executer", id="validate", variant="primary")
             
         yield Footer()
 
@@ -444,7 +487,39 @@ class PluginConfig(Screen):
                         field.variable_name: field.get_value()
                         for field in plugin_fields
                     }
-            self.app.pop_screen()
+            
+            # Créer la liste des plugins avec leurs infos
+            plugin_list = []
+            for plugin in self.plugins:
+                # Lire le settings.yml du plugin
+                settings_path = os.path.join('plugins', plugin, 'settings.yml')
+                try:
+                    with open(settings_path, 'r') as f:
+                        settings = yaml.safe_load(f)
+                    
+                    # Ajouter les infos du plugin
+                    plugin_list.append({
+                        'plugin': plugin,
+                        'name': settings.get('name', plugin),
+                        'icon': settings.get('icon', '📦')
+                    })
+                except Exception as e:
+                    logger.error(f"Erreur lors de la lecture de {settings_path}: {e}")
+                    # Fallback sur les valeurs par défaut
+                    plugin_list.append({
+                        'plugin': plugin,
+                        'name': plugin,
+                        'icon': '📦'
+                    })
+            
+            # Import here to avoid circular imports
+            from .execution import PluginExecution
+            
+            # Créer l'écran d'exécution
+            execution_screen = PluginExecution(plugin_list, self.current_config)
+            
+            # Remplacer l'écran actuel par l'écran d'exécution
+            self.app.switch_screen(execution_screen)
         elif event.button.id and event.button.id.startswith('browse_'):
             # TODO: Implement directory browser
             pass

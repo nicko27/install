@@ -11,6 +11,7 @@ config_fields:
     required: true
     placeholder: "Ex: Bureau_RDC"
     validate: no_spaces
+    default: "BT"
 
   printer_model:
     type: select
@@ -29,3 +30,5 @@ config_fields:
     description: Adresse IP de l'imprimante
     required: true
     placeholder: "Ex: 192.168.1.100"
+    dynamic_default:
+      script: get_default_ip.py
