@@ -176,7 +176,7 @@ class Choice(App):
 
     async def action_configure_selected(self) -> None:
         """Configure selected plugins"""
-        from .config import PluginConfig
+        from ui.config import PluginConfig
         
         if not self.selected_plugins:
             self.notify("Aucun plugin sélectionné", severity="error")

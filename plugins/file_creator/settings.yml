@@ -13,5 +13,5 @@ config_fields:
     label: Nom du fichier
     type: text
     description: Nom du fichier à créer
-    required: false
-    placeholder: Laissez vide pour définir plus tard
+    required: true
+    placeholder: Ne doit pas être vide
