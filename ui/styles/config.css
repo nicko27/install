@@ -39,6 +39,17 @@
     color: red;
 }
 
+ConfigField.disabled {
+    opacity: 0.5;
+}
+
+ConfigField.disabled Input,
+ConfigField.disabled Select {
+    background: $surface-darken-2 !important;
+    border: tall $background !important;
+    color: $text-muted !important;
+}
+
 .no-config-container {
     width: 100%;
     height: 3;

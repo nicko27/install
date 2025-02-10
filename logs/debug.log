@@ -1,6 +1,15 @@
-2025-02-03 17:29:36,937 - install_ui - INFO - Loading script from: /media/nico/Drive/install/ui/../plugins/network_config/get_interfaces.py
-2025-02-03 17:29:36,937 - install_ui - DEBUG - Script exists: True
-2025-02-03 17:29:36,938 - install_ui - DEBUG - Python path: ['/media/nico/Drive/install', '/usr/lib/python310.zip', '/usr/lib/python3.10', '/usr/lib/python3.10/lib-dynload', '/media/nico/Drive/install/.venv/lib/python3.10/site-packages', '/media/nico/Drive/install/ui/../plugins/network_config']
-2025-02-03 17:29:36,949 - install_ui - DEBUG - Found function: get_network_interfaces
-2025-02-03 17:29:36,950 - install_ui - DEBUG - Got data: [{'name': 'enp0s31f6', 'up': False, 'speed': 0, 'mtu': 1500, 'type': 'ethernet', 'mac': '38:f3:ab:0a:f8:de'}, {'name': 'wlp4s0', 'up': True, 'speed': 0, 'mtu': 1500, 'type': 'wireless', 'mac': 'c0:3c:59:32:63:3d', 'ipv4': '192.168.1.132', 'netmask': '255.255.255.0', 'broadcast': '192.168.1.255'}]
-2025-02-03 17:29:36,950 - install_ui - DEBUG - Final options: [('enp0s31f6', 'enp0s31f6 (ethernet) - 38:f3:ab:0a:f8:de'), ('wlp4s0', 'wlp4s0 (wireless) - c0:3c:59:32:63:3d')]
+2025-02-10 10:52:12,443 - install_ui - INFO - Loading script from: /media/nico/Drive/install/ui/../plugins/network_config/get_interfaces.py
+2025-02-10 10:52:12,443 - install_ui - DEBUG - Script exists: True
+2025-02-10 10:52:12,444 - install_ui - DEBUG - Python path: ['/media/nico/Drive/install', '/usr/lib/python310.zip', '/usr/lib/python3.10', '/usr/lib/python3.10/lib-dynload', '/media/nico/Drive/install/.venv/lib/python3.10/site-packages', '/media/nico/Drive/install/ui/../plugins/network_config']
+2025-02-10 10:52:12,456 - install_ui - DEBUG - Found function: get_network_interfaces
+2025-02-10 10:52:12,457 - install_ui - DEBUG - Got data: [{'name': 'enp0s31f6', 'up': False, 'speed': 0, 'mtu': 1500, 'type': 'ethernet', 'mac': '38:f3:ab:0a:f8:de'}, {'name': 'wlp4s0', 'up': True, 'speed': 0, 'mtu': 1500, 'type': 'wireless', 'mac': 'c0:3c:59:32:63:3d', 'ipv4': '192.168.1.132', 'netmask': '255.255.255.0', 'broadcast': '192.168.1.255'}]
+2025-02-10 10:52:12,457 - install_ui - DEBUG - Final options: [('enp0s31f6', 'enp0s31f6 (ethernet) - 38:f3:ab:0a:f8:de'), ('wlp4s0', 'wlp4s0 (wireless) - c0:3c:59:32:63:3d')]
+2025-02-10 10:52:12,459 - install_ui - DEBUG - Field ip_address: enabled_if={'field': 'dhcp', 'value': False}, dep_field=dhcp, dep_value=True
+2025-02-10 10:52:12,460 - install_ui - DEBUG - Field ip_address should be initially disabled
+2025-02-10 10:52:12,461 - install_ui - DEBUG - TextField ip_address is initially disabled
+2025-02-10 10:52:12,466 - install_ui - DEBUG - Field netmask: enabled_if={'field': 'dhcp', 'value': False}, dep_field=dhcp, dep_value=True
+2025-02-10 10:52:12,466 - install_ui - DEBUG - Field netmask should be initially disabled
+2025-02-10 10:52:12,467 - install_ui - DEBUG - TextField netmask is initially disabled
+2025-02-10 10:52:12,470 - install_ui - DEBUG - Field gateway: enabled_if={'field': 'dhcp', 'value': False}, dep_field=dhcp, dep_value=True
+2025-02-10 10:52:12,471 - install_ui - DEBUG - Field gateway should be initially disabled
+2025-02-10 10:52:12,472 - install_ui - DEBUG - TextField gateway is initially disabled

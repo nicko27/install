@@ -43,8 +43,11 @@ class ConfigField(Vertical):
         # Vérifier si le champ doit être activé ou non
         if self.enabled_if:
             dep_field = self.fields_by_id.get(self.enabled_if['field'])
+            logger.debug(f"Field {self.field_id}: enabled_if={self.enabled_if}, dep_field={dep_field and dep_field.field_id}, dep_value={dep_field and dep_field.value}")
             if dep_field and dep_field.value != self.enabled_if['value']:
+                logger.debug(f"Field {self.field_id} should be initially disabled")
                 self.disabled = True
+                self.add_class('disabled')
 
     def get_value(self):
         return self.value
@@ -58,6 +61,14 @@ class TextField(ConfigField):
             value=self.value or '',
             id=f"input_{self.field_id}"
         )
+        # Toujours initialiser à l'état activé d'abord
+        self.input.disabled = False
+        self.input.remove_class('disabled')
+        
+        if self.disabled:
+            logger.debug(f"TextField {self.field_id} is initially disabled")
+            self.input.disabled = True
+            self.input.add_class('disabled')
         yield self.input
 
     def on_input_changed(self, event: Input.Changed) -> None:
@@ -117,24 +128,6 @@ class CheckboxField(ConfigField):
     def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
         if event.checkbox.id == f"checkbox_{self.plugin_path}_{self.field_id}":
             self.value = event.value
-            
-            # Mettre à jour les champs dépendants
-            for field in self.fields_by_id.values():
-                if field.enabled_if and field.enabled_if['field'] == self.field_id:
-                    # Handle any widget type that can be disabled
-                    for widget_type in [Input, Select, Button]:
-                        widget = field.query_one(widget_type, default=None)
-                        if widget:
-                            should_disable = self.value != field.enabled_if['value']
-                            if should_disable:
-                                widget.add_class('disabled')
-                                widget.disabled = True
-                                # Clear IP fields when disabled to prevent invalid config
-                                if isinstance(widget, Input) and isinstance(field, IPField):
-                                    widget.value = ''
-                            else:
-                                widget.remove_class('disabled')
-                                widget.disabled = False
 
 class SelectField(ConfigField):
     """Select field with options"""
@@ -159,6 +152,14 @@ class SelectField(ConfigField):
             value=value_label,
             id=f"select_{self.field_id}"
         )
+        # Toujours initialiser à l'état activé d'abord
+        self.select.disabled = False
+        self.select.remove_class('disabled')
+        
+        if self.disabled:
+            logger.debug(f"SelectField {self.field_id} is initially disabled")
+            self.select.disabled = True
+            self.select.add_class('disabled')
         yield self.select
 
     def _get_options(self) -> list:
@@ -288,10 +289,50 @@ class PluginConfigContainer(Vertical):
             
     def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
         """Gère le changement d'état d'une case à cocher"""
-        # Propager l'événement au champ approprié
+        # Trouver le champ qui a émis l'événement
+        checkbox_id = event.checkbox.id
+        logger.debug(f"Checkbox changed: {checkbox_id} -> {event.value}")
+        
         for field in self.fields_by_plugin[self.plugin_id].values():
-            if isinstance(field, CheckboxField):
-                field.on_checkbox_changed(event)
+            if isinstance(field, CheckboxField) and checkbox_id == f"checkbox_{field.plugin_path}_{field.field_id}":
+                logger.debug(f"Found matching checkbox field: {field.field_id}")
+                field.value = event.value
+                
+                # Mettre à jour les champs dépendants
+                for dependent_field in self.fields_by_id.values():
+                    if dependent_field.enabled_if and dependent_field.enabled_if['field'] == field.field_id:
+                        logger.debug(f"Found dependent field: {dependent_field.field_id} with enabled_if={dependent_field.enabled_if}")
+                        
+                        # Handle any widget type that can be disabled
+                        for widget_type in [Input, Select, Button]:
+                            try:
+                                widget = dependent_field.query_one(widget_type)
+                                logger.debug(f"Found widget of type {widget_type.__name__} for field {dependent_field.field_id}")
+                            except Exception:
+                                continue
+                                
+                            # Si on arrive ici, c'est qu'on a trouvé le widget
+                            should_disable = field.value != dependent_field.enabled_if['value']
+                            logger.debug(f"Field {dependent_field.field_id}: should_disable={should_disable} (checkbox value={field.value}, enabled_if value={dependent_field.enabled_if['value']})")
+                            
+                            # Toujours retirer les classes existantes d'abord
+                            dependent_field.remove_class('disabled')
+                            dependent_field.disabled = False
+                            widget.remove_class('disabled')
+                            widget.disabled = False
+                            
+                            if should_disable:
+                                logger.debug(f"Disabling widget for field {dependent_field.field_id}")
+                                dependent_field.add_class('disabled')
+                                dependent_field.disabled = True
+                                widget.add_class('disabled')
+                                widget.disabled = True
+                                # Clear IP fields when disabled to prevent invalid config
+                                if isinstance(widget, Input) and isinstance(dependent_field, IPField):
+                                    widget.value = ''
+                            else:
+                                logger.debug(f"Enabling widget for field {dependent_field.field_id}")
+                break
             
 
 
