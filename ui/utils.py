@@ -25,3 +25,9 @@ def setup_logging():
     logger.setLevel(logging.DEBUG)
     
     return logger
+
+def get_logger(name=None):
+    """Récupère un logger configuré"""
+    if name is None:
+        return logging.getLogger('install_ui')
+    return logging.getLogger(name)

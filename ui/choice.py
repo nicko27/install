@@ -3,6 +3,9 @@ from textual.containers import Container, Horizontal, Vertical, ScrollableContai
 from textual.widgets import Label, Header, Footer, Button, Static
 from textual.widget import Widget
 from textual.reactive import reactive
+from ui.utils import get_logger
+
+logger = get_logger(__name__)
 from textual.message import Message
 import os
 import yaml
@@ -231,20 +234,37 @@ class Choice(App):
         if not self.selected_plugins:
             self.notify("Aucun plugin sélectionné", severity="error")
             return
-            
-        # Lancer l'interface de configuration
-        config_app = PluginConfig(self.selected_plugins)
-        result = await self.push_screen(config_app)
         
-        if result:
-            # Sauvegarder la configuration pour chaque plugin
-            for plugin, config in result.items():
-                config_dir = os.path.join('plugins', plugin, 'config')
-                os.makedirs(config_dir, exist_ok=True)
-                
-                config_file = os.path.join(config_dir, 'config.yml')
-                with open(config_file, 'w') as f:
-                    yaml.dump(config, f, default_flow_style=False)
+        # Compter les occurrences de chaque plugin
+        plugin_counts = {}
+        plugins_with_instances = []
+        
+        for plugin in self.selected_plugins:
+            # Charger les infos du plugin
+            settings_path = os.path.join('plugins', plugin, 'settings.yml')
+            try:
+                with open(settings_path, 'r') as f:
+                    plugin_info = yaml.safe_load(f)
+            except Exception as e:
+                logger.error(f"Error loading plugin info: {e}")
+                plugin_info = {}
+            
+            # Vérifier si le plugin permet la sélection multiple
+            allows_multiple = plugin_info.get('multiple', False)
+            
+            if allows_multiple:
+                # Pour les plugins multiples, ajouter une nouvelle instance
+                plugin_counts[plugin] = plugin_counts.get(plugin, 0) + 1
+                plugins_with_instances.append(plugin)
+            else:
+                # Pour les plugins non multiples, garder une seule instance
+                if plugin not in plugin_counts:
+                    plugin_counts[plugin] = 1
+                    plugins_with_instances.append(plugin)
+        
+        logger.debug(f"Configuring plugins with instances: {plugins_with_instances}")
+        await self.app.push_screen(PluginConfig(plugins=plugins_with_instances))
+
 
     def action_quit(self) -> None:
         """Quit the application"""
