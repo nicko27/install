@@ -2,6 +2,7 @@ name: Ajout d'imprimante
 description: Ajouter une imprimante en utilisant les modèles prédéfinis
 version: 1.0
 category: Système
+multiple: true
 icon: 🖨
 config_fields:
   printer_name:

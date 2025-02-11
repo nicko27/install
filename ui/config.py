@@ -187,9 +187,9 @@ class CheckboxField(ConfigField):
 
 class SelectField(ConfigField):
     """Select field with options"""
-    def compose(self) -> ComposeResult:
-        yield from super().compose()
-        
+    def __init__(self, plugin_path: str, field_id: str, field_config: dict, fields_by_id: dict = None):
+        super().__init__(plugin_path, field_id, field_config, fields_by_id)
+        self.default_value = field_config.get('default', None)
         self.options = self._get_options()
         if not self.options:
             logger.warning(f"No options available for select {self.field_id}")
@@ -200,93 +200,46 @@ class SelectField(ConfigField):
         if not self.value or self.value not in available_values:
             self.value = available_values[0] if available_values else None
             
-        # Trouver le label correspondant à la valeur actuelle
-        value_label = next((opt[1] for opt in self.options if opt[0] == self.value), None)
+    def _get_options(self) -> list:
+        """Récupérer les options disponibles"""
+        available_values = self.field_config.get('options', [])
+        
+        # Convertir en liste de tuples (value, label)
+        options = [
+            (opt['value'], opt['label']) 
+            for opt in available_values 
+            if isinstance(opt, dict) and 'value' in opt and 'label' in opt
+        ]
+        
+        if not options:
+            logger.warning(f"No options available for select {self.field_id}")
+        
+        return options
+
+    def compose(self) -> ComposeResult:
+        """Créer les widgets de configuration"""
+        # D'abord, yield les widgets du parent
+        yield from super().compose()
+        
+        # Récupérer les options
+        self.options = self._get_options()
+        
+        # Déterminer la valeur initiale
+        value_label = (
+            self.default_value if self.default_value 
+            else (self.options[0][0] if self.options else None)
+        )
         
         # Créer les options dans le format (label, value) pour le Select
-        select_options = [(opt[1], opt[1]) for opt in self.options]
-            
+        select_options = [(opt[1], opt[0]) for opt in self.options]
+        
+        # Créer et yield le Select
         self.select = Select(
             options=select_options,
             value=value_label,
             id=f"select_{self.field_id}",
-            allow_blank=self.field_config.get('allow_blank', False)
         )
-        # Toujours initialiser à l'état activé d'abord
-        self.select.disabled = False
-        self.select.remove_class('disabled')
-        
-        if self.disabled:
-            logger.debug(f"SelectField {self.field_id} is initially disabled")
-            self.select.disabled = True
-            self.select.add_class('disabled')
         yield self.select
-
-    def _get_options(self) -> list:
-        """Get options for the select field, either static or dynamic"""
-        if 'options' in self.field_config:
-            logger.debug(f"Using static options: {self.field_config['options']}")
-            return [(opt, opt) for opt in self.field_config['options']]
-        
-        if 'dynamic_options' in self.field_config:
-            dynamic_config = self.field_config['dynamic_options']
-            script_path = os.path.join(os.path.dirname(__file__), '..', 'plugins', self.plugin_path, dynamic_config['script'])
-            logger.info(f"Loading script from: {script_path}")
-            logger.debug(f"Script exists: {os.path.exists(script_path)}")
-            
-            try:
-                # Import the script module
-                import sys
-                import importlib.util
-                sys.path.append(os.path.dirname(script_path))
-                logger.debug(f"Python path: {sys.path}")
-                
-                spec = importlib.util.spec_from_file_location("dynamic_script", script_path)
-                if not spec:
-                    logger.error("Failed to create module spec")
-                    return [("error", "Erreur de chargement du module")]
-                    
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module)
-                
-                # Get the data
-                func_name = next(name for name in dir(module) 
-                              if name.startswith('get_') and callable(getattr(module, name)))
-                logger.debug(f"Found function: {func_name}")
-                
-                data = getattr(module, func_name)()
-                logger.debug(f"Got data: {data}")
-                
-                        # Format the options using the template or label_key
-                value_key = dynamic_config.get('value_key', 'value')
-                label_template = dynamic_config.get('label_template')
-                label_key = dynamic_config.get('label_key', 'label')
-                
-                # Ensure we have at least one option
-                if not data:
-                    logger.warning("No data returned from script")
-                    return [("no_data", "Aucune donnée disponible")]
-                
-                options = []
-                for item in data:
-                    value = str(item.get(value_key, ''))
-                    if label_template:
-                        label = label_template.format(**item)
-                    else:
-                        label = str(item.get(label_key, value))
-                    options.append((value, label))
-                logger.debug(f"Final options: {options}")
-                return options
-                
-            except Exception as e:
-                logger.exception(f"Error loading dynamic options from {script_path}: {e}")
-                return [("error", "Erreur de chargement des options")]
-            finally:
-                if os.path.dirname(script_path) in sys.path:
-                    sys.path.remove(os.path.dirname(script_path))
-        
-        logger.debug("No options found in config")
-        return []
 
     def on_select_changed(self, event: Select.Changed) -> None:
         if event.select.id == f"select_{self.field_id}":
@@ -308,17 +261,18 @@ class PluginConfigContainer(Vertical):
     plugin_icon = reactive("")    # Plugin icon
     plugin_description = reactive("")  # Plugin description
     
-    def __init__(self, plugin: str, name: str, icon: str, description: str, fields_by_plugin: dict, fields_by_id: dict, config_fields: list, **kwargs):
+    def __init__(self, plugin: str, name: str, icon: str, description: str, fields_by_plugin: dict, fields_by_id: dict, config_fields: list, instance_number: int = 1, **kwargs):
         super().__init__(**kwargs)
         # Set the reactive attributes
         self.plugin_id = plugin
-        self.plugin_title = name
+        self.plugin_title = f"{name} #{instance_number}" if instance_number > 1 else name
         self.plugin_icon = icon
         self.plugin_description = description
         # Non-reactive attributes
         self.fields_by_plugin = fields_by_plugin
         self.fields_by_id = fields_by_id
         self.config_fields = config_fields
+        self.instance_number = instance_number
 
     def compose(self) -> ComposeResult:
         # Titre et description
@@ -350,8 +304,9 @@ class PluginConfigContainer(Vertical):
             
             # Créer le champ avec accès aux autres champs
             field = field_class(self.plugin_id, field_id, field_config, self.fields_by_id)
-            self.fields_by_plugin[self.plugin_id][field_id] = field
+            # Stocker le champ dans fields_by_id
             self.fields_by_id[field_id] = field
+            yield field
             
             # Si c'est une checkbox, ajouter un gestionnaire d'événements
             if field_type == 'checkbox':
@@ -420,25 +375,43 @@ class PluginConfig(Screen):
 
     def __init__(self, plugins: list, name: str | None = None) -> None:
         super().__init__(name=name)
-        self.plugins = plugins
+        # Compter les occurrences de chaque plugin
+        plugin_counts = {}
+        self.plugins = []
+        for plugin in plugins:
+            plugin_counts[plugin] = plugin_counts.get(plugin, 0) + 1
+            self.plugins.append((plugin, plugin_counts[plugin]))
         self.current_config = {}
         self.fields_by_plugin = {}
 
     def compose(self) -> ComposeResult:
+        """Compose the plugin configuration screen"""
+        # Titre principal
         yield Header()
         
-        with ScrollableContainer(id="config-container"):
-            for plugin in self.plugins:
-                yield self._create_plugin_config(plugin)
-            
-        with Horizontal(id="button-container"):
+        # Conteneur principal pour les plugins
+        with Container(id="plugin-config-container"):
+            # Créer un conteneur de configuration pour chaque plugin
+            for plugin, instance_number in self.plugins:
+                plugin_info = self.plugins_by_id.get(plugin, {})
+                
+                # Créer le conteneur de configuration du plugin
+                plugin_container = self._create_plugin_config(
+                    (plugin, plugin_info, instance_number)
+                )
+                
+                yield plugin_container
+        
+        # Conteneur des boutons
+        with Container(id="button-container"):
+            yield Button("Valider", id="validate", variant="primary")
             yield Button("Annuler", id="cancel", variant="error")
-            yield Button("Executer", id="validate", variant="primary")
-            
+        
         yield Footer()
 
-    def _create_plugin_config(self, plugin: str) -> Widget:
+    def _create_plugin_config(self, plugin_info: tuple) -> Widget:
         """Create configuration fields for a plugin"""
+        plugin, instance_number = plugin_info
         settings_path = os.path.join(os.path.dirname(__file__), '..', 'plugins', plugin, 'settings.yml')
         try:
             with open(settings_path, 'r') as f:
@@ -448,7 +421,8 @@ class PluginConfig(Screen):
             return Container()
             
         # Stocker les champs pour pouvoir les retrouver plus tard
-        self.fields_by_plugin[plugin] = {}
+        if plugin not in self.fields_by_plugin:
+            self.fields_by_plugin[plugin] = {}
         fields_by_id = {}
 
         name = settings.get('name', plugin)
@@ -461,7 +435,7 @@ class PluginConfig(Screen):
             field_config['id'] = field_id
             config_fields.append(field_config)
         
-        return PluginConfigContainer(
+        container = PluginConfigContainer(
             plugin=plugin,
             name=name,
             icon=icon,
@@ -469,9 +443,15 @@ class PluginConfig(Screen):
             fields_by_plugin=self.fields_by_plugin,
             fields_by_id=fields_by_id,
             config_fields=config_fields,
-            id=f"plugin_{plugin}",
+            instance_number=instance_number,
+            id=f"plugin_{plugin}_{instance_number}",
             classes="plugin-config"
         )
+        
+        # Stocker les champs dans le dictionnaire du plugin
+        self.fields_by_plugin[plugin][instance_number] = fields_by_id
+        
+        return container
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button presses"""
@@ -480,17 +460,27 @@ class PluginConfig(Screen):
         elif event.button.id == "validate":
             # Collect all field values
             self.current_config = {}
-            for plugin in self.plugins:
-                plugin_fields = self.query(f"#plugin_{plugin} ConfigField")
+            for plugin, instance_number in self.plugins:
+                plugin_key = f"{plugin}_{instance_number}"
+                plugin_fields = self.query(f"#plugin_{plugin}_{instance_number} ConfigField")
                 if plugin_fields:
-                    self.current_config[plugin] = {
+                    # Stocker la configuration sous le nom du plugin (sans numéro d'instance)
+                    if plugin not in self.current_config:
+                        self.current_config[plugin] = []
+                    self.current_config[plugin].append({
                         field.variable_name: field.get_value()
                         for field in plugin_fields
-                    }
+                    })
             
             # Créer la liste des plugins avec leurs infos
             plugin_list = []
-            for plugin in self.plugins:
+            processed_plugins = set()
+            for plugin, instance_number in self.plugins:
+                # Ne traiter chaque plugin qu'une fois pour les infos
+                if plugin in processed_plugins:
+                    continue
+                processed_plugins.add(plugin)
+                
                 # Lire le settings.yml du plugin
                 settings_path = os.path.join('plugins', plugin, 'settings.yml')
                 try:
@@ -501,7 +491,8 @@ class PluginConfig(Screen):
                     plugin_list.append({
                         'plugin': plugin,
                         'name': settings.get('name', plugin),
-                        'icon': settings.get('icon', '📦')
+                        'icon': settings.get('icon', '📦'),
+                        'config': self.current_config.get(plugin, [])
                     })
                 except Exception as e:
                     logger.error(f"Erreur lors de la lecture de {settings_path}: {e}")
@@ -509,7 +500,8 @@ class PluginConfig(Screen):
                     plugin_list.append({
                         'plugin': plugin,
                         'name': plugin,
-                        'icon': '📦'
+                        'icon': '📦',
+                        'config': self.current_config.get(plugin, [])
                     })
             
             # Import here to avoid circular imports
@@ -533,11 +525,13 @@ class PluginConfig(Screen):
         """Handle validate binding"""
         # Collect all field values
         self.current_config = {}
-        for plugin in self.plugins:
-            plugin_fields = self.query(f"#plugin_{plugin} ConfigField")
+        for plugin, instance_number in self.plugins:
+            plugin_fields = self.query(f"#plugin_{plugin}_{instance_number} ConfigField")
             if plugin_fields:
-                self.current_config[plugin] = {
+                if plugin not in self.current_config:
+                    self.current_config[plugin] = []
+                self.current_config[plugin].append({
                     field.variable_name: field.get_value()
                     for field in plugin_fields
-                }
-        self.app.pop_screen()
+                })
+        self.app.pop_screen(self.current_config)

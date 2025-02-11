@@ -1,0 +1,17 @@
+2025-02-11 09:23:51,936 - __main__ - DEBUG - Exécution en mode ligne de commande
+2025-02-11 09:23:51,936 - __main__ - ERROR - Arguments invalides
+2025-02-11 09:25:15,524 - __main__ - DEBUG - Exécution en mode ligne de commande
+2025-02-11 09:25:15,524 - __main__ - ERROR - Arguments invalides. Usage: plugins/python_progress_test/main.py <test_name> [test_complexity]
+2025-02-11 09:26:56,878 - __main__ - DEBUG - Exécution en mode ligne de commande
+2025-02-11 09:26:56,878 - __main__ - ERROR - Arguments invalides. Usage: main.py <test_name> [test_complexity]
+2025-02-11 09:28:03,138 - __main__ - DEBUG - Exécution en mode ligne de commande
+2025-02-11 09:28:03,138 - __main__ - ERROR - Arguments invalides. Usage: main.py <test_name> [test_complexity]
+2025-02-11 09:29:18,959 - __main__ - DEBUG - Exécution en mode ligne de commande
+2025-02-11 09:29:18,959 - __main__ - DEBUG - sys.argv complet: ['plugins/python_progress_test/main.py']
+2025-02-11 09:29:18,959 - __main__ - DEBUG - Nombre d'arguments: 1
+2025-02-11 09:29:18,959 - __main__ - DEBUG - Argument 0: 'plugins/python_progress_test/main.py'
+2025-02-11 09:29:18,959 - __main__ - DEBUG - Nom du script: main.py
+2025-02-11 09:29:18,959 - __main__ - DEBUG - Chemin complet du script: plugins/python_progress_test/main.py
+2025-02-11 09:29:18,959 - __main__ - DEBUG - Répertoire de travail courant: /media/nico/Drive/install
+2025-02-11 09:29:18,959 - __main__ - DEBUG - Chemin du script: /media/nico/Drive/install/plugins/python_progress_test/main.py
+2025-02-11 09:29:18,959 - __main__ - ERROR - Arguments invalides. Usage: main.py <test_name> [test_complexity]

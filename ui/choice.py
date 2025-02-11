@@ -76,7 +76,7 @@ class PluginListItem(Horizontal):
         name = self.plugin_info.get('name', self.plugin_name)
         icon = self.plugin_info.get('icon', '📦')
         yield Label(f"{self.index}. {icon} {name}", classes="plugin-list-name")
-        yield Button("❌", id=f"remove_{self.plugin_name}", variant="error", classes="remove-button")
+        yield Button("❌", id=f"remove_{self.index}", variant="error", classes="remove-button")
 
     def on_mount(self) -> None:
         self.styles.align_horizontal = "left"
@@ -98,7 +98,7 @@ class SelectedPluginsPanel(Static):
 
     def update_plugins(self, plugins: list) -> None:
         """Update the display when selected plugins change"""
-        self.selected_plugins = plugins
+        # Mettre à jour l'affichage
         container = self.query_one("#selected-plugins-list", Container)
         container.remove_children()
         
@@ -106,6 +106,7 @@ class SelectedPluginsPanel(Static):
             container.mount(Label("Aucun plugin sélectionné", classes="no-plugins"))
             return
 
+        # Créer une nouvelle liste d'éléments avec les index mis à jour
         for idx, plugin in enumerate(plugins, 1):
             item = PluginListItem(plugin, idx)
             container.mount(item)
@@ -115,14 +116,29 @@ class SelectedPluginsPanel(Static):
         if event.button.id == "configure_selected":
             await self.app.action_configure_selected()
         elif event.button.id and event.button.id.startswith('remove_'):
-            plugin_to_remove = event.button.id.replace('remove_', '')
-            # Update the plugin card to show as unselected
-            for card in self.app.query(PluginCard):
-                if card.plugin_name == plugin_to_remove:
-                    card.selected = False
-                    card.update_styles()
-                    # This will trigger on_plugin_card_plugin_selection_changed
-                    self.app.post_message(card.PluginSelectionChanged(plugin_to_remove, False))
+            # Extraire l'index du plugin à supprimer
+            remove_index = int(event.button.id.replace('remove_', '')) - 1
+            
+            # Vérifier si l'index est valide
+            if 0 <= remove_index < len(self.app.selected_plugins):
+                # Récupérer le nom du plugin à supprimer
+                plugin_to_remove = self.app.selected_plugins[remove_index]
+                
+                # Supprimer le plugin à l'index spécifique
+                del self.app.selected_plugins[remove_index]
+                
+                # Mettre à jour l'affichage
+                self.update_plugins(self.app.selected_plugins)
+                
+                # Mettre à jour la carte du plugin supprimé si nécessaire
+                for card in self.app.query(PluginCard):
+                    if card.plugin_name == plugin_to_remove:
+                        # Désélectionner uniquement si le plugin n'est plus dans la liste
+                        if plugin_to_remove not in self.app.selected_plugins:
+                            card.selected = False
+                            card.update_styles()
+                            self.app.post_message(card.PluginSelectionChanged(plugin_to_remove, False))
+                        break
 
 
 class Choice(App):
@@ -165,14 +181,48 @@ class Choice(App):
 
     def on_plugin_card_plugin_selection_changed(self, message: PluginCard.PluginSelectionChanged) -> None:
         """Handle plugin selection changes"""
-        if message.selected and message.plugin_name not in self.selected_plugins:
-            self.selected_plugins.append(message.plugin_name)
-        elif not message.selected and message.plugin_name in self.selected_plugins:
-            self.selected_plugins.remove(message.plugin_name)
+        # Charger les infos du plugin
+        settings_path = os.path.join('plugins', message.plugin_name, 'settings.yml')
+        try:
+            with open(settings_path, 'r') as f:
+                plugin_info = yaml.safe_load(f)
+        except Exception as e:
+            print(f"Error loading plugin info: {e}")
+            plugin_info = {}
+        
+        # Vérifier si le plugin permet la sélection multiple
+        allows_multiple = plugin_info.get('multiple', False)
+        print(f"Plugin {message.plugin_name} allows multiple: {allows_multiple}")
+        
+        # Compter combien de fois ce plugin est déjà dans la liste
+        plugin_count = self.selected_plugins.count(message.plugin_name)
+        
+        if message.selected or allows_multiple:
+            # Pour les plugins multiples ou non encore présents
+            if allows_multiple or plugin_count == 0:
+                self.selected_plugins.append(message.plugin_name)
+                print(f"Added plugin: {message.plugin_name}")
+            else:
+                # Pour les plugins non multiples déjà présents
+                self.selected_plugins.remove(message.plugin_name)
+                print(f"Removed plugin: {message.plugin_name}")
+        else:
+            # Retirer le plugin quand on clique pour désélectionner
+            if message.plugin_name in self.selected_plugins:
+                self.selected_plugins.remove(message.plugin_name)
+                print(f"Removed plugin: {message.plugin_name}")
+
+        print(f"Current selected plugins: {self.selected_plugins}")
 
         # Update the panel
         panel = self.query_one("#selected-plugins", SelectedPluginsPanel)
         panel.update_plugins(self.selected_plugins)
+        
+        # Mise à jour visuelle des cartes de plugins
+        for card in self.query(PluginCard):
+            # Mettre à jour l'état des cartes
+            card.selected = card.plugin_name in self.selected_plugins
+            card.update_styles()
 
     async def action_configure_selected(self) -> None:
         """Configure selected plugins"""

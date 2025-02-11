@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 
 def setup_logging():
     """Configure le système de logging"""
@@ -8,13 +9,19 @@ def setup_logging():
     
     log_file = os.path.join(log_dir, 'debug.log')
     
+    # Configuration du logger racine
     logging.basicConfig(
         level=logging.DEBUG,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        format='%(asctime)s | %(name)s | %(levelname)s | %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
         handlers=[
-            logging.FileHandler(log_file, mode='w'),
-            logging.StreamHandler()
+            # Fichier de log
+            logging.FileHandler(log_file, mode='w', encoding='utf-8')
         ]
     )
     
-    return logging.getLogger('install_ui')
+    # Configurer un logger spécifique pour l'interface utilisateur
+    logger = logging.getLogger('install_ui')
+    logger.setLevel(logging.DEBUG)
+    
+    return logger

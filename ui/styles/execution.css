@@ -1,35 +1,50 @@
-#title {
+#fixed-header {
     width: 100%;
-    height: 3;
-    content-align: center middle;
-    background: $primary;
-    color: $text;
+    height: auto;
+    max-height: 20vh;
+    background: $surface;
+    border-bottom: solid $primary;
+    dock: top;
+    padding: 1;
+    overflow: auto;
 }
 
-#execution-container {
+#title {
     width: 100%;
-    height: 100%;
-    background: $surface;
+    content-align: center middle;
+    color: $text;
     padding: 1;
+    text-style: bold;
+}
+
+#plugins-container {
+    width: 100%;
+    height: 40vh;
+    background: $surface;
+    layout: vertical;
+    padding: 1;
+    overflow-y: auto;
 }
 
 .controls-section {
-    margin: 1;
-    height: 3;
-    width: 30%;
+    height: auto;
+    width: 100%;
     align: center middle;
-    margin-left: auto;
-    margin-right: auto;
+    align-horizontal: center;
+    padding: 1;
+}
+
+.controls-section Button {
+    min-width: 15;
 }
 
 .progress-section {
-    margin: 1;
-    height: 4;
+    height: auto;
     width: 90%;
-    margin-left: auto;
-    margin-right: auto;
+    align-horizontal: center;
     background: $boost;
-    border: tall $primary;
+    border: solid $primary;
+    margin: 1;
     padding: 1;
 }
 
@@ -40,13 +55,12 @@
 }
 
 .plugin-execution {
-    margin: 1;
     border: heavy $primary;
     height: auto;
     background: $boost;
     width: 95%;
-    margin-left: auto;
-    margin-right: auto;
+    align-horizontal: center;
+    margin: 1;
 }
 
 .plugin-header {
@@ -55,45 +69,35 @@
     color: $text;
     padding: 0 1;
     margin-bottom: 1;
+    width: 100%;
 }
 
 .plugin-title {
-    width: 70%;
+    width: 60%;
     content-align: left middle;
+    padding: 0 1;
 }
 
 .plugin-status {
     width: 30%;
     content-align: right middle;
+    padding: 0 1;
 }
 
 .log-output {
-    margin: 1;
     height: auto;
     min-height: 15;
     background: $surface;
     color: $text;
     border: solid $primary;
-    padding: 1;
     width: 98%;
-    margin-left: auto;
-    margin-right: auto;
+    align-horizontal: center;
+    margin: 1;
+    padding: 1;
 }
 
 #start {
     margin-right: 1;
-}
-
-.plugin-title {
-    width: 70%;
-    content-align: left middle;
-    padding: 0 1;
-}
-
-.plugin-status {
-    width: 30%;
-    content-align: right middle;
-    padding: 0 1;
 }
 
 .plugin-status.running {
@@ -123,4 +127,61 @@ Log {
 ProgressBar {
     width: 100%;
     margin: 1 0;
+}
+
+.toggle-logs {
+    width: 10%;
+    min-width: 3;
+    background: $boost;
+    border: tall $primary;
+    content-align: center middle;
+    color: $text;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.toggle-logs:hover {
+    background: $primary-lighten-1;
+    opacity: 1;
+}
+
+#logs-container {
+    width: 100%;
+    height: 20vh;
+    background: $boost;
+    border-top: tall $primary;
+    dock: bottom;
+    padding: 1;
+    overflow-y: auto;
+}
+
+.logs-title {
+    width: 100%;
+    content-align: center middle;
+    text-style: bold;
+    padding-bottom: 1;
+}
+
+.central-logs {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    background: $surface;
+    color: $text;
+    padding: 1;
+    border: solid $primary;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.hidden {
+    display: none;
+}
+
+Screen {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+    height: 50vh;
+    width: 80vw;
 }

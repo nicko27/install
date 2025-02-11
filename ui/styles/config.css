@@ -19,12 +19,22 @@ Screen {
     background: $surface;
 }
 
-.plugin-config {
-    background: $panel;
-    margin: 1;
+#plugin-config-container {
+    layout: grid;
+    grid-columns: 3;
     padding: 1;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.plugin-config {
+    background: $surface;
     border: tall $primary;
-    height: auto;
+    padding: 1;
+    margin: 1;
+    max-height: 50vh;
+    overflow-y: auto;
+    layout: vertical;
 }
 
 #button-container {
@@ -33,6 +43,7 @@ Screen {
     align-horizontal: right;
     padding: 1 2;
     min-height: 5;
+    layout: horizontal;
 }
 
 #button-container Button {
@@ -101,16 +112,4 @@ ConfigField.disabled Select {
 
 .no-config {
     color: $text-muted;
-}
-
-#button-container {
-    width: 100%;
-    height: 3;
-    align: right middle;
-    padding: 0 1;
-}
-
-#button-container Button {
-    margin-left: 1;
-    min-width: 15;
 }
