@@ -200,15 +200,27 @@ class SelectField(ConfigField):
         if not self.value or self.value not in available_values:
             self.value = available_values[0] if available_values else None
             
-        # Trouver le label correspondant à la valeur actuelle
-        value_label = next((opt[1] for opt in self.options if opt[0] == self.value), None)
+        # Convertir les options en tuples (label, value)
+        select_options = []
+        for opt in available_values:
+            if isinstance(opt, dict):
+                # Format dictionnaire avec label/value
+                select_options.append((opt['label'], opt['value']))
+            else:
+                # Format chaîne simple
+                select_options.append((str(opt), str(opt)))
         
-        # Créer les options dans le format (label, value) pour le Select
-        select_options = [(opt[1], opt[1]) for opt in self.options]
+        # S'assurer que value_label est une chaîne et non un dictionnaire
+        selected_value = None
+        if self.value:
+            if isinstance(self.value, dict):
+                selected_value = self.value.get('value')
+            else:
+                selected_value = str(self.value)
             
         self.select = Select(
             options=select_options,
-            value=value_label,
+            value=selected_value,
             id=f"select_{self.field_id}",
             allow_blank=self.field_config.get('allow_blank', False)
         )
@@ -483,7 +495,9 @@ class PluginConfig(Screen):
             for plugin_name, instance_id in self.plugin_instances:
                 plugin_fields = self.query(f"#plugin_{plugin_name}_{instance_id} ConfigField")
                 if plugin_fields:
-                    self.current_config[f"{plugin_name}_{instance_id}"] = {
+                    # Stocker la configuration avec l'ID d'instance
+                    config_key = f"{plugin_name}_{instance_id}"
+                    self.current_config[config_key] = {
                         field.variable_name: field.get_value()
                         for field in plugin_fields
                     }
@@ -499,16 +513,18 @@ class PluginConfig(Screen):
                     
                     # Ajouter les infos du plugin
                     plugin_list.append({
-                        'plugin': plugin,
-                        'name': settings.get('name', plugin),
+                        'plugin': plugin_name,
+                        'instance_id': instance_id,
+                        'name': settings.get('name', plugin_name),
                         'icon': settings.get('icon', '📦')
                     })
                 except Exception as e:
                     logger.error(f"Erreur lors de la lecture de {settings_path}: {e}")
                     # Fallback sur les valeurs par défaut
                     plugin_list.append({
-                        'plugin': plugin,
-                        'name': plugin,
+                        'plugin': plugin_name,
+                        'instance_id': instance_id,
+                        'name': plugin_name,
                         'icon': '📦'
                     })
             
