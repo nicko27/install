@@ -19,8 +19,9 @@ def parse_model_file(file_path):
 
 def get_printer_models():
     """Récupère la liste des modèles d'imprimantes depuis le répertoire des modèles"""
-    # Utiliser le répertoire modeles de l'ancien script
-    models_dir = "/media/nico/Drive/install.sh.extract/imprimantes/modeles"
+    # Utiliser le répertoire modeles relatif au script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    models_dir = os.path.join(script_dir, "models")
     options = []
     
     if not os.path.exists(models_dir):
