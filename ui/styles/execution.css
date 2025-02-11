@@ -11,23 +11,40 @@
     height: 100%;
     background: $surface;
     padding: 1;
+    layout: grid;
+    grid-size: 1;
+    grid-rows: 4 2 1fr auto;
+    grid-gutter: 1;
 }
 
 .controls-section {
-    margin: 1;
+    width: 100%;
     height: 3;
-    width: 30%;
     align: center middle;
-    margin-left: auto;
-    margin-right: auto;
+    background: $boost;
+    padding: 1;
+}
+
+.controls-section #start {
+    width: 15%;
+    margin-right: 2;
+}
+
+.controls-section .progress-label {
+    width: 20%;
+    content-align: right middle;
+    padding-right: 1;
+}
+
+.controls-section #global-progress {
+    width: 1fr;
 }
 
 .progress-section {
     margin: 1;
     height: 4;
     width: 90%;
-    margin-left: auto;
-    margin-right: auto;
+    align-horizontal: center;
     background: $boost;
     border: tall $primary;
     padding: 1;
@@ -39,14 +56,52 @@
     text-style: bold;
 }
 
-.plugin-execution {
+#plugins-list {
+    width: 100%;
+    height: 100%;
+    background: $surface;
+    border: solid $primary;
+}
+
+.plugin-status-container {
     margin: 1;
-    border: heavy $primary;
-    height: auto;
+    padding: 1;
     background: $boost;
-    width: 95%;
-    margin-left: auto;
-    margin-right: auto;
+    border: heavy $primary;
+}
+
+.plugin-header {
+    height: 3;
+    margin-bottom: 1;
+}
+
+.plugin-title {
+    color: $text;
+    text-style: bold;
+    width: 70%;
+}
+
+.plugin-state {
+    width: 30%;
+    text-align: right;
+}
+
+.plugin-state.waiting {
+    color: $warning;
+}
+
+.config-values {
+    margin-left: 2;
+}
+
+.config-key {
+    width: 30%;
+    color: $text-muted;
+}
+
+.config-value {
+    width: 70%;
+    color: $text;
 }
 
 .plugin-header {
@@ -67,21 +122,24 @@
     content-align: right middle;
 }
 
-.log-output {
-    margin: 1;
-    height: auto;
-    min-height: 15;
+#logs-container {
+    width: 100%;
+    height: 20;
     background: $surface;
-    color: $text;
     border: solid $primary;
     padding: 1;
-    width: 98%;
-    margin-left: auto;
-    margin-right: auto;
 }
 
-#start {
-    margin-right: 1;
+#logs-container.hidden {
+    display: none;
+}
+
+#last-operation {
+    width: 100%;
+    height: 100%;
+    background: $boost;
+    content-align: center middle;
+    color: $text;
 }
 
 .plugin-title {

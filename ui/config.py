@@ -190,37 +190,21 @@ class SelectField(ConfigField):
     def compose(self) -> ComposeResult:
         yield from super().compose()
         
+        # Récupérer les options au format (value, label)
         self.options = self._get_options()
         if not self.options:
             logger.warning(f"No options available for select {self.field_id}")
             self.options = [("none", "Aucune option disponible")]
-            
-        # S'assurer que la valeur par défaut est dans les options
-        available_values = [opt[0] for opt in self.options]
-        if not self.value or self.value not in available_values:
-            self.value = available_values[0] if available_values else None
-            
-        # Convertir les options en tuples (label, value)
-        select_options = []
-        for opt in available_values:
-            if isinstance(opt, dict):
-                # Format dictionnaire avec label/value
-                select_options.append((opt['label'], opt['value']))
-            else:
-                # Format chaîne simple
-                select_options.append((str(opt), str(opt)))
         
-        # S'assurer que value_label est une chaîne et non un dictionnaire
-        selected_value = None
-        if self.value:
-            if isinstance(self.value, dict):
-                selected_value = self.value.get('value')
-            else:
-                selected_value = str(self.value)
-            
+        # S'assurer que la valeur par défaut est dans les options disponibles
+        available_values = [opt[1] for opt in self.options]  # La valeur est en deuxième position
+        if not self.value or str(self.value) not in available_values:
+            self.value = available_values[0] if available_values else None
+        
+        # Créer le composant Select avec les options
         self.select = Select(
-            options=select_options,
-            value=selected_value,
+            options=self.options,  # Les options sont déjà au bon format (value, label)
+            value=self.value,
             id=f"select_{self.field_id}",
             allow_blank=self.field_config.get('allow_blank', False)
         )
@@ -238,7 +222,8 @@ class SelectField(ConfigField):
         """Get options for the select field, either static or dynamic"""
         if 'options' in self.field_config:
             logger.debug(f"Using static options: {self.field_config['options']}")
-            return [(opt, opt) for opt in self.field_config['options']]
+            # Pour les options statiques, utiliser la valeur comme label
+            return [(str(opt), str(opt)) for opt in self.field_config['options']]
         
         if 'dynamic_options' in self.field_config:
             dynamic_config = self.field_config['dynamic_options']
@@ -269,7 +254,7 @@ class SelectField(ConfigField):
                 data = getattr(module, func_name)()
                 logger.debug(f"Got data: {data}")
                 
-                        # Format the options using the template or label_key
+                # Format the options using the template or label_key
                 value_key = dynamic_config.get('value_key', 'value')
                 label_template = dynamic_config.get('label_template')
                 label_key = dynamic_config.get('label_key', 'label')
@@ -281,12 +266,17 @@ class SelectField(ConfigField):
                 
                 options = []
                 for item in data:
-                    value = str(item.get(value_key, ''))
-                    if label_template:
-                        label = label_template.format(**item)
+                    if isinstance(item, dict):
+                        value = str(item.get(value_key, ''))
+                        if label_template:
+                            label = label_template.format(**item)
+                        else:
+                            label = str(item.get(label_key, value))
                     else:
-                        label = str(item.get(label_key, value))
-                    options.append((value, label))
+                        # Si l'item n'est pas un dict, utiliser la même valeur pour value et label
+                        value = str(item)
+                        label = str(item)
+                    options.append((label, value))  # Inverser l'ordre pour le composant Select
                 logger.debug(f"Final options: {options}")
                 return options
                 
@@ -302,11 +292,8 @@ class SelectField(ConfigField):
 
     def on_select_changed(self, event: Select.Changed) -> None:
         if event.select.id == f"select_{self.field_id}":
-            # event.value contient le label, trouver la valeur correspondante
-            self.value = next((opt[0] for opt in self.options if opt[1] == event.value), None)
-            logger.debug(f"Select changed to: {self.value} (label: {event.value})")
-            if self.value is None:
-                logger.error(f"Could not find value for label: {event.value}")
+            self.value = event.value  # event.value contient déjà la valeur (pas le label)
+            logger.debug(f"Select changed to: {self.value}")
             
     def get_value(self) -> str:
         """Get the current value"""
@@ -529,10 +516,10 @@ class PluginConfig(Screen):
                     })
             
             # Import here to avoid circular imports
-            from .execution import PluginExecution
+            from .execution import ExecutionScreen
             
             # Créer l'écran d'exécution
-            execution_screen = PluginExecution(plugin_list, self.current_config)
+            execution_screen = ExecutionScreen(self.current_config)
             
             # Remplacer l'écran actuel par l'écran d'exécution
             self.app.switch_screen(execution_screen)
