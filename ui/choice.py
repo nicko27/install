@@ -38,9 +38,23 @@ class PluginCard(Static):
 
     def on_click(self) -> None:
         """Handle click to select/deselect plugin"""
-        self.selected = not self.selected
-        self.update_styles()
-        self.app.post_message(self.PluginSelectionChanged(self.plugin_name, self.selected))
+        # Vérifier si le plugin est multiple
+        settings_path = os.path.join('plugins', self.plugin_name, 'settings.yml')
+        try:
+            with open(settings_path, 'r') as f:
+                settings = yaml.safe_load(f)
+                multiple = settings.get('multiple', False)
+        except Exception:
+            multiple = False
+
+        # Si le plugin est multiple et déjà sélectionné, on ajoute une nouvelle instance
+        if multiple and self.selected:
+            self.app.post_message(self.PluginSelectionChanged(self.plugin_name, True, self))
+        else:
+            # Sinon, on bascule l'état et on envoie le message approprié
+            self.selected = not self.selected
+            self.update_styles()
+            self.app.post_message(self.PluginSelectionChanged(self.plugin_name, self.selected, self))
 
     def update_styles(self):
         """Update card styles based on selection state"""
@@ -51,16 +65,17 @@ class PluginCard(Static):
 
     class PluginSelectionChanged(Message):
         """Message sent when plugin selection changes"""
-        def __init__(self, plugin_name: str, selected: bool):
+        def __init__(self, plugin_name: str, selected: bool, source: Widget):
             super().__init__()
             self.plugin_name = plugin_name
             self.selected = selected
+            self.source = source
 
 
 class PluginListItem(Horizontal):
-    def __init__(self, plugin_name: str, index: int):
+    def __init__(self, plugin_data: tuple, index: int):
         super().__init__()
-        self.plugin_name = plugin_name
+        self.plugin_name, self.instance_id = plugin_data
         self.index = index
         self.plugin_info = self._load_plugin_info()
 
@@ -75,8 +90,8 @@ class PluginListItem(Horizontal):
     def compose(self) -> ComposeResult:
         name = self.plugin_info.get('name', self.plugin_name)
         icon = self.plugin_info.get('icon', '📦')
-        yield Label(f"{self.index}. {icon} {name}", classes="plugin-list-name")
-        yield Button("❌", id=f"remove_{self.plugin_name}", variant="error", classes="remove-button")
+        yield Label(f"{self.index}. {icon} {name} ({self.instance_id})", classes="plugin-list-name")
+        yield Button("❌", id=f"remove_{self.plugin_name}_{self.instance_id}", variant="error", classes="remove-button")
 
     def on_mount(self) -> None:
         self.styles.align_horizontal = "left"
@@ -115,14 +130,25 @@ class SelectedPluginsPanel(Static):
         if event.button.id == "configure_selected":
             await self.app.action_configure_selected()
         elif event.button.id and event.button.id.startswith('remove_'):
-            plugin_to_remove = event.button.id.replace('remove_', '')
-            # Update the plugin card to show as unselected
-            for card in self.app.query(PluginCard):
-                if card.plugin_name == plugin_to_remove:
-                    card.selected = False
-                    card.update_styles()
-                    # This will trigger on_plugin_card_plugin_selection_changed
-                    self.app.post_message(card.PluginSelectionChanged(plugin_to_remove, False))
+            # Extraire l'ID d'instance (dernier élément après le dernier _)
+            parts = event.button.id.replace('remove_', '').split('_')
+            instance_id = int(parts[-1])
+            # Le nom du plugin est tout ce qui est entre 'remove_' et le dernier _
+            plugin_name = '_'.join(parts[:-1])
+            
+            # Retirer l'instance spécifique de la liste
+            self.app.selected_plugins = [(p, i) for p, i in self.app.selected_plugins if not (p == plugin_name and i == instance_id)]
+            
+            # Mettre à jour l'affichage
+            self.update_plugins(self.app.selected_plugins)
+            
+            # Si c'était la dernière instance du plugin, on peut mettre à jour la carte
+            if not any(p == plugin_name for p, _ in self.app.selected_plugins):
+                for card in self.app.query(PluginCard):
+                    if card.plugin_name == plugin_name:
+                        card.selected = False
+                        card.update_styles()
+                        self.app.post_message(card.PluginSelectionChanged(plugin_name, False, card))
 
 
 class Choice(App):
@@ -135,7 +161,8 @@ class Choice(App):
     
     def __init__(self):
         super().__init__()
-        self.selected_plugins = []
+        self.selected_plugins = []  # Cette liste contiendra maintenant des tuples (plugin_name, instance_id)
+        self.instance_counter = {}  # Pour suivre le nombre d'instances de chaque plugin
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -165,10 +192,34 @@ class Choice(App):
 
     def on_plugin_card_plugin_selection_changed(self, message: PluginCard.PluginSelectionChanged) -> None:
         """Handle plugin selection changes"""
-        if message.selected and message.plugin_name not in self.selected_plugins:
-            self.selected_plugins.append(message.plugin_name)
-        elif not message.selected and message.plugin_name in self.selected_plugins:
-            self.selected_plugins.remove(message.plugin_name)
+        # Charger les settings du plugin pour vérifier s'il peut être sélectionné plusieurs fois
+        settings_path = os.path.join('plugins', message.plugin_name, 'settings.yml')
+        try:
+            with open(settings_path, 'r') as f:
+                settings = yaml.safe_load(f)
+                multiple = settings.get('multiple', False)
+        except Exception:
+            multiple = False
+
+        # Si le message indique une sélection
+        if message.selected:
+            # Si c'est un plugin multiple ou pas encore sélectionné
+            if multiple or not any(p[0] == message.plugin_name for p in self.selected_plugins):
+                # Incrémenter le compteur d'instances pour ce plugin
+                if message.plugin_name not in self.instance_counter:
+                    self.instance_counter[message.plugin_name] = 0
+                self.instance_counter[message.plugin_name] += 1
+                
+                # Ajouter le plugin avec son ID d'instance
+                instance_id = self.instance_counter[message.plugin_name]
+                self.selected_plugins.append((message.plugin_name, instance_id))
+            else:
+                # Si le plugin n'est pas multiple et déjà sélectionné, on annule la sélection
+                message.source.selected = False
+                message.source.update_styles()
+        else:
+            # Désélection : on retire toutes les instances du plugin
+            self.selected_plugins = [(p, i) for p, i in self.selected_plugins if p != message.plugin_name]
 
         # Update the panel
         panel = self.query_one("#selected-plugins", SelectedPluginsPanel)
@@ -182,8 +233,11 @@ class Choice(App):
             self.notify("Aucun plugin sélectionné", severity="error")
             return
             
+        # Passer les plugins avec leurs IDs d'instance
+        plugin_instances = [(p[0], p[1]) for p in self.selected_plugins]
+        
         # Lancer l'interface de configuration
-        config_app = PluginConfig(self.selected_plugins)
+        config_app = PluginConfig(plugin_instances)
         result = await self.push_screen(config_app)
         
         if result:

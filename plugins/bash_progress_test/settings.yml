@@ -1,0 +1,28 @@
+name: Test de Progression Bash
+description: Plugin de test avancé avec progression et configuration en Bash
+version: 1.0
+category: Test
+multiple: true
+icon: 🐚
+config_fields:
+  test_name:
+    type: text
+    label: Nom du Test
+    description: Nom descriptif du test Bash
+    required: true
+    placeholder: "Ex: TestBash"
+    validate: no_spaces
+    default: "BashTest1"
+
+  test_intensity:
+    type: select
+    label: Intensité du Test
+    description: Sélectionner le niveau d'intensité du test
+    required: true
+    options:
+      - value: light
+        label: Léger
+      - value: medium
+        label: Moyen
+      - value: heavy
+        label: Intense

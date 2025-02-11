@@ -20,14 +20,10 @@ Choice {
 }
 
 #selected-plugins-list {
-    overflow-y: auto;
-    border: tall $background;
-    padding: 1;
+    margin: 1 0;
 }
 
 #selected-plugins-list Horizontal {
-    layout: horizontal;
-    width: 100%;
     margin-bottom: 1;
     height: 3;
     align: left middle;
@@ -47,24 +43,40 @@ Choice {
 }
 
 #plugin-cards {
-    layout: grid;
-    grid-size: 3;
-    grid-gutter: 1;
     height: 100%;
-    width: 100%;
+    align: center middle;
+}
+
+.section-title {
+    text-align: center;
+    color: $accent;
+    margin-bottom: 1;
+}
+
+.plugin-name {
+    color: $accent;
+}
+
+.plugin-description {
+    color: $text-muted;
 }
 
 PluginCard {
-    width: 100%;
-    margin: 1;
-    padding: 1;
     border: tall $background;
     background: $surface;
+    margin: 1 2;
+    padding: 1 2;
+    border-title-color: $accent;
+    width: 30%;
 }
 
 PluginCard.selected {
     border-title-color: $success;
     background: $surface-active;
+}
+
+#selected-plugins-list {
+    margin: 1 0;
 }
 
 .panel-title {
@@ -76,14 +88,4 @@ PluginCard.selected {
     color: $text-muted;
     text-align: center;
     padding: 2;
-}
-
-.section-title {
-    text-align: center;
-    color: $accent;
-    margin-bottom: 1;
-}
-
-.plugin-description {
-    color: $text-muted;
 }

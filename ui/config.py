@@ -418,9 +418,9 @@ class PluginConfig(Screen):
     ]
     CSS_PATH = os.path.join(os.path.dirname(__file__), "styles/config.css")
 
-    def __init__(self, plugins: list, name: str | None = None) -> None:
+    def __init__(self, plugin_instances: list, name: str | None = None) -> None:
         super().__init__(name=name)
-        self.plugins = plugins
+        self.plugin_instances = plugin_instances  # Liste de tuples (plugin_name, instance_id)
         self.current_config = {}
         self.fields_by_plugin = {}
 
@@ -428,8 +428,8 @@ class PluginConfig(Screen):
         yield Header()
         
         with ScrollableContainer(id="config-container"):
-            for plugin in self.plugins:
-                yield self._create_plugin_config(plugin)
+            for plugin_name, instance_id in self.plugin_instances:
+                yield self._create_plugin_config(plugin_name, instance_id)
             
         with Horizontal(id="button-container"):
             yield Button("Annuler", id="cancel", variant="error")
@@ -437,7 +437,7 @@ class PluginConfig(Screen):
             
         yield Footer()
 
-    def _create_plugin_config(self, plugin: str) -> Widget:
+    def _create_plugin_config(self, plugin: str, instance_id: int) -> Widget:
         """Create configuration fields for a plugin"""
         settings_path = os.path.join(os.path.dirname(__file__), '..', 'plugins', plugin, 'settings.yml')
         try:
@@ -469,7 +469,7 @@ class PluginConfig(Screen):
             fields_by_plugin=self.fields_by_plugin,
             fields_by_id=fields_by_id,
             config_fields=config_fields,
-            id=f"plugin_{plugin}",
+            id=f"plugin_{plugin}_{instance_id}",
             classes="plugin-config"
         )
 
@@ -480,19 +480,19 @@ class PluginConfig(Screen):
         elif event.button.id == "validate":
             # Collect all field values
             self.current_config = {}
-            for plugin in self.plugins:
-                plugin_fields = self.query(f"#plugin_{plugin} ConfigField")
+            for plugin_name, instance_id in self.plugin_instances:
+                plugin_fields = self.query(f"#plugin_{plugin_name}_{instance_id} ConfigField")
                 if plugin_fields:
-                    self.current_config[plugin] = {
+                    self.current_config[f"{plugin_name}_{instance_id}"] = {
                         field.variable_name: field.get_value()
                         for field in plugin_fields
                     }
             
             # Créer la liste des plugins avec leurs infos
             plugin_list = []
-            for plugin in self.plugins:
+            for plugin_name, instance_id in self.plugin_instances:
                 # Lire le settings.yml du plugin
-                settings_path = os.path.join('plugins', plugin, 'settings.yml')
+                settings_path = os.path.join('plugins', plugin_name, 'settings.yml')
                 try:
                     with open(settings_path, 'r') as f:
                         settings = yaml.safe_load(f)
