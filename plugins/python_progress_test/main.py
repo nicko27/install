@@ -17,6 +17,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Variables globales pour les callbacks
+progress_callback = None
+status_callback = None
+
+def set_callbacks(progress_cb=None, status_cb=None):
+    """Configure les callbacks pour la progression et le statut"""
+    global progress_callback, status_callback
+    progress_callback = progress_cb
+    status_callback = status_cb
+
 class PythonProgressTest:
     def __init__(self, config):
         """
@@ -29,6 +39,10 @@ class PythonProgressTest:
         self.test_name = config.get('test_name', 'PythonTest')
         self.test_complexity = config.get('test_complexity', 'simple')
         logger.info(f"Test configuré : nom={self.test_name}, complexité={self.test_complexity}")
+        
+        # Mettre à jour le statut initial
+        if status_callback:
+            status_callback("initializing", "Initialisation du test...")
 
     def run_test(self):
         """
@@ -65,9 +79,14 @@ class PythonProgressTest:
                 percentage = int(step * 100 / total_steps)
                 logger.info(f"Progression : {percentage}% (étape {step}/{total_steps})")
                 
+                # Mettre à jour la progression et le statut
+                if progress_callback:
+                    progress_callback(percentage)
+                if status_callback:
+                    status_callback("running", f"Étape {step}/{total_steps}")
+                
                 # Simulation de travail
                 time.sleep(max_delay)
-                
                 # Simulation de calculs complexes
                 for _ in range(1000 * complexity_factor):
                     random.random()

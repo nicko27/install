@@ -222,8 +222,14 @@ class SelectField(ConfigField):
         """Get options for the select field, either static or dynamic"""
         if 'options' in self.field_config:
             logger.debug(f"Using static options: {self.field_config['options']}")
-            # Pour les options statiques, utiliser la valeur comme label
-            return [(str(opt), str(opt)) for opt in self.field_config['options']]
+            # Pour les options statiques
+            options = self.field_config['options']
+            if isinstance(options[0], dict):
+                # Format avec value/label
+                return [(opt['label'], opt['value']) for opt in options]
+            else:
+                # Format simple (même valeur pour label et value)
+                return [(str(opt), str(opt)) for opt in options]
         
         if 'dynamic_options' in self.field_config:
             dynamic_config = self.field_config['dynamic_options']

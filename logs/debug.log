@@ -1,3 +1,8 @@
-2025-02-11 15:49:50,788 - install_ui - DEBUG - Using static options: [{'value': 'simple', 'label': 'Simple'}, {'value': 'moderate', 'label': 'Modéré'}, {'value': 'complex', 'label': 'Complexe'}]
-2025-02-11 15:49:50,827 - install_ui - DEBUG - Select changed to: {'value': 'simple', 'label': 'Simple'}
-2025-02-11 15:49:57,088 - install_ui - DEBUG - Select changed to: {'value': 'moderate', 'label': 'Modéré'}
+2025-02-12 11:16:20,101 - install_ui - DEBUG - Using static options: [{'value': 'simple', 'label': 'Simple'}, {'value': 'moderate', 'label': 'Modéré'}, {'value': 'complex', 'label': 'Complexe'}]
+2025-02-12 11:16:20,111 - install_ui - DEBUG - Using static options: [{'value': 'simple', 'label': 'Simple'}, {'value': 'moderate', 'label': 'Modéré'}, {'value': 'complex', 'label': 'Complexe'}]
+2025-02-12 11:16:20,118 - install_ui - DEBUG - Using static options: [{'value': 'simple', 'label': 'Simple'}, {'value': 'moderate', 'label': 'Modéré'}, {'value': 'complex', 'label': 'Complexe'}]
+2025-02-12 11:16:20,127 - install_ui - DEBUG - Using static options: [{'value': 'simple', 'label': 'Simple'}, {'value': 'moderate', 'label': 'Modéré'}, {'value': 'complex', 'label': 'Complexe'}]
+2025-02-12 11:16:20,222 - install_ui - DEBUG - Select changed to: simple
+2025-02-12 11:16:20,222 - install_ui - DEBUG - Select changed to: simple
+2025-02-12 11:16:20,223 - install_ui - DEBUG - Select changed to: simple
+2025-02-12 11:16:20,224 - install_ui - DEBUG - Select changed to: simple

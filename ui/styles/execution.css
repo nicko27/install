@@ -1,184 +1,113 @@
-#title {
-    width: 100%;
-    height: 3;
-    content-align: center middle;
-    background: $primary;
-    color: $text;
-}
+/* Styles pour l'écran d'exécution */
 
 #execution-container {
     width: 100%;
     height: 100%;
-    background: $surface;
     padding: 1;
-    layout: grid;
-    grid-size: 1;
-    grid-rows: 4 2 1fr auto;
-    grid-gutter: 1;
 }
 
-.controls-section {
-    width: 100%;
-    height: 3;
-    align: center middle;
+#header {
+    dock: top;
+    height: auto;
+    padding: 1;
     background: $boost;
-    padding: 1;
+    border: solid $primary;
 }
 
-.controls-section #start {
-    width: 15%;
-    margin-right: 2;
-}
-
-.controls-section .progress-label {
-    width: 20%;
-    content-align: right middle;
-    padding-right: 1;
-}
-
-.controls-section #global-progress {
-    width: 1fr;
-}
-
-.progress-section {
-    margin: 1;
-    height: 4;
-    width: 90%;
-    align-horizontal: center;
-    background: $boost;
-    border: tall $primary;
-    padding: 1;
-}
-
-.progress-label {
-    padding-bottom: 1;
-    content-align: center middle;
+#title {
     text-style: bold;
+    content-align: center;
+}
+
+#current-plugin {
+    margin: 1 0;
+}
+
+#global-progress {
+    width: 100%;
+    height: 1;
 }
 
 #plugins-list {
-    width: 100%;
-    height: 100%;
+    height: 1fr;
+    border: solid $primary;
     background: $surface;
+    margin: 1 0;
+    padding: 1;
+}
+
+.plugin-container {
+    height: 3;
+    margin-bottom: 1;
+    padding: 1;
     border: solid $primary;
 }
 
-.plugin-status-container {
-    margin: 1;
-    padding: 1;
-    background: $boost;
-    border: heavy $primary;
-}
-
-.plugin-header {
-    height: 3;
-    margin-bottom: 1;
-}
-
-.plugin-title {
-    color: $text;
-    text-style: bold;
-    width: 70%;
-}
-
-.plugin-state {
-    width: 30%;
-    text-align: right;
-}
-
-.plugin-state.waiting {
-    color: $warning;
-}
-
-.config-values {
-    margin-left: 2;
-}
-
-.config-key {
-    width: 30%;
+.plugin-container.waiting {
+    border: solid $primary-darken-2;
     color: $text-muted;
 }
 
-.config-value {
-    width: 70%;
-    color: $text;
+.plugin-container.running {
+    border: solid $warning;
+    background: $warning-darken-3;
 }
 
-.plugin-header {
-    height: 3;
-    background: $primary;
-    color: $text;
-    padding: 0 1;
-    margin-bottom: 1;
+.plugin-container.success {
+    border: solid $success;
+    background: $success-darken-3;
 }
 
-.plugin-title {
-    width: 70%;
+.plugin-container.error {
+    border: solid $error;
+    background: $error-darken-3;
+}
+
+.plugin-name {
+    width: 30%;
     content-align: left middle;
 }
 
 .plugin-status {
     width: 30%;
-    content-align: right middle;
+    content-align: center middle;
+}
+
+.plugin-progress {
+    width: 1fr;
+    height: 1;
 }
 
 #logs-container {
-    width: 100%;
-    height: 20;
-    background: $surface;
+    height: auto;
+    dock: bottom;
     border: solid $primary;
+    background: $surface;
     padding: 1;
 }
 
-#logs-container.hidden {
-    display: none;
+#logs-title {
+    text-style: bold;
+    margin-bottom: 1;
 }
 
-#last-operation {
-    width: 100%;
-    height: 100%;
-    background: $boost;
-    content-align: center middle;
-    color: $text;
-}
-
-.plugin-title {
-    width: 70%;
-    content-align: left middle;
-    padding: 0 1;
-}
-
-.plugin-status {
-    width: 30%;
-    content-align: right middle;
-    padding: 0 1;
-}
-
-.plugin-status.running {
-    color: yellow;
-}
-
-.plugin-status.success {
-    color: green;
-}
-
-.plugin-status.error {
-    color: red;
-}
-
-.plugin-status.stopped {
-    color: gray;
-}
-
-Log {
+#logs-text {
     height: 10;
-    border: tall $primary;
-    background: $boost;
-    margin: 1 0;
+    background: $surface-darken-1;
+    color: $text;
+    border: solid $primary-darken-2;
     padding: 0 1;
+    margin-bottom: 1;
+    overflow-y: scroll;
 }
 
-ProgressBar {
+#clear-logs {
+    dock: right;
+    width: auto;
+}
+
+#start-button {
+    dock: bottom;
     width: 100%;
-    margin: 1 0;
+    margin-top: 1;
 }
