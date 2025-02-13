@@ -1,0 +1,65 @@
+#logs-container {
+    border: solid $primary 1px;
+    margin: 1 1;
+    display: block;
+    background: $success;
+}
+
+#logs-content {
+    height: 100%;
+    padding: 0 1;
+    overflow-y: scroll;
+}
+
+#logs-text {
+    margin: 0;
+    padding: 0;
+}
+
+#logs-title {
+    margin: 0 1;
+    text-style: bold;
+}
+
+.plugin-container {
+    margin: 1 1;
+    padding: 1;
+    border: solid $primary 1px;
+}
+
+.plugin-container.waiting {
+    border-style: dashed;
+}
+
+.plugin-container.running {
+    border-color: $warning;
+    border-style: solid;
+}
+
+.plugin-container.success {
+    border-color: $success;
+}
+
+.plugin-container.error {
+    border-color: $error;
+}
+
+.plugin-status {
+    width: 100%;
+    content-align: center;
+}
+
+#button-container {
+    margin: 1;
+    height: auto;
+    align: center middle;
+}
+
+#progress-zone {
+    width: 100%;
+    align: left middle;
+}
+
+.hidden {
+    display: none;
+}

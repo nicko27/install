@@ -1,6 +1,4 @@
-2025-02-13 10:35:23,770 - install_ui - DEBUG - Using static options: [{'value': 'light', 'label': 'Léger'}, {'value': 'medium', 'label': 'Moyen'}, {'value': 'heavy', 'label': 'Intense'}]
-2025-02-13 10:35:23,781 - install_ui - DEBUG - Using static options: [{'value': 'light', 'label': 'Léger'}, {'value': 'medium', 'label': 'Moyen'}, {'value': 'heavy', 'label': 'Intense'}]
-2025-02-13 10:35:23,873 - install_ui - DEBUG - Select changed to: light
-2025-02-13 10:35:23,874 - install_ui - DEBUG - Select changed to: light
-2025-02-13 10:35:31,317 - install_ui - DEBUG - Clic sur le bouton quit-button
-2025-02-13 10:35:32,341 - install_ui - DEBUG - Clic sur le bouton quit-button
+2025-02-13 10:35:56,957 - install_ui - DEBUG - Using static options: [{'value': 'light', 'label': 'Léger'}, {'value': 'medium', 'label': 'Moyen'}, {'value': 'heavy', 'label': 'Intense'}]
+2025-02-13 10:35:57,034 - install_ui - DEBUG - Select changed to: light
+2025-02-13 10:36:00,998 - install_ui - DEBUG - Clic sur le bouton quit-button
+2025-02-13 10:36:01,697 - install_ui - DEBUG - Clic sur le bouton quit-button
