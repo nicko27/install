@@ -1,13 +1,12 @@
+/* Conteneur principal des logs */
 #logs-container {
-    border: solid $primary 1px;
-    margin: 1 1;
-    display: block;
+    height: 20;
+    width:100%;
+    background: $surface;
 }
 
 #logs-content {
-    height: 100%;
-    padding: 0 1;
-    overflow-y: scroll;
+    height:95%;
 }
 
 #logs-text {
@@ -16,50 +15,91 @@
 }
 
 #logs-title {
-    margin: 0 1;
     text-style: bold;
+    background: $primary;
+    color: $text;
+    padding:0;
 }
 
+/* Conteneur de plugin avec sa progressbar */
 .plugin-container {
-    margin: 1 1;
+    margin: 1;
     padding: 1;
-    border: solid $primary 1px;
-    background: $success;
+    height: 5;
+    border: solid blue;
+    background: $surface;
+    layout: horizontal;
 }
 
-.plugin-container.waiting {
-    border-style: dashed;
+.plugin-name {
+    width: 30%;
+    content-align: left middle;
 }
 
-.plugin-container.running {
-    border-color: $warning;
-    border-style: solid;
-}
-
-.plugin-container.success {
-    border-color: $success;
-}
-
-.plugin-container.error {
-    border-color: $error;
+.plugin-progress {
+    width: 50%;
+    height: 1;
 }
 
 .plugin-status {
-    width: 100%;
-    content-align: center;
+    width: 20%;
+    content-align: right middle;
 }
 
+/* États des plugins */
+.plugin-container.waiting {
+    border: solid $surface;
+    opacity: 70%;
+}
+
+.plugin-container.running {
+    border: solid $warning;
+    opacity: 100%;
+    background: $warning 10%;
+}
+
+.plugin-container.success {
+    border: solid $success;
+    opacity: 70%;
+}
+
+.plugin-container.error {
+    border: solid $error;
+    opacity: 70%;
+}
+
+/* Zone des boutons et progression globale */
 #button-container {
     margin: 1;
-    height: auto;
+    height: 3;
     align: center middle;
 }
 
 #progress-zone {
-    width: 100%;
+    width: 1fr;
     align: left middle;
+}
+
+#global-progress {
+    width: 50%;
+    height: 1;
 }
 
 .hidden {
     display: none;
+}
+
+/* Style des boutons */
+Button {
+    min-width: 15;
+    margin-left: 1;
+    background: $primary;
+}
+
+#quit-button {
+    dock: right;
+    background: $error;
+}
+
+#start-button {
 }

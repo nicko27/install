@@ -107,3 +107,7 @@ PluginCard.selected {
     margin-left: 1;
     min-width: 15;
 }
+
+.remove-button{
+    max-width:7;
+}

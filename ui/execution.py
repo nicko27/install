@@ -86,8 +86,6 @@ class PluginContainer(Container):
 class ExecutionWidget(Container):
     """Écran d'exécution des plugins"""
 
-    CSS_PATH_PATTERN = "styles/execution.css"
-
     # État d'exécution
     is_running = reactive(False)
     continue_on_error = reactive(False)
@@ -612,10 +610,19 @@ class ExecutionWidget(Container):
             progress_bar.update(total=100.0, progress=progress * 100)
 
     def set_current_plugin(self, plugin_name: str):
-        """Mise à jour du plugin en cours"""
+        """Mise à jour du plugin en cours et scroll vers celui-ci"""
         current_plugin = self.query_one("#current-plugin")
         if current_plugin:
             current_plugin.update(f"Plugin en cours : {plugin_name}")
+            
+        # Trouver le plugin en cours et scroller vers lui
+        plugins_list = self.query_one("#plugins-list")
+        if plugins_list:
+            for plugin_id, plugin in self.plugins.items():
+                if plugin.plugin_name == plugin_name:
+                    # Scroller vers le plugin
+                    plugin.scroll_visible()
+                    break
 
     async def add_log(self, message: str, level: str = 'info'):
         """Ajout d'un message dans les logs avec formatage amélioré"""
@@ -688,6 +695,8 @@ class ExecutionWidget(Container):
 
 class ExecutionScreen(Screen):
     """Écran simple contenant le widget d'exécution"""
+
+    CSS_PATH = os.path.join(os.path.dirname(__file__), "styles/execution.css")
 
     def __init__(self, plugins_config: dict = None):
         """Initialise l'écran"""

@@ -93,8 +93,8 @@ class PluginListItem(Horizontal):
     def compose(self) -> ComposeResult:
         name = self.plugin_info.get('name', self.plugin_name)
         icon = self.plugin_info.get('icon', '📦')
-        yield Label(f"{self.index}. {icon} {name} ({self.instance_id})", classes="plugin-list-name")
-        yield Button("❌", id=f"remove_{self.plugin_name}_{self.instance_id}", variant="error", classes="remove-button")
+        yield Label(f"{self.index}. {icon} {name}", classes="plugin-list-name")
+        yield Button("X", id=f"remove_{self.plugin_name}_{self.instance_id}", variant="error", classes="remove-button")
 
     def on_mount(self) -> None:
         self.styles.align_horizontal = "left"
@@ -195,8 +195,9 @@ class Choice(App):
                     yield from self.create_plugin_cards()
             yield SelectedPluginsPanel(id="selected-plugins")
         with Horizontal(id="button-container"):
-            yield Button("Configurer", id="configure_selected", variant="primary")
             yield Button("Quitter", id="quit", variant="error")
+            yield Button("Configurer", id="configure_selected", variant="primary")
+
         yield Footer()
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:

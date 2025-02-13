@@ -416,7 +416,7 @@ class PluginConfig(Screen):
     BINDINGS = [
         ("esc", "quit", "Quitter"),
     ]
-    CSS_PATH = os.path.join(os.path.dirname(__file__), "styles/config.css")
+    CSS_PATH = "styles/config.css"
 
     def __init__(self, plugin_instances: list, name: str | None = None) -> None:
         super().__init__(name=name)
