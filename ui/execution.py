@@ -163,8 +163,6 @@ class ExecutionWidget(Container):
 
     async def on_mount(self) -> None:
         """Appelé au montage initial du widget"""
-        # Forcer le rechargement des styles
-        self.app.stylesheet.reload()
         
         # Initialisation basique
         self.update_global_progress(0)
