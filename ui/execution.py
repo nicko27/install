@@ -94,7 +94,7 @@ class ExecutionWidget(Container):
     show_logs = reactive(False)
 
     BINDINGS = [
-        Binding("l", "toggle_logs", "Afficher/Masquer les logs", show=True)
+        Binding("l", "toggle_logs", "Afficher/Masquer les logs", show=False)
     ]
 
     def __init__(self, plugins_config: dict = None):
