@@ -1908,3 +1908,31 @@
 [2025-02-13 10:30:05] [INFO] Nombre de processus en cours: 291
 [2025-02-13 10:30:05] [INFO] Test Bash terminé avec succès
 [2025-02-13 10:30:05] [INFO] Test Bash test réussi
+[2025-02-13 10:31:18] [DEBUG] Début de l'exécution du script avec arguments : test light
+[2025-02-13 10:31:18] [DEBUG] Nombre total d'arguments : 2
+[2025-02-13 10:31:18] [DEBUG] Arguments complets : test light
+[2025-02-13 10:31:18] [DEBUG] Argument 0 : '/media/nico/Drive/install/plugins/bash_progress_test/main.sh'
+[2025-02-13 10:31:18] [DEBUG] Argument 1 : 'test'
+[2025-02-13 10:31:18] [DEBUG] Argument 2 : 'light'
+[2025-02-13 10:31:18] [DEBUG] Nom du script : /media/nico/Drive/install/plugins/bash_progress_test/main.sh
+[2025-02-13 10:31:18] [DEBUG] Répertoire de travail : /media/nico/Drive/install/plugins/bash_progress_test
+[2025-02-13 10:31:18] [DEBUG] Début de run_bash_test avec test_name='test', test_intensity='light'
+[2025-02-13 10:31:18] [INFO] Démarrage du test Bash : test
+[2025-02-13 10:31:18] [DEBUG] Configuration du test : étapes=5, délai max=0.5, facteur=1
+[2025-02-13 10:31:18] [INFO] Récupération des informations système...
+[2025-02-13 10:31:18] [INFO] CPU: 
+[2025-02-13 10:31:18] [INFO] Mémoire: 4,4Gi utilisé sur 15Gi
+[2025-02-13 10:31:18] [INFO] Espace disque disponible: 207G
+[2025-02-13 10:31:18] [INFO] Système d'exploitation: Ubuntu 22.04.5 LTS
+[2025-02-13 10:31:18] [INFO] Progression : 20% (étape 1/5)
+[2025-02-13 10:31:18] [INFO] Nombre de processus en cours: 289
+[2025-02-13 10:31:19] [INFO] Progression : 40% (étape 2/5)
+[2025-02-13 10:31:19] [INFO] Utilisateurs connectés: 1
+[2025-02-13 10:31:19] [INFO] Progression : 60% (étape 3/5)
+[2025-02-13 10:31:19] [INFO] Version du noyau: 6.8.0-52-generic
+[2025-02-13 10:31:20] [INFO] Progression : 80% (étape 4/5)
+[2025-02-13 10:31:20] [INFO] Charge système actuelle:  3
+[2025-02-13 10:31:20] [INFO] Progression : 100% (étape 5/5)
+[2025-02-13 10:31:20] [INFO] Nombre de processus en cours: 289
+[2025-02-13 10:31:21] [INFO] Test Bash terminé avec succès
+[2025-02-13 10:31:21] [INFO] Test Bash test réussi
