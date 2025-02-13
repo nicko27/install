@@ -141,9 +141,9 @@ class ExecutionWidget(Container):
 
         yield Footer()
 
-    async def action_quit_button(self) -> None:
+    def action_quit_button(self) -> None:
         """Quitter l'application"""
-        await self.app.action_quit()
+        self.app.exit()
 
 
     def action_toggle_logs(self) -> None:
@@ -654,7 +654,7 @@ class ExecutionWidget(Container):
                 style = level_styles.get(level, 'white')
                 
                 # Format du niveau avec largeur fixe et alignement à droite
-                level_str = f"{level.upper():>7}"
+                level_str = f"{level.upper():7}"
                 
                 # Format du message avec espacement cohérent
                 formatted_message = f"[bright_cyan]{timestamp}[/bright_cyan]  [{style}]{level_str}[/{style}]  {message}"
@@ -663,6 +663,10 @@ class ExecutionWidget(Container):
                 if current_text:
                     current_text += "\n"
                 logs.update(current_text + formatted_message)
+                
+                # Faire défiler vers le bas
+                logs_content = self.query_one("#logs-content")
+                logs_content.scroll_end(animate=False)
                 
                 # Forcer l'affichage des logs et le défilement
                 logs_container = self.query_one("#logs-container")
