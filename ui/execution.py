@@ -143,7 +143,7 @@ class ExecutionWidget(Container):
 
     def action_quit_button(self) -> None:
         """Quitter l'application"""
-        self.app.exit()
+        self.exit()
 
 
     def action_toggle_logs(self) -> None:
