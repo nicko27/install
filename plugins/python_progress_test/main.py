@@ -17,32 +17,26 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Variables globales pour les callbacks
-progress_callback = None
-status_callback = None
-
-def set_callbacks(progress_cb=None, status_cb=None):
-    """Configure les callbacks pour la progression et le statut"""
-    global progress_callback, status_callback
-    progress_callback = progress_cb
-    status_callback = status_cb
-
 class PythonProgressTest:
-    def __init__(self, config):
+    def __init__(self, config, progress_callback=None, status_callback=None):
         """
         Initialise le gestionnaire de test de progression Python
         Args:
             config (dict): Configuration du test
+            progress_callback (callable): Callback pour la progression
+            status_callback (callable): Callback pour le statut
         """
         logger.debug(f"Initialisation du test avec config : {config}")
         self.config = config
         self.test_name = config.get('test_name', 'PythonTest')
         self.test_complexity = config.get('test_complexity', 'simple')
+        self.progress_callback = progress_callback
+        self.status_callback = status_callback
         logger.info(f"Test configuré : nom={self.test_name}, complexité={self.test_complexity}")
         
         # Mettre à jour le statut initial
-        if status_callback:
-            status_callback("initializing", "Initialisation du test...")
+        if self.status_callback:
+            self.status_callback("initializing", "Initialisation du test...")
 
     def run_test(self):
         """
@@ -80,10 +74,10 @@ class PythonProgressTest:
                 logger.info(f"Progression : {percentage}% (étape {step}/{total_steps})")
                 
                 # Mettre à jour la progression et le statut
-                if progress_callback:
-                    progress_callback(percentage)
-                if status_callback:
-                    status_callback("running", f"Étape {step}/{total_steps}")
+                if self.progress_callback:
+                    self.progress_callback(percentage)
+                if self.status_callback:
+                    self.status_callback("running", f"Étape {step}/{total_steps}")
                 
                 # Simulation de travail
                 time.sleep(max_delay)
@@ -98,18 +92,20 @@ class PythonProgressTest:
             logger.exception("Erreur lors de l'exécution du test")
             return False, f"Erreur inattendue : {str(e)}"
 
-def execute_plugin(config):
+def execute_plugin(config, progress_callback=None, status_callback=None):
     """
     Point d'entrée du plugin de test de progression Python
     Args:
         config (dict): Configuration du plugin
+        progress_callback (callable): Callback pour la progression
+        status_callback (callable): Callback pour le statut
     Returns:
         tuple: (success: bool, message: str)
     """
     logger.debug(f"Début de l'exécution du plugin avec config : {config}")
     try:
-        # Créer une instance de PythonProgressTest
-        test = PythonProgressTest(config)
+        # Créer une instance de PythonProgressTest avec les callbacks
+        test = PythonProgressTest(config, progress_callback, status_callback)
         
         # Exécuter le test
         success, message = test.run_test()

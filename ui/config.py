@@ -1,6 +1,6 @@
 from textual.app import ComposeResult
 from textual.screen import Screen
-from textual.containers import Container, Vertical, Horizontal, ScrollableContainer
+from textual.containers import Container, Vertical, Horizontal, ScrollableContainer, HorizontalGroup, VerticalGroup
 from textual.widgets import Label, Header, Footer, Button, Input, Checkbox, Select
 from textual.widget import Widget
 from textual.reactive import reactive
@@ -8,10 +8,11 @@ import os
 import yaml
 
 from .utils import setup_logging
+from .choice import get_plugin_folder_name
 
 logger = setup_logging()
 
-class ConfigField(Vertical):
+class ConfigField(VerticalGroup):
     """Base class for configuration fields"""
     def __init__(self, plugin_path: str, field_id: str, field_config: dict, fields_by_id: dict = None):
         super().__init__()
@@ -36,7 +37,8 @@ class ConfigField(Vertical):
     def _get_dynamic_default(self) -> str:
         """Get dynamic default value from script"""
         dynamic_config = self.field_config['dynamic_default']
-        script_path = os.path.join('plugins', self.plugin_path, dynamic_config['script'])
+        folder_name = get_plugin_folder_name(self.plugin_path)
+        script_path = os.path.join('plugins', folder_name, dynamic_config['script'])
         
         try:
             # Import the script module
@@ -75,7 +77,7 @@ class ConfigField(Vertical):
         label = self.field_config.get('label', self.field_id)
         description = self.field_config.get('description', '')
         
-        with Horizontal():
+        with HorizontalGroup():
             if description:
                 yield Label(description, classes="field-description")
             else:
@@ -288,7 +290,7 @@ class SelectField(ConfigField):
                 
             except Exception as e:
                 logger.exception(f"Error loading dynamic options from {script_path}: {e}")
-                return [("error", "Erreur de chargement des options")]
+                return [{'label': 'Erreur', 'value': 'error'}]
             finally:
                 if os.path.dirname(script_path) in sys.path:
                     sys.path.remove(os.path.dirname(script_path))
@@ -305,7 +307,7 @@ class SelectField(ConfigField):
         """Get the current value"""
         return self.value if self.value != "none" else ""
 
-class PluginConfigContainer(Vertical):
+class PluginConfigContainer(VerticalGroup):
     """Container for plugin configuration fields"""
     # Define reactive attributes
     plugin_id = reactive("")  # Plugin identifier
@@ -327,13 +329,13 @@ class PluginConfigContainer(Vertical):
 
     def compose(self) -> ComposeResult:
         # Titre et description
-        with Vertical(classes="plugin-header"):
+        with VerticalGroup(classes="plugin-header"):
             yield Label(f"{self.plugin_icon} {self.plugin_title}", classes="plugin-title")
             if self.plugin_description:
                 yield Label(self.plugin_description, classes="plugin-description")
         
         if not self.config_fields:
-            with Horizontal(classes="no-config-container"):
+            with HorizontalGroup(classes="no-config-container"):
                 yield Label("ℹ️", classes="no-config-icon")
                 yield Label(f"Rien à configurer pour {self.plugin_title}", classes="no-config")
             return

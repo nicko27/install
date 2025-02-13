@@ -22,11 +22,8 @@ def execute_plugin(config, progress_callback=None, status_callback=None):
         tuple: (success: bool, message: str)
     """
     try:
-        # Configurer les callbacks dans le module main
-        main_module.set_callbacks(progress_callback, status_callback)
-        
-        # Utiliser la fonction execute_plugin du module main
-        return main_module.execute_plugin(config)
+        # Utiliser la fonction execute_plugin du module main avec les callbacks
+        return main_module.execute_plugin(config, progress_callback, status_callback)
     
     except Exception as e:
         logging.exception(f"Erreur lors de l'exécution du plugin Python Progress Test")

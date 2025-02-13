@@ -19,7 +19,8 @@ class PluginCard(Static):
 
     def _load_plugin_info(self) -> dict:
         """Load plugin information from settings.yml"""
-        settings_path = os.path.join('plugins', self.plugin_name, 'settings.yml')
+        folder_name = get_plugin_folder_name(self.plugin_name)
+        settings_path = os.path.join('plugins', folder_name, 'settings.yml')
         try:
             with open(settings_path, 'r') as f:
                 return yaml.safe_load(f)
@@ -39,7 +40,8 @@ class PluginCard(Static):
     def on_click(self) -> None:
         """Handle click to select/deselect plugin"""
         # Vérifier si le plugin est multiple
-        settings_path = os.path.join('plugins', self.plugin_name, 'settings.yml')
+        folder_name = get_plugin_folder_name(self.plugin_name)
+        settings_path = os.path.join('plugins', folder_name, 'settings.yml')
         try:
             with open(settings_path, 'r') as f:
                 settings = yaml.safe_load(f)
@@ -150,6 +152,27 @@ class SelectedPluginsPanel(Static):
                         card.update_styles()
                         self.app.post_message(card.PluginSelectionChanged(plugin_name, False, card))
 
+
+def get_plugin_folder_name(plugin_name: str) -> str:
+    """Retourne le nom du dossier d'un plugin à partir de son nom.
+    
+    Args:
+        plugin_name: Le nom du plugin (peut inclure l'ID d'instance)
+        
+    Returns:
+        str: Le nom du dossier du plugin
+    """
+    # Extraire le nom de base du plugin (sans l'ID d'instance)
+    base_name = plugin_name.split('_')[0] + '_' + plugin_name.split('_')[1]
+    test_type = base_name + '_test'
+    
+    # Vérifier si la version test existe
+    test_path = os.path.join('plugins', test_type)
+    if os.path.exists(test_path):
+        return test_type
+    
+    # Sinon retourner le nom de base
+    return base_name
 
 class Choice(App):
     BINDINGS = [

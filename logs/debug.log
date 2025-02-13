@@ -1,8 +1,4 @@
-2025-02-12 11:16:20,101 - install_ui - DEBUG - Using static options: [{'value': 'simple', 'label': 'Simple'}, {'value': 'moderate', 'label': 'Modéré'}, {'value': 'complex', 'label': 'Complexe'}]
-2025-02-12 11:16:20,111 - install_ui - DEBUG - Using static options: [{'value': 'simple', 'label': 'Simple'}, {'value': 'moderate', 'label': 'Modéré'}, {'value': 'complex', 'label': 'Complexe'}]
-2025-02-12 11:16:20,118 - install_ui - DEBUG - Using static options: [{'value': 'simple', 'label': 'Simple'}, {'value': 'moderate', 'label': 'Modéré'}, {'value': 'complex', 'label': 'Complexe'}]
-2025-02-12 11:16:20,127 - install_ui - DEBUG - Using static options: [{'value': 'simple', 'label': 'Simple'}, {'value': 'moderate', 'label': 'Modéré'}, {'value': 'complex', 'label': 'Complexe'}]
-2025-02-12 11:16:20,222 - install_ui - DEBUG - Select changed to: simple
-2025-02-12 11:16:20,222 - install_ui - DEBUG - Select changed to: simple
-2025-02-12 11:16:20,223 - install_ui - DEBUG - Select changed to: simple
-2025-02-12 11:16:20,224 - install_ui - DEBUG - Select changed to: simple
+2025-02-13 10:13:52,864 - install_ui - DEBUG - Using static options: [{'value': 'light', 'label': 'Léger'}, {'value': 'medium', 'label': 'Moyen'}, {'value': 'heavy', 'label': 'Intense'}]
+2025-02-13 10:13:52,919 - install_ui - DEBUG - Select changed to: light
+2025-02-13 10:13:56,725 - install_ui - DEBUG - Clic sur le bouton quit
+2025-02-13 10:13:57,489 - install_ui - DEBUG - Clic sur le bouton quit

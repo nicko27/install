@@ -24,7 +24,7 @@ run_bash_test() {
         return 1
     fi
 
-    log "INFO" " Démarrage du test Bash : $test_name"
+    log "INFO" "Démarrage du test Bash : $test_name"
 
     # Configuration basée sur l'intensité
     local total_steps=0
@@ -55,6 +55,28 @@ run_bash_test() {
 
     log "DEBUG" "Configuration du test : étapes=$total_steps, délai max=$max_delay, facteur=$complexity_factor"
 
+    # Récupération des informations système
+    log "INFO" "Récupération des informations système..."
+    
+    # CPU
+    local cpu_info=$(lscpu | grep "Model name" | cut -d ':' -f2 | xargs)
+    log "INFO" "CPU: $cpu_info"
+    
+    # Mémoire
+    local mem_total=$(free -h | grep "Mem:" | awk '{print $2}')
+    local mem_used=$(free -h | grep "Mem:" | awk '{print $3}')
+    log "INFO" "Mémoire: $mem_used utilisé sur $mem_total"
+    
+    # Espace disque
+    local disk_info=$(df -h / | tail -n 1 | awk '{print $4}')
+    log "INFO" "Espace disque disponible: $disk_info"
+    
+    # Distribution
+    if [ -f /etc/os-release ]; then
+        local os_info=$(source /etc/os-release && echo "$PRETTY_NAME")
+        log "INFO" "Système d'exploitation: $os_info"
+    fi
+    
     # Simulation de progression
     for ((step=1; step<=total_steps; step++)); do
         # Calcul du pourcentage
@@ -63,17 +85,32 @@ run_bash_test() {
         # Log de progression
         log "INFO" "Progression : $percentage% (étape $step/$total_steps)"
         
-        # Simulation de travail
-        sleep "$max_delay"
+        # À chaque étape, afficher une information système différente
+        case $((step % 4)) in
+            0)
+                local load=$(uptime | awk -F'load average:' '{print $2}' | cut -d',' -f1)
+                log "INFO" "Charge système actuelle: $load"
+                ;;
+            1)
+                local processes=$(ps aux | wc -l)
+                log "INFO" "Nombre de processus en cours: $processes"
+                ;;
+            2)
+                local users=$(who | wc -l)
+                log "INFO" "Utilisateurs connectés: $users"
+                ;;
+            3)
+                local kernel=$(uname -r)
+                log "INFO" "Version du noyau: $kernel"
+                ;;
+        esac
         
-        # Simulation de calculs complexes
-        for ((i=0; i<1000*complexity_factor; i++)); do
-            ((i**complexity_factor))
-        done
+        # Pause entre les étapes
+        sleep "$max_delay"
     done
 
     # Fin du test
-    log "INFO" " Test Bash terminé avec succès"
+    log "INFO" "Test Bash terminé avec succès"
     return 0
 }
 
@@ -105,10 +142,10 @@ main() {
     fi
 
     if [[ $exit_code -eq 0 ]]; then
-        log "INFO" " Test Bash $1 réussi"
+        log "INFO" "Test Bash $1 réussi"
         exit 0
     else
-        log "ERROR" " Test Bash $1 échoué"
+        log "ERROR" "Test Bash $1 échoué"
         exit 1
     fi
 }
