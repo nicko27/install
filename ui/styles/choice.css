@@ -1,15 +1,15 @@
 Choice {
-    background: #222222;
     color: white;
 }
 
 #main-content {
-    height: 100%;
+    height: 88%;
     padding: 1;
 }
 
 #plugins-column {
-    width: 3fr;
+    width: 2fr;
+    height:95%;
 }
 
 #selected-plugins {
@@ -47,17 +47,14 @@ Choice {
 }
 
 #plugin-cards {
-    layout: grid;
-    grid-size: 3;
-    grid-gutter: 1;
-    height: 100%;
-    width: 100%;
+    layout: vertical;
+    overflow-y: auto;
 }
 
 PluginCard {
     width: 100%;
-    margin: 1;
-    padding: 1;
+    margin: 0;
+    padding:0;
     border: tall $background;
     background: $surface;
 }
@@ -81,9 +78,32 @@ PluginCard.selected {
 .section-title {
     text-align: center;
     color: $accent;
-    margin-bottom: 1;
 }
 
 .plugin-description {
     color: $text-muted;
+    display:block;   
+    margin-top:1;
+    width:100%;
+    text-align: center;
+}
+
+.plugin-name{
+    width:100%;
+    text-align:center;
+
+}
+
+
+#button-container {
+    border-top: heavy $primary;
+    width: 100%;
+    align-horizontal: right;
+    padding: 1 2;
+    min-height: 5;
+}
+
+#button-container Button {
+    margin-left: 1;
+    min-width: 15;
 }

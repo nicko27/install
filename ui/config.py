@@ -331,8 +331,6 @@ class PluginConfigContainer(VerticalGroup):
         # Titre et description
         with VerticalGroup(classes="plugin-header"):
             yield Label(f"{self.plugin_icon} {self.plugin_title}", classes="plugin-title")
-            if self.plugin_description:
-                yield Label(self.plugin_description, classes="plugin-description")
         
         if not self.config_fields:
             with HorizontalGroup(classes="no-config-container"):
@@ -413,11 +411,6 @@ class PluginConfigContainer(VerticalGroup):
                                 logger.debug(f"Enabling widget for field {dependent_field.field_id}")
                 break
             
-
-
-
-
-
 class PluginConfig(Screen):
     """Plugin configuration screen"""
     BINDINGS = [

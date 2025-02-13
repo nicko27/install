@@ -1,3 +1,4 @@
+from textwrap import wrap
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical, ScrollableContainer
 from textual.widgets import Label, Header, Footer, Button, Static
@@ -111,7 +112,7 @@ class SelectedPluginsPanel(Static):
     def compose(self) -> ComposeResult:
         yield Label("Plugins sélectionnés", classes="panel-title")
         yield Container(id="selected-plugins-list")
-        yield Button("Configurer", id="configure_selected", variant="primary")
+
 
     def update_plugins(self, plugins: list) -> None:
         """Update the display when selected plugins change"""
@@ -129,9 +130,7 @@ class SelectedPluginsPanel(Static):
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button presses in the selected plugins panel"""
-        if event.button.id == "configure_selected":
-            await self.app.action_configure_selected()
-        elif event.button.id and event.button.id.startswith('remove_'):
+        if event.button.id and event.button.id.startswith('remove_'):
             # Extraire l'ID d'instance (dernier élément après le dernier _)
             parts = event.button.id.replace('remove_', '').split('_')
             instance_id = int(parts[-1])
@@ -180,7 +179,7 @@ class Choice(App):
 
     ]
 
-    CSS_PATH = os.path.join(os.path.dirname(__file__), "styles/choice.css")
+    CSS_PATH = "styles/choice.css"
     
     def __init__(self):
         super().__init__()
@@ -192,10 +191,20 @@ class Choice(App):
         with Horizontal(id="main-content"):
             with Vertical(id="plugins-column"):
                 yield Label("Sélectionnez vos plugins", classes="section-title")
-                with Horizontal(id="plugin-cards"):
+                with ScrollableContainer(id="plugin-cards"):
                     yield from self.create_plugin_cards()
             yield SelectedPluginsPanel(id="selected-plugins")
+        with Horizontal(id="button-container"):
+            yield Button("Configurer", id="configure_selected", variant="primary")
+            yield Button("Quitter", id="quit", variant="error")
         yield Footer()
+
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
+        """Handle button presses in the selected plugins panel"""
+        if event.button.id == "configure_selected":
+            await self.app.action_configure_selected()
+        elif event.button.id == "quit":
+            await self.app.exit()
 
     def create_plugin_cards(self) -> list:
         """Create plugin cards dynamically"""
