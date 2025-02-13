@@ -25,6 +25,7 @@
     margin: 1 1;
     padding: 1;
     border: solid $primary 1px;
+    background: $success;
 }
 
 .plugin-container.waiting {
