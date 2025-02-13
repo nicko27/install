@@ -52,3 +52,20 @@
     margin: 1 2;
     color: $text;
 }
+
+#button-container {
+    layout: horizontal;
+    align: center middle; /* Centre les éléments horizontalement et verticalement */
+    gap: 2; /* Espacement uniforme entre les éléments */
+}
+
+#progress-zone {
+    layout: horizontal;
+    align: center middle;
+    gap: 2; /* Espacement des éléments */
+}
+
+HorizontalGroup {
+    width: 100%; /* Assure que les éléments prennent toute la largeur */
+    justify-content: space-evenly; /* Répartit les éléments équitablement */
+}
