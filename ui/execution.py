@@ -86,7 +86,7 @@ class PluginContainer(Container):
 class ExecutionWidget(Container):
     """Écran d'exécution des plugins"""
 
-    CSS_PATH = "styles/execution.css"
+    CSS_PATH_PATTERN = "styles/execution.css"
 
     # État d'exécution
     is_running = reactive(False)

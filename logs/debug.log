@@ -1,4 +1,72 @@
-2025-02-13 10:35:56,957 - install_ui - DEBUG - Using static options: [{'value': 'light', 'label': 'Léger'}, {'value': 'medium', 'label': 'Moyen'}, {'value': 'heavy', 'label': 'Intense'}]
-2025-02-13 10:35:57,034 - install_ui - DEBUG - Select changed to: light
-2025-02-13 10:36:00,998 - install_ui - DEBUG - Clic sur le bouton quit-button
-2025-02-13 10:36:01,697 - install_ui - DEBUG - Clic sur le bouton quit-button
+2025-02-13 10:37:19,767 - install_ui - DEBUG - Using static options: [{'value': 'light', 'label': 'Léger'}, {'value': 'medium', 'label': 'Moyen'}, {'value': 'heavy', 'label': 'Intense'}]
+2025-02-13 10:37:19,866 - install_ui - DEBUG - Select changed to: light
+2025-02-13 10:37:23,290 - install_ui - DEBUG - Clic sur le bouton start-button
+2025-02-13 10:37:23,291 - install_ui - INFO - Démarrage de l'exécution
+2025-02-13 10:37:23,294 - install_ui - DEBUG - Bouton désactivé
+2025-02-13 10:37:23,296 - install_ui - DEBUG - Démarrage de l'exécution de 1 plugins
+2025-02-13 10:37:23,303 - install_ui - DEBUG - Démarrage du plugin bash_progress_test_1 (bash_progress_test_1)
+2025-02-13 10:37:23,303 - install_ui - DEBUG - Détecté comme plugin bash: bash_progress_test_1
+2025-02-13 10:37:23,305 - install_ui - DEBUG - Processus bash démarré avec PID: 146251
+2025-02-13 10:37:23,322 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:23] [DEBUG] Début de l'exécution du script avec arguments : test light
+2025-02-13 10:37:23,373 - install_ui - DEBUG - Début de l'exécution du script avec arguments : test light
+2025-02-13 10:37:23,381 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:23] [DEBUG] Nombre total d'arguments : 2
+2025-02-13 10:37:23,409 - install_ui - DEBUG - Nombre total d'arguments : 2
+2025-02-13 10:37:23,409 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:23] [DEBUG] Arguments complets : test light
+2025-02-13 10:37:23,435 - install_ui - DEBUG - Arguments complets : test light
+2025-02-13 10:37:23,443 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:23] [DEBUG] Argument 0 : '/media/nico/Drive/install/plugins/bash_progress_test/main.sh'
+2025-02-13 10:37:23,567 - install_ui - DEBUG - Argument 0 : '/media/nico/Drive/install/plugins/bash_progress_test/main.sh'
+2025-02-13 10:37:23,573 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:23] [DEBUG] Argument 1 : 'test'
+2025-02-13 10:37:23,599 - install_ui - DEBUG - Argument 1 : 'test'
+2025-02-13 10:37:23,600 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:23] [DEBUG] Argument 2 : 'light'
+2025-02-13 10:37:23,603 - install_ui - DEBUG - Argument 2 : 'light'
+2025-02-13 10:37:23,604 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:23] [DEBUG] Nom du script : /media/nico/Drive/install/plugins/bash_progress_test/main.sh
+2025-02-13 10:37:23,607 - install_ui - DEBUG - Nom du script : /media/nico/Drive/install/plugins/bash_progress_test/main.sh
+2025-02-13 10:37:23,607 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:23] [DEBUG] Répertoire de travail : /media/nico/Drive/install/plugins/bash_progress_test
+2025-02-13 10:37:23,610 - install_ui - DEBUG - Répertoire de travail : /media/nico/Drive/install/plugins/bash_progress_test
+2025-02-13 10:37:23,610 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:23] [DEBUG] Début de run_bash_test avec test_name='test', test_intensity='light'
+2025-02-13 10:37:23,634 - install_ui - DEBUG - Début de run_bash_test avec test_name='test', test_intensity='light'
+2025-02-13 10:37:23,635 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:23] [INFO] Démarrage du test Bash : test
+2025-02-13 10:37:23,637 - install_ui - INFO - Démarrage du test Bash : test
+2025-02-13 10:37:23,639 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:23] [DEBUG] Configuration du test : étapes=5, délai max=0.5, facteur=1
+2025-02-13 10:37:23,641 - install_ui - DEBUG - Configuration du test : étapes=5, délai max=0.5, facteur=1
+2025-02-13 10:37:23,645 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:23] [INFO] Récupération des informations système...
+2025-02-13 10:37:23,663 - install_ui - INFO - Récupération des informations système...
+2025-02-13 10:37:23,668 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:23] [INFO] CPU:
+2025-02-13 10:37:23,672 - install_ui - INFO - CPU:
+2025-02-13 10:37:23,673 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:23] [INFO] Mémoire: 4,8Gi utilisé sur 15Gi
+2025-02-13 10:37:23,676 - install_ui - INFO - Mémoire: 4,8Gi utilisé sur 15Gi
+2025-02-13 10:37:23,676 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:23] [INFO] Espace disque disponible: 207G
+2025-02-13 10:37:23,708 - install_ui - INFO - Espace disque disponible: 207G
+2025-02-13 10:37:23,712 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:23] [INFO] Système d'exploitation: Ubuntu 22.04.5 LTS
+2025-02-13 10:37:23,750 - install_ui - INFO - Système d'exploitation: Ubuntu 22.04.5 LTS
+2025-02-13 10:37:23,753 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:23] [INFO] Progression : 20% (étape 1/5)
+2025-02-13 10:37:23,757 - install_ui - INFO - Progression : 20%
+2025-02-13 10:37:23,797 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:23] [INFO] Nombre de processus en cours: 290
+2025-02-13 10:37:23,801 - install_ui - INFO - Nombre de processus en cours: 290
+2025-02-13 10:37:24,054 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:24] [INFO] Progression : 40% (étape 2/5)
+2025-02-13 10:37:24,059 - install_ui - INFO - Progression : 40%
+2025-02-13 10:37:24,098 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:24] [INFO] Utilisateurs connectés: 1
+2025-02-13 10:37:24,101 - install_ui - INFO - Utilisateurs connectés: 1
+2025-02-13 10:37:24,580 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:24] [INFO] Progression : 60% (étape 3/5)
+2025-02-13 10:37:24,583 - install_ui - INFO - Progression : 60%
+2025-02-13 10:37:24,618 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:24] [INFO] Version du noyau: 6.8.0-52-generic
+2025-02-13 10:37:24,622 - install_ui - INFO - Version du noyau: 6.8.0-52-generic
+2025-02-13 10:37:25,094 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:25] [INFO] Progression : 80% (étape 4/5)
+2025-02-13 10:37:25,102 - install_ui - INFO - Progression : 80%
+2025-02-13 10:37:25,151 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:25] [INFO] Charge système actuelle:  4
+2025-02-13 10:37:25,183 - install_ui - INFO - Charge système actuelle:  4
+2025-02-13 10:37:25,622 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:25] [INFO] Progression : 100% (étape 5/5)
+2025-02-13 10:37:25,628 - install_ui - INFO - Progression : 100%
+2025-02-13 10:37:25,752 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:25] [INFO] Nombre de processus en cours: 290
+2025-02-13 10:37:25,755 - install_ui - INFO - Nombre de processus en cours: 290
+2025-02-13 10:37:26,169 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:26] [INFO] Test Bash terminé avec succès
+2025-02-13 10:37:26,176 - install_ui - INFO - Test Bash terminé avec succès
+2025-02-13 10:37:26,179 - install_ui - DEBUG - Log reçu: [2025-02-13 10:37:26] [INFO] Test Bash test réussi
+2025-02-13 10:37:26,208 - install_ui - INFO - Test Bash test réussi
+2025-02-13 10:37:26,209 - install_ui - DEBUG - Résultat brut du plugin bash_progress_test_1: (True, 'Exécution terminée') (type: <class 'tuple'>)
+2025-02-13 10:37:26,221 - install_ui - DEBUG - Plugin bash_progress_test_1: résultat tuple - success: True, message: Exécution terminée
+2025-02-13 10:37:26,263 - install_ui - INFO - Plugin bash_progress_test_1 terminé avec succès
+2025-02-13 10:37:26,280 - install_ui - INFO - Exécution terminée avec succès
+2025-02-13 10:37:28,510 - install_ui - DEBUG - Clic sur le bouton quit-button
+2025-02-13 10:37:29,665 - install_ui - DEBUG - Clic sur le bouton quit-button
+2025-02-13 10:37:29,966 - install_ui - DEBUG - Clic sur le bouton quit-button
