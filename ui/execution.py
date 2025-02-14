@@ -326,67 +326,64 @@ class ExecutionWidget(Container):
             # Créer les callbacks
             def sync_progress(progress: float, step: str = None):
                 def _update():
-                    # Convertir le pourcentage en valeur décimale (0-1)
-                    progress_value = progress / 100.0 if progress > 1 else progress
-                    plugin_widget.update_progress(progress_value, step)
-                    # Calculer la progression globale en tenant compte de tous les plugins
-                    global_progress = (executed + progress_value) / total_plugins
+                    # Mettre à jour la barre de progression du plugin
+                    plugin_widget.update_progress(progress, step)
+                    # Mettre à jour la progression globale
+                    global_progress = (executed + progress) / total_plugins
                     self.update_global_progress(global_progress)
-                    if step and self.show_logs:
-                        logs_container = self.query_one("#logs-container")
-                        logs = self.query_one("#logs-text")
-                        if logs:
-                            current_text = logs.renderable or ""
-                            message = f"[{plugin_widget.plugin_name}] Progression {int(progress_value*100)}% - {step}"
-                            logs.update(current_text + ("\n" if current_text else "") + message)
-                            logs_container.scroll_end(animate=False)
                 self.app.call_from_thread(_update)
 
             def sync_status(status: str, message: str = None):
                 def _update():
                     plugin_widget.set_status(status, message)
-                    if message:
-                        logs_container = self.query_one("#logs-content")
-                        logs = self.query_one("#logs-text")
-                        if logs:
-                            current_text = logs.renderable or ""
-                            log_message = f"[{plugin_widget.plugin_name}] {message}"
-                            logs.update(current_text + ("\n" if current_text else "") + log_message)
-                            logs_container.scroll_end(animate=False)
                 self.app.call_from_thread(_update)
 
-            # Créer une fonction pour parser la progression depuis les logs
-            def parse_progress_from_output(output):
-                if isinstance(output, str) and '[INFO] Progression :' in output:
-                    try:
-                        # Extraire le pourcentage (format: "[INFO] Progression : XX% (étape Y/Z)")
-                        progress_str = output.split('[INFO] Progression :')[1].split('%')[0].strip()
-                        progress = float(progress_str)
-                        # Extraire l'étape si présente
-                        step = output.split('(')[1].split(')')[0] if '(' in output else None
-                        return progress, step
-                    except (IndexError, ValueError):
-                        pass
-                return None, None
-            
             # Créer une fonction pour gérer les logs en temps réel
             def handle_log_output(line: str):
                 try:
-                    # Vérifier si c'est une ligne de log valide
-                    if '[INFO]' in line or '[DEBUG]' in line or '[WARNING]' in line or '[ERROR]' in line:
-                        # Déterminer le niveau de log
-                        if '[INFO]' in line:
-                            level = 'info'
-                        elif '[DEBUG]' in line:
-                            level = 'debug'
-                        elif '[WARNING]' in line:
-                            level = 'warning'
-                        else:
-                            level = 'error'
-                        
-                        # Extraire le message
-                        message = line.split(']', 2)[-1].strip()
-                        logger.debug(f"Message extrait: {message} (niveau: {level})")
+                    # Ignorer les lignes vides
+                    line = line.strip()
+                    if not line:
+                        return
+
+                    # Parser le format standard [timestamp] [level] message
+                    match = re.match(r'\[(.*?)\] \[(\w+)\] (.*)', line)
+                    if not match:
+                        return
+
+                    timestamp, level, message = match.groups()
+                    level = level.lower()
+
+                    # Gérer la progression
+                    if "Progression :" in message:
+                        match = re.search(r'Progression : (\d+)% \(étape (\d+)/(\d+)\)', message)
+                        if match:
+                            progress = float(match.group(1))
+                            current_step = match.group(2)
+                            total_steps = match.group(3)
+                            sync_progress(progress/100, f"Étape {current_step}/{total_steps}")
+
+                    # Mettre à jour les logs
+                    def update_logs():
+                        try:
+                            logs = self.query_one("#logs")
+                            if logs:
+                                current_text = logs.text
+                                new_message = f"[{timestamp}] [{level.upper():7}] {message}"
+                                logs.update(current_text + ("\n" if current_text else "") + new_message)
+
+                                # Scroller en bas
+                                logs_container = self.query_one("#logs-container")
+                                if logs_container:
+                                    logs_container.remove_class("hidden")
+                                    logs_container.scroll_end(animate=False)
+                        except Exception as e:
+                            logger.error(f"Erreur lors de la mise à jour des logs: {str(e)}")
+
+                    self.app.call_from_thread(update_logs)
+
+                except Exception as e:
+                    logger.error(f"Erreur dans handle_log_output: {str(e)}")
                         
                         # Mettre à jour les logs dans l'interface de manière synchrone
                         def update_logs():

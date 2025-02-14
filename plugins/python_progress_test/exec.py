@@ -11,7 +11,7 @@ from datetime import datetime
 LOG_FILE = "/media/nico/Drive/install/logs/python_progress_test.log"
 
 # Créer un formateur personnalisé
-formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
+formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 # Configurer le logger
 logger = logging.getLogger('python_progress_test')
@@ -26,6 +26,11 @@ logger.addHandler(file_handler)
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
+
+# Fonction pour écrire directement sur stdout (pour la progression)
+def print_progress(step: int, total: int):
+    progress = int((step * 100) / total)
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [INFO] Progression : {progress}% (étape {step}/{total})")
 
 def run_python_test(test_name: str, test_intensity: str) -> bool:
     """
@@ -60,9 +65,6 @@ def run_python_test(test_name: str, test_intensity: str) -> bool:
         
         # Simulation des étapes avec progression
         for step in range(total_steps):
-            # Calcul du progrès
-            percentage = int(((step + 1) * 100) / total_steps)
-            
             # Simulation de travail
             delay = random.uniform(0, max_delay)
             time.sleep(delay)
@@ -71,8 +73,8 @@ def run_python_test(test_name: str, test_intensity: str) -> bool:
             for _ in range(1000 * complexity):
                 _ = random.random() ** 2
             
-            # Affichage de la progression (sera capturé par l'UI)
-            print(f"[INFO] Progression : {percentage}% (étape {step + 1}/{total_steps})")
+            # Affichage de la progression
+            print_progress(step + 1, total_steps)
             
             # Log détaillé
             logger.info(f"Étape {step + 1}/{total_steps} complétée")
