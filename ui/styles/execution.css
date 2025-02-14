@@ -76,13 +76,9 @@ Bar{
 }
 
 #start-button {
-    dock: left;
     margin-right: 1;
 }
 
-#quit-button {
-    dock: right;
-}
 
 #continue-on-error {
     margin-right: 2;
