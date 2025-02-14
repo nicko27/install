@@ -12,6 +12,8 @@ import importlib.util
 import asyncio
 import subprocess
 import threading
+import re
+from datetime import datetime
 from typing import Dict, Callable
 
 from textual.app import ComposeResult
@@ -323,266 +325,184 @@ class ExecutionWidget(Container):
                 spec.loader.exec_module(main_module)
                 is_bash_plugin = False
             
-            # Créer les callbacks
-            def sync_progress(progress: float, step: str = None):
-                def _update():
-                    # Mettre à jour la barre de progression du plugin
-                    plugin_widget.update_progress(progress, step)
-                    # Mettre à jour la progression globale
-                    global_progress = (executed + progress) / total_plugins
-                    self.update_global_progress(global_progress)
-                self.app.call_from_thread(_update)
+            # Utiliser la méthode sync_ui de la classe
 
-            def sync_status(status: str, message: str = None):
-                def _update():
-                    plugin_widget.set_status(status, message)
-                self.app.call_from_thread(_update)
-
-            # Créer une fonction pour gérer les logs en temps réel
-            def handle_log_output(line: str):
-                try:
-                    # Ignorer les lignes vides
-                    line = line.strip()
-                    if not line:
-                        return
-
-                    # Parser le format standard [timestamp] [level] message
-                    match = re.match(r'\[(.*?)\] \[(\w+)\] (.*)', line)
-                    if not match:
-                        return
-
-                    timestamp, level, message = match.groups()
-                    level = level.lower()
-
-                    # Gérer la progression
-                    if "Progression :" in message:
-                        match = re.search(r'Progression : (\d+)% \(étape (\d+)/(\d+)\)', message)
-                        if match:
-                            progress = float(match.group(1))
-                            current_step = match.group(2)
-                            total_steps = match.group(3)
-                            sync_progress(progress/100, f"Étape {current_step}/{total_steps}")
-
-                    # Mettre à jour les logs
-                    def update_logs():
-                        try:
-                            logs = self.query_one("#logs")
-                            if logs:
-                                current_text = logs.text
-                                new_message = f"[{timestamp}] [{level.upper():7}] {message}"
-                                logs.update(current_text + ("\n" if current_text else "") + new_message)
-
-                                # Scroller en bas
-                                logs_container = self.query_one("#logs-container")
-                                if logs_container:
-                                    logs_container.remove_class("hidden")
-                                    logs_container.scroll_end(animate=False)
-                        except Exception as e:
-                            logger.error(f"Erreur lors de la mise à jour des logs: {str(e)}")
-
-                    # Appeler update_logs dans le thread principal
-                    self.app.call_from_thread(update_logs)
-
-                except Exception as e:
-                    logger.error(f"Erreur dans handle_log_output: {str(e)}")
-            
-            # Vérifier si c'est une ligne de progression
-            if "Progression :" in line:
-                try:
-                    # Extraire le pourcentage et les étapes
-                    match = re.search(r'Progression : (\d+)% \(étape (\d+)/(\d+)\)', line)
-                    if match:
-                        progress = float(match.group(1))
-                        current_step = match.group(2)
-                        total_steps = match.group(3)
-                        sync_progress(progress/100, f"Étape {current_step}/{total_steps}")
-                except Exception as e:
-                    logger.error(f"Erreur lors du parsing de la progression: {str(e)}")
+            # Utiliser la méthode handle_output de la classe
+            handle_output = lambda line: self.handle_output(line, plugin_widget, executed, total_plugins)
         except Exception as e:
             logger.error(f"Erreur dans handle_log_output: {str(e)}")
             
-        # Exécuter le script bash si nécessaire
-        if is_bash_plugin:
-            # Construire le chemin du script bash
-            script_path = os.path.join(plugin_dir, "main.sh")
-            if not os.path.exists(script_path):
-                raise FileNotFoundError(f"Script bash introuvable : {script_path}")
+        # Exécuter le plugin
+        try:
+            # Préparer la commande en fonction du type de plugin
+            if is_bash_plugin:
+                cmd = ["bash", exec_path, config.get('name', 'test'), config.get('intensity', 'light')]
+            else:
+                cmd = [sys.executable, exec_path, json.dumps(config)]
             
-            # Ajouter un log de début d'exécution
-            def _log_start():
-                # Créer une fonction asynchrone pour ajouter le log
-                async def _add_log():
-                    await self.add_log(f"Démarrage du script bash: {script_path}", 'info')
-                
-                # Exécuter la fonction asynchrone dans le thread principal
-                self.app.call_from_thread(lambda: self.app.run_worker(_add_log()))
-            # Créer le processus
+            # Créer et démarrer le processus
             process = subprocess.Popen(
-                ["bash", script_path, config.get('name', 'test'), config.get('intensity', 'light')],
+                cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 universal_newlines=True,
                 bufsize=1,
-                cwd=plugin_dir  # Exécuter dans le dossier du plugin
+                cwd=plugin_dir
             )
             
-            # Ajouter un log de confirmation
-            logger.debug(f"Processus bash démarré avec PID: {process.pid}")
+            # Utiliser la méthode read_pipe de la classe
+            read_pipe = lambda pipe, is_error=False: self.read_pipe(pipe, handle_output, is_error)
             
-            # Fonction pour lire la sortie en temps réel
-            def read_output(pipe, is_error=False):
-                try:
-                    while True:
-                        line = pipe.readline()
-                        if not line:
-                            break
-                        line = line.strip()
-                        if line:
-                            logger.debug(f"Log reçu: {line}")
-                            # Ajouter directement le log dans l'interface
-                            level = 'error' if is_error else 'info'
-                            # Extract the actual message without timestamp and level
-                            msg_parts = line.split('] ')
-                            if len(msg_parts) >= 3:  # Format is [timestamp] [level] message
-                                actual_message = msg_parts[2]
-                                # Extract the level from the original message
-                                level_part = msg_parts[1].strip('[]').lower()
-                                if level_part in ['debug', 'info', 'warning', 'error', 'success']:
-                                    level = level_part
-                            else:
-                                actual_message = line
-                                
-                            # Détecter les messages de succès
-                            if any(success_term in actual_message.lower() for success_term in ['terminé avec succès', 'réussi', 'test bash test']):
-                                level = 'success'
-                            
-                            # Ajouter le log de manière asynchrone
-                            async def _add_log_line():
-                                await self.add_log(actual_message, level)
-                            
-                            # Exécuter la fonction dans le thread principal
-                            self.app.call_from_thread(lambda: self.app.run_worker(_add_log_line()))
-                            # Vérifier la progression
-                            if "Progression :" in line:
-                                try:
-                                    progress_str = line.split("Progression :")[1].split("%")[0].strip()
-                                    progress = float(progress_str)
-                                    sync_progress(progress, f"Étape {progress}%")
-                                except Exception as e:
-                                    logger.error(f"Erreur parsing progression: {str(e)}")
-                except Exception as e:
-                    logger.error(f"Erreur lors de la lecture des logs: {str(e)}")
+            # Créer et démarrer les threads de lecture
+            stdout_thread = threading.Thread(target=read_pipe, args=(process.stdout, False))
+            stderr_thread = threading.Thread(target=read_pipe, args=(process.stderr, True))
             
-            # Créer des threads pour lire stdout et stderr
-            stdout_thread = threading.Thread(target=read_output, args=(process.stdout,))
-            stderr_thread = threading.Thread(target=read_output, args=(process.stderr, True))
-            
-            # Démarrer les threads
             stdout_thread.start()
             stderr_thread.start()
             
             # Attendre la fin du processus
             exit_code = process.wait()
             
-            # Attendre la fin des threads de lecture
+            # Attendre la fin des threads
             stdout_thread.join()
             stderr_thread.join()
             
-            # Retourner le résultat
-            result = (exit_code == 0, "Exécution terminée" if exit_code == 0 else f"Erreur (code {exit_code})")
-        else:
-            # Exécuter le plugin Python avec subprocess
-            try:
-                # Chemin du script Python
-                exec_path = os.path.join(plugin_dir, "exec.py")
-                
-                # Préparer la configuration en JSON
-                config_json = json.dumps(config)
-                
-                # Créer le processus
-                process = subprocess.Popen(
-                    [sys.executable, exec_path, config_json],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    universal_newlines=True,
-                    bufsize=1,
-                    cwd=plugin_dir
+            # Traiter le résultat
+            if exit_code == 0:
+                self.sync_ui(
+                    plugin_widget,
+                    executed,
+                    total_plugins,
+                    status='success',
+                    message='Exécution terminée avec succès',
+                    log_entry=f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [SUCCESS] Plugin terminé avec succès"
                 )
-                
-                # Ajouter un log de confirmation
-                logger.debug(f"Processus Python démarré avec PID: {process.pid}")
-                
-                # Fonction pour lire la sortie en temps réel
-                def read_output(pipe, is_error=False):
-                    try:
-                        while True:
-                            line = pipe.readline()
-                            if not line:
-                                break
-                            line = line.strip()
-                            if line:
-                                logger.debug(f"Log reçu: {line}")
-                                # Ajouter directement le log dans l'interface
-                                level = 'error' if is_error else 'info'
-                                
-                                # Traiter la ligne de log
-                                async def _add_log_line():
-                                    await self.add_log(line)
-                                self.app.call_from_thread(lambda: self.app.run_worker(_add_log_line()))
-                                
-                                # Vérifier la progression
-                                if "[INFO] Progression :" in line:
-                                    progress, step = parse_progress_from_output(line)
-                                    if progress is not None:
-                                        sync_progress(progress, step)
-                    except Exception as e:
-                        logger.error(f"Erreur lors de la lecture des logs: {str(e)}")
-                
-                # Créer des threads pour lire stdout et stderr
-                stdout_thread = threading.Thread(target=read_output, args=(process.stdout,))
-                stderr_thread = threading.Thread(target=read_output, args=(process.stderr, True))
-                
-                # Démarrer les threads
-                stdout_thread.start()
-                stderr_thread.start()
-                
-                # Attendre la fin du processus
-                exit_code = process.wait()
-                
-                # Attendre la fin des threads de lecture
-                stdout_thread.join()
-                stderr_thread.join()
-                
-                # Retourner le résultat
-                result = (exit_code == 0, "Exécution terminée" if exit_code == 0 else f"Erreur (code {exit_code})")
-                
-            except Exception as e:
-                logger.error(f"Erreur lors de l'exécution du plugin Python: {str(e)}")
-                result = (False, f"Erreur: {str(e)}")
-            
-            # Logger le résultat brut pour debug
-            logger.debug(f"Résultat brut du plugin {plugin_id}: {result} (type: {type(result)})")
-            
-            # Valider et normaliser le résultat
-            if result is None:
-                logger.error(f"Plugin {plugin_id}: aucun résultat retourné")
-                result_queue.put((False, 'Le plugin n\'a retourné aucun résultat'))
-            elif isinstance(result, bool):
-                logger.debug(f"Plugin {plugin_id}: résultat booléen {result}")
-                result_queue.put((result, 'OK' if result else 'Echec'))
-            elif isinstance(result, dict):
-                success = result.get('success', False)
-                message = result.get('message', 'OK' if success else 'Echec')
-                logger.debug(f"Plugin {plugin_id}: résultat dict - success: {success}, message: {message}")
-                result_queue.put((success, message))
-            elif isinstance(result, tuple) and len(result) >= 2:
-                success, message = result[0], result[1]
-                logger.debug(f"Plugin {plugin_id}: résultat tuple - success: {success}, message: {message}")
-                result_queue.put((bool(success), str(message)))
+                result = (True, "Exécution terminée avec succès")
             else:
-                logger.warning(f"Plugin {plugin_id}: format de résultat inattendu, conversion en bool/str")
-                result_queue.put((bool(result), str(result)))
+                error_msg = f"Erreur lors de l'exécution (code {exit_code})"
+                self.sync_ui(
+                    plugin_widget,
+                    executed,
+                    total_plugins,
+                    status='error',
+                    message=error_msg,
+                    log_entry=f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [ERROR] {error_msg}"
+                )
+                result = (False, error_msg)
+                
+        except Exception as e:
+            error_msg = f"Erreur lors de l'exécution: {str(e)}"
+            self.sync_ui(
+                plugin_widget,
+                executed,
+                total_plugins,
+                status='error',
+                message=error_msg,
+                log_entry=f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [ERROR] {error_msg}"
+            )
+            result = (False, error_msg)
 
+
+
+
+
+
+
+
+
+    def read_pipe(self, pipe, output_handler, is_error=False):
+        """Lit la sortie d'un pipe de façon asynchrone"""
+        while True:
+            line = pipe.readline()
+            if not line:
+                break
+            line = line.strip()
+            if line:
+                output_handler(line)
+
+    def handle_output(self, line: str, plugin_widget, executed, total_plugins):
+        """Gère les logs et la progression d'un plugin"""
+        try:
+            # Ignorer les lignes vides
+            line = line.strip()
+            if not line:
+                return
+
+            # Parser le format standard [timestamp] [level] message
+            match = re.match(r'\[(.*?)\] \[(\w+)\] (.*)', line)
+            if match:
+                timestamp, level, message = match.groups()
+                level = level.lower()
+                
+                # Gérer la progression si présente
+                if "Progression :" in message:
+                    progress_match = re.search(r'Progression : (\d+)% \(étape (\d+)/(\d+)\)', message)
+                    if progress_match:
+                        progress = float(progress_match.group(1))
+                        current_step = progress_match.group(2)
+                        total_steps = progress_match.group(3)
+                        self.sync_ui(
+                            plugin_widget,
+                            executed,
+                            total_plugins,
+                            progress=progress/100,
+                            step=f"Étape {current_step}/{total_steps}",
+                            log_entry=line
+                        )
+                        return
+                
+                # Traiter les autres types de messages
+                if level in ['error', 'warning', 'info', 'debug', 'success']:
+                    # Pour les erreurs et warnings, mettre à jour le statut
+                    if level in ['error', 'warning']:
+                        self.sync_ui(
+                            plugin_widget,
+                            executed,
+                            total_plugins,
+                            status='error' if level == 'error' else 'warning',
+                            message=message,
+                            log_entry=line
+                        )
+                    else:
+                        self.sync_ui(plugin_widget, executed, total_plugins, log_entry=line)
+            else:
+                # Ligne sans format standard, l'afficher telle quelle
+                self.sync_ui(plugin_widget, executed, total_plugins, log_entry=line)
+                
+        except Exception as e:
+            logger.error(f"Erreur dans handle_output: {str(e)}")
+
+    def sync_ui(self, plugin_widget, executed, total_plugins, progress=None, step=None, status=None, message=None, log_entry=None):
+        """Synchronise l'interface utilisateur avec les mises à jour du plugin"""
+        def _update():
+            try:
+                # Mettre à jour la progression si spécifiée
+                if progress is not None:
+                    plugin_widget.update_progress(progress, step)
+                    # Mettre à jour la progression globale
+                    global_progress = (executed + progress) / total_plugins
+                    self.update_global_progress(global_progress)
+                
+                # Mettre à jour le statut si spécifié
+                if status is not None:
+                    plugin_widget.set_status(status, message)
+                
+                # Mettre à jour les logs si spécifié
+                if log_entry is not None:
+                    logs = self.query_one("#logs")
+                    if logs:
+                        current_text = logs.text
+                        logs.update(current_text + ("\n" if current_text else "") + log_entry)
+                        
+                        # Scroller en bas
+                        logs_container = self.query_one("#logs-container")
+                        if logs_container:
+                            logs_container.remove_class("hidden")
+                            logs_container.scroll_end(animate=False)
+            except Exception as e:
+                logger.error(f"Erreur lors de la mise à jour de l'UI: {str(e)}")
+        
+        self.app.call_from_thread(_update)
 
     async def clear_logs(self):
         """Effacement des logs"""
