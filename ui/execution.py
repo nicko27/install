@@ -11,7 +11,7 @@ import asyncio
 from typing import Dict, Callable
 
 from textual.app import ComposeResult
-from textual.containers import Container, Horizontal, ScrollableContainer, VerticalGroup, HorizontalGroup
+from textual.containers import Container, Horizontal, ScrollableContainer, Vertical, HorizontalGroup
 from textual.screen import Screen
 from textual.widgets import Button, Checkbox, Label, ProgressBar, Static, Footer, Header
 from textual.reactive import reactive
@@ -110,7 +110,6 @@ class ExecutionWidget(Container):
         yield Header(name="Exécution des plugins")
 
         
-        
         # Liste des plugins
         with ScrollableContainer(id="plugins-list"):
             # Créer les conteneurs de plugins
@@ -121,43 +120,17 @@ class ExecutionWidget(Container):
                 yield container
 
         # Zone des logs
-        with ScrollableContainer(id="logs-container"):
-            with Horizontal():
-                yield Label("Logs:", id="logs-title")
-            with ScrollableContainer(id="logs-content"):
+        with Horizontal(id="logs"):
+            with ScrollableContainer(id="logs-container"):
                 yield Static("", id="logs-text")
-        with HorizontalGroup(id="button-container"):
-            with HorizontalGroup(id="progress-zone"):
-                yield Button("Démarrer", id="start-button", variant="primary")                
-                yield Checkbox("Continuer en cas d'erreur", id="continue-on-error")
-                yield Label("Plugin en cours : aucun", id="current-plugin")
-                with HorizontalGroup():
-                    yield Label("Progression globale")
-                    yield ProgressBar(id="global-progress", show_eta=False)
-            yield Label("")
+        with Horizontal(id="button-container"):
+            yield Button("Démarrer", id="start-button", variant="primary")                
+            yield Checkbox("Continuer en cas d'erreur", id="continue-on-error")
+            yield Label("Progression globale", id="global-progress-label")
+            yield ProgressBar(id="global-progress", show_eta=False)
             yield Button("Quitter", id="quit-button", variant="error")
 
         yield Footer()
-
-    def action_quit_button(self) -> None:
-        """Quitter l'application"""
-        self.exit()
-
-
-    def action_toggle_logs(self) -> None:
-        """Action pour afficher/masquer les logs (raccourci 'l')"""
-        self.show_logs = not self.show_logs
-        logs_container = self.query_one("#logs-container")
-        if logs_container:
-            if self.show_logs:
-                logs_container.remove_class("hidden")
-                # Scroll to bottom when showing logs
-                logs_content = self.query_one("#logs-content")
-                if logs_content:
-                    logs_content.scroll_end(animate=False)
-            else:
-                logs_container.add_class("hidden")
-        logger.debug(f"Logs {'affichés' if self.show_logs else 'masqués'} via raccourci")
 
     async def on_mount(self) -> None:
         """Appelé au montage initial du widget"""
@@ -194,6 +167,9 @@ class ExecutionWidget(Container):
             if button_id == "start-button" and not event.button.disabled:
                 # Vérifier si le bouton n'est pas déjà désactivé
                 await self.start_execution()
+            if button_id == "quit-button":
+                self.app.exit()
+
         except Exception as e:
             logger.error(f"Erreur lors du traitement du clic sur {button_id} : {str(e)}")
             # En cas d'erreur sur le bouton start, on le réactive
@@ -610,10 +586,6 @@ class ExecutionWidget(Container):
             progress_bar.update(total=100.0, progress=progress * 100)
 
     def set_current_plugin(self, plugin_name: str):
-        """Mise à jour du plugin en cours et scroll vers celui-ci"""
-        current_plugin = self.query_one("#current-plugin")
-        if current_plugin:
-            current_plugin.update(f"Plugin en cours : {plugin_name}")
             
         # Trouver le plugin en cours et scroller vers lui
         plugins_list = self.query_one("#plugins-list")
@@ -672,15 +644,9 @@ class ExecutionWidget(Container):
                     current_text += "\n"
                 logs.update(current_text + formatted_message)
                 
-                # Faire défiler vers le bas
-                logs_content = self.query_one("#logs-content")
-                logs_content.scroll_end(animate=False)
-                
-                # Forcer l'affichage des logs et le défilement
+                # Forcer le défilement immédiat sans animation
                 logs_container = self.query_one("#logs-container")
                 if logs_container:
-                    logs_container.remove_class("hidden")
-                    # Forcer le défilement immédiat sans animation
                     logs_container.scroll_end(animate=False)
                     
             # Ajout dans le fichier de logs de manière sécurisée

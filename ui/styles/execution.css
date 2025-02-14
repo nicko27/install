@@ -1,54 +1,41 @@
-/* Conteneur principal des logs */
-#logs-container {
-    height: 20;
-    width:100%;
-    background: $surface;
-}
-
-#logs-content {
-    height:95%;
-}
-
-#logs-text {
-    margin: 0;
-    padding: 0;
-}
-
-#logs-title {
-    text-style: bold;
-    background: $primary;
-    color: $text;
-    padding:0;
-}
-
 /* Conteneur de plugin avec sa progressbar */
-.plugin-container {
-    margin: 1;
-    padding: 1;
-    height: 5;
-    border: solid blue;
-    background: $surface;
-    layout: horizontal;
+#plugins-list{
+    margin-top:1;
+    margin-left:2;
+    margin-right:2;
+    padding-right:1;
 }
+
+.plugin-container {
+    margin-bottom: 1;
+    border-top:solid red;
+    padding:0;
+    height:3;
+}
+
 
 .plugin-name {
-    width: 30%;
+    width: 20%;
     content-align: left middle;
 }
 
 .plugin-progress {
-    width: 50%;
-    height: 1;
+    width: 60%;
+}
+
+Bar{
+    width: 95%;
+    height: 100%;
 }
 
 .plugin-status {
     width: 20%;
-    content-align: right middle;
+    content-align: center middle;
 }
 
 /* États des plugins */
 .plugin-container.waiting {
-    border: solid $surface;
+    border: tall $primary;
     opacity: 70%;
 }
 
@@ -68,38 +55,61 @@
     opacity: 70%;
 }
 
-/* Zone des boutons et progression globale */
+#logs{
+
+    width:100%;
+}
+
+
+#logs-container {
+    height: 20;
+
+    margin-left:3;
+    padding:0;
+    margin-right:3;
+}
+
 #button-container {
-    margin: 1;
     height: 3;
     align: center middle;
+    padding: 0 2;
 }
 
-#progress-zone {
-    width: 1fr;
-    align: left middle;
-}
-
-#global-progress {
-    width: 50%;
-    height: 1;
-}
-
-.hidden {
-    display: none;
-}
-
-/* Style des boutons */
-Button {
-    min-width: 15;
-    margin-left: 1;
-    background: $primary;
+#start-button {
+    dock: left;
+    margin-right: 1;
 }
 
 #quit-button {
     dock: right;
-    background: $error;
 }
 
-#start-button {
+#continue-on-error {
+    margin-right: 2;
+    width:30%;
+    content-align:left middle;
+}
+
+#global-progress-label {
+    margin-right: 1;
+    content-align: left middle;
+    height:3;
+    
+}
+
+#global-progress {
+    width: 40%;
+    height: 3;
+    content-align: left middle;
+}
+
+#global-progress Bar {
+    height: 1;
+    width:80%;
+    margin-top: 1;
+}
+
+#global-progress PercentageStatus{
+    height: 1;
+    margin-top:1;
 }

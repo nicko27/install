@@ -1,0 +1,53 @@
+
+.plugin-container {
+    height: 5;
+    border: 1 solid blue;
+}
+
+.plugin-name {
+    width: 30%;
+    content-align: left middle;
+}
+
+.plugin-progress {
+    width: 50%;
+    height: 1;
+}
+
+.plugin-status {
+    width: 20%;
+    content-align: right middle;
+}
+
+/* États des plugins */
+.plugin-container.waiting {
+    border: solid $surface;
+    opacity: 70%;
+}
+
+.plugin-container.running {
+    border: solid $warning;
+    opacity: 100%;
+    background: $warning 10%;
+}
+
+.plugin-container.success {
+    border: solid $success;
+    opacity: 70%;
+}
+
+.plugin-container.error {
+    border: solid $error;
+    opacity: 70%;
+}
+
+/* Conteneur principal des logs */
+#logs-container {
+    height: 20;
+    width:100%;
+    background: $surface;
+    margin-left:2;
+    margin-right:2;
+
+}
+
