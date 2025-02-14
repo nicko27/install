@@ -428,10 +428,19 @@ class ExecutionWidget(Container):
                         # Vérifier si c'est une ligne de progression
                         if "Progression :" in line:
                             try:
-                                progress_str = line.split("Progression :")[1].split("%")[0].strip()
-                                progress = float(progress_str)
-                                step = f"Étape {progress}%"
-                                sync_progress(progress, step)
+                                # Extraire le pourcentage et les étapes
+                                match = re.search(r'Progression : (\d+)% \(étape (\d+)/(\d+)\)', line)
+                                if match:
+                                    progress = float(match.group(1))
+                                    current_step = match.group(2)
+                                    total_steps = match.group(3)
+                                    step = f"Étape {current_step}/{total_steps}"
+                                else:
+                                    # Fallback pour l'ancien format
+                                    progress_str = line.split("Progression :")[1].split("%")[0].strip()
+                                    progress = float(progress_str)
+                                    step = f"Étape {progress}%"
+                                sync_progress(progress/100, step)
                             except Exception as e:
                                 logger.error(f"Erreur lors du parsing de la progression: {str(e)}")
                 except Exception as e:
