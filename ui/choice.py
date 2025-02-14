@@ -161,17 +161,20 @@ def get_plugin_folder_name(plugin_name: str) -> str:
     Returns:
         str: Le nom du dossier du plugin
     """
-    # Extraire le nom de base du plugin (sans l'ID d'instance)
-    base_name = plugin_name.split('_')[0] + '_' + plugin_name.split('_')[1]
-    test_type = base_name + '_test'
+    # Retirer l'ID d'instance s'il y en a un (ex: python_progress_test_1 -> python_progress_test)
+    parts = plugin_name.split('_')
+    if len(parts) > 3 and parts[-1].isdigit():
+        base_name = '_'.join(parts[:-1])
+    else:
+        base_name = plugin_name
     
-    # Vérifier si la version test existe
-    test_path = os.path.join('plugins', test_type)
-    if os.path.exists(test_path):
-        return test_type
+    # Vérifier si le dossier existe
+    plugin_path = os.path.join('plugins', base_name)
+    if os.path.exists(plugin_path):
+        return base_name
     
-    # Sinon retourner le nom de base
-    return base_name
+    # Sinon retourner le nom tel quel
+    return plugin_name
 
 class Choice(App):
     BINDINGS = [

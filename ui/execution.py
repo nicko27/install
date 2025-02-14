@@ -127,12 +127,12 @@ class ExecutionWidget(Container):
         with Horizontal(id="logs"):
             with ScrollableContainer(id="logs-container"):
                 yield Static("", id="logs-text")
-        with Horizontal(id="button-container"):
-            yield Button("Démarrer", id="start-button", variant="primary")                
+        with Horizontal(id="button-container"):             
             yield Checkbox("Continuer en cas d'erreur", id="continue-on-error")
             yield Label("Progression globale", id="global-progress-label")
             yield ProgressBar(id="global-progress", show_eta=False)
             yield Button("Quitter", id="quit-button", variant="error")
+            yield Button("Démarrer", id="start-button", variant="primary")   
 
         yield Footer()
 
