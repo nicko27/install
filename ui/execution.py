@@ -355,7 +355,7 @@ class ExecutionWidget(Container):
             def parse_progress_from_output(output):
                 if isinstance(output, str) and '[INFO] Progression :' in output:
                     try:
-                        # Extraire le pourcentage (format: "Progression : XX% (étape Y/Z)")
+                        # Extraire le pourcentage (format: "[INFO] Progression : XX% (étape Y/Z)")
                         progress_str = output.split('[INFO] Progression :')[1].split('%')[0].strip()
                         progress = float(progress_str)
                         # Extraire l'étape si présente
@@ -528,13 +528,53 @@ class ExecutionWidget(Container):
                 result = (exit_code == 0, "Exécution terminée" if exit_code == 0 else f"Erreur (code {exit_code})")
                 
             else:
-                # Exécuter le plugin Python avec les callbacks
+                # Exécuter le plugin Python avec redirection des logs
                 try:
-                    result = main_module.execute_plugin(
-                        config,
-                        progress_callback=sync_progress,
-                        status_callback=sync_status
-                    )
+                    # Créer un pipe pour capturer les logs
+                    r, w = os.pipe()
+                    # Sauvegarder les descripteurs originaux
+                    stdout_fd = os.dup(1)
+                    stderr_fd = os.dup(2)
+                    # Rediriger stdout et stderr vers notre pipe
+                    os.dup2(w, 1)
+                    os.dup2(w, 2)
+                    
+                    # Créer un thread pour lire les logs
+                    def read_logs():
+                        with os.fdopen(r) as pipe:
+                            while True:
+                                line = pipe.readline()
+                                if not line:
+                                    break
+                                line = line.strip()
+                                if line:
+                                    # Traiter la ligne de log
+                                    async def _add_log_line():
+                                        await self.add_log(line)
+                                    self.app.call_from_thread(lambda: self.app.run_worker(_add_log_line()))
+                                    
+                                    # Vérifier la progression
+                                    if "[INFO] Progression :" in line:
+                                        progress, step = parse_progress_from_output(line)
+                                        if progress is not None:
+                                            sync_progress(progress, step)
+                    
+                    # Démarrer le thread de lecture des logs
+                    log_thread = threading.Thread(target=read_logs)
+                    log_thread.daemon = True
+                    log_thread.start()
+                    
+                    # Exécuter le plugin
+                    result = main_module.execute_plugin(config)
+                    
+                    # Restaurer stdout et stderr
+                    os.dup2(stdout_fd, 1)
+                    os.dup2(stderr_fd, 2)
+                    os.close(w)
+                    
+                    # Attendre la fin de la lecture des logs
+                    log_thread.join()
+                    
                 except TypeError as e:
                     if 'unexpected keyword argument' in str(e):
                         try:

@@ -1,5 +1,5 @@
 name: Test de Progression Python
-description: Plugin de test avancé avec progression et configuration
+description: Plugin de test avancé avec progression et configuration en Python
 version: 1.0
 category: Test
 multiple: true
@@ -14,15 +14,15 @@ config_fields:
     validate: no_spaces
     default: "PythonTest1"
 
-  test_complexity:
+  test_intensity:
     type: select
-    label: Complexité du Test
-    description: Sélectionner le niveau de complexité du test
+    label: Intensité du Test
+    description: Sélectionner le niveau d'intensité du test
     required: true
     options:
-      - value: simple
-        label: Simple
-      - value: moderate
-        label: Modéré
-      - value: complex
-        label: Complexe
+      - value: light
+        label: Léger
+      - value: medium
+        label: Moyen
+      - value: heavy
+        label: Intense
