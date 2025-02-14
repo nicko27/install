@@ -439,8 +439,6 @@ class ExecutionWidget(Container):
             
             # Exécuter le script bash si nécessaire
             if is_bash_plugin:
-                import subprocess
-                import threading
                 
                 # Construire le chemin du script bash
                 script_path = os.path.join(plugin_dir, "main.sh")
