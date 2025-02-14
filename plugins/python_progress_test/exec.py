@@ -100,9 +100,13 @@ def execute_plugin(config):
         tuple: (success: bool, message: str)
     """
     try:
-        # Récupérer le nom et l'intensité du test
-        test_name = config.get('test_name', 'PythonTest')
-        test_intensity = config.get('test_intensity', 'light')
+        print(f"[DEBUG] Configuration reçue dans execute_plugin: {config}")
+        
+        # Récupérer les valeurs de configuration
+        test_name = config.get('name', 'PythonTest')
+        test_intensity = config.get('intensity', 'light')
+        
+        print(f"[DEBUG] Valeurs extraites: test_name={test_name}, test_intensity={test_intensity}")
         
         # Exécuter le test
         success = run_python_test(test_name, test_intensity)
@@ -124,10 +128,16 @@ if __name__ == "__main__":
         
     try:
         # Charger la configuration
-        config = json.loads(sys.argv[1])
+        print(f"[DEBUG] Arguments reçus: {sys.argv}")
+        config_json = sys.argv[1]
+        print(f"[DEBUG] Configuration JSON reçue: {config_json}")
+        
+        config = json.loads(config_json)
+        print(f"[DEBUG] Configuration chargée: {config}")
         
         # Exécuter le plugin
         success, message = execute_plugin(config)
+        print(f"[DEBUG] Résultat: {success}, {message}")
         
         # Sortir avec le code approprié
         sys.exit(0 if success else 1)
