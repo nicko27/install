@@ -582,9 +582,7 @@ class ExecutionWidget(Container):
             else:
                 logger.warning(f"Plugin {plugin_id}: format de résultat inattendu, conversion en bool/str")
                 result_queue.put((bool(result), str(result)))
-        except Exception as e:
-            logger.error(f"Erreur dans le thread du plugin {plugin_id}: {str(e)}")
-            result_queue.put((False, str(e)))
+
 
     async def clear_logs(self):
         """Effacement des logs"""
