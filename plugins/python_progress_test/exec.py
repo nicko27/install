@@ -61,7 +61,7 @@ def run_python_test(test_name: str, test_intensity: str) -> bool:
         # Simulation des étapes avec progression
         for step in range(total_steps):
             # Calcul du progrès
-            progress = (step + 1) / total_steps
+            percentage = int(((step + 1) * 100) / total_steps)
             
             # Simulation de travail
             delay = random.uniform(0, max_delay)
@@ -72,7 +72,7 @@ def run_python_test(test_name: str, test_intensity: str) -> bool:
                 _ = random.random() ** 2
             
             # Affichage de la progression (sera capturé par l'UI)
-            print(f"[INFO] Progression : {progress:.0%} (étape {step + 1}/{total_steps})")
+            print(f"[INFO] Progression : {percentage}% (étape {step + 1}/{total_steps})")
             
             # Log détaillé
             logger.info(f"Étape {step + 1}/{total_steps} complétée")
