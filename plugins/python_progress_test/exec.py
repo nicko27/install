@@ -103,8 +103,8 @@ def execute_plugin(config):
         print(f"[DEBUG] Configuration reçue dans execute_plugin: {config}")
         
         # Récupérer les valeurs de configuration
-        test_name = config.get('name', 'PythonTest')
-        test_intensity = config.get('intensity', 'light')
+        test_name = config.get('test_name', 'PythonTest')
+        test_intensity = config.get('test_intensity', 'light')
         
         print(f"[DEBUG] Valeurs extraites: test_name={test_name}, test_intensity={test_intensity}")
         
