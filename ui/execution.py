@@ -595,14 +595,7 @@ class ExecutionWidget(Container):
                     
                 except Exception as e:
                     logger.error(f"Erreur lors de l'exécution du plugin Python: {str(e)}")
-                    result = (False, f"Erreur: {str(e)}")cute_plugin(
-                                config,
-                                progress_callback=sync_progress
-                            )
-                        except TypeError:
-                            result = main_module.execute_plugin(config)
-                    else:
-                        raise
+                    result = (False, f"Erreur: {str(e)}")
             
             # Logger le résultat brut pour debug
             logger.debug(f"Résultat brut du plugin {plugin_id}: {result} (type: {type(result)})")
