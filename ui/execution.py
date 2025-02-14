@@ -4,10 +4,14 @@ Gère l'interface et la logique d'exécution des plugins de manière séquentiel
 """
 
 import os
+import sys
+import json
 import time
 import logging
 import importlib.util
 import asyncio
+import subprocess
+import threading
 from typing import Dict, Callable
 
 from textual.app import ComposeResult
