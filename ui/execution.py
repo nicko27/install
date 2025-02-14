@@ -528,26 +528,40 @@ class ExecutionWidget(Container):
                 result = (exit_code == 0, "Exécution terminée" if exit_code == 0 else f"Erreur (code {exit_code})")
                 
             else:
-                # Exécuter le plugin Python avec redirection des logs
+                # Exécuter le plugin Python avec subprocess
                 try:
-                    # Créer un pipe pour capturer les logs
-                    r, w = os.pipe()
-                    # Sauvegarder les descripteurs originaux
-                    stdout_fd = os.dup(1)
-                    stderr_fd = os.dup(2)
-                    # Rediriger stdout et stderr vers notre pipe
-                    os.dup2(w, 1)
-                    os.dup2(w, 2)
+                    # Chemin du script Python
+                    exec_path = os.path.join(plugin_dir, "exec.py")
                     
-                    # Créer un thread pour lire les logs
-                    def read_logs():
-                        with os.fdopen(r) as pipe:
+                    # Préparer la configuration en JSON
+                    config_json = json.dumps(config)
+                    
+                    # Créer le processus
+                    process = subprocess.Popen(
+                        [sys.executable, exec_path, config_json],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        universal_newlines=True,
+                        bufsize=1,
+                        cwd=plugin_dir
+                    )
+                    
+                    # Ajouter un log de confirmation
+                    logger.debug(f"Processus Python démarré avec PID: {process.pid}")
+                    
+                    # Fonction pour lire la sortie en temps réel
+                    def read_output(pipe, is_error=False):
+                        try:
                             while True:
                                 line = pipe.readline()
                                 if not line:
                                     break
                                 line = line.strip()
                                 if line:
+                                    logger.debug(f"Log reçu: {line}")
+                                    # Ajouter directement le log dans l'interface
+                                    level = 'error' if is_error else 'info'
+                                    
                                     # Traiter la ligne de log
                                     async def _add_log_line():
                                         await self.add_log(line)
@@ -558,27 +572,30 @@ class ExecutionWidget(Container):
                                         progress, step = parse_progress_from_output(line)
                                         if progress is not None:
                                             sync_progress(progress, step)
+                        except Exception as e:
+                            logger.error(f"Erreur lors de la lecture des logs: {str(e)}")
                     
-                    # Démarrer le thread de lecture des logs
-                    log_thread = threading.Thread(target=read_logs)
-                    log_thread.daemon = True
-                    log_thread.start()
+                    # Créer des threads pour lire stdout et stderr
+                    stdout_thread = threading.Thread(target=read_output, args=(process.stdout,))
+                    stderr_thread = threading.Thread(target=read_output, args=(process.stderr, True))
                     
-                    # Exécuter le plugin
-                    result = main_module.execute_plugin(config)
+                    # Démarrer les threads
+                    stdout_thread.start()
+                    stderr_thread.start()
                     
-                    # Restaurer stdout et stderr
-                    os.dup2(stdout_fd, 1)
-                    os.dup2(stderr_fd, 2)
-                    os.close(w)
+                    # Attendre la fin du processus
+                    exit_code = process.wait()
                     
-                    # Attendre la fin de la lecture des logs
-                    log_thread.join()
+                    # Attendre la fin des threads de lecture
+                    stdout_thread.join()
+                    stderr_thread.join()
                     
-                except TypeError as e:
-                    if 'unexpected keyword argument' in str(e):
-                        try:
-                            result = main_module.execute_plugin(
+                    # Retourner le résultat
+                    result = (exit_code == 0, "Exécution terminée" if exit_code == 0 else f"Erreur (code {exit_code})")
+                    
+                except Exception as e:
+                    logger.error(f"Erreur lors de l'exécution du plugin Python: {str(e)}")
+                    result = (False, f"Erreur: {str(e)}")cute_plugin(
                                 config,
                                 progress_callback=sync_progress
                             )

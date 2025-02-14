@@ -117,8 +117,23 @@ def execute_plugin(config):
         return False, f"Erreur d'exécution : {str(e)}"
 
 if __name__ == "__main__":
+    # Lire la configuration depuis les arguments
     if len(sys.argv) != 2:
-        print("Usage: exec.py <config_json>")
+        print("[ERROR] Usage: python exec.py <config_json>")
+        sys.exit(1)
+        
+    try:
+        # Charger la configuration
+        config = json.loads(sys.argv[1])
+        
+        # Exécuter le plugin
+        success, message = execute_plugin(config)
+        
+        # Sortir avec le code approprié
+        sys.exit(0 if success else 1)
+        
+    except Exception as e:
+        print(f"[ERROR] {str(e)}")
         sys.exit(1)
         
     try:
