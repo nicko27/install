@@ -500,7 +500,24 @@ class PluginConfig(Screen):
         if event.button.id == "cancel":
             self.app.pop_screen()
         elif event.button.id == "validate":
-            # Collect all field values
+            # Vérifier tous les champs
+            has_errors = False
+            for plugin_name, instance_id in self.plugin_instances:
+                plugin_fields = self.query(f"#plugin_{plugin_name}_{instance_id} ConfigField")
+                for field in plugin_fields:
+                    if isinstance(field, TextField):
+                        value = field.input.value
+                        is_valid, error_msg = field.validate_input(value)
+                        if not is_valid:
+                            field.input.add_class('error')
+                            field.input.tooltip = error_msg
+                            has_errors = True
+                            logger.error(f"Validation error in {field.field_id}: {error_msg}")
+            
+            if has_errors:
+                return
+            
+            # Si pas d'erreur, collecter les valeurs
             self.current_config = {}
             for plugin_name, instance_id in self.plugin_instances:
                 plugin_fields = self.query(f"#plugin_{plugin_name}_{instance_id} ConfigField")
