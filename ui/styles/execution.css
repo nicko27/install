@@ -75,26 +75,22 @@ Bar{
     padding: 0 2;
 }
 
-#start-button {
-    margin-right: 1;
-}
-
 
 #continue-on-error {
     margin-right: 2;
-    width:30%;
-    content-align:left middle;
+    width: 25%;
+    content-align: left middle;
 }
 
 #global-progress-label {
     margin-right: 1;
     content-align: left middle;
-    height:3;
-    
+    height: 3;
+    width: 15%;
 }
 
 #global-progress {
-    width: 40%;
+    width: 30%;
     height: 3;
     content-align: left middle;
 }

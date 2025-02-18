@@ -45,9 +45,17 @@ class PluginContainer(Container):
     """Conteneur pour afficher l'état et la progression d'un plugin"""
 
     def __init__(self, plugin_id: str, plugin_name: str):
-        """Initialise le conteneur avec l'ID et le nom du plugin"""
+        """Initialise le conteneur avec l'ID et le nom du plugin
+        
+        Args:
+            plugin_id: L'ID complet du plugin (ex: bash_interactive_1)
+            plugin_name: Le nom à afficher dans l'interface
+        """
         super().__init__(id=f"plugin-{plugin_id}")
         self.plugin_id = plugin_id
+        # Récupérer le nom du dossier pour les logs
+        self.folder_name = get_plugin_folder_name(plugin_id)
+        # Nom affiché dans l'interface
         self.plugin_name = plugin_name
         self.classes = "plugin-container waiting"
 
@@ -138,7 +146,7 @@ class ExecutionWidget(Container):
             with ScrollableContainer(id="logs-container"):
                 yield Static("", id="logs-text")
         with Horizontal(id="button-container"):             
-            yield Button("Retour", id="back-button", variant="primary")
+            yield Button("Retour", id="back-button", variant="error")
             yield Button("Quitter", id="quit-button", variant="error")
             yield Checkbox("Continuer en cas d'erreur", id="continue-on-error")
             yield Label("Progression globale", id="global-progress-label")
@@ -328,9 +336,9 @@ class ExecutionWidget(Container):
     async def run_plugin(self, plugin_id, plugin_widget, config, executed, total_plugins, result_queue):
         """Exécute un plugin"""
         try:
-            # Extraire le nom du plugin
-            plugin_name = plugin_widget.plugin_name
-            logger.debug(f"Démarrage du plugin {plugin_name} ({plugin_id})")
+            # Extraire le nom du plugin pour les logs
+            folder_name = plugin_widget.folder_name
+            logger.debug(f"Démarrage du plugin {folder_name} ({plugin_id})")
             
             # Initialiser la barre de progression
             plugin_widget.set_status('running')
