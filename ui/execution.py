@@ -55,21 +55,26 @@ class PluginContainer(Container):
         """Création des widgets du conteneur"""
         with Horizontal():
             yield Label(self.plugin_name, classes="plugin-name")
-            yield ProgressBar(classes="plugin-progress",show_eta=False)
+            yield ProgressBar(classes="plugin-progress", show_eta=False, total=100.0)
             yield Label("En attente", classes="plugin-status")
 
     def update_progress(self, progress: float, step: str = None):
         """Mise à jour de la progression du plugin"""
-        progress_bar = self.query_one(ProgressBar)
-        if progress_bar:
-            # Mettre à jour la barre avec la progression en pourcentage
-            progress_bar.update(progress=progress * 100)
-        
-        # Mettre à jour le texte de statut si fourni
-        if step:
-            status_label = self.query_one(".plugin-status")
-            if status_label:
-                status_label.update(step)
+        try:
+            # Récupérer la barre de progression
+            progress_bar = self.query_one(ProgressBar)
+            if progress_bar:
+                # Convertir la progression en pourcentage et s'assurer qu'elle est entre 0 et 100
+                progress_value = max(0, min(100, progress * 100))
+                progress_bar.update(progress=progress_value)
+            
+            # Mettre à jour le texte de statut si fourni
+            if step:
+                status_label = self.query_one(".plugin-status")
+                if status_label:
+                    status_label.update(step)
+        except Exception as e:
+            logger.error(f"Erreur lors de la mise à jour de la progression: {str(e)}")
 
     def set_status(self, status: str, message: str = None):
         """Mise à jour du statut du plugin"""
@@ -233,7 +238,10 @@ class ExecutionWidget(Container):
                 try:
                     config = self.plugins_config[plugin_id]
                     self.set_current_plugin(plugin_widget.plugin_name)
-                    plugin_widget.set_status('running')
+                    
+                    # Initialiser la progression et le statut
+                    await self.app.call_from_thread(plugin_widget.update_progress, 0.0, "Démarrage...")
+                    await self.app.call_from_thread(plugin_widget.set_status, 'running')
                     
                     # Créer une queue pour ce plugin
                     result_queue = asyncio.Queue()
@@ -392,17 +400,23 @@ class ExecutionWidget(Container):
                 if "Progression :" in message:
                     progress_match = re.search(r'Progression : (\d+)% \(étape (\d+)/(\d+)\)', message)
                     if progress_match:
+                        # Récupérer et valider les valeurs
                         progress = float(progress_match.group(1)) / 100.0  # Convertir en fraction
-                        current_step = progress_match.group(2)
-                        total_steps = progress_match.group(3)
-                        step_text = f"Étape {current_step}/{total_steps}"
+                        current_step = int(progress_match.group(2))
+                        total_steps = int(progress_match.group(3))
                         
-                        # Mettre à jour la barre de progression du plugin
-                        await self.app.call_from_thread(plugin_widget.update_progress, progress, step_text)
-                        
-                        # Mettre à jour la progression globale
-                        global_progress = (executed + progress) / total_plugins
-                        await self.app.call_from_thread(self.update_global_progress, global_progress)
+                        # Vérifier que les valeurs sont valides
+                        if 0 <= progress <= 1 and current_step <= total_steps:
+                            step_text = f"Étape {current_step}/{total_steps}"
+                            
+                            # Mettre à jour la barre de progression du plugin
+                            await self.app.call_from_thread(plugin_widget.update_progress, progress, step_text)
+                            
+                            # Mettre à jour la progression globale
+                            global_progress = (executed + progress) / total_plugins
+                            await self.app.call_from_thread(self.update_global_progress, global_progress)
+                            
+                            logger.debug(f"Progression mise à jour: {progress * 100}% ({step_text})")
                         
                         # Ajouter le log
                         await self.sync_ui(
