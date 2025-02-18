@@ -5,6 +5,7 @@ import json
 import time
 import subprocess
 import logging
+import threading
 from datetime import datetime
 
 # Configuration du logging
@@ -32,6 +33,18 @@ def print_progress(step: int, total: int):
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [INFO] Progression : {progress}% (étape {step}/{total})")
     sys.stdout.flush()  # Forcer l'envoi immédiat des données
 
+def run_command(cmd, input_data=None):
+    """Exécute une commande en utilisant Popen"""
+    process = subprocess.Popen(
+        cmd,
+        stdin=subprocess.PIPE if input_data else None,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+    stdout, stderr = process.communicate(input=input_data)
+    return process.returncode == 0, stdout, stderr
+
 def execute_plugin(config):
     """Point d'entrée pour l'exécution du plugin"""
     try:
@@ -58,21 +71,25 @@ def execute_plugin(config):
         
         # Configurer les réponses automatiques
         for setting in debconf_settings:
-            try:
-                subprocess.run(['debconf-set-selections'], input=setting.encode(), check=True)
-                logger.info("Configuration des réponses automatiques réussie")
-            except subprocess.CalledProcessError as e:
-                logger.error(f"Erreur lors de la configuration des réponses: {str(e)}")
+            success, stdout, stderr = run_command(['debconf-set-selections'], setting)
+            if not success:
+                logger.error(f"Erreur lors de la configuration des réponses: {stderr}")
                 return False, "Erreur lors de la configuration des réponses automatiques"
+            logger.info("Configuration des réponses automatiques réussie")
         
         # Installer MySQL
-        try:
-            subprocess.run(['apt-get', 'update'], check=True)
-            subprocess.run(['DEBIAN_FRONTEND=noninteractive', 'apt-get', 'install', '-y', 'mysql-server'], check=True)
-            logger.info("Installation des paquets réussie")
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Erreur lors de l'installation: {str(e)}")
+        success, stdout, stderr = run_command(['apt-get', 'update'])
+        if not success:
+            logger.error(f"Erreur lors de la mise à jour: {stderr}")
+            return False, "Erreur lors de la mise à jour des paquets"
+            
+        env = os.environ.copy()
+        env['DEBIAN_FRONTEND'] = 'noninteractive'
+        success, stdout, stderr = run_command(['apt-get', 'install', '-y', 'mysql-server'])
+        if not success:
+            logger.error(f"Erreur lors de l'installation: {stderr}")
             return False, "Erreur lors de l'installation de MySQL"
+        logger.info("Installation des paquets réussie")
         
         # Étape 2: Configuration de base
         current_step += 1
@@ -103,24 +120,23 @@ def execute_plugin(config):
         logger.info("Application de la configuration")
         
         # Exécuter les commandes MySQL
-        try:
-            mysql_cmd = ['mysql', '-u', 'root', f'--password={mysql_root_password}']
-            subprocess.run(mysql_cmd, input=mysql_secure.encode(), check=True)
-            logger.info("Configuration de MySQL réussie")
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Erreur lors de la configuration MySQL: {str(e)}")
+        mysql_cmd = ['mysql', '-u', 'root', f'--password={mysql_root_password}']
+        success, stdout, stderr = run_command(mysql_cmd, mysql_secure)
+        if not success:
+            logger.error(f"Erreur lors de la configuration MySQL: {stderr}")
             return False, "Erreur lors de la configuration de MySQL"
+        logger.info("Configuration de MySQL réussie")
         
         # Étape 4: Redémarrage du service
         current_step += 1
         print_progress(current_step, total_steps)
         logger.info("Redémarrage du service")
-        try:
-            subprocess.run(['systemctl', 'restart', 'mysql'], check=True)
-            logger.info("Redémarrage du service réussi")
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Erreur lors du redémarrage du service: {str(e)}")
+        
+        success, stdout, stderr = run_command(['systemctl', 'restart', 'mysql'])
+        if not success:
+            logger.error(f"Erreur lors du redémarrage du service: {stderr}")
             return False, "Erreur lors du redémarrage de MySQL"
+        logger.info("Redémarrage du service réussi")
         
         return True, "Installation et configuration de MySQL terminées avec succès"
         
