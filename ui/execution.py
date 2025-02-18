@@ -41,7 +41,6 @@ file_handler.setFormatter(formatter)
 # Ajout du handler au logger
 logger.addHandler(file_handler)
 
-
 class PluginContainer(Container):
     """Conteneur pour afficher l'état et la progression d'un plugin"""
 
@@ -87,7 +86,6 @@ class PluginContainer(Container):
         
         # Mettre à jour le widget de statut
         self.query_one(".plugin-status").update(status_text)
-
 
 class ExecutionWidget(Container):
     """Écran d'exécution des plugins"""
@@ -448,17 +446,17 @@ class ExecutionWidget(Container):
                     if logs:
                         current_text = logs.text
                         logs.update(current_text + ("\n" if current_text else "") + log_entry)
+                        
+                    # Scroller en bas
+                    logs_container = self.query_one("#logs-container")
+                    if logs_container:
+                        logs_container.remove_class("hidden")
+                        logs_container.scroll_end(animate=False)
+                        
                 await self.app.call_from_thread(update_logs)
                 
-                # Scroller en bas
-                logs_container = self.query_one("#logs-container")
-                if logs_container:
-                    logs_container.remove_class("hidden")
-                    logs_container.scroll_end(animate=False)
-            except Exception as e:
-                logger.error(f"Erreur lors de la mise à jour de l'UI: {str(e)}")
-        
-        self.app.call_from_thread(_update)
+        except Exception as e:
+            logger.error(f"Erreur lors de la mise à jour de l'UI: {str(e)}")
 
     async def clear_logs(self):
         """Effacement des logs"""
@@ -544,7 +542,6 @@ class ExecutionWidget(Container):
             
         except Exception as e:
             logger.error(f"Erreur lors de l'ajout d'un log: {str(e)}")
-
 
 class ExecutionScreen(Screen):
     """Écran simple contenant le widget d'exécution"""
