@@ -449,12 +449,12 @@ class ExecutionWidget(Container):
                         current_text = logs.text
                         logs.update(current_text + ("\n" if current_text else "") + log_entry)
                 await self.app.call_from_thread(update_logs)
-                        
-                        # Scroller en bas
-                        logs_container = self.query_one("#logs-container")
-                        if logs_container:
-                            logs_container.remove_class("hidden")
-                            logs_container.scroll_end(animate=False)
+                
+                # Scroller en bas
+                logs_container = self.query_one("#logs-container")
+                if logs_container:
+                    logs_container.remove_class("hidden")
+                    logs_container.scroll_end(animate=False)
             except Exception as e:
                 logger.error(f"Erreur lors de la mise à jour de l'UI: {str(e)}")
         
