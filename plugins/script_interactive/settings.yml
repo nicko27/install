@@ -1,0 +1,18 @@
+name: Script Interactif
+description: Exécute un script shell interactif qui attend des réponses
+version: 1.0
+type: python
+multiple: false
+
+# Configuration du plugin
+config:
+  script_path:
+    type: string
+    description: Chemin vers le script à exécuter
+    required: true
+  
+  # Réponses à fournir dans l'ordre des questions
+  responses:
+    type: list
+    description: Liste des réponses à fournir aux questions du script
+    required: true
