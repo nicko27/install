@@ -514,28 +514,36 @@ class ExecutionWidget(Container):
         try:
             # Mettre à jour la progression si spécifiée
             if progress is not None:
-                await self.app.call_from_thread(plugin_widget.update_progress, progress, step)
+                # Vérifier si nous sommes dans le thread principal
+                if self.app._thread_id == threading.get_ident():
+                    # Dans le thread principal, appeler directement
+                    plugin_widget.update_progress(progress, step)
+                else:
+                    # Dans un thread différent, utiliser call_from_thread
+                    await self.app.call_from_thread(plugin_widget.update_progress, progress, step)
                 # Mettre à jour la progression globale
                 global_progress = (executed + progress) / total_plugins
                 await self.app.call_from_thread(self.update_global_progress, global_progress)
             
             # Mettre à jour le statut si spécifié
             if status is not None:
-                await self.app.call_from_thread(plugin_widget.set_status, status, message)
+                if self.app._thread_id == threading.get_ident():
+                    plugin_widget.set_status(status, message)
+                else:
+                    await self.app.call_from_thread(plugin_widget.set_status, status, message)
             
             # Mettre à jour les logs si spécifié
             if log_entry is not None:
-                def update_logs():
-                    logs = self.query_one("#logs-text")
-                    if logs:
-                        current_text = logs.text
-                        logs.update(current_text + ("\n" if current_text else "") + log_entry)
-                        
-                    # Scroller en bas
-                    logs_container = self.query_one("#logs-container")
-                    if logs_container:
-                        logs_container.remove_class("hidden")
+                if self.app._thread_id == threading.get_ident():
+                    # Dans le thread principal
+                    await self.add_log(log_entry)
+                else:
+                    # Dans un thread différent
+                    await self.app.call_from_thread(self.add_log, log_entry)er.remove_class("hidden")
                         logs_container.scroll_end(animate=False)
+                else:
+                    # Dans un thread différent
+                    await self.app.call_from_thread(self.update_logs, log_entry)nimate=False)
                         
                 await self.app.call_from_thread(update_logs)
                 
@@ -568,6 +576,12 @@ class ExecutionWidget(Container):
     async def add_log(self, message: str, level: str = 'info'):
         """Ajout d'un message dans les logs avec formatage amélioré"""
         try:
+            # Vérifier si nous sommes dans le thread principal
+            if not self.app._thread_id == threading.get_ident():
+                # Dans un thread différent, utiliser call_from_thread
+                await self.app.call_from_thread(self.add_log, message, level)
+                return
+
             logs = self.query_one("#logs-text")
             if logs:
                 current_text = logs.renderable or ""
