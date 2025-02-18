@@ -3,16 +3,101 @@ description: Exécute un script shell interactif qui attend des réponses
 version: 1.0
 type: python
 multiple: false
+icon: 📄
+
+# Valeurs par défaut pour le plugin
+defaults:
+  # Configuration serveur web par défaut
+  web_server:
+    install_web_server: true
+    web_server_port: 80
+    enable_php: true
+    php_version: "8.1"
+  
+  # Configuration base de données par défaut
+  database:
+    install_web_server: false
+    db_type: "mysql"
+    db_port: 3306
+    db_root_password: "root123"
 
 # Configuration du plugin
 config:
-  script_path:
-    type: string
-    description: Chemin vers le script à exécuter
+  # Configuration du serveur web
+  install_web_server:
+    type: boolean
+    description: Installer un serveur web
+    default: true
     required: true
-  
-  # Réponses à fournir dans l'ordre des questions
-  responses:
-    type: list
-    description: Liste des réponses à fournir aux questions du script
+    group: "Type d'installation"
+
+  web_server_port:
+    type: integer
+    description: Port du serveur web
+    default: 80
+    required: false
+    condition: install_web_server
+    group: "Configuration serveur web"
+    min: 1
+    max: 65535
+
+  enable_php:
+    type: boolean
+    description: Activer le support PHP
+    default: true
+    required: false
+    condition: install_web_server
+    group: "Configuration serveur web"
+
+  php_version:
+    type: select
+    description: Version de PHP à installer
+    options:
+      - "7.4"
+      - "8.0"
+      - "8.1"
+    default: "8.1"
+    required: false
+    condition: enable_php
+    group: "Configuration serveur web"
+
+  # Configuration de la base de données
+  db_type:
+    type: select
+    description: Type de base de données
+    options:
+      - mysql
+      - postgresql
+    default: mysql
+    required: false
+    condition: "!install_web_server"
+    group: "Configuration base de données"
+
+  db_port:
+    type: integer
+    description: Port de la base de données
+    default: 3306
+    required: false
+    condition: "!install_web_server"
+    group: "Configuration base de données"
+    min: 1
+    max: 65535
+    dynamic_default:
+      mysql: 3306
+      postgresql: 5432
+
+  db_root_password:
+    type: password
+    description: Mot de passe root de la base de données
+    default: "root123"
+    required: false
+    condition: "!install_web_server"
+    group: "Configuration base de données"
+    min_length: 6
+
+  confirm_config:
+    type: boolean
+    description: Confirmer la configuration
+    default: true
     required: true
+    group: "Validation"

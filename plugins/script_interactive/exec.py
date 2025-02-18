@@ -3,7 +3,7 @@ import sys
 import pexpect
 import asyncio
 import re
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, List
 
 def extract_question(output: str) -> Optional[str]:
     """Extrait la question du texte de sortie."""
@@ -14,25 +14,64 @@ def extract_question(output: str) -> Optional[str]:
             return line.strip()
     return None
 
+def config_to_responses(config: Dict[str, Any]) -> List[str]:
+    """Convertit la configuration en liste de réponses pour le script."""
+    responses = []
+    
+    # Réponse pour le serveur web
+    install_web = config.get('install_web_server', True)
+    responses.append('o' if install_web else 'n')
+    
+    if install_web:
+        # Port du serveur web
+        port = str(config.get('web_server_port', 80))
+        responses.append(port)
+        
+        # Support PHP
+        enable_php = config.get('enable_php', True)
+        responses.append('o' if enable_php else 'n')
+        
+        if enable_php:
+            # Version PHP
+            php_version = config.get('php_version', '8.1')
+            responses.append(php_version)
+    else:
+        # Type de base de données
+        db_type = config.get('db_type', 'mysql')
+        responses.append(db_type)
+        
+        # Port de la base de données
+        db_port = str(config.get('db_port', 3306 if db_type == 'mysql' else 5432))
+        responses.append(db_port)
+        
+        # Mot de passe root
+        db_password = config.get('db_root_password', '')
+        responses.append(db_password)
+    
+    # Confirmation finale
+    confirm = config.get('confirm_config', True)
+    responses.append('o' if confirm else 'n')
+    
+    return responses
+
 async def run(config: Dict[str, Any], progress_callback=None) -> bool:
     """Exécute le script interactif et fournit les réponses automatiquement.
     
     Args:
-        config: Configuration du plugin avec script_path et responses
+        config: Configuration du plugin
         progress_callback: Callback pour mettre à jour la progression
         
     Returns:
         bool: True si succès, False sinon
     """
     try:
-        script_path = config.get('script_path')
-        responses = config.get('responses', [])
-        
-        if not script_path or not os.path.exists(script_path):
+        # Chemin du script dans le dossier du plugin
+        script_path = os.path.join(os.path.dirname(__file__), 'test_script.sh')
+        if not os.path.exists(script_path):
             raise ValueError(f"Script introuvable: {script_path}")
-            
-        if not responses:
-            raise ValueError("Aucune réponse fournie pour le script interactif")
+        
+        # Convertir la configuration en réponses
+        responses = config_to_responses(config)
         
         # Initialisation de la progression
         total_steps = len(responses) * 2 + 2  # Questions + Réponses + Début + Fin
