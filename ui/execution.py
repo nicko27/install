@@ -335,7 +335,7 @@ class ExecutionWidget(Container):
                         break
                     line = line.decode().strip()
                     if line:
-                        self.handle_output(line, plugin_widget, executed, total_plugins)
+                        await self.handle_output(line, plugin_widget, executed, total_plugins)
             
             # Lancer la lecture des flux stdout et stderr
             await asyncio.gather(
@@ -373,7 +373,7 @@ class ExecutionWidget(Container):
             if line:
                 output_handler(line)
 
-    def handle_output(self, line: str, plugin_widget, executed, total_plugins):
+    async def handle_output(self, line: str, plugin_widget, executed, total_plugins):
         """Gère les logs et la progression d'un plugin"""
         try:
             # Ignorer les lignes vides
@@ -395,13 +395,13 @@ class ExecutionWidget(Container):
                         current_step = progress_match.group(2)
                         total_steps = progress_match.group(3)
                         step_text = f"Étape {current_step}/{total_steps}"
-                        plugin_widget.update_progress(progress, step_text)
-                        self.sync_ui(
+                        await self.app.call_from_thread(plugin_widget.update_progress, progress, step_text)
+                        await self.sync_ui(
                             plugin_widget,
                             executed,
                             total_plugins,
-                            progress=progress/100,
-                            step=f"Étape {current_step}/{total_steps}",
+                            progress=progress,
+                            step=step_text,
                             log_entry=line
                         )
                         return
@@ -410,7 +410,7 @@ class ExecutionWidget(Container):
                 if level in ['error', 'warning', 'info', 'debug', 'success']:
                     # Pour les erreurs et warnings, mettre à jour le statut
                     if level in ['error', 'warning']:
-                        self.sync_ui(
+                        await self.sync_ui(
                             plugin_widget,
                             executed,
                             total_plugins,
@@ -419,35 +419,36 @@ class ExecutionWidget(Container):
                             log_entry=line
                         )
                     else:
-                        self.sync_ui(plugin_widget, executed, total_plugins, log_entry=line)
+                        await self.sync_ui(plugin_widget, executed, total_plugins, log_entry=line)
             else:
                 # Ligne sans format standard, l'afficher telle quelle
-                self.sync_ui(plugin_widget, executed, total_plugins, log_entry=line)
+                await self.sync_ui(plugin_widget, executed, total_plugins, log_entry=line)
                 
         except Exception as e:
             logger.error(f"Erreur dans handle_output: {str(e)}")
 
-    def sync_ui(self, plugin_widget, executed, total_plugins, progress=None, step=None, status=None, message=None, log_entry=None):
+    async def sync_ui(self, plugin_widget, executed, total_plugins, progress=None, step=None, status=None, message=None, log_entry=None):
         """Synchronise l'interface utilisateur avec les mises à jour du plugin"""
-        def _update():
-            try:
-                # Mettre à jour la progression si spécifiée
-                if progress is not None:
-                    plugin_widget.update_progress(progress, step)
-                    # Mettre à jour la progression globale
-                    global_progress = (executed + progress) / total_plugins
-                    self.update_global_progress(global_progress)
-                
-                # Mettre à jour le statut si spécifié
-                if status is not None:
-                    plugin_widget.set_status(status, message)
-                
-                # Mettre à jour les logs si spécifié
-                if log_entry is not None:
+        try:
+            # Mettre à jour la progression si spécifiée
+            if progress is not None:
+                await self.app.call_from_thread(plugin_widget.update_progress, progress, step)
+                # Mettre à jour la progression globale
+                global_progress = (executed + progress) / total_plugins
+                await self.app.call_from_thread(self.update_global_progress, global_progress)
+            
+            # Mettre à jour le statut si spécifié
+            if status is not None:
+                await self.app.call_from_thread(plugin_widget.set_status, status, message)
+            
+            # Mettre à jour les logs si spécifié
+            if log_entry is not None:
+                def update_logs():
                     logs = self.query_one("#logs-text")
                     if logs:
                         current_text = logs.text
                         logs.update(current_text + ("\n" if current_text else "") + log_entry)
+                await self.app.call_from_thread(update_logs)
                         
                         # Scroller en bas
                         logs_container = self.query_one("#logs-container")
