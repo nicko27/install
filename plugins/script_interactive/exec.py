@@ -1,21 +1,42 @@
+#!/usr/bin/env python3
 import os
 import sys
+import json
+import time
 import pexpect
-import asyncio
-import re
-from typing import Dict, Any, Optional, Tuple, List
+import logging
+from datetime import datetime
 
-def extract_question(output: str) -> Optional[str]:
-    """Extrait la question du texte de sortie."""
-    # Cherche une ligne se terminant par ? ou contenant 'read'
-    lines = output.split('\n')
-    for line in reversed(lines):
-        if line.strip().endswith('?') or 'read' in line.lower():
-            return line.strip()
-    return None
+# Configuration du logging
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+LOG_FILE = os.path.join(BASE_DIR, "logs", "script_interactive.log")
+formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] %(message)s',
+                            datefmt='%Y-%m-%d %H:%M:%S')
 
-def config_to_responses(config: Dict[str, Any]) -> List[str]:
-    """Convertit la configuration en liste de réponses pour le script."""
+logger = logging.getLogger('script_interactive')
+logger.setLevel(logging.DEBUG)
+
+# Handler pour le fichier
+file_handler = logging.FileHandler(LOG_FILE)
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
+# Handler pour la console
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
+
+def print_progress(step: int, total: int, message: str = None):
+    """Affiche la progression"""
+    progress = int((step * 100) / total)
+    msg = f"Progression : {progress}% (étape {step}/{total})"
+    if message:
+        msg += f" - {message}"
+    logger.info(msg)
+    sys.stdout.flush()
+
+def config_to_responses(config):
+    """Convertit la configuration en liste de réponses."""
     responses = []
     
     # Réponse pour le serveur web
@@ -54,17 +75,11 @@ def config_to_responses(config: Dict[str, Any]) -> List[str]:
     
     return responses
 
-async def run(config: Dict[str, Any], progress_callback=None) -> bool:
-    """Exécute le script interactif et fournit les réponses automatiquement.
-    
-    Args:
-        config: Configuration du plugin
-        progress_callback: Callback pour mettre à jour la progression
-        
-    Returns:
-        bool: True si succès, False sinon
-    """
+def execute_plugin(config):
+    """Point d'entrée pour l'exécution du plugin."""
     try:
+        logger.info("Démarrage de l'exécution du script interactif")
+        
         # Chemin du script dans le dossier du plugin
         script_path = os.path.join(os.path.dirname(__file__), 'test_script.sh')
         if not os.path.exists(script_path):
@@ -72,71 +87,59 @@ async def run(config: Dict[str, Any], progress_callback=None) -> bool:
         
         # Convertir la configuration en réponses
         responses = config_to_responses(config)
-        
-        # Initialisation de la progression
-        total_steps = len(responses) * 2 + 2  # Questions + Réponses + Début + Fin
+        total_steps = len(responses) * 2  # Questions + Réponses
         current_step = 0
-        
-        def update_progress(step_name: str) -> None:
-            if progress_callback:
-                progress = current_step / total_steps
-                asyncio.create_task(progress_callback(progress, step_name))
-        
-        # Démarrage
-        current_step += 1
-        update_progress("Démarrage du script...")
         
         # Utiliser pexpect avec un buffer plus grand
         child = pexpect.spawn(f'bash {script_path}', encoding='utf-8')
-        child.logfile = sys.stdout  # Pour le débogage si nécessaire
         
         # Pour chaque réponse attendue
         for i, response in enumerate(responses, 1):
-            # Attendre une sortie et capturer la question
+            # Attendre une sortie
+            current_step += 1
+            print_progress(current_step, total_steps, "Attente de la question...")
+            
             index = child.expect(['.*\n', pexpect.EOF, pexpect.TIMEOUT])
             if index != 0:
                 raise RuntimeError("Le script s'est terminé ou ne répond pas")
-                
-            # Récupérer la sortie et chercher la question
-            output = child.before + child.after
-            question = extract_question(output)
             
-            # Mettre à jour la progression - Question reçue
-            current_step += 1
-            if question:
-                update_progress(f"Question {i}: {question}")
-            else:
-                update_progress(f"Attente de la question {i}...")
+            # Récupérer la sortie
+            output = child.before + child.after
+            logger.info(f"Question : {output.strip()}")
             
             # Envoyer la réponse
-            child.sendline(response)
-            
-            # Mettre à jour la progression - Réponse envoyée
             current_step += 1
             # Masquer le mot de passe dans les logs
-            displayed_response = '****' if 'mot de passe' in question.lower() if question else response
-            update_progress(f"Réponse {i}: {displayed_response}")
+            displayed_response = '****' if 'mot de passe' in output.lower() else response
+            print_progress(current_step, total_steps, f"Réponse : {displayed_response}")
             
-            # Petite pause pour laisser le temps de lire
-            await asyncio.sleep(0.5)
+            child.sendline(response)
+            time.sleep(0.5)  # Petite pause pour la lisibilité
         
         # Attendre la fin du script
         child.expect(pexpect.EOF)
         
-        # Finalisation
-        current_step += 1
-        update_progress("Configuration terminée")
-        
         # Vérifier le code de retour
         child.close()
         if child.exitstatus == 0:
+            logger.info("Exécution terminée avec succès")
             return True
         else:
             raise RuntimeError(f"Le script a retourné le code {child.exitstatus}")
             
-    except pexpect.TIMEOUT:
-        raise RuntimeError("Le script n'a pas répondu dans le temps imparti")
-    except pexpect.EOF:
-        raise RuntimeError("Le script s'est terminé de manière inattendue")
     except Exception as e:
-        raise RuntimeError(f"Erreur lors de l'exécution du script: {str(e)}")
+        error_msg = f"Erreur lors de l'exécution : {str(e)}"
+        logger.error(error_msg)
+        raise RuntimeError(error_msg)
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: exec.py <config_json>")
+        sys.exit(1)
+        
+    try:
+        config = json.loads(sys.argv[1])
+        execute_plugin(config)
+    except Exception as e:
+        logger.error(f"Erreur : {str(e)}")
+        sys.exit(1)

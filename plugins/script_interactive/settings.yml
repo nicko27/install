@@ -1,103 +1,91 @@
 name: Script Interactif
-description: Exécute un script shell interactif qui attend des réponses
+description: Exécute un script shell interactif avec des réponses automatiques
 version: 1.0
-type: python
+category: Installation
 multiple: false
 icon: 📄
 
-# Valeurs par défaut pour le plugin
-defaults:
-  # Configuration serveur web par défaut
-  web_server:
-    install_web_server: true
-    web_server_port: 80
-    enable_php: true
-    php_version: "8.1"
-  
-  # Configuration base de données par défaut
-  database:
-    install_web_server: false
-    db_type: "mysql"
-    db_port: 3306
-    db_root_password: "root123"
-
-# Configuration du plugin
-config:
-  # Configuration du serveur web
+config_fields:
   install_web_server:
-    type: boolean
-    description: Installer un serveur web
+    type: checkbox
+    label: Installer un serveur web
+    description: Installer un serveur web avec support PHP optionnel
     default: true
     required: true
-    group: "Type d'installation"
+    group: Type d'installation
 
   web_server_port:
-    type: integer
-    description: Port du serveur web
-    default: 80
-    required: false
-    condition: install_web_server
-    group: "Configuration serveur web"
+    type: text
+    label: Port du serveur web
+    description: Port d'écoute du serveur web (1-65535)
+    default: "80"
+    placeholder: "Ex: 80, 8080"
+    validate: number
     min: 1
     max: 65535
+    condition: install_web_server
+    required: true
+    not_empty: true
 
   enable_php:
-    type: boolean
-    description: Activer le support PHP
+    type: checkbox
+    label: Activer PHP
+    description: Installer et configurer le support PHP
     default: true
-    required: false
     condition: install_web_server
-    group: "Configuration serveur web"
 
   php_version:
     type: select
+    label: Version de PHP
     description: Version de PHP à installer
     options:
       - "7.4"
       - "8.0"
       - "8.1"
     default: "8.1"
-    required: false
     condition: enable_php
-    group: "Configuration serveur web"
+    required: true
 
-  # Configuration de la base de données
   db_type:
     type: select
-    description: Type de base de données
+    label: Type de base de données
+    description: Type de serveur de base de données à installer
     options:
       - mysql
       - postgresql
     default: mysql
-    required: false
     condition: "!install_web_server"
-    group: "Configuration base de données"
+    required: true
 
   db_port:
-    type: integer
-    description: Port de la base de données
-    default: 3306
-    required: false
-    condition: "!install_web_server"
-    group: "Configuration base de données"
+    type: text
+    label: Port de la base de données
+    description: Port d'écoute de la base de données (1-65535)
+    placeholder: "Ex: 3306 (MySQL), 5432 (PostgreSQL)"
+    validate: number
     min: 1
     max: 65535
+    condition: "!install_web_server"
+    required: true
+    not_empty: true
     dynamic_default:
-      mysql: 3306
-      postgresql: 5432
+      mysql: "3306"
+      postgresql: "5432"
 
   db_root_password:
     type: password
-    description: Mot de passe root de la base de données
+    label: Mot de passe root
+    description: Mot de passe administrateur (minimum 6 caractères)
     default: "root123"
-    required: false
-    condition: "!install_web_server"
-    group: "Configuration base de données"
     min_length: 6
+    condition: "!install_web_server"
+    required: true
+    not_empty: true
+    validate: no_spaces
 
   confirm_config:
-    type: boolean
-    description: Confirmer la configuration
+    type: checkbox
+    label: Confirmer la configuration
+    description: Confirmer et appliquer la configuration
     default: true
     required: true
-    group: "Validation"
