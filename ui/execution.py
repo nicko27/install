@@ -126,7 +126,9 @@ class ExecutionWidget(Container):
         with ScrollableContainer(id="plugins-list"):
             # Créer les conteneurs de plugins
             for plugin_id, config in self.plugins_config.items():
-                plugin_name = config.get('name', plugin_id)
+                # Récupérer le nom du plugin depuis son dossier
+                folder_name = get_plugin_folder_name(plugin_id)
+                plugin_name = config.get('name', folder_name)
                 container = PluginContainer(plugin_id, plugin_name)
                 self.plugins[plugin_id] = container
                 yield container
@@ -137,10 +139,10 @@ class ExecutionWidget(Container):
                 yield Static("", id="logs-text")
         with Horizontal(id="button-container"):             
             yield Button("Retour", id="back-button", variant="primary")
+            yield Button("Quitter", id="quit-button", variant="error")
             yield Checkbox("Continuer en cas d'erreur", id="continue-on-error")
             yield Label("Progression globale", id="global-progress-label")
             yield ProgressBar(id="global-progress", show_eta=False)
-            yield Button("Quitter", id="quit-button", variant="error")
             yield Button("Démarrer", id="start-button", variant="primary")   
 
         yield Footer()
@@ -184,9 +186,21 @@ class ExecutionWidget(Container):
                 # Import ici pour éviter les imports circulaires
                 from .config import PluginConfig
                 
-                # Créer l'écran de configuration avec la config actuelle
-                config_screen = PluginConfig([(plugin_id.split('_')[0], int(plugin_id.split('_')[1])) 
-                                             for plugin_id in self.plugins_config.keys()])
+                # Import la fonction de récupération du dossier plugin
+                from .choice import get_plugin_folder_name
+                
+                # Extraire les infos de plugin_id
+                plugin_instances = []
+                for plugin_id in self.plugins_config.keys():
+                    # Récupérer le dossier du plugin
+                    folder_name = get_plugin_folder_name(plugin_id)
+                    # Extraire l'instance ID (dernier nombre)
+                    instance_id = int(plugin_id.split('_')[-1])
+                    # Ajouter le tuple (nom_plugin, instance_id)
+                    plugin_instances.append((folder_name, instance_id))
+                
+                # Créer l'écran de configuration
+                config_screen = PluginConfig(plugin_instances)
                 
                 # Revenir à l'écran de configuration
                 self.app.switch_screen(config_screen)
@@ -264,17 +278,20 @@ class ExecutionWidget(Container):
                     # Récupérer le résultat
                     success, message = await result_queue.get()
                     
+                    # Récupérer le nom du dossier du plugin pour les logs
+                    plugin_folder = get_plugin_folder_name(plugin_id)
+                    
                     if success:
-                        await self.add_log(f"Plugin {plugin_widget.plugin_name} terminé avec succès")
+                        await self.add_log(f"Plugin {plugin_folder} terminé avec succès")
                         plugin_widget.set_status('success')
                     else:
                         plugin_widget.set_status('error', message)
-                        await self.add_log(f"Erreur dans le plugin {plugin_widget.plugin_name}: {message}", 'error')
+                        await self.add_log(f"Erreur dans le plugin {plugin_folder}: {message}", 'error')
                         if not self.continue_on_error:
-                            logger.error(f"Arrêt de l'exécution suite à l'erreur du plugin {plugin_widget.plugin_name}")
+                            logger.error(f"Arrêt de l'exécution suite à l'erreur du plugin {plugin_folder}")
                             return
                         else:
-                            logger.warning(f"Continuation après erreur du plugin {plugin_widget.plugin_name} (option activée)")
+                            logger.warning(f"Continuation après erreur du plugin {plugin_folder} (option activée)")
                             await self.add_log(f"Continuation après erreur (option activée)", 'warning')
                     
                     executed += 1
@@ -282,13 +299,16 @@ class ExecutionWidget(Container):
                     self.update_global_progress(executed / total_plugins)
                         
                 except Exception as e:
-                    logger.error(f"Erreur inattendue dans le plugin {plugin_widget.plugin_name}: {str(e)}")
+                    # Récupérer le nom du dossier du plugin pour les logs
+                    plugin_folder = get_plugin_folder_name(plugin_id)
+                    
+                    logger.error(f"Erreur inattendue dans le plugin {plugin_folder}: {str(e)}")
                     plugin_widget.set_status('error', str(e))
                     await self.add_log(f"Erreur inattendue: {str(e)}", 'error')
                     if not self.continue_on_error:
                         return
                     else:
-                        logger.info(f"Continuation après erreur du plugin {plugin_widget.plugin_name} (option activée)")
+                        logger.info(f"Continuation après erreur du plugin {plugin_folder} (option activée)")
                         await self.add_log(f"Continuation après erreur (option activée)", 'warning')
                         executed += 1
                         self.update_global_progress(executed / total_plugins)
@@ -368,13 +388,13 @@ class ExecutionWidget(Container):
             
             # Traiter le résultat
             if exit_code == 0:
-                await self.add_log(f"Plugin {plugin_widget.plugin_name} terminé avec succès")
+                await self.add_log(f"Plugin {folder_name} terminé avec succès")
                 plugin_widget.set_status('success')
                 await result_queue.put((True, "Exécution terminée avec succès"))
             else:
                 error_msg = f"Erreur lors de l'exécution (code {exit_code})"
                 plugin_widget.set_status('error', error_msg)
-                await self.add_log(f"Erreur dans le plugin {plugin_widget.plugin_name}: {error_msg}", 'error')
+                await self.add_log(f"Erreur dans le plugin {folder_name}: {error_msg}", 'error')
                 await result_queue.put((False, error_msg))
                 
         except Exception as e:
