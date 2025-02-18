@@ -116,21 +116,43 @@ class TextField(ConfigField):
             self.input.add_class('disabled')
         yield self.input
 
+    def validate_input(self, value: str) -> tuple[bool, str]:
+        """Valide la valeur d'entrée selon les règles configurées"""
+        # Vérifier not_empty
+        if self.field_config.get('not_empty', False) and not value:
+            return False, "Ce champ ne peut pas être vide"
+            
+        # Vérifier min_length
+        min_length = self.field_config.get('min_length')
+        if min_length and len(value) < min_length:
+            return False, f"La longueur minimale est de {min_length} caractères"
+            
+        # Vérifier max_length
+        max_length = self.field_config.get('max_length')
+        if max_length and len(value) > max_length:
+            return False, f"La longueur maximale est de {max_length} caractères"
+            
+        # Vérifier no_spaces
+        if self.field_config.get('validate') == 'no_spaces' and ' ' in value:
+            return False, "Les espaces ne sont pas autorisés"
+            
+        return True, ""
+
     def on_input_changed(self, event: Input.Changed) -> None:
         if event.input.id == f"input_{self.field_id}":
             value = event.value
             
             # Validation
-            if 'validate' in self.field_config:
-                validate_type = self.field_config['validate']
+            is_valid, error_msg = self.validate_input(value)
+            if not is_valid:
+                self.input.add_class('error')
+                # Mettre à jour le tooltip avec le message d'erreur
+                self.input.tooltip = error_msg
+                return
+            else:
+                self.input.remove_class('error')
+                self.input.tooltip = None
                 
-                if validate_type == 'no_spaces':
-                    if ' ' in value:
-                        self.input.add_class('error')
-                        return
-                    else:
-                        self.input.remove_class('error')
-                        
             self.value = value
 
 class DirectoryField(TextField):
