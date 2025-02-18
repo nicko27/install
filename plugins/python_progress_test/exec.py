@@ -31,6 +31,7 @@ logger.addHandler(console_handler)
 def print_progress(step: int, total: int):
     progress = int((step * 100) / total)
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [INFO] Progression : {progress}% (étape {step}/{total})")
+    sys.stdout.flush()  # Forcer l'envoi immédiat des données
 
 def run_python_test(test_name: str, test_intensity: str) -> bool:
     """

@@ -374,13 +374,35 @@ class ExecutionWidget(Container):
 
     def read_pipe(self, pipe, output_handler, is_error=False):
         """Lit la sortie d'un pipe de façon asynchrone"""
-        while True:
-            line = pipe.readline()
-            if not line:
-                break
-            line = line.strip()
-            if line:
-                output_handler(line)
+        try:
+            # Utiliser un buffer pour accumuler les lignes partielles
+            buffer = ""
+            while True:
+                # Lire un caractère à la fois pour éviter les blocages
+                char = pipe.read(1)
+                if not char:
+                    # Fin du flux, traiter le buffer restant
+                    if buffer:
+                        line = buffer.strip()
+                        if line:
+                            output_handler(line)
+                    break
+                
+                # Ajouter le caractère au buffer
+                buffer += char.decode('utf-8')
+                
+                # Si on trouve une fin de ligne, traiter la ligne
+                if '\n' in buffer:
+                    lines = buffer.split('\n')
+                    # Garder la dernière ligne partielle dans le buffer
+                    buffer = lines[-1]
+                    # Traiter toutes les lignes complètes
+                    for line in lines[:-1]:
+                        line = line.strip()
+                        if line:
+                            output_handler(line)
+        except Exception as e:
+            logger.error(f"Erreur lors de la lecture du pipe: {str(e)}")
 
     async def handle_output(self, line: str, plugin_widget, executed, total_plugins):
         """Gère les logs et la progression d'un plugin"""
