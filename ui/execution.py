@@ -240,8 +240,8 @@ class ExecutionWidget(Container):
                     self.set_current_plugin(plugin_widget.plugin_name)
                     
                     # Initialiser la progression et le statut
-                    await self.app.call_from_thread(plugin_widget.update_progress, 0.0, "Démarrage...")
-                    await self.app.call_from_thread(plugin_widget.set_status, 'running')
+                    plugin_widget.update_progress(0.0, "Démarrage...")
+                    plugin_widget.set_status('running')
                     
                     # Créer une queue pour ce plugin
                     result_queue = asyncio.Queue()
@@ -410,11 +410,11 @@ class ExecutionWidget(Container):
                             step_text = f"Étape {current_step}/{total_steps}"
                             
                             # Mettre à jour la barre de progression du plugin
-                            await self.app.call_from_thread(plugin_widget.update_progress, progress, step_text)
+                            plugin_widget.update_progress(progress, step_text)
                             
                             # Mettre à jour la progression globale
                             global_progress = (executed + progress) / total_plugins
-                            await self.app.call_from_thread(self.update_global_progress, global_progress)
+                            self.update_global_progress(global_progress)
                             
                             logger.debug(f"Progression mise à jour: {progress * 100}% ({step_text})")
                         
