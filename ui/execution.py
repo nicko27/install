@@ -62,7 +62,10 @@ class PluginContainer(Container):
         """Mise à jour de la progression du plugin"""
         progress_bar = self.query_one(ProgressBar)
         if progress_bar:
-            progress_bar.update(total=100.0, progress=progress * 100)
+            # Mettre à jour la barre avec la progression en pourcentage
+            progress_bar.update(progress=progress * 100)
+        
+        # Mettre à jour le texte de statut si fourni
         if step:
             status_label = self.query_one(".plugin-status")
             if status_label:
@@ -393,13 +396,19 @@ class ExecutionWidget(Container):
                         current_step = progress_match.group(2)
                         total_steps = progress_match.group(3)
                         step_text = f"Étape {current_step}/{total_steps}"
+                        
+                        # Mettre à jour la barre de progression du plugin
                         await self.app.call_from_thread(plugin_widget.update_progress, progress, step_text)
+                        
+                        # Mettre à jour la progression globale
+                        global_progress = (executed + progress) / total_plugins
+                        await self.app.call_from_thread(self.update_global_progress, global_progress)
+                        
+                        # Ajouter le log
                         await self.sync_ui(
                             plugin_widget,
                             executed,
                             total_plugins,
-                            progress=progress,
-                            step=step_text,
                             log_entry=line
                         )
                         return
