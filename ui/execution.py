@@ -308,10 +308,6 @@ class ExecutionWidget(Container):
                 exec_path = os.path.join(plugin_dir, "exec.py")
                 logger.debug(f"Chargement du plugin Python depuis {exec_path}")
                 is_bash_plugin = False
-                    
-                main_module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(main_module)
-                is_bash_plugin = False
             
             # Préparer la commande en fonction du type de plugin
             if is_bash_plugin:
