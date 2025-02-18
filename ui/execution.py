@@ -291,6 +291,10 @@ class ExecutionWidget(Container):
             # Extraire le nom du plugin
             plugin_name = plugin_widget.plugin_name
             logger.debug(f"Démarrage du plugin {plugin_name} ({plugin_id})")
+            
+            # Initialiser la barre de progression
+            plugin_widget.set_status('running')
+            plugin_widget.update_progress(0.0, "Démarrage...")
 
             # Obtenir le nom du dossier du plugin
             folder_name = get_plugin_folder_name(plugin_id)
@@ -359,13 +363,6 @@ class ExecutionWidget(Container):
             await result_queue.put((False, error_msg))
 
 
-
-
-
-
-
-
-
     def read_pipe(self, pipe, output_handler, is_error=False):
         """Lit la sortie d'un pipe de façon asynchrone"""
         while True:
@@ -394,9 +391,11 @@ class ExecutionWidget(Container):
                 if "Progression :" in message:
                     progress_match = re.search(r'Progression : (\d+)% \(étape (\d+)/(\d+)\)', message)
                     if progress_match:
-                        progress = float(progress_match.group(1))
+                        progress = float(progress_match.group(1)) / 100.0  # Convertir en fraction
                         current_step = progress_match.group(2)
                         total_steps = progress_match.group(3)
+                        step_text = f"Étape {current_step}/{total_steps}"
+                        plugin_widget.update_progress(progress, step_text)
                         self.sync_ui(
                             plugin_widget,
                             executed,
