@@ -8,7 +8,8 @@ import logging
 from datetime import datetime
 
 # Configuration du logging
-LOG_FILE = "/media/nico/Drive/install/logs/mysql_install.log"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+LOG_FILE = os.path.join(BASE_DIR, "logs", "mysql_install.log")
 formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] %(message)s',
                             datefmt='%Y-%m-%d %H:%M:%S')
 
@@ -32,9 +33,21 @@ def print_progress(step: int, total: int, message: str = ""):
           f"Progression : {progress}% (étape {step}/{total}) {message}")
     sys.stdout.flush()
 
+def check_sudo():
+    """Vérifie si le script a les privilèges sudo"""
+    try:
+        subprocess.run(['sudo', '-n', 'true'], check=True, capture_output=True)
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
 def execute_plugin(config):
     """Point d'entrée pour l'exécution du plugin"""
     try:
+        # Vérifier les privilèges sudo
+        if not check_sudo():
+            return False, "Ce plugin nécessite des privilèges sudo. Veuillez relancer avec sudo."
+
         # Récupérer la configuration
         mysql_root_password = config.get('mysql_root_password')
         remove_test_db = config.get('remove_test_db', True)
@@ -56,11 +69,11 @@ def execute_plugin(config):
         
         # Configurer les réponses automatiques
         for setting in debconf_settings:
-            subprocess.run(['debconf-set-selections'], input=setting.encode(), check=True)
+            subprocess.run(['sudo', 'debconf-set-selections'], input=setting.encode(), check=True)
             
         # Installer MySQL
-        subprocess.run(['apt-get', 'update'], check=True)
-        subprocess.run(['DEBIAN_FRONTEND=noninteractive', 'apt-get', 'install', '-y', 'mysql-server'], check=True)
+        subprocess.run(['sudo', 'apt-get', 'update'], check=True)
+        subprocess.run(['sudo', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', 'install', '-y', 'mysql-server'], check=True)
         
         # Étape 2: Configuration de base
         current_step += 1
@@ -89,13 +102,13 @@ def execute_plugin(config):
         print_progress(current_step, total_steps, "Application de la configuration")
         
         # Exécuter les commandes MySQL
-        mysql_cmd = ['mysql', '-u', 'root', f'--password={mysql_root_password}']
+        mysql_cmd = ['sudo', 'mysql', '-u', 'root', f'--password={mysql_root_password}']
         subprocess.run(mysql_cmd, input=mysql_secure.encode(), check=True)
         
         # Étape 4: Redémarrage du service
         current_step += 1
         print_progress(current_step, total_steps, "Redémarrage du service")
-        subprocess.run(['systemctl', 'restart', 'mysql'], check=True)
+        subprocess.run(['sudo', 'systemctl', 'restart', 'mysql'], check=True)
         
         return True, "Installation et configuration de MySQL terminées avec succès"
         
