@@ -489,7 +489,7 @@ class ExecutionWidget(Container):
                 
                 # Mettre à jour les logs si spécifié
                 if log_entry is not None:
-                    logs = self.query_one("#logs")
+                    logs = self.query_one("#logs-text")
                     if logs:
                         current_text = logs.text
                         logs.update(current_text + ("\n" if current_text else "") + log_entry)
