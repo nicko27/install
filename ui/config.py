@@ -28,50 +28,29 @@ class ConfigField(VerticalGroup):
             self.enabled_if = None
         self.variable_name = field_config.get('variable', field_id)
         
-        # Gérer la valeur par défaut (statique ou dynamique)
-        if 'dynamic_default' in field_config:
+        # Gérer la valeur par défaut (statique, dynamique ou dépendante)
+        if 'depends_on' in field_config and 'values' in field_config:
             self.value = self._get_dynamic_default()
         else:
             self.value = field_config.get('default', None)
             
     def _get_dynamic_default(self) -> str:
-        """Get dynamic default value from script"""
-        dynamic_config = self.field_config['dynamic_default']
-        folder_name = get_plugin_folder_name(self.plugin_path)
-        script_path = os.path.join('plugins', folder_name, dynamic_config['script'])
-        
-        try:
-            # Import the script module
-            import sys
-            import importlib.util
-            
-            # Add plugin directory to path
-            plugin_dir = os.path.dirname(script_path)
-            if plugin_dir not in sys.path:
-                sys.path.append(plugin_dir)
-            
-            # Import the script
-            spec = importlib.util.spec_from_file_location("dynamic_script", script_path)
-            if not spec:
-                logger.error("Failed to create module spec")
-                return None
+        """Get dynamic default value based on another field's value"""
+        # Si le champ dépend d'un autre champ
+        if 'depends_on' in self.field_config and 'values' in self.field_config:
+            depends_on = self.field_config['depends_on']
+            if depends_on in self.fields_by_id:
+                # Récupérer la valeur du champ dont on dépend
+                dependent_field = self.fields_by_id[depends_on]
+                dependent_value = dependent_field.get_value()
                 
-            module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
-            
-            # Get the data
-            data = module.get_default_ip()
-            
-            # Get the value
-            if isinstance(data, dict):
-                return str(data.get('value', ''))
-            elif isinstance(data, (str, int, float)):
-                return str(data)
-            return None
-            
-        except Exception as e:
-            logger.exception(f"Error loading dynamic default from {script_path}: {e}")
-            return None
+                # Récupérer la valeur correspondante
+                values = self.field_config['values']
+                if dependent_value in values:
+                    return values[dependent_value]
+        
+        # Valeur par défaut si pas de dépendance ou valeur non trouvée
+        return self.field_config.get('default')
 
     def compose(self) -> ComposeResult:
         label = self.field_config.get('label', self.field_id)
@@ -96,6 +75,20 @@ class ConfigField(VerticalGroup):
 
     def get_value(self):
         return self.value
+        
+    def on_select_changed(self, event: Select.Changed) -> None:
+        """Handle select change"""
+        if event.select.id == f"select_{self.field_id}":
+            self.value = event.value
+            
+            # Mettre à jour les champs qui dépendent de celui-ci
+            for field_id, field in self.fields_by_id.items():
+                if field.field_config.get('depends_on') == self.field_id:
+                    field.value = field._get_dynamic_default()
+                    if hasattr(field, 'input'):
+                        field.input.value = field.value
+                    elif hasattr(field, 'select'):
+                        field.select.value = field.value
 
 class TextField(ConfigField):
     """Text input field"""

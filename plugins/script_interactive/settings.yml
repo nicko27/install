@@ -68,7 +68,9 @@ config_fields:
     condition: "!install_web_server"
     required: true
     not_empty: true
-    dynamic_default:
+    default: "3306"
+    depends_on: db_type
+    values:
       mysql: "3306"
       postgresql: "5432"
 
