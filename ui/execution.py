@@ -228,74 +228,65 @@ class ExecutionWidget(Container):
             logger.debug(f"Démarrage de l'exécution de {total_plugins} plugins")
             executed = 0
 
-            import threading
-            import queue
-            
-            try:
-                for plugin_id, plugin_widget in self.plugins.items():
-                    try:
-                        config = self.plugins_config[plugin_id]
-                        self.set_current_plugin(plugin_widget.plugin_name)
-                        plugin_widget.set_status('running')
-                        
-                        # Créer une nouvelle queue pour ce plugin
-                        result_queue = queue.Queue()
-                        
-                        # Exécuter le plugin dans un thread séparé
-                        bound_run_plugin = self.run_plugin.__get__(self, self.__class__)
-                        thread = threading.Thread(
-                            target=bound_run_plugin,
-                            args=(plugin_id, plugin_widget, config, executed, total_plugins, result_queue)
-                        )
-                        thread.start()
-                        # Ne pas attendre la fin du thread ici pour garder l'UI réactive
-                        
-                        # Récupérer le résultat de manière non bloquante
-                        while thread.is_alive():
-                            await asyncio.sleep(0.1)
-                        success, message = result_queue.get()
-                        
-                        # Traiter le résultat
-                        if success:
-                            await self.add_log(f"Plugin {plugin_widget.plugin_name} terminé avec succès")
-                            plugin_widget.set_status('success')
-                        else:
-                            plugin_widget.set_status('error', message)
-                            await self.add_log(f"Erreur dans le plugin {plugin_widget.plugin_name}: {message}", 'error')
-                            if not self.continue_on_error:
-                                logger.error(f"Arrêt de l'exécution suite à l'erreur du plugin {plugin_widget.plugin_name}")
-                                return
-                            else:
-                                logger.warning(f"Continuation après erreur du plugin {plugin_widget.plugin_name} (option activée)")
-                                await self.add_log(f"Continuation après erreur (option activée)", 'warning')
-                        
-                        executed += 1
-                        
-                    except Exception as e:
-                        logger.error(f"Erreur inattendue dans le plugin {plugin_widget.plugin_name}: {str(e)}")
-                        plugin_widget.set_status('error', str(e))
-                        await self.add_log(f"Erreur inattendue: {str(e)}", 'error')
+            for plugin_id, plugin_widget in self.plugins.items():
+                try:
+                    config = self.plugins_config[plugin_id]
+                    self.set_current_plugin(plugin_widget.plugin_name)
+                    plugin_widget.set_status('running')
+                    
+                    # Créer une queue pour ce plugin
+                    result_queue = asyncio.Queue()
+                    
+                    # Exécuter le plugin et attendre sa fin
+                    # Exécuter le plugin et attendre sa fin
+                    await self.run_plugin(plugin_id, plugin_widget, config, executed, total_plugins, result_queue)
+                    
+                    # Récupérer le résultat
+                    success, message = await result_queue.get()
+                    
+                    if success:
+                        await self.add_log(f"Plugin {plugin_widget.plugin_name} terminé avec succès")
+                        plugin_widget.set_status('success')
+                    else:
+                        plugin_widget.set_status('error', message)
+                        await self.add_log(f"Erreur dans le plugin {plugin_widget.plugin_name}: {message}", 'error')
                         if not self.continue_on_error:
+                            logger.error(f"Arrêt de l'exécution suite à l'erreur du plugin {plugin_widget.plugin_name}")
                             return
                         else:
-                            logger.info(f"Continuation après erreur du plugin {plugin_widget.plugin_name} (option activée)")
+                            logger.warning(f"Continuation après erreur du plugin {plugin_widget.plugin_name} (option activée)")
                             await self.add_log(f"Continuation après erreur (option activée)", 'warning')
-                            executed += 1
-                
-                # Mise à jour finale
-                self.update_global_progress(1.0)
-                self.set_current_plugin("Terminé")
-                await self.add_log("Exécution terminée avec succès")
+                    
+                    executed += 1
+                    # Mise à jour de la progression globale
+                    self.update_global_progress(executed / total_plugins)
+                        
+                except Exception as e:
+                    logger.error(f"Erreur inattendue dans le plugin {plugin_widget.plugin_name}: {str(e)}")
+                    plugin_widget.set_status('error', str(e))
+                    await self.add_log(f"Erreur inattendue: {str(e)}", 'error')
+                    if not self.continue_on_error:
+                        return
+                    else:
+                        logger.info(f"Continuation après erreur du plugin {plugin_widget.plugin_name} (option activée)")
+                        await self.add_log(f"Continuation après erreur (option activée)", 'warning')
+                        executed += 1
+                        self.update_global_progress(executed / total_plugins)
             
-            except Exception as e:
-                logger.error(f"Erreur lors de l'exécution des plugins : {str(e)}")
-                await self.add_log(f"Erreur lors de l'exécution : {str(e)}", 'error')
+            # Mise à jour finale
+            self.update_global_progress(1.0)
+            self.set_current_plugin("Terminé")
+            await self.add_log("Exécution terminée avec succès")
+        
+        except Exception as e:
+            logger.error(f"Erreur lors de l'exécution des plugins : {str(e)}")
+            await self.add_log(f"Erreur lors de l'exécution : {str(e)}", 'error')
         except Exception as e:
             logger.error(f"Erreur inattendue lors de l'exécution des plugins : {str(e)}")
             await self.add_log(f"Erreur inattendue : {str(e)}", 'error')
 
-    def run_plugin(self, plugin_id, plugin_widget, config, executed, total_plugins, result_queue):
-        """Exécute un plugin dans un thread séparé"""
+    async def run_plugin(self, plugin_id, plugin_widget, config, executed, total_plugins, result_queue):
+        """Exécute un plugin"""
         try:
             # Extraire le nom du plugin
             plugin_name = plugin_widget.plugin_name
@@ -311,96 +302,65 @@ class ExecutionWidget(Container):
             if os.path.exists(os.path.join(plugin_dir, "main.sh")):
                 logger.debug(f"Détecté comme plugin bash: {plugin_id}")
                 is_bash_plugin = True
+                exec_path = os.path.join(plugin_dir, "main.sh")
             else:
-                # Sinon essayer de charger comme plugin Python
+                # Sinon c'est un plugin Python
                 exec_path = os.path.join(plugin_dir, "exec.py")
                 logger.debug(f"Chargement du plugin Python depuis {exec_path}")
-                
-                # Charger le module Python
-                spec = importlib.util.spec_from_file_location("plugin_module", exec_path)
-                if not spec or not spec.loader:
-                    raise ImportError(f"Impossible de charger le plugin depuis {exec_path}")
+                is_bash_plugin = False
                     
                 main_module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(main_module)
                 is_bash_plugin = False
             
-            # Utiliser la méthode sync_ui de la classe
-
-            # Utiliser la méthode handle_output de la classe
-            handle_output = lambda line: self.handle_output(line, plugin_widget, executed, total_plugins)
-        except Exception as e:
-            logger.error(f"Erreur dans handle_log_output: {str(e)}")
-            
-        # Exécuter le plugin
-        try:
             # Préparer la commande en fonction du type de plugin
             if is_bash_plugin:
                 cmd = ["bash", exec_path, config.get('name', 'test'), config.get('intensity', 'light')]
             else:
                 cmd = [sys.executable, exec_path, json.dumps(config)]
             
-            # Créer et démarrer le processus
-            process = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                universal_newlines=True,
-                bufsize=1,
+            # Créer le processus de manière asynchrone
+            process = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
                 cwd=plugin_dir
             )
             
-            # Utiliser la méthode read_pipe de la classe
-            read_pipe = lambda pipe, is_error=False: self.read_pipe(pipe, handle_output, is_error)
+            # Lire la sortie de manière asynchrone
+            async def read_stream(stream, is_error=False):
+                while True:
+                    line = await stream.readline()
+                    if not line:
+                        break
+                    line = line.decode().strip()
+                    if line:
+                        self.handle_output(line, plugin_widget, executed, total_plugins)
             
-            # Créer et démarrer les threads de lecture
-            stdout_thread = threading.Thread(target=read_pipe, args=(process.stdout, False))
-            stderr_thread = threading.Thread(target=read_pipe, args=(process.stderr, True))
-            
-            stdout_thread.start()
-            stderr_thread.start()
+            # Lancer la lecture des flux stdout et stderr
+            await asyncio.gather(
+                read_stream(process.stdout),
+                read_stream(process.stderr, True)
+            )
             
             # Attendre la fin du processus
-            exit_code = process.wait()
-            
-            # Attendre la fin des threads
-            stdout_thread.join()
-            stderr_thread.join()
+            exit_code = await process.wait()
             
             # Traiter le résultat
             if exit_code == 0:
-                self.sync_ui(
-                    plugin_widget,
-                    executed,
-                    total_plugins,
-                    status='success',
-                    message='Exécution terminée avec succès',
-                    log_entry=f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [SUCCESS] Plugin terminé avec succès"
-                )
-                result = (True, "Exécution terminée avec succès")
+                await self.add_log(f"Plugin {plugin_widget.plugin_name} terminé avec succès")
+                plugin_widget.set_status('success')
+                await result_queue.put((True, "Exécution terminée avec succès"))
             else:
                 error_msg = f"Erreur lors de l'exécution (code {exit_code})"
-                self.sync_ui(
-                    plugin_widget,
-                    executed,
-                    total_plugins,
-                    status='error',
-                    message=error_msg,
-                    log_entry=f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [ERROR] {error_msg}"
-                )
-                result = (False, error_msg)
+                plugin_widget.set_status('error', error_msg)
+                await self.add_log(f"Erreur dans le plugin {plugin_widget.plugin_name}: {error_msg}", 'error')
+                await result_queue.put((False, error_msg))
                 
         except Exception as e:
             error_msg = f"Erreur lors de l'exécution: {str(e)}"
-            self.sync_ui(
-                plugin_widget,
-                executed,
-                total_plugins,
-                status='error',
-                message=error_msg,
-                log_entry=f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [ERROR] {error_msg}"
-            )
-            result = (False, error_msg)
+            logger.error(error_msg)
+            await result_queue.put((False, error_msg))
 
 
 
