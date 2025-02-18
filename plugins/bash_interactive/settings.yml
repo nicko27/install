@@ -9,10 +9,12 @@ config_fields:
   mysql_root_password:
     type: text
     label: Mot de passe Root MySQL
-    description: Mot de passe pour l'utilisateur root de MySQL
+    description: Mot de passe pour l'utilisateur root de MySQL (minimum 8 caractères)
     required: true
     placeholder: "Ex: MySecurePass123"
     validate: no_spaces
+    min_length: 5
+    not_empty: true
     
   remove_test_db:
     type: checkbox

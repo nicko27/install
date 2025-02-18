@@ -56,13 +56,23 @@ def execute_plugin(config):
             'mysql-server mysql-server/root_password_again password ' + mysql_root_password
         ]
         
-        # Simuler la configuration de MySQL
-        time.sleep(1)
-        logger.info("Configuration des réponses automatiques")
+        # Configurer les réponses automatiques
+        for setting in debconf_settings:
+            try:
+                subprocess.run(['debconf-set-selections'], input=setting.encode(), check=True)
+                logger.info("Configuration des réponses automatiques réussie")
+            except subprocess.CalledProcessError as e:
+                logger.error(f"Erreur lors de la configuration des réponses: {str(e)}")
+                return False, "Erreur lors de la configuration des réponses automatiques"
         
-        # Simuler l'installation
-        time.sleep(2)
-        logger.info("Installation des paquets")
+        # Installer MySQL
+        try:
+            subprocess.run(['apt-get', 'update'], check=True)
+            subprocess.run(['DEBIAN_FRONTEND=noninteractive', 'apt-get', 'install', '-y', 'mysql-server'], check=True)
+            logger.info("Installation des paquets réussie")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Erreur lors de l'installation: {str(e)}")
+            return False, "Erreur lors de l'installation de MySQL"
         
         # Étape 2: Configuration de base
         current_step += 1
@@ -92,15 +102,25 @@ def execute_plugin(config):
         print_progress(current_step, total_steps)
         logger.info("Application de la configuration")
         
-        # Simuler la configuration MySQL
-        time.sleep(1.5)
-        logger.info("Configuration de MySQL")
+        # Exécuter les commandes MySQL
+        try:
+            mysql_cmd = ['mysql', '-u', 'root', f'--password={mysql_root_password}']
+            subprocess.run(mysql_cmd, input=mysql_secure.encode(), check=True)
+            logger.info("Configuration de MySQL réussie")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Erreur lors de la configuration MySQL: {str(e)}")
+            return False, "Erreur lors de la configuration de MySQL"
         
         # Étape 4: Redémarrage du service
         current_step += 1
         print_progress(current_step, total_steps)
         logger.info("Redémarrage du service")
-        time.sleep(1)
+        try:
+            subprocess.run(['systemctl', 'restart', 'mysql'], check=True)
+            logger.info("Redémarrage du service réussi")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Erreur lors du redémarrage du service: {str(e)}")
+            return False, "Erreur lors du redémarrage de MySQL"
         
         return True, "Installation et configuration de MySQL terminées avec succès"
         
