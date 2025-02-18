@@ -34,15 +34,54 @@ def print_progress(step: int, total: int):
     sys.stdout.flush()  # Forcer l'envoi immédiat des données
 
 def run_command(cmd, input_data=None):
-    """Exécute une commande en utilisant Popen"""
+    """Exécute une commande en utilisant Popen avec affichage en temps réel"""
     process = subprocess.Popen(
         cmd,
         stdin=subprocess.PIPE if input_data else None,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        text=True
+        text=True,
+        bufsize=1,  # Line buffered
+        universal_newlines=True
     )
-    stdout, stderr = process.communicate(input=input_data)
+    
+    if input_data:
+        process.stdin.write(input_data)
+        process.stdin.close()
+    
+    # Lire stdout et stderr en temps réel
+    stdout_lines = []
+    stderr_lines = []
+    
+    while True:
+        stdout_line = process.stdout.readline()
+        stderr_line = process.stderr.readline()
+        
+        if stdout_line:
+            print(stdout_line.rstrip())
+            stdout_lines.append(stdout_line)
+            sys.stdout.flush()
+            
+        if stderr_line:
+            print(stderr_line.rstrip(), file=sys.stderr)
+            stderr_lines.append(stderr_line)
+            sys.stderr.flush()
+            
+        # Vérifier si le processus est terminé
+        if process.poll() is not None:
+            # Lire les lignes restantes
+            for line in process.stdout:
+                print(line.rstrip())
+                stdout_lines.append(line)
+                sys.stdout.flush()
+            for line in process.stderr:
+                print(line.rstrip(), file=sys.stderr)
+                stderr_lines.append(line)
+                sys.stderr.flush()
+            break
+    
+    stdout = ''.join(stdout_lines)
+    stderr = ''.join(stderr_lines)
     return process.returncode == 0, stdout, stderr
 
 def execute_plugin(config):

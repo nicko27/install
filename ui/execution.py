@@ -136,6 +136,7 @@ class ExecutionWidget(Container):
             with ScrollableContainer(id="logs-container"):
                 yield Static("", id="logs-text")
         with Horizontal(id="button-container"):             
+            yield Button("Retour", id="back-button", variant="primary")
             yield Checkbox("Continuer en cas d'erreur", id="continue-on-error")
             yield Label("Progression globale", id="global-progress-label")
             yield ProgressBar(id="global-progress", show_eta=False)
@@ -179,7 +180,17 @@ class ExecutionWidget(Container):
             if button_id == "start-button" and not event.button.disabled:
                 # Vérifier si le bouton n'est pas déjà désactivé
                 await self.start_execution()
-            if button_id == "quit-button":
+            elif button_id == "back-button":
+                # Import ici pour éviter les imports circulaires
+                from .config import PluginConfig
+                
+                # Créer l'écran de configuration avec la config actuelle
+                config_screen = PluginConfig([(plugin_id.split('_')[0], int(plugin_id.split('_')[1])) 
+                                             for plugin_id in self.plugins_config.keys()])
+                
+                # Revenir à l'écran de configuration
+                self.app.switch_screen(config_screen)
+            elif button_id == "quit-button":
                 self.app.exit()
 
         except Exception as e:
