@@ -1,0 +1,46 @@
+#!/bin/bash
+# Traiter les paramètres
+EXTRACT_DIR=""
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --extract_dir=*)
+            EXTRACT_DIR="${1#*=}"
+            ;;
+        --debug)
+            DEBUG=1
+            ;;
+    esac
+    shift
+done
+
+if [ -z "$EXTRACT_DIR" ]; then
+    echo "Error: --extract_dir parameter is required"
+    exit 1
+fi
+
+# Créer le dossier logs s'il n'existe pas
+mkdir -p "$EXTRACT_DIR/logs"
+
+# Vérifier que le venv existe
+if [ ! -f "$EXTRACT_DIR/.venv/bin/activate" ]; then
+    echo "Error: Virtual environment not found in archive"
+    exit 1
+fi
+
+# Activer l'environnement virtuel embarqué
+source "$EXTRACT_DIR/.venv/bin/activate"
+
+# Lancer l'application
+if [ "$DEBUG" = "1" ]; then
+    python "$EXTRACT_DIR/main.py" --dev
+else
+    python "$EXTRACT_DIR/main.py"
+fi
+
+# Désactiver l'environnement virtuel
+deactivate
+
+# Nettoyer les logs si nécessaire
+if [ -d "$EXTRACT_DIR/logs" ]; then
+    find "$EXTRACT_DIR/logs" -type f -exec chmod 644 {} + 2>/dev/null || true
+fi

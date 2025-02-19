@@ -1,0 +1,152 @@
+2025-02-18 15:37:54,429 - install_ui - DEBUG - Using static options: [{'value': 'light', 'label': 'Léger'}, {'value': 'medium', 'label': 'Moyen'}, {'value': 'heavy', 'label': 'Intense'}]
+2025-02-18 15:37:54,439 - install_ui - DEBUG - Using static options: [{'value': 'light', 'label': 'Léger'}, {'value': 'medium', 'label': 'Moyen'}, {'value': 'heavy', 'label': 'Intense'}]
+2025-02-18 15:37:54,453 - install_ui - DEBUG - Using static options: ['7.4', '8.0', '8.1']
+2025-02-18 15:37:54,456 - install_ui - DEBUG - Using static options: ['mysql', 'postgresql']
+2025-02-18 15:37:54,606 - install_ui - DEBUG - Select changed to: light
+2025-02-18 15:37:54,607 - install_ui - DEBUG - Select changed to: light
+2025-02-18 15:37:54,608 - install_ui - DEBUG - Select changed to: 8.1
+2025-02-18 15:37:54,609 - install_ui - DEBUG - Select changed to: mysql
+2025-02-18 15:38:03,867 - install_ui - DEBUG - Clic sur le bouton start-button
+2025-02-18 15:38:03,868 - install_ui - INFO - Démarrage de l'exécution
+2025-02-18 15:38:03,871 - install_ui - DEBUG - Bouton désactivé
+2025-02-18 15:38:03,873 - install_ui - DEBUG - Démarrage de l'exécution de 3 plugins
+2025-02-18 15:38:03,880 - install_ui - DEBUG - Démarrage du plugin python_progress_test (python_progress_test_1)
+2025-02-18 15:38:03,886 - install_ui - DEBUG - Chargement du plugin Python depuis /media/nico/Drive/install/plugins/python_progress_test/exec.py
+2025-02-18 15:38:03,942 - install_ui - INFO - [2025-02-18 15:38:03] [INFO] Démarrage du test Python : PythonTest1
+2025-02-18 15:38:03,943 - install_ui - INFO - [2025-02-18 15:38:03] [DEBUG] Paramètres : steps=5, max_delay=0.5, complexity=1
+2025-02-18 15:38:04,272 - install_ui - INFO - [DEBUG] Arguments reçus: ['/media/nico/Drive/install/plugins/python_progress_test/exec.py', '{"test_name": "PythonTest1", "test_intensity": "light"}']
+2025-02-18 15:38:04,273 - install_ui - INFO - [DEBUG] Configuration JSON reçue: {"test_name": "PythonTest1", "test_intensity": "light"}
+2025-02-18 15:38:04,274 - install_ui - INFO - [DEBUG] Configuration chargée: {'test_name': 'PythonTest1', 'test_intensity': 'light'}
+2025-02-18 15:38:04,275 - install_ui - INFO - [DEBUG] Configuration reçue dans execute_plugin: {'test_name': 'PythonTest1', 'test_intensity': 'light'}
+2025-02-18 15:38:04,276 - install_ui - INFO - [DEBUG] Valeurs extraites: test_name=PythonTest1, test_intensity=light
+2025-02-18 15:38:04,278 - install_ui - DEBUG - Progression mise à jour: 20.0% (Étape 1/5)
+2025-02-18 15:38:04,279 - install_ui - INFO - [2025-02-18 15:38:04] [INFO] Progression : 20%
+2025-02-18 15:38:04,280 - install_ui - INFO - [DEBUG] Résultat: False, Erreur lors de l'exécution du test Python
+2025-02-18 15:38:04,282 - install_ui - INFO - [2025-02-18 15:38:04] [INFO] Étape 1/5 complétée
+2025-02-18 15:38:04,289 - install_ui - INFO - [2025-02-18 15:38:04] [ERROR] Erreur simulée à l'étape 1
+2025-02-18 15:38:04,326 - install_ui - ERROR - Erreur dans le plugin python_progress_test: Erreur lors de l'exécution (code 1)
+2025-02-18 15:38:04,333 - install_ui - ERROR - Erreur dans le plugin python_progress_test: Erreur lors de l'exécution (code 1)
+2025-02-18 15:38:04,333 - install_ui - ERROR - Arrêt de l'exécution suite à l'erreur du plugin python_progress_test
+2025-02-18 15:38:21,113 - install_ui - DEBUG - Clic sur le bouton back-button
+2025-02-18 15:38:21,191 - install_ui - DEBUG - Using static options: [{'value': 'light', 'label': 'Léger'}, {'value': 'medium', 'label': 'Moyen'}, {'value': 'heavy', 'label': 'Intense'}]
+2025-02-18 15:38:21,200 - install_ui - DEBUG - Using static options: [{'value': 'light', 'label': 'Léger'}, {'value': 'medium', 'label': 'Moyen'}, {'value': 'heavy', 'label': 'Intense'}]
+2025-02-18 15:38:21,213 - install_ui - DEBUG - Using static options: ['7.4', '8.0', '8.1']
+2025-02-18 15:38:21,218 - install_ui - DEBUG - Using static options: ['mysql', 'postgresql']
+2025-02-18 15:38:21,368 - install_ui - DEBUG - Select changed to: light
+2025-02-18 15:38:21,369 - install_ui - DEBUG - Select changed to: light
+2025-02-18 15:38:21,369 - install_ui - DEBUG - Select changed to: 8.1
+2025-02-18 15:38:21,370 - install_ui - DEBUG - Select changed to: mysql
+2025-02-18 15:38:25,574 - install_ui - DEBUG - Clic sur le bouton start-button
+2025-02-18 15:38:25,577 - install_ui - INFO - Démarrage de l'exécution
+2025-02-18 15:38:25,583 - install_ui - DEBUG - Bouton désactivé
+2025-02-18 15:38:25,584 - install_ui - DEBUG - Démarrage de l'exécution de 3 plugins
+2025-02-18 15:38:25,592 - install_ui - DEBUG - Démarrage du plugin python_progress_test (python_progress_test_1)
+2025-02-18 15:38:25,598 - install_ui - DEBUG - Chargement du plugin Python depuis /media/nico/Drive/install/plugins/python_progress_test/exec.py
+2025-02-18 15:38:25,704 - install_ui - INFO - [2025-02-18 15:38:25] [INFO] Démarrage du test Python : PythonTest1
+2025-02-18 15:38:25,704 - install_ui - INFO - [2025-02-18 15:38:25] [DEBUG] Paramètres : steps=5, max_delay=0.5, complexity=1
+2025-02-18 15:38:25,987 - install_ui - INFO - [DEBUG] Arguments reçus: ['/media/nico/Drive/install/plugins/python_progress_test/exec.py', '{"test_name": "PythonTest1", "test_intensity": "light"}']
+2025-02-18 15:38:25,988 - install_ui - INFO - [DEBUG] Configuration JSON reçue: {"test_name": "PythonTest1", "test_intensity": "light"}
+2025-02-18 15:38:25,988 - install_ui - INFO - [DEBUG] Configuration chargée: {'test_name': 'PythonTest1', 'test_intensity': 'light'}
+2025-02-18 15:38:25,989 - install_ui - INFO - [DEBUG] Configuration reçue dans execute_plugin: {'test_name': 'PythonTest1', 'test_intensity': 'light'}
+2025-02-18 15:38:25,990 - install_ui - INFO - [DEBUG] Valeurs extraites: test_name=PythonTest1, test_intensity=light
+2025-02-18 15:38:25,992 - install_ui - DEBUG - Progression mise à jour: 20.0% (Étape 1/5)
+2025-02-18 15:38:25,993 - install_ui - INFO - [2025-02-18 15:38:25] [INFO] Progression : 20%
+2025-02-18 15:38:25,996 - install_ui - INFO - [2025-02-18 15:38:25] [INFO] Étape 1/5 complétée
+2025-02-18 15:38:26,098 - install_ui - DEBUG - Progression mise à jour: 40.0% (Étape 2/5)
+2025-02-18 15:38:26,100 - install_ui - INFO - [2025-02-18 15:38:26] [INFO] Progression : 40%
+2025-02-18 15:38:26,101 - install_ui - INFO - [2025-02-18 15:38:26] [INFO] Étape 2/5 complétée
+2025-02-18 15:38:26,239 - install_ui - DEBUG - Progression mise à jour: 60.0% (Étape 3/5)
+2025-02-18 15:38:26,241 - install_ui - INFO - [2025-02-18 15:38:26] [INFO] Progression : 60%
+2025-02-18 15:38:26,242 - install_ui - INFO - [2025-02-18 15:38:26] [INFO] Étape 3/5 complétée
+2025-02-18 15:38:26,426 - install_ui - DEBUG - Progression mise à jour: 80.0% (Étape 4/5)
+2025-02-18 15:38:26,427 - install_ui - INFO - [2025-02-18 15:38:26] [INFO] Progression : 80%
+2025-02-18 15:38:26,429 - install_ui - INFO - [2025-02-18 15:38:26] [INFO] Étape 4/5 complétée
+2025-02-18 15:38:26,540 - install_ui - DEBUG - Progression mise à jour: 100.0% (Étape 5/5)
+2025-02-18 15:38:26,542 - install_ui - INFO - [2025-02-18 15:38:26] [INFO] Progression : 100%
+2025-02-18 15:38:26,548 - install_ui - INFO - [DEBUG] Résultat: True, Test Python terminé avec succès
+2025-02-18 15:38:26,552 - install_ui - INFO - [2025-02-18 15:38:26] [INFO] Étape 5/5 complétée
+2025-02-18 15:38:26,554 - install_ui - INFO - [2025-02-18 15:38:26] [INFO] Test Python PythonTest1 terminé avec succès
+2025-02-18 15:38:26,585 - install_ui - INFO - Plugin python_progress_test terminé avec succès
+2025-02-18 15:38:26,595 - install_ui - INFO - Plugin python_progress_test terminé avec succès
+2025-02-18 15:38:26,613 - install_ui - DEBUG - Démarrage du plugin bash_progress_test (bash_progress_test_1)
+2025-02-18 15:38:26,619 - install_ui - DEBUG - Détecté comme plugin bash: bash_progress_test_1
+2025-02-18 15:38:26,789 - install_ui - INFO - [2025-02-18 15:38:26] [DEBUG] Début de l'exécution du script avec arguments : test light
+2025-02-18 15:38:26,791 - install_ui - INFO - [2025-02-18 15:38:26] [DEBUG] Nombre total d'arguments : 2
+2025-02-18 15:38:26,795 - install_ui - INFO - [2025-02-18 15:38:26] [DEBUG] Arguments complets : test light
+2025-02-18 15:38:26,802 - install_ui - INFO - [2025-02-18 15:38:26] [DEBUG] Argument 0 : '/media/nico/Drive/install/plugins/bash_progress_test/main.sh'
+2025-02-18 15:38:26,807 - install_ui - INFO - [2025-02-18 15:38:26] [DEBUG] Argument 1 : 'test'
+2025-02-18 15:38:26,810 - install_ui - INFO - [2025-02-18 15:38:26] [DEBUG] Argument 2 : 'light'
+2025-02-18 15:38:26,815 - install_ui - INFO - [2025-02-18 15:38:26] [DEBUG] Nom du script : /media/nico/Drive/install/plugins/bash_progress_test/main.sh
+2025-02-18 15:38:26,822 - install_ui - INFO - [2025-02-18 15:38:26] [DEBUG] Répertoire de travail : /media/nico/Drive/install/plugins/bash_progress_test
+2025-02-18 15:38:26,832 - install_ui - INFO - [2025-02-18 15:38:26] [DEBUG] Début de run_bash_test avec test_name='test', test_intensity='light'
+2025-02-18 15:38:26,834 - install_ui - INFO - [2025-02-18 15:38:26] [INFO] Démarrage du test Bash : test
+2025-02-18 15:38:26,837 - install_ui - INFO - [2025-02-18 15:38:26] [DEBUG] Configuration du test : étapes=5, délai max=0.5, facteur=1
+2025-02-18 15:38:26,842 - install_ui - INFO - [2025-02-18 15:38:26] [INFO] Récupération des informations système...
+2025-02-18 15:38:26,844 - install_ui - INFO - [2025-02-18 15:38:26] [INFO] CPU:
+2025-02-18 15:38:26,847 - install_ui - INFO - [2025-02-18 15:38:26] [INFO] Mémoire: 5,1Gi utilisé sur 15Gi
+2025-02-18 15:38:26,850 - install_ui - INFO - [2025-02-18 15:38:26] [INFO] Espace disque disponible: 202G
+2025-02-18 15:38:26,853 - install_ui - INFO - [2025-02-18 15:38:26] [INFO] Système d'exploitation: Ubuntu 22.04.5 LTS
+2025-02-18 15:38:26,855 - install_ui - DEBUG - Progression mise à jour: 20.0% (Étape 1/5)
+2025-02-18 15:38:26,858 - install_ui - INFO - [2025-02-18 15:38:26] [INFO] Progression : 20%
+2025-02-18 15:38:26,913 - install_ui - INFO - [2025-02-18 15:38:26] [INFO] Nombre de processus en cours: 300
+2025-02-18 15:38:27,339 - install_ui - DEBUG - Progression mise à jour: 40.0% (Étape 2/5)
+2025-02-18 15:38:27,346 - install_ui - INFO - [2025-02-18 15:38:27] [INFO] Progression : 40%
+2025-02-18 15:38:27,419 - install_ui - INFO - [2025-02-18 15:38:27] [INFO] Utilisateurs connectés: 3
+2025-02-18 15:38:27,860 - install_ui - DEBUG - Progression mise à jour: 60.0% (Étape 3/5)
+2025-02-18 15:38:27,866 - install_ui - INFO - [2025-02-18 15:38:27] [INFO] Progression : 60%
+2025-02-18 15:38:27,910 - install_ui - INFO - [2025-02-18 15:38:27] [INFO] Version du noyau: 6.8.0-52-generic
+2025-02-18 15:38:28,370 - install_ui - DEBUG - Progression mise à jour: 80.0% (Étape 4/5)
+2025-02-18 15:38:28,377 - install_ui - INFO - [2025-02-18 15:38:28] [INFO] Progression : 80%
+2025-02-18 15:38:28,423 - install_ui - INFO - [2025-02-18 15:38:28] [INFO] Charge système actuelle:  2
+2025-02-18 15:38:28,886 - install_ui - DEBUG - Progression mise à jour: 100.0% (Étape 5/5)
+2025-02-18 15:38:28,895 - install_ui - INFO - [2025-02-18 15:38:28] [INFO] Progression : 100%
+2025-02-18 15:38:28,959 - install_ui - INFO - [2025-02-18 15:38:28] [INFO] Nombre de processus en cours: 300
+2025-02-18 15:38:29,447 - install_ui - INFO - [2025-02-18 15:38:29] [INFO] Test Bash terminé avec succès
+2025-02-18 15:38:29,483 - install_ui - INFO - [2025-02-18 15:38:29] [INFO] Test Bash test réussi
+2025-02-18 15:38:29,490 - install_ui - INFO - Plugin bash_progress_test terminé avec succès
+2025-02-18 15:38:29,504 - install_ui - INFO - Plugin bash_progress_test terminé avec succès
+2025-02-18 15:38:29,520 - install_ui - DEBUG - Démarrage du plugin script_interactive (script_interactive_1)
+2025-02-18 15:38:29,533 - install_ui - DEBUG - Chargement du plugin Python depuis /media/nico/Drive/install/plugins/script_interactive/exec.py
+2025-02-18 15:38:29,649 - install_ui - INFO - [2025-02-18 15:38:29] [INFO] Démarrage de l'exécution du script interactif
+2025-02-18 15:38:29,708 - install_ui - DEBUG - Progression mise à jour: 10.0% (Étape 1/10)
+2025-02-18 15:38:29,713 - install_ui - INFO - [2025-02-18 15:38:29] [INFO] Progression : 10%
+2025-02-18 15:38:29,725 - install_ui - INFO - [2025-02-18 15:38:29] [INFO] Question : \n=== Étape: Initialisation de la configuration ===
+2025-02-18 15:38:29,730 - install_ui - INFO - Détection du système...
+2025-02-18 15:38:29,731 - install_ui - DEBUG - Progression mise à jour: 20.0% (Étape 2/10)
+2025-02-18 15:38:29,736 - install_ui - INFO - [2025-02-18 15:38:29] [INFO] Progression : 20%
+2025-02-18 15:38:30,222 - install_ui - DEBUG - Progression mise à jour: 30.0% (Étape 3/10)
+2025-02-18 15:38:30,227 - install_ui - INFO - [2025-02-18 15:38:30] [INFO] Progression : 30%
+2025-02-18 15:38:30,277 - install_ui - INFO - [2025-02-18 15:38:30] [INFO] Question : o
+2025-02-18 15:38:30,279 - install_ui - DEBUG - Progression mise à jour: 40.0% (Étape 4/10)
+2025-02-18 15:38:30,283 - install_ui - INFO - [2025-02-18 15:38:30] [INFO] Progression : 40%
+2025-02-18 15:38:30,775 - install_ui - DEBUG - Progression mise à jour: 50.0% (Étape 5/10)
+2025-02-18 15:38:30,780 - install_ui - INFO - [2025-02-18 15:38:30] [INFO] Progression : 50%
+2025-02-18 15:38:30,826 - install_ui - INFO - [2025-02-18 15:38:30] [INFO] Question : 80
+2025-02-18 15:38:30,831 - install_ui - INFO - Vérification des prérequis...
+2025-02-18 15:38:30,832 - install_ui - DEBUG - Progression mise à jour: 60.0% (Étape 6/10)
+2025-02-18 15:38:30,841 - install_ui - INFO - [2025-02-18 15:38:30] [INFO] Progression : 60%
+2025-02-18 15:38:31,329 - install_ui - DEBUG - Progression mise à jour: 70.0% (Étape 7/10)
+2025-02-18 15:38:31,334 - install_ui - INFO - [2025-02-18 15:38:31] [INFO] Progression : 70%
+2025-02-18 15:38:31,379 - install_ui - INFO - [2025-02-18 15:38:31] [INFO] Question : o
+2025-02-18 15:38:31,381 - install_ui - DEBUG - Progression mise à jour: 80.0% (Étape 8/10)
+2025-02-18 15:38:31,385 - install_ui - INFO - [2025-02-18 15:38:31] [INFO] Progression : 80%
+2025-02-18 15:38:31,883 - install_ui - DEBUG - Progression mise à jour: 90.0% (Étape 9/10)
+2025-02-18 15:38:31,887 - install_ui - INFO - [2025-02-18 15:38:31] [INFO] Progression : 90%
+2025-02-18 15:38:31,940 - install_ui - INFO - [2025-02-18 15:38:31] [INFO] Question : 8.1
+2025-02-18 15:38:31,944 - install_ui - INFO - \n=== Étape: Type d'installation ===
+2025-02-18 15:38:31,952 - install_ui - INFO - Voulez-vous installer un serveur web ? (o/n)
+2025-02-18 15:38:31,957 - install_ui - INFO - \n=== Étape: Configuration du serveur web ===
+2025-02-18 15:38:31,964 - install_ui - INFO - Quel port souhaitez-vous utiliser ? (par défaut: 80)
+2025-02-18 15:38:31,969 - install_ui - INFO - Port sélectionné: 80
+2025-02-18 15:38:31,974 - install_ui - INFO - \n=== Étape: Support PHP ===
+2025-02-18 15:38:31,980 - install_ui - INFO - Voulez-vous activer PHP ? (o/n)
+2025-02-18 15:38:31,985 - install_ui - INFO - \n=== Étape: Version de PHP ===
+2025-02-18 15:38:31,990 - install_ui - INFO - Quelle version de PHP ? (7.4/8.0/8.1)
+2025-02-18 15:38:31,996 - install_ui - INFO - PHP 8.1 sera installé
+2025-02-18 15:38:31,997 - install_ui - DEBUG - Progression mise à jour: 100.0% (Étape 10/10)
+2025-02-18 15:38:32,003 - install_ui - INFO - [2025-02-18 15:38:31] [INFO] Progression : 100%
+2025-02-18 15:38:33,771 - install_ui - INFO - [2025-02-18 15:38:33] [INFO] Exécution terminée avec succès
+2025-02-18 15:38:33,818 - install_ui - INFO - Plugin script_interactive terminé avec succès
+2025-02-18 15:38:33,831 - install_ui - INFO - Plugin script_interactive terminé avec succès
+2025-02-18 15:38:33,843 - install_ui - INFO - Exécution terminée avec succès
+2025-02-18 15:38:41,784 - install_ui - DEBUG - Clic sur le bouton quit-button

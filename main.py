@@ -5,7 +5,7 @@ from ui.choice import Choice
 from ui.execution import ExecutionScreen
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Installateur MySQL')
+    parser = argparse.ArgumentParser(description='Install')
     parser.add_argument('--plugin', help='Exécuter directement un plugin spécifique')
     parser.add_argument('--config', help='Fichier de configuration pour le plugin')
     parser.add_argument('--params', nargs='*', help='Paramètres supplémentaires au format clé=valeur')

@@ -205,7 +205,7 @@ class Choice(App):
         if event.button.id == "configure_selected":
             await self.app.action_configure_selected()
         elif event.button.id == "quit":
-            await self.app.exit()
+            self.app.exit()
 
     def create_plugin_cards(self) -> list:
         """Create plugin cards dynamically"""
