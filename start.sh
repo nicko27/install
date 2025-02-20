@@ -1,6 +1,6 @@
 #!/bin/bash
 # Traiter les paramètres
-EXTRACT_DIR=""
+EXTRACT_DIR="."
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --extract_dir=*)
@@ -31,16 +31,7 @@ fi
 source "$EXTRACT_DIR/.venv/bin/activate"
 
 # Lancer l'application
-if [ "$DEBUG" = "1" ]; then
-    python "$EXTRACT_DIR/main.py" --dev
-else
-    python "$EXTRACT_DIR/main.py"
-fi
+python "$EXTRACT_DIR/main.py"
 
 # Désactiver l'environnement virtuel
 deactivate
-
-# Nettoyer les logs si nécessaire
-if [ -d "$EXTRACT_DIR/logs" ]; then
-    find "$EXTRACT_DIR/logs" -type f -exec chmod 644 {} + 2>/dev/null || true
-fi
