@@ -35,7 +35,7 @@ class PluginCard(Static):
         description = self.plugin_info.get('description', 'No description')
         icon = self.plugin_info.get('icon', '📦')
         
-        yield Label(f"{icon} {name}", classes="plugin-name")
+        yield Label(f"{icon}  {name}", classes="plugin-name")
         yield Label(description, classes="plugin-description")
 
     def on_click(self) -> None:
@@ -93,7 +93,7 @@ class PluginListItem(Horizontal):
     def compose(self) -> ComposeResult:
         name = self.plugin_info.get('name', self.plugin_name)
         icon = self.plugin_info.get('icon', '📦')
-        yield Label(f"{self.index}. {icon} {name}", classes="plugin-list-name")
+        yield Label(f"{self.index}. {icon}  {name}", classes="plugin-list-name")
         yield Button("X", id=f"remove_{self.plugin_name}_{self.instance_id}", variant="error", classes="remove-button")
 
     def on_mount(self) -> None:

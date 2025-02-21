@@ -44,7 +44,7 @@ logger.addHandler(file_handler)
 class PluginContainer(Container):
     """Conteneur pour afficher l'état et la progression d'un plugin"""
 
-    def __init__(self, plugin_id: str, plugin_name: str):
+    def __init__(self, plugin_id: str, plugin_name: str,plugin_show_name: str, plugin_icon: str):
         """Initialise le conteneur avec l'ID et le nom du plugin
         
         Args:
@@ -57,12 +57,14 @@ class PluginContainer(Container):
         self.folder_name = get_plugin_folder_name(plugin_id)
         # Nom affiché dans l'interface
         self.plugin_name = plugin_name
+        self.plugin_show_name =plugin_show_name
+        self.plugin_icon = plugin_icon
         self.classes = "plugin-container waiting"
 
     def compose(self) -> ComposeResult:
         """Création des widgets du conteneur"""
         with Horizontal():
-            yield Label(self.plugin_name, classes="plugin-name")
+            yield Label(self.plugin_icon+"  "+self.plugin_show_name, classes="plugin-name")
             yield ProgressBar(classes="plugin-progress", show_eta=False, total=100.0)
             yield Label("En attente", classes="plugin-status")
 
@@ -136,8 +138,10 @@ class ExecutionWidget(Container):
             for plugin_id, config in self.plugins_config.items():
                 # Récupérer le nom du plugin depuis son dossier
                 folder_name = get_plugin_folder_name(plugin_id)
-                plugin_name = config.get('name', folder_name)
-                container = PluginContainer(plugin_id, plugin_name)
+                plugin_name = config.get('plugin_name', folder_name)
+                plugin_icon = config.get('icon', '📦')
+                plugin_show_name = config.get('name', plugin_name)
+                container = PluginContainer(plugin_id, plugin_name, plugin_show_name, plugin_icon)
                 self.plugins[plugin_id] = container
                 yield container
 
@@ -147,8 +151,7 @@ class ExecutionWidget(Container):
                 yield Static("", id="logs-text")
         with Horizontal(id="button-container"):             
             yield Button("Retour", id="back-button", variant="error")
-            yield Button("Quitter", id="quit-button", variant="error")
-            yield Checkbox("Continuer en cas d'erreur", id="continue-on-error")
+            yield Checkbox("Continuer en cas d'erreur", id="continue-on-error", value=True)
             yield Label("Progression globale", id="global-progress-label")
             yield ProgressBar(id="global-progress", show_eta=False)
             yield Button("Démarrer", id="start-button", variant="primary")   
@@ -281,7 +284,7 @@ class ExecutionWidget(Container):
                     
                     # Exécuter le plugin et attendre sa fin
                     # Exécuter le plugin et attendre sa fin
-                    await self.run_plugin(plugin_id, plugin_widget, config, executed, total_plugins, result_queue)
+                    await self.run_plugin(plugin_id, plugin_widget, config['name'], config["config"], executed, total_plugins, result_queue)
                     
                     # Récupérer le résultat
                     success, message = await result_queue.get()
@@ -294,7 +297,6 @@ class ExecutionWidget(Container):
                         plugin_widget.set_status('success')
                     else:
                         plugin_widget.set_status('error', message)
-                        await self.add_log(f"Erreur dans le plugin {plugin_folder}: {message}", 'error')
                         if not self.continue_on_error:
                             logger.error(f"Arrêt de l'exécution suite à l'erreur du plugin {plugin_folder}")
                             return
@@ -333,7 +335,7 @@ class ExecutionWidget(Container):
             logger.error(f"Erreur inattendue lors de l'exécution des plugins : {str(e)}")
             await self.add_log(f"Erreur inattendue : {str(e)}", 'error')
 
-    async def run_plugin(self, plugin_id, plugin_widget, config, executed, total_plugins, result_queue):
+    async def run_plugin(self, plugin_id, plugin_widget, plugin_show_name, config, executed, total_plugins, result_queue):
         """Exécute un plugin"""
         try:
             # Extraire le nom du plugin pour les logs
@@ -366,6 +368,7 @@ class ExecutionWidget(Container):
                 cmd = ["bash", exec_path, config.get('name', 'test'), config.get('intensity', 'light')]
             else:
                 cmd = [sys.executable, exec_path, json.dumps(config)]
+            logger.info(f"Commande à exécuter : {cmd}")
             
             # Créer le processus de manière asynchrone
             process = await asyncio.create_subprocess_exec(
@@ -402,7 +405,7 @@ class ExecutionWidget(Container):
             else:
                 error_msg = f"Erreur lors de l'exécution (code {exit_code})"
                 plugin_widget.set_status('error', error_msg)
-                await self.add_log(f"Erreur dans le plugin {folder_name}: {error_msg}", 'error')
+                await self.add_log(f"{plugin_show_name}: {error_msg}", 'error')
                 await result_queue.put((False, error_msg))
                 
         except Exception as e:
@@ -535,8 +538,12 @@ class ExecutionWidget(Container):
             # Mettre à jour les logs si spécifié
             if log_entry is not None:
                 if self.app._thread_id == threading.get_ident():
+                    resultat= log_entry.split(' ')
+                    level = resultat[2].lower().replace("[","").replace("]", "")
+                    message = ' '.join(resultat[3:])
                     # Dans le thread principal
-                    await self.add_log(log_entry)
+                    #await self.add_log(log_entry)
+                    await self.add_log(message,level)
                 else:
                     # Dans un thread différent
                     await self.app.call_from_thread(self.add_log, log_entry)

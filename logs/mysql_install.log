@@ -1,0 +1,291 @@
+[2025-02-20 17:13:15] [ERROR] Erreur inattendue: name 'plugin' is not defined
+Traceback (most recent call last):
+  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 99, in execute_plugin
+    with open(model_path, 'r') as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/media/nico/Drive/install/plugins/add_printer/plugins/add_printer/EC4200.yml'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 102, in execute_plugin
+    logger.exception(f"Error loading settings for {plugin}: {e}")
+NameError: name 'plugin' is not defined
+[2025-02-20 17:26:02] [ERROR] Erreur inattendue: name 'plugin' is not defined
+Traceback (most recent call last):
+  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 99, in execute_plugin
+    with open(model_path, 'r') as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/media/nico/Drive/install/plugins/add_printer/EC4200.yml'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 102, in execute_plugin
+    logger.exception(f"Error loading settings for {plugin}: {e}")
+NameError: name 'plugin' is not defined
+[2025-02-20 17:28:42] [ERROR] Erreur inattendue: name 'plugin' is not defined
+Traceback (most recent call last):
+  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 99, in execute_plugin
+    with open(model_path, 'r') as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/media/nico/Drive/install/plugins/add_printer/EC4200.yml'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 102, in execute_plugin
+    logger.exception(f"Error loading settings for {plugin}: {e}")
+NameError: name 'plugin' is not defined
+[2025-02-20 17:29:21] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-20 17:29:21] [INFO] Redémarrage du service
+[2025-02-20 17:29:25] [INFO] Redémarrage du service réussi
+[2025-02-21 09:42:47] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 09:42:47] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 09:42:47] [ERROR] Erreur inattendue: [Errno 2] No such file or directory: '/home/nico/.evince'
+Traceback (most recent call last):
+  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 125, in execute_plugin
+    os.rmdir("/home/{user}/.evince".format(user=user))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/nico/.evince'
+[2025-02-21 09:43:17] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 09:43:17] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 09:43:17] [INFO] Redémarrage du service
+[2025-02-21 09:43:19] [INFO] Redémarrage du service réussi
+[2025-02-21 09:44:00] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 09:44:00] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 09:44:00] [INFO] Redémarrage du service
+[2025-02-21 09:44:00] [INFO] Redémarrage du service réussi
+[2025-02-21 10:18:01] [ERROR] Erreur inattendue: join() argument must be str, bytes, or os.PathLike object, not 'NoneType'
+Traceback (most recent call last):
+  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 97, in execute_plugin
+    model_path = os.path.join(os.path.dirname(__file__), "models", printer_model)
+  File "/usr/lib/python3.10/posixpath.py", line 90, in join
+    genericpath._check_arg_types('join', a, *p)
+  File "/usr/lib/python3.10/genericpath.py", line 152, in _check_arg_types
+    raise TypeError(f'{funcname}() argument must be str, bytes, or '
+TypeError: join() argument must be str, bytes, or os.PathLike object, not 'NoneType'
+[2025-02-21 10:25:50] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 10:25:50] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 10:25:50] [INFO] Redémarrage du service
+[2025-02-21 10:25:53] [INFO] Redémarrage du service réussi
+[2025-02-21 10:26:05] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 10:26:05] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 10:26:05] [INFO] Redémarrage du service
+[2025-02-21 10:26:05] [INFO] Redémarrage du service réussi
+[2025-02-21 10:26:15] [ERROR] Erreur inattendue: join() argument must be str, bytes, or os.PathLike object, not 'NoneType'
+Traceback (most recent call last):
+  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 97, in execute_plugin
+    model_path = os.path.join(os.path.dirname(__file__), "models", printer_model)
+  File "/usr/lib/python3.10/posixpath.py", line 90, in join
+    genericpath._check_arg_types('join', a, *p)
+  File "/usr/lib/python3.10/genericpath.py", line 152, in _check_arg_types
+    raise TypeError(f'{funcname}() argument must be str, bytes, or '
+TypeError: join() argument must be str, bytes, or os.PathLike object, not 'NoneType'
+[2025-02-21 10:27:33] [ERROR] Erreur inattendue: join() argument must be str, bytes, or os.PathLike object, not 'NoneType'
+Traceback (most recent call last):
+  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 97, in execute_plugin
+    model_path = os.path.join(os.path.dirname(__file__), "models", printer_model)
+  File "/usr/lib/python3.10/posixpath.py", line 90, in join
+    genericpath._check_arg_types('join', a, *p)
+  File "/usr/lib/python3.10/genericpath.py", line 152, in _check_arg_types
+    raise TypeError(f'{funcname}() argument must be str, bytes, or '
+TypeError: join() argument must be str, bytes, or os.PathLike object, not 'NoneType'
+[2025-02-21 10:28:26] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 10:28:26] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 10:28:26] [INFO] Redémarrage du service
+[2025-02-21 10:28:26] [INFO] Redémarrage du service réussi
+[2025-02-21 10:28:39] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 10:28:39] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 10:28:39] [INFO] Redémarrage du service
+[2025-02-21 10:28:39] [INFO] Redémarrage du service réussi
+[2025-02-21 11:23:34] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:23:34] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:23:34] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m m', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:23:34] [INFO] Installation Recto A4 NB
+[2025-02-21 11:23:34] [INFO] Redémarrage du service
+[2025-02-21 11:23:34] [INFO] Redémarrage du service réussi
+[2025-02-21 11:24:48] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:24:49] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:25:00] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m m', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:25:03] [INFO] Installation Recto A4 NB
+[2025-02-21 11:25:33] [INFO] Redémarrage du service
+[2025-02-21 11:25:35] [INFO] Redémarrage du service réussi
+[2025-02-21 11:26:54] [ERROR] Erreur inattendue: invalid literal for int() with base 10: 'couleurs'
+Traceback (most recent call last):
+  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 117, in execute_plugin
+    couleurs=printer_settings.get(int('couleurs'), 0)
+ValueError: invalid literal for int() with base 10: 'couleurs'
+[2025-02-21 11:28:02] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:28:04] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:28:44] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m m', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:28:44] [INFO] Installation Recto A4 NB
+[2025-02-21 11:28:44] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_Couleurs', '-m m', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=Color']
+[2025-02-21 11:28:44] [INFO] Installation Recto A4 NB
+[2025-02-21 11:28:44] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_RectoVerso_Couleurs', '-m m', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=Color']
+[2025-02-21 11:28:44] [INFO] Installation Recto A4 NB
+[2025-02-21 11:28:44] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_RectoVerso_NB', '-m m', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:28:44] [INFO] Installation Recto A4 NB
+[2025-02-21 11:28:44] [INFO] Redémarrage du service
+[2025-02-21 11:28:46] [ERROR] Erreur lors du redémarrage du service: Failed to restart cups.service: Access denied
+See system logs and 'systemctl status cups.service' for details.
+
+[2025-02-21 11:29:11] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:29:12] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:29:20] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:29:35] [INFO] Installation Recto A4 NB
+[2025-02-21 11:29:35] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_Couleurs', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=Color']
+[2025-02-21 11:29:35] [INFO] Installation Recto A4 NB
+[2025-02-21 11:29:35] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_RectoVerso_Couleurs', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=Color']
+[2025-02-21 11:29:35] [INFO] Installation Recto A4 NB
+[2025-02-21 11:29:35] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_RectoVerso_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:29:35] [INFO] Installation Recto A4 NB
+[2025-02-21 11:29:35] [INFO] Redémarrage du service
+[2025-02-21 11:29:38] [INFO] Redémarrage du service réussi
+[2025-02-21 11:29:43] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:29:43] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:29:43] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:29:43] [INFO] Installation Recto A4 NB
+[2025-02-21 11:29:43] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_Couleurs', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=Color']
+[2025-02-21 11:29:43] [INFO] Installation Recto A4 NB
+[2025-02-21 11:29:43] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_RectoVerso_Couleurs', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=Color']
+[2025-02-21 11:29:43] [INFO] Installation Recto A4 NB
+[2025-02-21 11:29:43] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_RectoVerso_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:29:43] [INFO] Installation Recto A4 NB
+[2025-02-21 11:29:43] [INFO] Redémarrage du service
+[2025-02-21 11:29:43] [INFO] Redémarrage du service réussi
+[2025-02-21 11:33:16] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:33:16] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:33:16] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:33:16] [INFO] Installation Recto A4 NB
+[2025-02-21 11:33:16] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_Couleurs', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=Color']
+[2025-02-21 11:33:16] [INFO] Installation Recto A4 NB
+[2025-02-21 11:33:16] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_RectoVerso_Couleurs', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=Color']
+[2025-02-21 11:33:16] [INFO] Installation Recto A4 NB
+[2025-02-21 11:33:16] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_RectoVerso_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:33:16] [INFO] Installation Recto A4 NB
+[2025-02-21 11:33:16] [INFO] Redémarrage du service
+[2025-02-21 11:33:16] [INFO] Redémarrage du service réussi
+[2025-02-21 11:36:08] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:36:08] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:36:08] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:36:08] [INFO] BT_Recto_NB
+[2025-02-21 11:36:08] [INFO] Redémarrage du service
+[2025-02-21 11:36:08] [INFO] Redémarrage du service réussi
+[2025-02-21 11:38:44] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:38:44] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:38:44] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:38:44] [INFO] Installation de {name}
+[2025-02-21 11:38:44] [INFO] Redémarrage du service
+[2025-02-21 11:38:44] [INFO] Redémarrage du service réussi
+[2025-02-21 11:38:58] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:38:58] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:38:58] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:38:58] [INFO] Installation de {name}
+[2025-02-21 11:38:58] [INFO] Redémarrage du service
+[2025-02-21 11:38:58] [INFO] Redémarrage du service réussi
+[2025-02-21 11:43:46] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:43:46] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:43:46] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:43:46] [INFO] Installation de {name}
+[2025-02-21 11:43:46] [INFO] Redémarrage du service
+[2025-02-21 11:43:59] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:43:59] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:43:59] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:43:59] [INFO] Installation de {name}
+[2025-02-21 11:43:59] [INFO] Redémarrage du service
+[2025-02-21 11:44:27] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:44:27] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:44:27] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:44:27] [INFO] Installation de {name}
+[2025-02-21 11:44:27] [INFO] Redémarrage du service
+[2025-02-21 11:45:15] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:45:15] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:45:15] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:45:15] [INFO] Installation de {name}
+[2025-02-21 11:45:15] [INFO] Redémarrage du service
+[2025-02-21 11:48:41] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:48:41] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:48:41] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:48:41] [INFO] Installation de {name}
+[2025-02-21 11:48:41] [INFO] Redémarrage du service
+[2025-02-21 11:49:35] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:49:35] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:49:35] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:49:35] [INFO] Installation de {name}
+[2025-02-21 11:49:35] [INFO] Redémarrage du service
+[2025-02-21 11:51:26] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:51:26] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:51:26] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:51:26] [INFO] Installation de {name}
+[2025-02-21 11:51:26] [INFO] Redémarrage du service
+[2025-02-21 11:52:49] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:52:49] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:52:49] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:52:49] [INFO] Installation de {name}
+[2025-02-21 11:52:49] [INFO] Redémarrage du service
+[2025-02-21 11:54:42] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:54:42] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:54:42] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:54:42] [INFO] Installation de {name}
+[2025-02-21 11:54:42] [INFO] Redémarrage du service
+[2025-02-21 11:55:03] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:55:03] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:55:03] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:55:03] [INFO] Installation de {name}
+[2025-02-21 11:55:03] [INFO] Redémarrage du service
+[2025-02-21 11:56:47] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:56:47] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:56:47] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:56:47] [INFO] Installation de {name}
+[2025-02-21 11:56:47] [INFO] Redémarrage du service
+[2025-02-21 11:56:59] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:56:59] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:56:59] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:56:59] [INFO] Installation de {name}
+[2025-02-21 11:56:59] [INFO] Redémarrage du service
+[2025-02-21 11:57:35] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:57:35] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:57:35] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:57:35] [INFO] Installation de {name}
+[2025-02-21 11:57:35] [INFO] Redémarrage du service
+[2025-02-21 11:58:23] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 11:58:23] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 11:58:23] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 11:58:23] [INFO] Installation de {name}
+[2025-02-21 11:58:23] [INFO] Redémarrage du service
+[2025-02-21 12:04:47] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 12:04:47] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 12:04:47] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 12:04:47] [ERROR] Erreur inattendue: name 'setup_logger' is not defined
+Traceback (most recent call last):
+  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 182, in execute_plugin
+    returnValue, stdout, stderr=add_printer(name, mode,ppdFile, ip, ocommun, f"{orecto} {oa4} {onb}")
+  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 93, in add_printer
+    return run_command(cmd)
+  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 39, in run_command
+    setup_logger()
+NameError: name 'setup_logger' is not defined
+[2025-02-21 12:05:39] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 12:05:39] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 12:05:39] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 12:05:39] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-21 12:05:39] [ERROR] lpadmin : cups-driverd failed to get PPD file - see error_log for details.
+[2025-02-21 12:05:39] [INFO] Installation de {name}
+[2025-02-21 12:05:39] [INFO] Redémarrage du service
+[2025-02-21 12:06:32] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 12:06:32] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 12:06:32] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 12:06:32] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-21 12:06:32] [ERROR] lpadmin : cups-driverd failed to get PPD file - see error_log for details.
+[2025-02-21 12:06:32] [INFO] Installation de BT_Recto_NB
+[2025-02-21 12:06:32] [INFO] Redémarrage du service
+[2025-02-21 12:08:46] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 12:08:46] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 12:08:46] [INFO] Installation de BT_Recto_NB
+[2025-02-21 12:08:46] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 12:08:46] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-21 12:08:46] [ERROR] lpadmin : cups-driverd failed to get PPD file - see error_log for details.
+[2025-02-21 12:08:46] [INFO] Redémarrage du service
+[2025-02-21 12:10:00] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-21 12:10:00] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-21 12:10:00] [INFO] Installation de BT_Recto_NB
+[2025-02-21 12:10:00] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
+[2025-02-21 12:10:00] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-21 12:10:00] [ERROR] lpadmin : cups-driverd failed to get PPD file - see error_log for details.

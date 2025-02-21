@@ -89,9 +89,13 @@ PluginCard.selected {
 }
 
 .plugin-name{
-    width:100%;
     text-align:center;
+    width:100%;
+}
 
+.plugin-icon{
+    text-align: center;
+    width:100%;
 }
 
 

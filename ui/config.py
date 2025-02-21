@@ -29,13 +29,17 @@ class ConfigField(VerticalGroup):
         self.variable_name = field_config.get('variable', field_id)
         
         # Gérer la valeur par défaut (statique, dynamique ou dépendante)
-        if 'depends_on' in field_config and 'values' in field_config:
+        if ('depends_on' in field_config and 'values' in field_config) or \
+           ('dynamic_default' in field_config and 'script' in field_config['dynamic_default']):
             self.value = self._get_dynamic_default()
         else:
             self.value = field_config.get('default', None)
             
     def _get_dynamic_default(self) -> str:
-        """Get dynamic default value based on another field's value"""
+        """Get dynamic default value based on another field's value or a script"""
+        logger.info(f"Attempting to get dynamic default for field: {self.field_id}")
+        logger.info(f"Field config: {self.field_config}")
+        
         # Si le champ dépend d'un autre champ
         if 'depends_on' in self.field_config and 'values' in self.field_config:
             depends_on = self.field_config['depends_on']
@@ -49,8 +53,31 @@ class ConfigField(VerticalGroup):
                 if dependent_value in values:
                     return values[dependent_value]
         
+        # Gérer les valeurs dynamiques via script
+        if 'dynamic_default' in self.field_config and 'script' in self.field_config['dynamic_default']:
+            script_path = os.path.join(os.path.dirname(__file__), '..', 'plugins', self.plugin_path, self.field_config['dynamic_default']['script'])
+            logger.info(f"Dynamic default script path: {script_path}")
+            
+            try:
+                # Exécuter le script et récupérer la valeur
+                import importlib.util
+                spec = importlib.util.spec_from_file_location("dynamic_default_module", script_path)
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                
+                # Supposer que le script a une fonction get_default_ip() ou similaire
+                default_value = module.get_default_ip()
+                logger.info(f"Dynamic default value: {default_value}")
+                return default_value.get('value', '')
+            except Exception as e:
+                logger.error(f"Erreur lors de l'exécution du script dynamique {script_path}: {e}")
+                import traceback
+                logger.error(traceback.format_exc())
+        
         # Valeur par défaut si pas de dépendance ou valeur non trouvée
-        return self.field_config.get('default')
+        default = self.field_config.get('default', '')
+        logger.info(f"Returning default value: {default}")
+        return default
 
     def compose(self) -> ComposeResult:
         label = self.field_config.get('label', self.field_id)
@@ -235,19 +262,32 @@ class SelectField(ConfigField):
             self.select.add_class('disabled')
         yield self.select
 
+    def _normalize_options(self, options: list) -> list:
+        """Normalise les options en format (label, value)"""
+        normalized = []
+        for opt in options:
+            if isinstance(opt, (list, tuple)):
+                # Si c'est déjà un tuple/liste, s'assurer qu'il y a 2 éléments
+                if len(opt) >= 2:
+                    normalized.append((str(opt[0]), str(opt[1])))
+                else:
+                    normalized.append((str(opt[0]), str(opt[0])))
+            elif isinstance(opt, dict):
+                # Pour les dictionnaires, chercher label/value ou utiliser les clés disponibles
+                label = str(opt.get('label', opt.get('title', opt.get('name', ''))))
+                value = str(opt.get('value', opt.get('id', label)))
+                normalized.append((label, value))
+            else:
+                # Pour les valeurs simples, utiliser la même valeur pour label et value
+                normalized.append((str(opt), str(opt)))
+        return normalized
+
     def _get_options(self) -> list:
         """Get options for the select field, either static or dynamic"""
         if 'options' in self.field_config:
             logger.debug(f"Using static options: {self.field_config['options']}")
-            # Pour les options statiques
-            options = self.field_config['options']
-            if isinstance(options[0], dict):
-                # Format avec value/label
-                return [(opt['label'], opt['value']) for opt in options]
-            else:
-                # Format simple (même valeur pour label et value)
-                return [(str(opt), str(opt)) for opt in options]
-        
+            return self._normalize_options(self.field_config['options'])
+            
         if 'dynamic_options' in self.field_config:
             dynamic_config = self.field_config['dynamic_options']
             script_path = os.path.join(os.path.dirname(__file__), '..', 'plugins', self.plugin_path, dynamic_config['script'])
@@ -271,47 +311,24 @@ class SelectField(ConfigField):
                 
                 # Get the data
                 func_name = next(name for name in dir(module) 
-                              if name.startswith('get_') and callable(getattr(module, name)))
+                            if name.startswith('get_') and callable(getattr(module, name)))
                 logger.debug(f"Found function: {func_name}")
                 
                 data = getattr(module, func_name)()
                 logger.debug(f"Got data: {data}")
-                
-                # Format the options using the template or label_key
-                value_key = dynamic_config.get('value_key', 'value')
-                label_template = dynamic_config.get('label_template')
-                label_key = dynamic_config.get('label_key', 'label')
                 
                 # Ensure we have at least one option
                 if not data:
                     logger.warning("No data returned from script")
                     return [("no_data", "Aucune donnée disponible")]
                 
-                options = []
-                for item in data:
-                    if isinstance(item, dict):
-                        value = str(item.get(value_key, ''))
-                        if label_template:
-                            label = label_template.format(**item)
-                        else:
-                            label = str(item.get(label_key, value))
-                    else:
-                        # Si l'item n'est pas un dict, utiliser la même valeur pour value et label
-                        value = str(item)
-                        label = str(item)
-                    options.append((label, value))  # Inverser l'ordre pour le composant Select
-                logger.debug(f"Final options: {options}")
-                return options
+                return self._normalize_options(data)
                 
             except Exception as e:
-                logger.exception(f"Error loading dynamic options from {script_path}: {e}")
-                return [{'label': 'Erreur', 'value': 'error'}]
-            finally:
-                if os.path.dirname(script_path) in sys.path:
-                    sys.path.remove(os.path.dirname(script_path))
-        
-        logger.debug("No options found in config")
-        return []
+                logger.error(f"Error loading dynamic options: {e}")
+                return [("error", "Erreur")]
+                
+        return [("none", "Aucune option disponible")]
 
     def on_select_changed(self, event: Select.Changed) -> None:
         if event.select.id == f"select_{self.field_id}":
@@ -517,36 +534,34 @@ class PluginConfig(Screen):
                 if plugin_fields:
                     # Stocker la configuration avec l'ID d'instance
                     config_key = f"{plugin_name}_{instance_id}"
-                    self.current_config[config_key] = {
+                    
+                    # Lire le settings.yml du plugin
+                    settings_path = os.path.join('plugins', get_plugin_folder_name(plugin_name), 'settings.yml')
+                    try:
+                        with open(settings_path, 'r') as f:
+                            settings = yaml.safe_load(f)
+                    except Exception as e:
+                        logger.error(f"Erreur lors de la lecture de {settings_path}: {e}")
+                        settings = {}
+                    
+                    # Collecter les valeurs de configuration
+                    config_values = {
                         field.variable_name: field.get_value()
                         for field in plugin_fields
                     }
-            
-            # Créer la liste des plugins avec leurs infos
-            plugin_list = []
-            for plugin_name, instance_id in self.plugin_instances:
-                # Lire le settings.yml du plugin
-                settings_path = os.path.join('plugins', plugin_name, 'settings.yml')
-                try:
-                    with open(settings_path, 'r') as f:
-                        settings = yaml.safe_load(f)
                     
-                    # Ajouter les infos du plugin
-                    plugin_list.append({
-                        'plugin': plugin_name,
+                    # Ajouter des informations supplémentaires du plugin
+                    self.current_config[config_key] = {
+                        'plugin_name': plugin_name,
                         'instance_id': instance_id,
                         'name': settings.get('name', plugin_name),
-                        'icon': settings.get('icon', '📦')
-                    })
-                except Exception as e:
-                    logger.error(f"Erreur lors de la lecture de {settings_path}: {e}")
-                    # Fallback sur les valeurs par défaut
-                    plugin_list.append({
-                        'plugin': plugin_name,
-                        'instance_id': instance_id,
-                        'name': plugin_name,
-                        'icon': '📦'
-                    })
+                        'show_name': settings.get('plugin_name', plugin_name),
+                        'icon': settings.get('icon', '📦'),
+                        'config': config_values
+                    }
+            
+            # Afficher les configurations pour vérification (optionnel)
+            logger.debug(f"Configuration collectée : {self.current_config}")
             
             # Import here to avoid circular imports
             from .execution import ExecutionScreen

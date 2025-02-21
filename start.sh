@@ -31,7 +31,11 @@ fi
 source "$EXTRACT_DIR/.venv/bin/activate"
 
 # Lancer l'application
-python "$EXTRACT_DIR/main.py"
+if [ "$DEBUG" -eq 1 ]; then
+    textual run "$EXTRACT_DIR/main.py" --dev
+else
+    python "$EXTRACT_DIR/main.py"
+fi
 
 # Désactiver l'environnement virtuel
 deactivate
