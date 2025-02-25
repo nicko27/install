@@ -1,9 +1,3 @@
+pexpect
 textual
-netifaces
-psutil>=0.27.0
-pexpect>=4.8.0
-PyYAML>=6.0.1
-PyYAML==6.0.1
-rich>=13.5.0
-psutil
-jsonschema>=4.17.3
+ruamel.yaml

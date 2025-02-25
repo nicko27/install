@@ -5,7 +5,7 @@ from textual.widgets import Label, Header, Footer, Button, Input, Checkbox, Sele
 from textual.widget import Widget
 from textual.reactive import reactive
 import os
-import yaml
+from ruamel.yaml import YAML
 
 from .utils import setup_logging
 from .choice import get_plugin_folder_name
@@ -55,24 +55,23 @@ class ConfigField(VerticalGroup):
         
         # Gérer les valeurs dynamiques via script
         if 'dynamic_default' in self.field_config and 'script' in self.field_config['dynamic_default']:
-            script_path = os.path.join(os.path.dirname(__file__), '..', 'plugins', self.plugin_path, self.field_config['dynamic_default']['script'])
-            logger.info(f"Dynamic default script path: {script_path}")
-            
+            script_name = self.field_config['dynamic_default']['script']
             try:
-                # Exécuter le script et récupérer la valeur
                 import importlib.util
+                script_path = os.path.join(os.path.dirname(__file__), '..', 'plugins', self.plugin_path, script_name)
                 spec = importlib.util.spec_from_file_location("dynamic_default_module", script_path)
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
-                
-                # Supposer que le script a une fonction get_default_ip() ou similaire
-                default_value = module.get_default_ip()
-                logger.info(f"Dynamic default value: {default_value}")
-                return default_value.get('value', '')
+                # Dynamically call the function specified in the YAML file
+                function_name = self.field_config['dynamic_default'].get('function', 'get_default_value')
+                if hasattr(module, function_name):
+                    default_value = getattr(module, function_name)()
+                else:
+                    logger.error(f"Function {function_name} not found in {script_name}")
+                    return ''
             except Exception as e:
                 logger.error(f"Erreur lors de l'exécution du script dynamique {script_path}: {e}")
-                import traceback
-                logger.error(traceback.format_exc())
+                return ''
         
         # Valeur par défaut si pas de dépendance ou valeur non trouvée
         default = self.field_config.get('default', '')
@@ -81,13 +80,9 @@ class ConfigField(VerticalGroup):
 
     def compose(self) -> ComposeResult:
         label = self.field_config.get('label', self.field_id)
-        description = self.field_config.get('description', '')
         
         with HorizontalGroup():
-            if description:
-                yield Label(description, classes="field-description")
-            else:
-                yield Label(label, classes="field-label")
+            yield Label(label, classes="field-label")
             if self.field_config.get('required', False):
                 yield Label("*", classes="required-star")
                 
@@ -472,9 +467,10 @@ class PluginConfig(Screen):
     def _create_plugin_config(self, plugin: str, instance_id: int) -> Widget:
         """Create configuration fields for a plugin"""
         settings_path = os.path.join(os.path.dirname(__file__), '..', 'plugins', plugin, 'settings.yml')
+        yaml = YAML()
         try:
             with open(settings_path, 'r') as f:
-                settings = yaml.safe_load(f)
+                settings = yaml.load(f)
         except Exception as e:
             logger.exception(f"Error loading settings for {plugin}: {e}")
             return Container()
@@ -537,9 +533,10 @@ class PluginConfig(Screen):
                     
                     # Lire le settings.yml du plugin
                     settings_path = os.path.join('plugins', get_plugin_folder_name(plugin_name), 'settings.yml')
+                    yaml = YAML()
                     try:
                         with open(settings_path, 'r') as f:
-                            settings = yaml.safe_load(f)
+                            settings = yaml.load(f)
                     except Exception as e:
                         logger.error(f"Erreur lors de la lecture de {settings_path}: {e}")
                         settings = {}

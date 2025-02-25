@@ -1,8 +1,36 @@
-import argparse
-import yaml
+import sys
 import os
+import glob
+# Obtenir le chemin absolu du dossier libs
+# Si main.py est au même niveau que le dossier libs
+libs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'libs')
+
+# Ajouter tous les sous-dossiers de libs au chemin de recherche
+for pkg_dir in glob.glob(os.path.join(libs_dir, '*')):
+    # Chercher les dossiers qui contiennent des packages Python
+    # Typiquement, c'est là où les fichiers .dist-info ou .py sont stockés
+    for subdir in glob.glob(os.path.join(pkg_dir, '*')):
+        if os.path.isdir(subdir) and (
+            subdir.endswith('.dist-info') or 
+            os.path.exists(os.path.join(subdir, '__init__.py')) or
+            subdir.endswith('.data')
+        ):
+            # Ajouter le dossier parent au chemin de recherche
+            parent_dir = os.path.dirname(subdir)
+            if parent_dir not in sys.path:
+                sys.path.insert(0, parent_dir)
+        
+        # Aussi ajouter le dossier principal du package au chemin
+        if pkg_dir not in sys.path:
+            sys.path.insert(0, pkg_dir)
+
+
+import argparse
+from ruamel.yaml import YAML
 from ui.choice import Choice
 from ui.execution import ExecutionScreen
+
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Install')
@@ -14,9 +42,10 @@ def parse_args():
 def load_config(config_file):
     if not config_file:
         return {}
+    yaml=YAML()
     try:
         with open(config_file, 'r') as f:
-            return yaml.safe_load(f)
+            return yaml.load(f)
     except Exception as e:
         print(f"Erreur lors du chargement de la configuration: {e}")
         return {}

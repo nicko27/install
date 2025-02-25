@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 import os
 import json
-import yaml
+from ruamel.yaml import YAML
+
 
 def parse_model_file(file_path):
     """Parse un fichier de configuration d'imprimante au format YAML"""
+    yaml = YAML()
     with open(file_path, 'r') as f:
         try:
-            return yaml.safe_load(f)
+            return yaml.load(f)
         except yaml.YAMLError as e:
             print(f"Erreur lors de la lecture du fichier YAML {file_path}: {e}")
             return {}

@@ -14,4 +14,4 @@ oa4: -o PageSize=A4
 oa3: -o PageSize=A3
 ocommun: -o Model=C301i
 mode: ppd
-socket: lpd://
+socket: ipp://

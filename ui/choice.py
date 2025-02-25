@@ -6,7 +6,7 @@ from textual.widget import Widget
 from textual.reactive import reactive
 from textual.message import Message
 import os
-import yaml
+from ruamel.yaml import YAML
 
 
 class PluginCard(Static):
@@ -22,9 +22,10 @@ class PluginCard(Static):
         """Load plugin information from settings.yml"""
         folder_name = get_plugin_folder_name(self.plugin_name)
         settings_path = os.path.join('plugins', folder_name, 'settings.yml')
+        yaml = YAML()
         try:
             with open(settings_path, 'r') as f:
-                return yaml.safe_load(f)
+                return yaml.load(f)
         except Exception as e:
             print(f"Error loading plugin {self.plugin_name}: {e}")
             return {"name": self.plugin_name, "description": "No description available"}
@@ -45,7 +46,7 @@ class PluginCard(Static):
         settings_path = os.path.join('plugins', folder_name, 'settings.yml')
         try:
             with open(settings_path, 'r') as f:
-                settings = yaml.safe_load(f)
+                settings = yaml.load(f)
                 multiple = settings.get('multiple', False)
         except Exception:
             multiple = False
@@ -84,9 +85,10 @@ class PluginListItem(Horizontal):
 
     def _load_plugin_info(self) -> dict:
         settings_path = os.path.join('plugins', self.plugin_name, 'settings.yml')
+        yaml=YAML()
         try:
             with open(settings_path, 'r') as f:
-                return yaml.safe_load(f)
+                return yaml.load(f)
         except Exception:
             return {"name": self.plugin_name, "icon": "📦"}
 
@@ -227,9 +229,10 @@ class Choice(App):
         """Handle plugin selection changes"""
         # Charger les settings du plugin pour vérifier s'il peut être sélectionné plusieurs fois
         settings_path = os.path.join('plugins', message.plugin_name, 'settings.yml')
+        yaml=YAML()
         try:
             with open(settings_path, 'r') as f:
-                settings = yaml.safe_load(f)
+                settings = yaml.load(f)
                 multiple = settings.get('multiple', False)
         except Exception:
             multiple = False
@@ -280,6 +283,7 @@ class Choice(App):
                 os.makedirs(config_dir, exist_ok=True)
                 
                 config_file = os.path.join(config_dir, 'config.yml')
+                yaml=YAML()
                 with open(config_file, 'w') as f:
                     yaml.dump(config, f, default_flow_style=False)
 

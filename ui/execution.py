@@ -284,7 +284,7 @@ class ExecutionWidget(Container):
                     
                     # Exécuter le plugin et attendre sa fin
                     # Exécuter le plugin et attendre sa fin
-                    await self.run_plugin(plugin_id, plugin_widget, config['name'], config["config"], executed, total_plugins, result_queue)
+                    await self.run_plugin(plugin_id, plugin_widget, config["icon"]+" "+config['name'], config["config"], executed, total_plugins, result_queue)
                     
                     # Récupérer le résultat
                     success, message = await result_queue.get()
@@ -293,7 +293,6 @@ class ExecutionWidget(Container):
                     plugin_folder = get_plugin_folder_name(plugin_id)
                     
                     if success:
-                        await self.add_log(f"Plugin {plugin_folder} terminé avec succès")
                         plugin_widget.set_status('success')
                     else:
                         plugin_widget.set_status('error', message)
@@ -340,7 +339,7 @@ class ExecutionWidget(Container):
         try:
             # Extraire le nom du plugin pour les logs
             folder_name = plugin_widget.folder_name
-            logger.debug(f"Démarrage du plugin {folder_name} ({plugin_id})")
+            logger.info(f"Démarrage du plugin {folder_name} ({plugin_id})")
             
             # Initialiser la barre de progression
             plugin_widget.set_status('running')
@@ -354,13 +353,13 @@ class ExecutionWidget(Container):
             
             # Vérifier si c'est un plugin bash
             if os.path.exists(os.path.join(plugin_dir, "main.sh")):
-                logger.debug(f"Détecté comme plugin bash: {plugin_id}")
+                logger.info(f"Détecté comme plugin bash")
                 is_bash_plugin = True
                 exec_path = os.path.join(plugin_dir, "main.sh")
             else:
                 # Sinon c'est un plugin Python
                 exec_path = os.path.join(plugin_dir, "exec.py")
-                logger.debug(f"Chargement du plugin Python depuis {exec_path}")
+                logger.info(f"Détecté comme plugin Python")
                 is_bash_plugin = False
             
             # Préparer la commande en fonction du type de plugin
@@ -399,7 +398,7 @@ class ExecutionWidget(Container):
             
             # Traiter le résultat
             if exit_code == 0:
-                await self.add_log(f"Plugin {folder_name} terminé avec succès")
+                await self.add_log(f"{plugin_show_name} terminé(e) avec succès")
                 plugin_widget.set_status('success')
                 await result_queue.put((True, "Exécution terminée avec succès"))
             else:
@@ -479,17 +478,8 @@ class ExecutionWidget(Container):
                             # Mettre à jour la progression globale
                             global_progress = (executed + progress) / total_plugins
                             self.update_global_progress(global_progress)
-                            
-                            logger.debug(f"Progression mise à jour: {progress * 100}% ({step_text})")
                         
-                        # Ajouter le log
-                        await self.sync_ui(
-                            plugin_widget,
-                            executed,
-                            total_plugins,
-                            log_entry=line
-                        )
-                        return
+                        return  # Ne pas ajouter aux logs
                 
                 # Traiter les autres types de messages
                 if level in ['error', 'warning', 'info', 'debug', 'success']:

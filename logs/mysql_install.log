@@ -1,291 +1,1224 @@
-[2025-02-20 17:13:15] [ERROR] Erreur inattendue: name 'plugin' is not defined
+[2025-02-21 16:02:26] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:02:26] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:02:26] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:08:56] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:08:56] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:08:56] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:08:56] [ERROR] Erreur inattendue: type object 'TIMEOUT' has no attribute 'isspace'
 Traceback (most recent call last):
-  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 99, in execute_plugin
-    with open(model_path, 'r') as f:
-FileNotFoundError: [Errno 2] No such file or directory: '/media/nico/Drive/install/plugins/add_printer/plugins/add_printer/EC4200.yml'
-
-During handling of the above exception, another exception occurred:
-
+  File "/media/nico/Drive/install/plugins/script_interactive/exec.py", line 103, in execute_plugin
+    result=process= pexpect.spawn([pexpect.TIMEOUT,"/usr/bin/smbpasswd -a {user}"])
+  File "/media/nico/Drive/install/.venv/lib/python3.10/site-packages/pexpect/pty_spawn.py", line 205, in __init__
+    self._spawn(command, args, preexec_fn, dimensions)
+  File "/media/nico/Drive/install/.venv/lib/python3.10/site-packages/pexpect/pty_spawn.py", line 266, in _spawn
+    self.args = split_command_line(command)
+  File "/media/nico/Drive/install/.venv/lib/python3.10/site-packages/pexpect/utils.py", line 99, in split_command_line
+    elif c.isspace():
+AttributeError: type object 'TIMEOUT' has no attribute 'isspace'
+[2025-02-21 16:10:07] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:10:07] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:10:07] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:10:07] [ERROR] Erreur inattendue: module 'pexpect' has no attribute 'prompt'
 Traceback (most recent call last):
-  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 102, in execute_plugin
-    logger.exception(f"Error loading settings for {plugin}: {e}")
-NameError: name 'plugin' is not defined
-[2025-02-20 17:26:02] [ERROR] Erreur inattendue: name 'plugin' is not defined
+  File "/media/nico/Drive/install/plugins/script_interactive/exec.py", line 104, in execute_plugin
+    result= process.expect([pexpect.TIMEOUT,pexpect.prompt,"New SMB password:"])
+AttributeError: module 'pexpect' has no attribute 'prompt'
+[2025-02-21 16:10:20] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:10:20] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:10:20] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:13:08] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:13:08] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:13:08] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:13:08] [ERROR] Erreur inattendue: name 'add_log' is not defined
 Traceback (most recent call last):
-  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 99, in execute_plugin
-    with open(model_path, 'r') as f:
-FileNotFoundError: [Errno 2] No such file or directory: '/media/nico/Drive/install/plugins/add_printer/EC4200.yml'
-
-During handling of the above exception, another exception occurred:
-
+  File "/media/nico/Drive/install/plugins/script_interactive/exec.py", line 105, in execute_plugin
+    add_log("Texte avant","ERROR")
+NameError: name 'add_log' is not defined
+[2025-02-21 16:14:14] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:14:14] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:14:14] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:14:14] [INFO] Texte avant
+[2025-02-21 16:14:14] [INFO] b''
+[2025-02-21 16:14:41] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:14:41] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:14:41] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:14:41] [INFO] Texte avant
+[2025-02-21 16:14:41] [INFO] b''
+[2025-02-21 16:15:28] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:15:28] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:15:28] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:15:28] [INFO] Texte avant
+[2025-02-21 16:15:28] [INFO] None
+[2025-02-21 16:15:28] [INFO] Texte avant
+[2025-02-21 16:15:28] [INFO] b''
+[2025-02-21 16:16:48] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:16:48] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:16:48] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:16:48] [INFO] Texte avant
+[2025-02-21 16:16:48] [INFO] None
+[2025-02-21 16:16:48] [INFO] Texte avant
+[2025-02-21 16:16:48] [INFO] b''
+[2025-02-21 16:16:48] [INFO] Texte avant
+[2025-02-21 16:16:48] [INFO] b'\r\n'
+[2025-02-21 16:16:48] [INFO] Texte d'après
+[2025-02-21 16:16:48] [INFO] <class 'pexpect.exceptions.EOF'>
+[2025-02-21 16:16:48] [ERROR] Erreur inattendue: 'spawn' object has no attribute 'returncode'
 Traceback (most recent call last):
-  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 102, in execute_plugin
-    logger.exception(f"Error loading settings for {plugin}: {e}")
-NameError: name 'plugin' is not defined
-[2025-02-20 17:28:42] [ERROR] Erreur inattendue: name 'plugin' is not defined
+  File "/media/nico/Drive/install/plugins/script_interactive/exec.py", line 119, in execute_plugin
+    returnValue = process.returncode == 0
+AttributeError: 'spawn' object has no attribute 'returncode'
+[2025-02-21 16:17:32] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:17:32] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:17:32] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:17:32] [ERROR] Erreur inattendue: 'spawn' object has no attribute 'returncode'
 Traceback (most recent call last):
-  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 99, in execute_plugin
-    with open(model_path, 'r') as f:
-FileNotFoundError: [Errno 2] No such file or directory: '/media/nico/Drive/install/plugins/add_printer/EC4200.yml'
-
-During handling of the above exception, another exception occurred:
-
+  File "/media/nico/Drive/install/plugins/script_interactive/exec.py", line 111, in execute_plugin
+    returnValue = process.returncode == 0
+AttributeError: 'spawn' object has no attribute 'returncode'
+[2025-02-21 16:17:46] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:17:46] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:17:46] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:17:46] [INFO] Fin de l'ajout d'utilisateur scan
+[2025-02-21 16:17:46] [ERROR] Erreur inattendue: 'spawn' object has no attribute 'returncode'
 Traceback (most recent call last):
-  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 102, in execute_plugin
-    logger.exception(f"Error loading settings for {plugin}: {e}")
-NameError: name 'plugin' is not defined
-[2025-02-20 17:29:21] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-20 17:29:21] [INFO] Redémarrage du service
-[2025-02-20 17:29:25] [INFO] Redémarrage du service réussi
-[2025-02-21 09:42:47] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 09:42:47] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 09:42:47] [ERROR] Erreur inattendue: [Errno 2] No such file or directory: '/home/nico/.evince'
+  File "/media/nico/Drive/install/plugins/script_interactive/exec.py", line 111, in execute_plugin
+    returnValue = process.returncode == 0
+AttributeError: 'spawn' object has no attribute 'returncode'
+[2025-02-21 16:22:44] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:22:44] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:22:44] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:22:44] [ERROR] Erreur inattendue: 'list' object has no attribute 'format'
 Traceback (most recent call last):
-  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 125, in execute_plugin
-    os.rmdir("/home/{user}/.evince".format(user=user))
-FileNotFoundError: [Errno 2] No such file or directory: '/home/nico/.evince'
-[2025-02-21 09:43:17] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 09:43:17] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 09:43:17] [INFO] Redémarrage du service
-[2025-02-21 09:43:19] [INFO] Redémarrage du service réussi
-[2025-02-21 09:44:00] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 09:44:00] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 09:44:00] [INFO] Redémarrage du service
-[2025-02-21 09:44:00] [INFO] Redémarrage du service réussi
-[2025-02-21 10:18:01] [ERROR] Erreur inattendue: join() argument must be str, bytes, or os.PathLike object, not 'NoneType'
+  File "/media/nico/Drive/install/plugins/script_interactive/exec.py", line 108, in execute_plugin
+    result=process.expect([pexpect.EOF,"Added user {user}."].format(user=user))
+AttributeError: 'list' object has no attribute 'format'
+[2025-02-21 16:23:07] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:23:07] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:23:07] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:23:07] [ERROR] Mise à jour du mot de passe
+[2025-02-21 16:23:07] [ERROR] Failed to find user root in passdb backend.
+[2025-02-21 16:23:07] [ERROR] Activation du compte
+[2025-02-21 16:23:07] [ERROR] Erreur inattendue: name 'returnValue' is not defined
 Traceback (most recent call last):
-  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 97, in execute_plugin
-    model_path = os.path.join(os.path.dirname(__file__), "models", printer_model)
-  File "/usr/lib/python3.10/posixpath.py", line 90, in join
-    genericpath._check_arg_types('join', a, *p)
-  File "/usr/lib/python3.10/genericpath.py", line 152, in _check_arg_types
-    raise TypeError(f'{funcname}() argument must be str, bytes, or '
-TypeError: join() argument must be str, bytes, or os.PathLike object, not 'NoneType'
-[2025-02-21 10:25:50] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 10:25:50] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 10:25:50] [INFO] Redémarrage du service
-[2025-02-21 10:25:53] [INFO] Redémarrage du service réussi
-[2025-02-21 10:26:05] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 10:26:05] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 10:26:05] [INFO] Redémarrage du service
-[2025-02-21 10:26:05] [INFO] Redémarrage du service réussi
-[2025-02-21 10:26:15] [ERROR] Erreur inattendue: join() argument must be str, bytes, or os.PathLike object, not 'NoneType'
+  File "/media/nico/Drive/install/plugins/script_interactive/exec.py", line 122, in execute_plugin
+    if (returnValue==True):
+NameError: name 'returnValue' is not defined
+[2025-02-21 16:23:47] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:23:47] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:23:47] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:23:47] [ERROR] Erreur inattendue: 'Logger' object has no attribute 'success'
 Traceback (most recent call last):
-  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 97, in execute_plugin
-    model_path = os.path.join(os.path.dirname(__file__), "models", printer_model)
-  File "/usr/lib/python3.10/posixpath.py", line 90, in join
-    genericpath._check_arg_types('join', a, *p)
-  File "/usr/lib/python3.10/genericpath.py", line 152, in _check_arg_types
-    raise TypeError(f'{funcname}() argument must be str, bytes, or '
-TypeError: join() argument must be str, bytes, or os.PathLike object, not 'NoneType'
-[2025-02-21 10:27:33] [ERROR] Erreur inattendue: join() argument must be str, bytes, or os.PathLike object, not 'NoneType'
+  File "/media/nico/Drive/install/plugins/script_interactive/exec.py", line 110, in execute_plugin
+    logger.success("Mise à jour du mot de passe")
+AttributeError: 'Logger' object has no attribute 'success'
+[2025-02-21 16:24:24] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:24:24] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:24:24] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:24:24] [INFO] Mise à jour du mot de passe
+[2025-02-21 16:24:24] [ERROR] Failed to find user root in passdb backend.
+[2025-02-21 16:24:24] [ERROR] Activation du compte
+[2025-02-21 16:24:24] [ERROR] Erreur inattendue: name 'returnValue' is not defined
 Traceback (most recent call last):
-  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 97, in execute_plugin
-    model_path = os.path.join(os.path.dirname(__file__), "models", printer_model)
-  File "/usr/lib/python3.10/posixpath.py", line 90, in join
-    genericpath._check_arg_types('join', a, *p)
-  File "/usr/lib/python3.10/genericpath.py", line 152, in _check_arg_types
-    raise TypeError(f'{funcname}() argument must be str, bytes, or '
-TypeError: join() argument must be str, bytes, or os.PathLike object, not 'NoneType'
-[2025-02-21 10:28:26] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 10:28:26] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 10:28:26] [INFO] Redémarrage du service
-[2025-02-21 10:28:26] [INFO] Redémarrage du service réussi
-[2025-02-21 10:28:39] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 10:28:39] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 10:28:39] [INFO] Redémarrage du service
-[2025-02-21 10:28:39] [INFO] Redémarrage du service réussi
-[2025-02-21 11:23:34] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:23:34] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:23:34] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m m', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:23:34] [INFO] Installation Recto A4 NB
-[2025-02-21 11:23:34] [INFO] Redémarrage du service
-[2025-02-21 11:23:34] [INFO] Redémarrage du service réussi
-[2025-02-21 11:24:48] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:24:49] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:25:00] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m m', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:25:03] [INFO] Installation Recto A4 NB
-[2025-02-21 11:25:33] [INFO] Redémarrage du service
-[2025-02-21 11:25:35] [INFO] Redémarrage du service réussi
-[2025-02-21 11:26:54] [ERROR] Erreur inattendue: invalid literal for int() with base 10: 'couleurs'
+  File "/media/nico/Drive/install/plugins/script_interactive/exec.py", line 121, in execute_plugin
+    if (returnValue==True):
+NameError: name 'returnValue' is not defined
+[2025-02-21 16:24:59] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:24:59] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:24:59] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:24:59] [INFO] Mise à jour du mot de passe
+[2025-02-21 16:24:59] [ERROR] Erreur inattendue: local variable 'return_value' referenced before assignment
 Traceback (most recent call last):
-  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 117, in execute_plugin
-    couleurs=printer_settings.get(int('couleurs'), 0)
-ValueError: invalid literal for int() with base 10: 'couleurs'
-[2025-02-21 11:28:02] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:28:04] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:28:44] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m m', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:28:44] [INFO] Installation Recto A4 NB
-[2025-02-21 11:28:44] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_Couleurs', '-m m', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=Color']
-[2025-02-21 11:28:44] [INFO] Installation Recto A4 NB
-[2025-02-21 11:28:44] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_RectoVerso_Couleurs', '-m m', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=Color']
-[2025-02-21 11:28:44] [INFO] Installation Recto A4 NB
-[2025-02-21 11:28:44] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_RectoVerso_NB', '-m m', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:28:44] [INFO] Installation Recto A4 NB
-[2025-02-21 11:28:44] [INFO] Redémarrage du service
-[2025-02-21 11:28:46] [ERROR] Erreur lors du redémarrage du service: Failed to restart cups.service: Access denied
-See system logs and 'systemctl status cups.service' for details.
-
-[2025-02-21 11:29:11] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:29:12] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:29:20] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:29:35] [INFO] Installation Recto A4 NB
-[2025-02-21 11:29:35] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_Couleurs', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=Color']
-[2025-02-21 11:29:35] [INFO] Installation Recto A4 NB
-[2025-02-21 11:29:35] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_RectoVerso_Couleurs', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=Color']
-[2025-02-21 11:29:35] [INFO] Installation Recto A4 NB
-[2025-02-21 11:29:35] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_RectoVerso_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:29:35] [INFO] Installation Recto A4 NB
-[2025-02-21 11:29:35] [INFO] Redémarrage du service
-[2025-02-21 11:29:38] [INFO] Redémarrage du service réussi
-[2025-02-21 11:29:43] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:29:43] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:29:43] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:29:43] [INFO] Installation Recto A4 NB
-[2025-02-21 11:29:43] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_Couleurs', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=Color']
-[2025-02-21 11:29:43] [INFO] Installation Recto A4 NB
-[2025-02-21 11:29:43] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_RectoVerso_Couleurs', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=Color']
-[2025-02-21 11:29:43] [INFO] Installation Recto A4 NB
-[2025-02-21 11:29:43] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_RectoVerso_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:29:43] [INFO] Installation Recto A4 NB
-[2025-02-21 11:29:43] [INFO] Redémarrage du service
-[2025-02-21 11:29:43] [INFO] Redémarrage du service réussi
-[2025-02-21 11:33:16] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:33:16] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:33:16] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:33:16] [INFO] Installation Recto A4 NB
-[2025-02-21 11:33:16] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_Couleurs', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=Color']
-[2025-02-21 11:33:16] [INFO] Installation Recto A4 NB
-[2025-02-21 11:33:16] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_RectoVerso_Couleurs', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=Color']
-[2025-02-21 11:33:16] [INFO] Installation Recto A4 NB
-[2025-02-21 11:33:16] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_RectoVerso_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:33:16] [INFO] Installation Recto A4 NB
-[2025-02-21 11:33:16] [INFO] Redémarrage du service
-[2025-02-21 11:33:16] [INFO] Redémarrage du service réussi
-[2025-02-21 11:36:08] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:36:08] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:36:08] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:36:08] [INFO] BT_Recto_NB
-[2025-02-21 11:36:08] [INFO] Redémarrage du service
-[2025-02-21 11:36:08] [INFO] Redémarrage du service réussi
-[2025-02-21 11:38:44] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:38:44] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:38:44] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:38:44] [INFO] Installation de {name}
-[2025-02-21 11:38:44] [INFO] Redémarrage du service
-[2025-02-21 11:38:44] [INFO] Redémarrage du service réussi
-[2025-02-21 11:38:58] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:38:58] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:38:58] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:38:58] [INFO] Installation de {name}
-[2025-02-21 11:38:58] [INFO] Redémarrage du service
-[2025-02-21 11:38:58] [INFO] Redémarrage du service réussi
-[2025-02-21 11:43:46] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:43:46] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:43:46] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:43:46] [INFO] Installation de {name}
-[2025-02-21 11:43:46] [INFO] Redémarrage du service
-[2025-02-21 11:43:59] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:43:59] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:43:59] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:43:59] [INFO] Installation de {name}
-[2025-02-21 11:43:59] [INFO] Redémarrage du service
-[2025-02-21 11:44:27] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:44:27] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:44:27] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:44:27] [INFO] Installation de {name}
-[2025-02-21 11:44:27] [INFO] Redémarrage du service
-[2025-02-21 11:45:15] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:45:15] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:45:15] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:45:15] [INFO] Installation de {name}
-[2025-02-21 11:45:15] [INFO] Redémarrage du service
-[2025-02-21 11:48:41] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:48:41] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:48:41] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:48:41] [INFO] Installation de {name}
-[2025-02-21 11:48:41] [INFO] Redémarrage du service
-[2025-02-21 11:49:35] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:49:35] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:49:35] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:49:35] [INFO] Installation de {name}
-[2025-02-21 11:49:35] [INFO] Redémarrage du service
-[2025-02-21 11:51:26] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:51:26] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:51:26] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:51:26] [INFO] Installation de {name}
-[2025-02-21 11:51:26] [INFO] Redémarrage du service
-[2025-02-21 11:52:49] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:52:49] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:52:49] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:52:49] [INFO] Installation de {name}
-[2025-02-21 11:52:49] [INFO] Redémarrage du service
-[2025-02-21 11:54:42] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:54:42] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:54:42] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:54:42] [INFO] Installation de {name}
-[2025-02-21 11:54:42] [INFO] Redémarrage du service
-[2025-02-21 11:55:03] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:55:03] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:55:03] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:55:03] [INFO] Installation de {name}
-[2025-02-21 11:55:03] [INFO] Redémarrage du service
-[2025-02-21 11:56:47] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:56:47] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:56:47] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:56:47] [INFO] Installation de {name}
-[2025-02-21 11:56:47] [INFO] Redémarrage du service
-[2025-02-21 11:56:59] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:56:59] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:56:59] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:56:59] [INFO] Installation de {name}
-[2025-02-21 11:56:59] [INFO] Redémarrage du service
-[2025-02-21 11:57:35] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:57:35] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:57:35] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:57:35] [INFO] Installation de {name}
-[2025-02-21 11:57:35] [INFO] Redémarrage du service
-[2025-02-21 11:58:23] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 11:58:23] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 11:58:23] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 11:58:23] [INFO] Installation de {name}
-[2025-02-21 11:58:23] [INFO] Redémarrage du service
-[2025-02-21 12:04:47] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 12:04:47] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 12:04:47] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 12:04:47] [ERROR] Erreur inattendue: name 'setup_logger' is not defined
+  File "/media/nico/Drive/install/plugins/script_interactive/exec.py", line 114, in execute_plugin
+    if return_value==True:
+UnboundLocalError: local variable 'return_value' referenced before assignment
+[2025-02-21 16:25:12] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:25:12] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:25:12] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:25:12] [ERROR] Erreur inattendue: name 'result' is not defined
 Traceback (most recent call last):
-  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 182, in execute_plugin
-    returnValue, stdout, stderr=add_printer(name, mode,ppdFile, ip, ocommun, f"{orecto} {oa4} {onb}")
-  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 93, in add_printer
-    return run_command(cmd)
-  File "/media/nico/Drive/install/plugins/add_printer/exec.py", line 39, in run_command
-    setup_logger()
-NameError: name 'setup_logger' is not defined
-[2025-02-21 12:05:39] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 12:05:39] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 12:05:39] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 12:05:39] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
-[2025-02-21 12:05:39] [ERROR] lpadmin : cups-driverd failed to get PPD file - see error_log for details.
-[2025-02-21 12:05:39] [INFO] Installation de {name}
-[2025-02-21 12:05:39] [INFO] Redémarrage du service
-[2025-02-21 12:06:32] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 12:06:32] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 12:06:32] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 12:06:32] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
-[2025-02-21 12:06:32] [ERROR] lpadmin : cups-driverd failed to get PPD file - see error_log for details.
-[2025-02-21 12:06:32] [INFO] Installation de BT_Recto_NB
-[2025-02-21 12:06:32] [INFO] Redémarrage du service
-[2025-02-21 12:08:46] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 12:08:46] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 12:08:46] [INFO] Installation de BT_Recto_NB
-[2025-02-21 12:08:46] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 12:08:46] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
-[2025-02-21 12:08:46] [ERROR] lpadmin : cups-driverd failed to get PPD file - see error_log for details.
-[2025-02-21 12:08:46] [INFO] Redémarrage du service
-[2025-02-21 12:10:00] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
-[2025-02-21 12:10:00] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
-[2025-02-21 12:10:00] [INFO] Installation de BT_Recto_NB
-[2025-02-21 12:10:00] [INFO] Commande lpadmin: ['lpadmin', '-p', 'BT_Recto_NB', '-m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None']
-[2025-02-21 12:10:00] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
-[2025-02-21 12:10:00] [ERROR] lpadmin : cups-driverd failed to get PPD file - see error_log for details.
+  File "/media/nico/Drive/install/plugins/script_interactive/exec.py", line 109, in execute_plugin
+    if result==0:
+NameError: name 'result' is not defined
+[2025-02-21 16:25:20] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:25:20] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:25:20] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:25:20] [INFO] Mise à jour du mot de passe
+[2025-02-21 16:25:40] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:25:40] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:25:40] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:25:40] [INFO] Mise à jour du mot de passe
+[2025-02-21 16:25:40] [ERROR] Failed to find user root in passdb backend.
+[2025-02-21 16:25:40] [INFO] Activation du compte
+[2025-02-21 16:32:54] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:32:54] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:32:54] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:32:55] [INFO] Mise à jour du mot de passe
+[2025-02-21 16:32:55] [ERROR] Failed to find user root in passdb backend.
+[2025-02-21 16:32:55] [INFO] Activation du compte
+[2025-02-21 16:33:51] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:33:51] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:33:51] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:33:51] [ERROR] Erreur inattendue: End Of File (EOF). Exception style platform.
+<pexpect.pty_spawn.spawn object at 0x7ad611257a00>
+command: /usr/bin/smbpasswd
+args: ['/usr/bin/smbpasswd', '-a', 'scan']
+buffer (last 100 chars): b''
+before (last 100 chars): b'\r\n'
+after: <class 'pexpect.exceptions.EOF'>
+match: None
+match_index: None
+exitstatus: None
+flag_eof: True
+pid: 30223
+child_fd: 6
+closed: False
+timeout: 30
+delimiter: <class 'pexpect.exceptions.EOF'>
+logfile: None
+logfile_read: None
+logfile_send: None
+maxread: 2000
+ignorecase: False
+searchwindowsize: None
+delaybeforesend: 0.05
+delayafterclose: 0.1
+delayafterterminate: 0.1
+searcher: searcher_re:
+    0: TIMEOUT
+    1: re.compile(b'Added user scan.')
+Traceback (most recent call last):
+  File "/media/nico/Drive/install/plugins/script_interactive/exec.py", line 108, in execute_plugin
+    return_value=process.expect([pexpect.TIMEOUT,"Added user {user}.".format(user=user)])
+  File "/media/nico/Drive/install/.venv/lib/python3.10/site-packages/pexpect/spawnbase.py", line 354, in expect
+    return self.expect_list(compiled_pattern_list,
+  File "/media/nico/Drive/install/.venv/lib/python3.10/site-packages/pexpect/spawnbase.py", line 383, in expect_list
+    return exp.expect_loop(timeout)
+  File "/media/nico/Drive/install/.venv/lib/python3.10/site-packages/pexpect/expect.py", line 179, in expect_loop
+    return self.eof(e)
+  File "/media/nico/Drive/install/.venv/lib/python3.10/site-packages/pexpect/expect.py", line 122, in eof
+    raise exc
+pexpect.exceptions.EOF: End Of File (EOF). Exception style platform.
+<pexpect.pty_spawn.spawn object at 0x7ad611257a00>
+command: /usr/bin/smbpasswd
+args: ['/usr/bin/smbpasswd', '-a', 'scan']
+buffer (last 100 chars): b''
+before (last 100 chars): b'\r\n'
+after: <class 'pexpect.exceptions.EOF'>
+match: None
+match_index: None
+exitstatus: None
+flag_eof: True
+pid: 30223
+child_fd: 6
+closed: False
+timeout: 30
+delimiter: <class 'pexpect.exceptions.EOF'>
+logfile: None
+logfile_read: None
+logfile_send: None
+maxread: 2000
+ignorecase: False
+searchwindowsize: None
+delaybeforesend: 0.05
+delayafterclose: 0.1
+delayafterterminate: 0.1
+searcher: searcher_re:
+    0: TIMEOUT
+    1: re.compile(b'Added user scan.')
+[2025-02-21 16:34:12] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:34:12] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:34:12] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:34:12] [ERROR] Erreur inattendue: End Of File (EOF). Exception style platform.
+<pexpect.pty_spawn.spawn object at 0x7db2b1d9b9a0>
+command: /usr/bin/smbpasswd
+args: ['/usr/bin/smbpasswd', '-a', 'scan']
+buffer (last 100 chars): b''
+before (last 100 chars): b'\r\n'
+after: <class 'pexpect.exceptions.EOF'>
+match: None
+match_index: None
+exitstatus: None
+flag_eof: True
+pid: 30256
+child_fd: 6
+closed: False
+timeout: 30
+delimiter: <class 'pexpect.exceptions.EOF'>
+logfile: None
+logfile_read: None
+logfile_send: None
+maxread: 2000
+ignorecase: False
+searchwindowsize: None
+delaybeforesend: 0.05
+delayafterclose: 0.1
+delayafterterminate: 0.1
+searcher: searcher_re:
+    0: re.compile(b'Added user scan.')
+Traceback (most recent call last):
+  File "/media/nico/Drive/install/plugins/script_interactive/exec.py", line 108, in execute_plugin
+    return_value=process.expect("Added user {user}.".format(user=user))
+  File "/media/nico/Drive/install/.venv/lib/python3.10/site-packages/pexpect/spawnbase.py", line 354, in expect
+    return self.expect_list(compiled_pattern_list,
+  File "/media/nico/Drive/install/.venv/lib/python3.10/site-packages/pexpect/spawnbase.py", line 383, in expect_list
+    return exp.expect_loop(timeout)
+  File "/media/nico/Drive/install/.venv/lib/python3.10/site-packages/pexpect/expect.py", line 179, in expect_loop
+    return self.eof(e)
+  File "/media/nico/Drive/install/.venv/lib/python3.10/site-packages/pexpect/expect.py", line 122, in eof
+    raise exc
+pexpect.exceptions.EOF: End Of File (EOF). Exception style platform.
+<pexpect.pty_spawn.spawn object at 0x7db2b1d9b9a0>
+command: /usr/bin/smbpasswd
+args: ['/usr/bin/smbpasswd', '-a', 'scan']
+buffer (last 100 chars): b''
+before (last 100 chars): b'\r\n'
+after: <class 'pexpect.exceptions.EOF'>
+match: None
+match_index: None
+exitstatus: None
+flag_eof: True
+pid: 30256
+child_fd: 6
+closed: False
+timeout: 30
+delimiter: <class 'pexpect.exceptions.EOF'>
+logfile: None
+logfile_read: None
+logfile_send: None
+maxread: 2000
+ignorecase: False
+searchwindowsize: None
+delaybeforesend: 0.05
+delayafterclose: 0.1
+delayafterterminate: 0.1
+searcher: searcher_re:
+    0: re.compile(b'Added user scan.')
+[2025-02-21 16:34:32] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:34:32] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:34:32] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:34:32] [INFO] Mise à jour du mot de passe
+[2025-02-21 16:34:32] [ERROR] Failed to find user root in passdb backend.
+[2025-02-21 16:34:32] [INFO] Activation du compte
+[2025-02-21 16:36:09] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 16:36:09] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 16:36:09] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 16:36:09] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:16:30] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:16:30] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:16:30] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:16:31] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:16:50] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:16:50] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:16:50] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:16:50] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:16:50] [ERROR] Failed to find user root in passdb backend.
+[2025-02-21 17:16:50] [INFO] Activation du compte
+[2025-02-21 17:17:57] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:17:57] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:17:57] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:17:57] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:17:57] [ERROR] Failed to find user root in passdb backend.
+[2025-02-21 17:17:57] [INFO] Activation du compte
+[2025-02-21 17:18:10] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:18:10] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:18:10] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:18:10] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:18:10] [INFO] Activation du compte
+[2025-02-21 17:18:32] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:18:32] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:18:32] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:18:32] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:18:32] [INFO] Activation du compte
+[2025-02-21 17:19:42] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:19:42] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:19:42] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:19:42] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:19:42] [INFO] Activation du compte
+[2025-02-21 17:24:20] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:24:20] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:24:20] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:24:20] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:24:21] [INFO] Activation du compte
+[2025-02-21 17:24:21] [INFO] Creation du dossier {scan_directory}
+[2025-02-21 17:37:54] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:37:54] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:37:54] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:37:54] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:37:54] [INFO] Activation du compte
+[2025-02-21 17:37:54] [INFO] Mise en place des droits sur /partage
+[2025-02-21 17:37:54] [INFO] Mise en place des droits sur /partage/commun
+[2025-02-21 17:37:54] [INFO] Mise en place des droits sur /partage/commun/Numerisation
+[2025-02-21 17:39:19] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:39:19] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:39:19] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:39:19] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:39:19] [INFO] Activation du compte
+[2025-02-21 17:39:19] [INFO] Mise en place des droits sur /partage
+[2025-02-21 17:39:19] [INFO] Mise en place des droits sur /partage/commun
+[2025-02-21 17:39:19] [INFO] Mise en place des droits sur /partage/commun/Numerisation
+[2025-02-21 17:44:27] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:44:27] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:44:27] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:44:27] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:44:27] [INFO] Activation du compte
+[2025-02-21 17:44:27] [INFO] Affectation a nobody:nogroup du dossier /partage/commun/Numerisation
+[2025-02-21 17:44:27] [INFO] Interdiction de suppression du dossier /partage/commun/Numerisation
+[2025-02-21 17:44:27] [INFO] Mise en place des droits sur /partage
+[2025-02-21 17:44:27] [INFO] Mise en place des droits sur /partage/commun
+[2025-02-21 17:44:27] [INFO] Mise en place des droits sur /partage/commun/Numerisation
+[2025-02-21 17:45:37] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:45:37] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:45:37] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:45:38] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:45:38] [INFO] Activation du compte
+[2025-02-21 17:45:38] [INFO] Affectation a nobody:nogroup du dossier /partage/commun/Numerisation
+[2025-02-21 17:45:38] [INFO] Interdiction de suppression du dossier /partage/commun/Numerisation
+[2025-02-21 17:45:38] [INFO] Mise en place des droits sur /partage
+[2025-02-21 17:45:38] [INFO] Mise en place des droits sur /partage/commun
+[2025-02-21 17:45:38] [INFO] Mise en place des droits sur /partage/commun/Numerisation
+[2025-02-21 17:46:50] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:46:50] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:46:50] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:46:50] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:46:50] [INFO] Activation du compte
+[2025-02-21 17:46:50] [INFO] Affectation a nobody:nogroup du dossier /partage/commun/Numerisation
+[2025-02-21 17:46:50] [INFO] Interdiction de suppression du dossier /partage/commun/Numerisation
+[2025-02-21 17:46:50] [INFO] Mise en place des droits sur /partage
+[2025-02-21 17:46:50] [INFO] Mise en place des droits sur /partage/commun
+[2025-02-21 17:46:50] [INFO] Mise en place des droits sur /partage/commun/Numerisation
+[2025-02-21 17:47:11] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:47:11] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:47:11] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:47:11] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:47:11] [INFO] Activation du compte
+[2025-02-21 17:47:11] [INFO] Affectation a nobody:nogroup du dossier /partage/commun/Numerisation
+[2025-02-21 17:47:11] [INFO] Interdiction de suppression du dossier /partage/commun/Numerisation
+[2025-02-21 17:47:11] [INFO] Mise en place des droits sur /partage
+[2025-02-21 17:47:11] [INFO] Mise en place des droits sur /partage/commun
+[2025-02-21 17:47:11] [INFO] Mise en place des droits sur /partage/commun/Numerisation
+[2025-02-21 17:48:06] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:48:06] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:48:06] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:48:06] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:48:06] [INFO] Activation du compte
+[2025-02-21 17:48:06] [INFO] Affectation a nobody:nogroup du dossier /partage/commun/Numerisation
+[2025-02-21 17:48:06] [INFO] Interdiction de suppression du dossier /partage/commun/Numerisation
+[2025-02-21 17:48:06] [INFO] Mise en place des droits sur /partage
+[2025-02-21 17:48:06] [INFO] Mise en place des droits sur /partage/commun
+[2025-02-21 17:48:06] [INFO] Mise en place des droits sur /partage/commun/Numerisation
+[2025-02-21 17:50:46] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:50:46] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:50:46] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:50:46] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:50:46] [INFO] Activation du compte
+[2025-02-21 17:50:46] [INFO] Affectation a nobody:nogroup du dossier /partage/commun/Numerisation
+[2025-02-21 17:50:46] [INFO] Interdiction de suppression du dossier /partage/commun/Numerisation
+[2025-02-21 17:50:46] [INFO] Mise en place des droits sur /partage
+[2025-02-21 17:50:46] [INFO] Mise en place des droits sur /partage/commun
+[2025-02-21 17:50:46] [INFO] Mise en place des droits sur /partage/commun/Numerisation
+[2025-02-21 17:50:55] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:50:55] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:50:55] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:50:55] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:50:55] [INFO] Activation du compte
+[2025-02-21 17:50:55] [INFO] Affectation a nobody:nogroup du dossier /partage/commun/Numerisation
+[2025-02-21 17:50:55] [INFO] Interdiction de suppression du dossier /partage/commun/Numerisation
+[2025-02-21 17:50:55] [INFO] Mise en place des droits sur /partage
+[2025-02-21 17:50:55] [INFO] Mise en place des droits sur /partage/commun
+[2025-02-21 17:50:55] [INFO] Mise en place des droits sur /partage/commun/Numerisation
+[2025-02-21 17:52:26] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:52:26] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:52:26] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:52:26] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:52:26] [INFO] Activation du compte
+[2025-02-21 17:52:26] [INFO] Affectation a nobody:nogroup du dossier /partage/commun/Numerisation
+[2025-02-21 17:52:26] [INFO] Interdiction de suppression du dossier /partage/commun/Numerisation
+[2025-02-21 17:52:26] [INFO] Mise en place des droits sur /partage
+[2025-02-21 17:52:26] [INFO] Mise en place des droits sur /partage/commun
+[2025-02-21 17:52:26] [INFO] Mise en place des droits sur /partage/commun/Numerisation
+[2025-02-21 17:53:13] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:53:13] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:53:13] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:53:13] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:53:13] [INFO] Activation du compte
+[2025-02-21 17:53:13] [INFO] Affectation a nobody:nogroup du dossier /partage/commun/Numerisation
+[2025-02-21 17:53:13] [INFO] Interdiction de suppression du dossier /partage/commun/Numerisation
+[2025-02-21 17:53:13] [INFO] Mise en place des droits sur /partage
+[2025-02-21 17:53:13] [INFO] Mise en place des droits sur /partage/commun
+[2025-02-21 17:53:13] [INFO] Mise en place des droits sur /partage/commun/Numerisation
+[2025-02-21 17:53:22] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:53:22] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:53:22] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:53:23] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:53:23] [INFO] Activation du compte
+[2025-02-21 17:53:23] [INFO] Affectation a nobody:nogroup du dossier /partage/commun/Numerisation
+[2025-02-21 17:53:23] [INFO] Interdiction de suppression du dossier /partage/commun/Numerisation
+[2025-02-21 17:53:23] [INFO] Mise en place des droits sur /partage
+[2025-02-21 17:53:23] [INFO] Mise en place des droits sur /partage/commun
+[2025-02-21 17:53:23] [INFO] Mise en place des droits sur /partage/commun/Numerisation
+[2025-02-21 17:55:06] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:55:06] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:55:06] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:55:06] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:55:07] [INFO] Activation du compte
+[2025-02-21 17:55:07] [INFO] Affectation a nobody:nogroup du dossier /partage/commun/Numerisation
+[2025-02-21 17:55:07] [INFO] Interdiction de suppression du dossier /partage/commun/Numerisation
+[2025-02-21 17:55:07] [INFO] Mise en place des droits sur /partage
+[2025-02-21 17:55:07] [INFO] Mise en place des droits sur /partage/commun
+[2025-02-21 17:55:07] [INFO] Mise en place des droits sur /partage/commun/Numerisation
+[2025-02-21 17:55:30] [INFO] Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:55:30] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:55:30] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:55:30] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:55:30] [INFO] Activation du compte
+[2025-02-21 17:55:30] [INFO] Affectation a nobody:nogroup du dossier /partage/commun/Numerisation
+[2025-02-21 17:55:30] [INFO] Interdiction de suppression du dossier /partage/commun/Numerisation
+[2025-02-21 17:55:30] [INFO] Mise en place des droits sur /partage
+[2025-02-21 17:55:30] [INFO] Mise en place des droits sur /partage/commun
+[2025-02-21 17:55:30] [INFO] Mise en place des droits sur /partage/commun/Numerisation
+[2025-02-21 17:56:07] [INFO] Plugin:Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:56:07] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:56:07] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:56:07] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:56:07] [INFO] Activation du compte
+[2025-02-21 17:56:07] [INFO] Affectation a nobody:nogroup du dossier /partage/commun/Numerisation
+[2025-02-21 17:56:07] [INFO] Interdiction de suppression du dossier /partage/commun/Numerisation
+[2025-02-21 17:56:07] [INFO] Mise en place des droits sur /partage
+[2025-02-21 17:56:07] [INFO] Mise en place des droits sur /partage/commun
+[2025-02-21 17:56:07] [INFO] Mise en place des droits sur /partage/commun/Numerisation
+[2025-02-21 17:56:45] [INFO] 📠 Configuration de l'utilisateur scan et droit sur Numerisation
+[2025-02-21 17:56:45] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:56:45] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:56:45] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:56:45] [INFO] Activation du compte
+[2025-02-21 17:56:45] [INFO] Affectation a nobody:nogroup du dossier /partage/commun/Numerisation
+[2025-02-21 17:56:45] [INFO] Interdiction de suppression du dossier /partage/commun/Numerisation
+[2025-02-21 17:56:45] [INFO] Mise en place des droits sur /partage
+[2025-02-21 17:56:45] [INFO] Mise en place des droits sur /partage/commun
+[2025-02-21 17:56:45] [INFO] Mise en place des droits sur /partage/commun/Numerisation
+[2025-02-21 17:59:03] [INFO] 📠 Configuration serveur pour Numerisation
+[2025-02-21 17:59:03] [INFO] Ajout de l'utilisateur scan
+[2025-02-21 17:59:03] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-21 17:59:03] [INFO] Mise à jour du mot de passe
+[2025-02-21 17:59:03] [INFO] Activation du compte
+[2025-02-21 17:59:03] [INFO] Affectation a nobody:nogroup du dossier /partage/commun/Numerisation
+[2025-02-21 17:59:03] [INFO] Interdiction de suppression du dossier /partage/commun/Numerisation
+[2025-02-21 17:59:03] [INFO] Mise en place des droits sur /partage
+[2025-02-21 17:59:03] [INFO] Mise en place des droits sur /partage/commun
+[2025-02-21 17:59:03] [INFO] Mise en place des droits sur /partage/commun/Numerisation
+[2025-02-24 12:16:05] [INFO] Installation de l'imprimante GRPT avec ip 128.81.2.184
+[2025-02-24 12:16:05] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-24 12:16:05] [INFO] Installation de GRPT_Recto_NB
+[2025-02-24 12:16:05] [INFO] Commande lpadmin: ['lpadmin', '-p', 'GRPT_Recto_NB', '-P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_C227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale']
+[2025-02-24 12:16:05] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:16:05] [ERROR] lpadmin: Unable to open PPD " /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_C227.ppd": Unable to open PPD file on line 0.
+[2025-02-24 12:16:57] [INFO] Installation de l'imprimante GRPT avec ip 128.81.2.184
+[2025-02-24 12:16:57] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-24 12:16:57] [INFO] Installation de GRPT_Recto_NB
+[2025-02-24 12:16:57] [INFO] Commande lpadmin: ['lpadmin', '-p', 'GRPT_Recto_NB', '-P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_C227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale']
+[2025-02-24 12:16:57] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:16:57] [ERROR] lpadmin: Unable to open PPD " /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_C227.ppd": Unable to open PPD file on line 0.
+[2025-02-24 12:18:22] [INFO] Installation de l'imprimante GRPT avec ip 128.81.2.184
+[2025-02-24 12:18:22] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-24 12:18:22] [INFO] Installation de GRPT_Recto_NB
+[2025-02-24 12:18:22] [INFO] Commande lpadmin: ['lpadmin', '-p', 'GRPT_Recto_NB', '-P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale']
+[2025-02-24 12:18:22] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:18:22] [ERROR] lpadmin: Unable to open PPD " /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd": Unable to open PPD file on line 0.
+[2025-02-24 12:18:55] [INFO] Installation de l'imprimante GRPT avec ip 128.81.2.184
+[2025-02-24 12:18:55] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-24 12:18:55] [INFO] Installation de GRPT_Recto_NB
+[2025-02-24 12:18:55] [INFO] Commande lpadmin: ['lpadmin', '-p', 'GRPT_Recto_NB', '-P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale']
+[2025-02-24 12:18:55] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:18:55] [ERROR] lpadmin: Unable to open PPD " /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd": Unable to open PPD file on line 0.
+[2025-02-24 12:20:52] [INFO] Installation de l'imprimante GRPT avec ip 128.81.2.184
+[2025-02-24 12:20:52] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-24 12:20:52] [INFO] Installation de GRPT_Recto_NB
+[2025-02-24 12:20:52] [INFO] Commande lpadmin: ['lpadmin', '-p', 'GRPT_Recto_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale']
+[2025-02-24 12:20:52] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:20:52] [INFO] Installation de GRPT_Recto_Couleurs
+[2025-02-24 12:20:52] [INFO] Commande lpadmin: ['lpadmin', '-p', 'GRPT_Recto_Couleurs', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Color']
+[2025-02-24 12:20:52] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:20:52] [INFO] Installation de GRPT_RectoVerso_Couleurs
+[2025-02-24 12:20:52] [INFO] Commande lpadmin: ['lpadmin', '-p', 'GRPT_RectoVerso_Couleurs', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Color']
+[2025-02-24 12:20:52] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:20:52] [INFO] Installation de GRPT_RectoVerso_NB
+[2025-02-24 12:20:52] [INFO] Commande lpadmin: ['lpadmin', '-p', 'GRPT_RectoVerso_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale']
+[2025-02-24 12:20:52] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:20:52] [INFO] Redémarrage du service
+[2025-02-24 12:20:52] [INFO] Redémarrage du service réussi
+[2025-02-24 12:25:11] [INFO] Installation de l'imprimante GRPT avec ip 128.81.2.184
+[2025-02-24 12:25:11] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-24 12:25:11] [INFO] Installation de GRPT_Recto_NB
+[2025-02-24 12:25:11] [INFO] Commande lpadmin: ['lpadmin', '-p', 'GRPT_Recto_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale']
+[2025-02-24 12:25:11] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:25:11] [INFO] Installation de GRPT_Recto_Couleurs
+[2025-02-24 12:25:11] [INFO] Commande lpadmin: ['lpadmin', '-p', 'GRPT_Recto_Couleurs', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Color']
+[2025-02-24 12:25:11] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:25:11] [INFO] Installation de GRPT_RectoVerso_Couleurs
+[2025-02-24 12:25:11] [INFO] Commande lpadmin: ['lpadmin', '-p', 'GRPT_RectoVerso_Couleurs', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Color']
+[2025-02-24 12:25:11] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:25:11] [INFO] Installation de GRPT_RectoVerso_NB
+[2025-02-24 12:25:11] [INFO] Commande lpadmin: ['lpadmin', '-p', 'GRPT_RectoVerso_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale']
+[2025-02-24 12:25:11] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:25:11] [INFO] Redémarrage du service
+[2025-02-24 12:25:11] [INFO] Redémarrage du service réussi
+[2025-02-24 12:26:32] [INFO] Installation de l'imprimante GRPT avec ip 128.81.2.184
+[2025-02-24 12:26:32] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-24 12:26:32] [INFO] Installation de GRPT_Recto_NB
+[2025-02-24 12:26:32] [INFO] Commande lpadmin: ['lpadmin', '-p', 'GRPT_Recto_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale']
+[2025-02-24 12:26:32] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:26:32] [INFO] Installation de GRPT_Recto_Couleurs
+[2025-02-24 12:26:32] [INFO] Commande lpadmin: ['lpadmin', '-p', 'GRPT_Recto_Couleurs', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Color']
+[2025-02-24 12:26:32] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:26:32] [INFO] Installation de GRPT_RectoVerso_Couleurs
+[2025-02-24 12:26:32] [INFO] Commande lpadmin: ['lpadmin', '-p', 'GRPT_RectoVerso_Couleurs', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Color']
+[2025-02-24 12:26:32] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:26:32] [INFO] Installation de GRPT_RectoVerso_NB
+[2025-02-24 12:26:32] [INFO] Commande lpadmin: ['lpadmin', '-p', 'GRPT_RectoVerso_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale']
+[2025-02-24 12:26:32] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:26:32] [INFO] Redémarrage du service
+[2025-02-24 12:26:32] [INFO] Redémarrage du service réussi
+[2025-02-24 12:30:16] [INFO] Installation de l'imprimante GRPT avec ip 128.81.2.184
+[2025-02-24 12:30:16] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-24 12:30:16] [INFO] Installation de KMC227_GRPT_Recto_NB
+[2025-02-24 12:30:16] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_Recto_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale']
+[2025-02-24 12:30:16] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:30:16] [INFO] Installation de KMC227_GRPT_Recto_Couleurs
+[2025-02-24 12:30:16] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_Recto_Couleurs', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Color']
+[2025-02-24 12:30:16] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:30:16] [INFO] Installation de KMC227_GRPT_RectoVerso_Couleurs
+[2025-02-24 12:30:16] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_RectoVerso_Couleurs', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Color']
+[2025-02-24 12:30:16] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:30:16] [INFO] Installation de KMC227_GRPT_RectoVerso_NB
+[2025-02-24 12:30:16] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_RectoVerso_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale']
+[2025-02-24 12:30:16] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:30:16] [INFO] Redémarrage du service
+[2025-02-24 12:30:16] [INFO] Redémarrage du service réussi
+[2025-02-24 12:31:29] [INFO] Installation de l'imprimante GRPT avec ip 128.81.2.184
+[2025-02-24 12:31:29] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-24 12:31:29] [INFO] Installation de KMC227_GRPT_Recto_NB
+[2025-02-24 12:31:29] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_Recto_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale', '-E']
+[2025-02-24 12:31:29] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:31:29] [INFO] Installation de KMC227_GRPT_Recto_Couleurs
+[2025-02-24 12:31:29] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_Recto_Couleurs', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Color', '-E']
+[2025-02-24 12:31:29] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:31:29] [INFO] Installation de KMC227_GRPT_RectoVerso_Couleurs
+[2025-02-24 12:31:29] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_RectoVerso_Couleurs', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Color', '-E']
+[2025-02-24 12:31:29] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:31:29] [INFO] Installation de KMC227_GRPT_RectoVerso_NB
+[2025-02-24 12:31:29] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_RectoVerso_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale', '-E']
+[2025-02-24 12:31:29] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:31:29] [INFO] Redémarrage du service
+[2025-02-24 12:31:29] [INFO] Redémarrage du service réussi
+[2025-02-24 12:32:50] [INFO] Installation de l'imprimante CORG avec ip 128.81.2.185
+[2025-02-24 12:32:50] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-24 12:32:50] [INFO] Installation de KM227_CORG_Recto_NB
+[2025-02-24 12:32:50] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KM227_CORG_Recto_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.185', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale', '-E']
+[2025-02-24 12:32:50] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:32:50] [INFO] Installation de KM227_CORG_RectoVerso_NB
+[2025-02-24 12:32:50] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KM227_CORG_RectoVerso_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.185', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale', '-E']
+[2025-02-24 12:32:50] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 12:32:50] [INFO] Redémarrage du service
+[2025-02-24 12:32:50] [INFO] Redémarrage du service réussi
+[2025-02-24 13:02:41] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:02:41] [INFO] scheduler is running
+[2025-02-24 13:02:41] [ERROR] lpstat : destination inconnue « matériel ».
+[2025-02-24 13:02:41] [INFO] no system default destination
+[2025-02-24 13:02:41] [INFO] matériel pour KM227_CORG_Recto_NB : lpd://128.81.2.185
+[2025-02-24 13:02:41] [INFO] matériel pour KM227_CORG_RectoVerso_NB : lpd://128.81.2.185
+[2025-02-24 13:02:41] [INFO] matériel pour KMC227_GRPT_Recto_Couleurs : lpd://128.81.2.184
+[2025-02-24 13:02:41] [INFO] matériel pour KMC227_GRPT_Recto_NB : lpd://128.81.2.184
+[2025-02-24 13:02:41] [INFO] matériel pour KMC227_GRPT_RectoVerso_Couleurs : lpd://128.81.2.184
+[2025-02-24 13:02:41] [INFO] matériel pour KMC227_GRPT_RectoVerso_NB : lpd://128.81.2.184
+[2025-02-24 13:02:41] [INFO] KM227_CORG_Recto_NB accepte des requêtes depuis lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:02:41] [INFO] KM227_CORG_RectoVerso_NB accepte des requêtes depuis lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:02:41] [INFO] KMC227_GRPT_Recto_Couleurs accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:02:41] [INFO] KMC227_GRPT_Recto_NB accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:02:41] [INFO] KMC227_GRPT_RectoVerso_Couleurs accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:02:41] [INFO] KMC227_GRPT_RectoVerso_NB accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:02:41] [INFO] printer KM227_CORG_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:02:41] [INFO] printer KM227_CORG_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:02:41] [INFO] printer KMC227_GRPT_Recto_Couleurs is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:02:41] [INFO] printer KMC227_GRPT_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:02:41] [INFO] printer KMC227_GRPT_RectoVerso_Couleurs is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:02:41] [INFO] printer KMC227_GRPT_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:02:41] [INFO] scheduler is running
+[2025-02-24 13:02:41] [ERROR] lpstat : erreur - option inconnue - « d ».
+[2025-02-24 13:02:41] [INFO] no system default destination
+[2025-02-24 13:02:41] [INFO] matériel pour KM227_CORG_Recto_NB : lpd://128.81.2.185
+[2025-02-24 13:02:41] [INFO] matériel pour KM227_CORG_RectoVerso_NB : lpd://128.81.2.185
+[2025-02-24 13:02:41] [INFO] matériel pour KMC227_GRPT_Recto_Couleurs : lpd://128.81.2.184
+[2025-02-24 13:02:41] [INFO] matériel pour KMC227_GRPT_Recto_NB : lpd://128.81.2.184
+[2025-02-24 13:02:41] [INFO] matériel pour KMC227_GRPT_RectoVerso_Couleurs : lpd://128.81.2.184
+[2025-02-24 13:02:41] [INFO] matériel pour KMC227_GRPT_RectoVerso_NB : lpd://128.81.2.184
+[2025-02-24 13:02:41] [INFO] KM227_CORG_Recto_NB accepte des requêtes depuis lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:02:41] [INFO] KM227_CORG_RectoVerso_NB accepte des requêtes depuis lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:02:41] [INFO] KMC227_GRPT_Recto_Couleurs accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:02:41] [INFO] KMC227_GRPT_Recto_NB accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:02:41] [INFO] KMC227_GRPT_RectoVerso_Couleurs accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:02:41] [INFO] KMC227_GRPT_RectoVerso_NB accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:02:41] [INFO] printer KM227_CORG_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:02:41] [INFO] printer KM227_CORG_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:02:41] [INFO] printer KMC227_GRPT_Recto_Couleurs is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:02:41] [INFO] printer KMC227_GRPT_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:02:41] [INFO] printer KMC227_GRPT_RectoVerso_Couleurs is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:02:41] [INFO] printer KMC227_GRPT_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:02:41] [INFO] no system default destination
+[2025-02-24 13:02:41] [INFO] Usage: lpstat [options]
+[2025-02-24 13:02:41] [INFO] Options
+[2025-02-24 13:02:41] [INFO] -E                      Encrypt the connection to the server
+[2025-02-24 13:02:41] [INFO] -h server[:port]        Connect to the named server and port
+[2025-02-24 13:02:41] [INFO] -l                      Show verbose (long) output
+[2025-02-24 13:02:41] [INFO] -U username             Specify the username to use for authentication
+[2025-02-24 13:02:41] [INFO] -H                      Show the default server and port
+[2025-02-24 13:02:41] [INFO] -W completed            Show completed jobs
+[2025-02-24 13:02:41] [INFO] -W not-completed        Show pending jobs
+[2025-02-24 13:02:41] [INFO] -a [destination(s)]     Show the accepting state of destinations
+[2025-02-24 13:02:41] [INFO] -c [class(es)]          Show classes and their member printers
+[2025-02-24 13:02:41] [INFO] -d                      Show the default destination
+[2025-02-24 13:02:41] [INFO] -e                      Show available destinations on the network
+[2025-02-24 13:02:41] [INFO] -o [destination(s)]     Show jobs
+[2025-02-24 13:02:41] [INFO] -p [printer(s)]         Show the processing state of destinations
+[2025-02-24 13:02:41] [INFO] -r                      Show whether the CUPS server is running
+[2025-02-24 13:02:41] [INFO] -R                      Show the ranking of jobs
+[2025-02-24 13:02:41] [INFO] -s                      Show a status summary
+[2025-02-24 13:02:41] [INFO] -t                      Show all status information
+[2025-02-24 13:02:41] [INFO] -u [user(s)]            Show jobs queued by the current or specified users
+[2025-02-24 13:02:41] [INFO] -v [printer(s)]         Show the devices for each destination
+[2025-02-24 13:04:14] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:04:15] [INFO] scheduler is running
+[2025-02-24 13:04:15] [ERROR] lpstat : destination inconnue « matériel ».
+[2025-02-24 13:04:15] [INFO] no system default destination
+[2025-02-24 13:04:15] [INFO] matériel pour KM227_CORG_Recto_NB : lpd://128.81.2.185
+[2025-02-24 13:04:15] [INFO] matériel pour KM227_CORG_RectoVerso_NB : lpd://128.81.2.185
+[2025-02-24 13:04:15] [INFO] matériel pour KMC227_GRPT_Recto_Couleurs : lpd://128.81.2.184
+[2025-02-24 13:04:15] [INFO] matériel pour KMC227_GRPT_Recto_NB : lpd://128.81.2.184
+[2025-02-24 13:04:15] [INFO] matériel pour KMC227_GRPT_RectoVerso_Couleurs : lpd://128.81.2.184
+[2025-02-24 13:04:15] [INFO] matériel pour KMC227_GRPT_RectoVerso_NB : lpd://128.81.2.184
+[2025-02-24 13:04:15] [INFO] KM227_CORG_Recto_NB accepte des requêtes depuis lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:04:15] [INFO] KM227_CORG_RectoVerso_NB accepte des requêtes depuis lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:04:15] [INFO] KMC227_GRPT_Recto_Couleurs accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:15] [INFO] KMC227_GRPT_Recto_NB accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:15] [INFO] KMC227_GRPT_RectoVerso_Couleurs accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:15] [INFO] KMC227_GRPT_RectoVerso_NB accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:15] [INFO] printer KM227_CORG_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:04:15] [INFO] printer KM227_CORG_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:04:15] [INFO] printer KMC227_GRPT_Recto_Couleurs is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:15] [INFO] printer KMC227_GRPT_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:15] [INFO] printer KMC227_GRPT_RectoVerso_Couleurs is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:15] [INFO] printer KMC227_GRPT_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:15] [INFO] scheduler is running
+[2025-02-24 13:04:15] [INFO] no system default destination
+[2025-02-24 13:04:15] [INFO] matériel pour KM227_CORG_Recto_NB : lpd://128.81.2.185
+[2025-02-24 13:04:15] [INFO] matériel pour KM227_CORG_RectoVerso_NB : lpd://128.81.2.185
+[2025-02-24 13:04:15] [INFO] matériel pour KMC227_GRPT_Recto_Couleurs : lpd://128.81.2.184
+[2025-02-24 13:04:15] [INFO] matériel pour KMC227_GRPT_Recto_NB : lpd://128.81.2.184
+[2025-02-24 13:04:15] [INFO] matériel pour KMC227_GRPT_RectoVerso_Couleurs : lpd://128.81.2.184
+[2025-02-24 13:04:15] [INFO] matériel pour KMC227_GRPT_RectoVerso_NB : lpd://128.81.2.184
+[2025-02-24 13:04:15] [INFO] KM227_CORG_Recto_NB accepte des requêtes depuis lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:04:15] [INFO] KM227_CORG_RectoVerso_NB accepte des requêtes depuis lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:04:15] [INFO] KMC227_GRPT_Recto_Couleurs accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:15] [INFO] KMC227_GRPT_Recto_NB accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:15] [INFO] KMC227_GRPT_RectoVerso_Couleurs accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:15] [INFO] KMC227_GRPT_RectoVerso_NB accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:15] [INFO] printer KM227_CORG_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:04:15] [INFO] printer KM227_CORG_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:04:15] [INFO] printer KMC227_GRPT_Recto_Couleurs is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:15] [INFO] printer KMC227_GRPT_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:15] [INFO] printer KMC227_GRPT_RectoVerso_Couleurs is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:15] [INFO] printer KMC227_GRPT_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:15] [INFO] no system default destination
+[2025-02-24 13:04:28] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:04:29] [INFO] scheduler is running
+[2025-02-24 13:04:29] [ERROR] lpstat : destination inconnue « 'matériel' ».
+[2025-02-24 13:04:29] [INFO] no system default destination
+[2025-02-24 13:04:29] [INFO] matériel pour KM227_CORG_Recto_NB : lpd://128.81.2.185
+[2025-02-24 13:04:29] [INFO] matériel pour KM227_CORG_RectoVerso_NB : lpd://128.81.2.185
+[2025-02-24 13:04:29] [INFO] matériel pour KMC227_GRPT_Recto_Couleurs : lpd://128.81.2.184
+[2025-02-24 13:04:29] [INFO] matériel pour KMC227_GRPT_Recto_NB : lpd://128.81.2.184
+[2025-02-24 13:04:29] [INFO] matériel pour KMC227_GRPT_RectoVerso_Couleurs : lpd://128.81.2.184
+[2025-02-24 13:04:29] [INFO] matériel pour KMC227_GRPT_RectoVerso_NB : lpd://128.81.2.184
+[2025-02-24 13:04:29] [INFO] KM227_CORG_Recto_NB accepte des requêtes depuis lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:04:29] [INFO] KM227_CORG_RectoVerso_NB accepte des requêtes depuis lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:04:29] [INFO] KMC227_GRPT_Recto_Couleurs accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:29] [INFO] KMC227_GRPT_Recto_NB accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:29] [INFO] KMC227_GRPT_RectoVerso_Couleurs accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:29] [INFO] KMC227_GRPT_RectoVerso_NB accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:29] [INFO] printer KM227_CORG_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:04:29] [INFO] printer KM227_CORG_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:04:29] [INFO] printer KMC227_GRPT_Recto_Couleurs is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:29] [INFO] printer KMC227_GRPT_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:29] [INFO] printer KMC227_GRPT_RectoVerso_Couleurs is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:29] [INFO] printer KMC227_GRPT_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:29] [INFO] scheduler is running
+[2025-02-24 13:04:29] [INFO] no system default destination
+[2025-02-24 13:04:29] [INFO] matériel pour KM227_CORG_Recto_NB : lpd://128.81.2.185
+[2025-02-24 13:04:29] [INFO] matériel pour KM227_CORG_RectoVerso_NB : lpd://128.81.2.185
+[2025-02-24 13:04:29] [INFO] matériel pour KMC227_GRPT_Recto_Couleurs : lpd://128.81.2.184
+[2025-02-24 13:04:29] [INFO] matériel pour KMC227_GRPT_Recto_NB : lpd://128.81.2.184
+[2025-02-24 13:04:29] [INFO] matériel pour KMC227_GRPT_RectoVerso_Couleurs : lpd://128.81.2.184
+[2025-02-24 13:04:29] [INFO] matériel pour KMC227_GRPT_RectoVerso_NB : lpd://128.81.2.184
+[2025-02-24 13:04:29] [INFO] KM227_CORG_Recto_NB accepte des requêtes depuis lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:04:29] [INFO] KM227_CORG_RectoVerso_NB accepte des requêtes depuis lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:04:29] [INFO] KMC227_GRPT_Recto_Couleurs accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:29] [INFO] KMC227_GRPT_Recto_NB accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:29] [INFO] KMC227_GRPT_RectoVerso_Couleurs accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:29] [INFO] KMC227_GRPT_RectoVerso_NB accepte des requêtes depuis lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:29] [INFO] printer KM227_CORG_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:04:29] [INFO] printer KM227_CORG_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:04:29] [INFO] printer KMC227_GRPT_Recto_Couleurs is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:29] [INFO] printer KMC227_GRPT_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:29] [INFO] printer KMC227_GRPT_RectoVerso_Couleurs is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:29] [INFO] printer KMC227_GRPT_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:04:29] [INFO] no system default destination
+[2025-02-24 13:06:21] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:06:23] [ERROR] lpstat: Invalid destination name in list "|".
+[2025-02-24 13:06:24] [ERROR] lpstat: Invalid destination name in list "|".
+[2025-02-24 13:07:05] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:07:06] [ERROR] lpstat: Invalid destination name in list "|".
+[2025-02-24 13:07:08] [ERROR] lpstat: Invalid destination name in list "|".
+[2025-02-24 13:11:18] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:11:18] [INFO] printer KM227_CORG_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:11:18] [INFO] printer KM227_CORG_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:11:18] [INFO] printer KMC227_GRPT_Recto_Couleurs is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:11:18] [INFO] printer KMC227_GRPT_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:11:18] [INFO] printer KMC227_GRPT_RectoVerso_Couleurs is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:11:18] [INFO] printer KMC227_GRPT_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:11:18] [INFO] printer KM227_CORG_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:11:18] [INFO] printer KM227_CORG_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:11:18] [INFO] printer KMC227_GRPT_Recto_Couleurs is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:11:18] [INFO] printer KMC227_GRPT_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:11:18] [INFO] printer KMC227_GRPT_RectoVerso_Couleurs is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:11:18] [INFO] printer KMC227_GRPT_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:13:41] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:13:41] [ERROR] Erreur inattendue: write() argument must be str, not bool
+Traceback (most recent call last):
+  File "/media/nicolas.voirin/Drive/install/plugins/delete_printer/exec.py", line 105, in execute_plugin
+    nb_impr, stdout, stderr = run_command(["lpstat", "-p"],True)
+  File "/media/nicolas.voirin/Drive/install/plugins/delete_printer/exec.py", line 50, in run_command
+    process.stdin.write(input_data)
+TypeError: write() argument must be str, not bool
+[2025-02-24 13:14:35] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:14:35] [INFO] True à supprimer
+[2025-02-24 13:16:20] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:16:20] [ERROR] Erreur inattendue: unsupported operand type(s) for +=: 'int' and 'str'
+Traceback (most recent call last):
+  File "/media/nicolas.voirin/Drive/install/plugins/delete_printer/exec.py", line 106, in execute_plugin
+    total_step += nb_impr  # Assumes returnValue is an integer for step counting
+TypeError: unsupported operand type(s) for +=: 'int' and 'str'
+[2025-02-24 13:16:36] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:16:37] [ERROR] Erreur inattendue: invalid literal for int() with base 10: 'printer KM227_CORG_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50\nprinter KM227_CORG_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50\nprinter KMC227_GRPT_Recto_Couleu
+Traceback (most recent call last):
+  File "/media/nicolas.voirin/Drive/install/plugins/delete_printer/exec.py", line 106, in execute_plugin
+    total_step += int(nb_impr)  # Assumes returnValue is an integer for step counting
+ValueError: invalid literal for int() with base 10: 'printer KM227_CORG_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50\nprinter KM227_CORG_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50\nprinter KMC227_GRPT_Recto_Couleu
+[2025-02-24 13:16:54] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:16:54] [ERROR] Erreur inattendue: invalid literal for int() with base 10: 'printer KM227_CORG_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50\nprinter KM227_CORG_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50\nprinter KMC227_GRPT_Recto_Couleu
+Traceback (most recent call last):
+  File "/media/nicolas.voirin/Drive/install/plugins/delete_printer/exec.py", line 106, in execute_plugin
+    total_step += int(nb_impr)  # Assumes returnValue is an integer for step counting
+ValueError: invalid literal for int() with base 10: 'printer KM227_CORG_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50\nprinter KM227_CORG_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50\nprinter KMC227_GRPT_Recto_Couleu
+[2025-02-24 13:17:10] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:17:10] [INFO] printer KM227_CORG_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:17:10] [INFO] printer KM227_CORG_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:17:10] [INFO] printer KMC227_GRPT_Recto_Couleurs is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:17:10] [INFO] printer KMC227_GRPT_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:17:10] [INFO] printer KMC227_GRPT_RectoVerso_Couleurs is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:17:10] [INFO] printer KMC227_GRPT_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:17:10] [ERROR] Erreur inattendue: invalid literal for int() with base 10: 'printer KM227_CORG_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50\nprinter KM227_CORG_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50\nprinter KMC227_GRPT_Recto_Couleu
+Traceback (most recent call last):
+  File "/media/nicolas.voirin/Drive/install/plugins/delete_printer/exec.py", line 106, in execute_plugin
+    total_step += int(nb_impr)  # Assumes returnValue is an integer for step counting
+ValueError: invalid literal for int() with base 10: 'printer KM227_CORG_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50\nprinter KM227_CORG_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50\nprinter KMC227_GRPT_Recto_Couleu
+[2025-02-24 13:17:33] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:17:34] [ERROR] lpstat: Invalid destination name in list "|".
+[2025-02-24 13:17:34] [ERROR] Erreur inattendue: invalid literal for int() with base 10: ''
+Traceback (most recent call last):
+  File "/media/nicolas.voirin/Drive/install/plugins/delete_printer/exec.py", line 106, in execute_plugin
+    total_step += int(nb_impr)  # Assumes returnValue is an integer for step counting
+ValueError: invalid literal for int() with base 10: ''
+[2025-02-24 13:19:54] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:19:54] [INFO] 6 à supprimer
+[2025-02-24 13:26:15] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:26:15] [INFO] 6 imprimantes à supprimer
+[2025-02-24 13:26:15] [INFO] Suppression de printer KM227_CORG_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:26:15] [INFO] Suppression de printer KM227_CORG_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:32:50
+[2025-02-24 13:26:15] [INFO] Suppression de printer KMC227_GRPT_Recto_Couleurs is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:26:15] [INFO] Suppression de printer KMC227_GRPT_Recto_NB is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:26:15] [INFO] Suppression de printer KMC227_GRPT_RectoVerso_Couleurs is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:26:15] [INFO] Suppression de printer KMC227_GRPT_RectoVerso_NB is idle.  enabled since lun. 24 févr. 2025 12:31:29
+[2025-02-24 13:27:54] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:27:54] [INFO] 6 imprimantes à supprimer
+[2025-02-24 13:27:54] [ERROR] Erreur inattendue: local variable 'msg' referenced before assignment
+Traceback (most recent call last):
+  File "/media/nicolas.voirin/Drive/install/plugins/delete_printer/exec.py", line 131, in execute_plugin
+    logger.error(msg)
+UnboundLocalError: local variable 'msg' referenced before assignment
+[2025-02-24 13:28:14] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:28:14] [INFO] 5 imprimantes à supprimer
+[2025-02-24 13:28:14] [ERROR] Suppression de KM227_CORG_RectoVerso_NB
+[2025-02-24 13:31:06] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:31:06] [INFO] 4 imprimantes à supprimer
+[2025-02-24 13:31:06] [ERROR] Suppression de KMC227_GRPT_Recto_Couleurs
+[2025-02-24 13:31:24] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:31:24] [INFO] 3 imprimantes à supprimer
+[2025-02-24 13:31:24] [ERROR] Suppression de KMC227_GRPT_Recto_NB
+[2025-02-24 13:31:39] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:31:39] [INFO] 2 imprimantes à supprimer
+[2025-02-24 13:33:40] [INFO] Installation de l'imprimante CORG avec ip 128.81.2.185
+[2025-02-24 13:33:40] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-24 13:33:40] [INFO] Installation de KMC227_CORG_Recto_NB
+[2025-02-24 13:33:40] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_CORG_Recto_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.185', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale', '-E']
+[2025-02-24 13:33:41] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:33:41] [INFO] Installation de KMC227_CORG_RectoVerso_NB
+[2025-02-24 13:33:41] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_CORG_RectoVerso_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.185', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale', '-E']
+[2025-02-24 13:33:41] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:33:41] [INFO] Redémarrage du service
+[2025-02-24 13:33:41] [INFO] Redémarrage du service réussi
+[2025-02-24 13:33:41] [INFO] Installation de l'imprimante GRPT avec ip 128.81.2.184
+[2025-02-24 13:33:41] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-24 13:33:41] [INFO] Installation de KMC227_GRPT_Recto_NB
+[2025-02-24 13:33:41] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_Recto_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale', '-E']
+[2025-02-24 13:33:41] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:33:41] [INFO] Installation de KMC227_GRPT_Recto_Couleurs
+[2025-02-24 13:33:41] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_Recto_Couleurs', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Color', '-E']
+[2025-02-24 13:33:41] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:33:41] [INFO] Installation de KMC227_GRPT_RectoVerso_Couleurs
+[2025-02-24 13:33:41] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_RectoVerso_Couleurs', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Color', '-E']
+[2025-02-24 13:33:41] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:33:41] [INFO] Installation de KMC227_GRPT_RectoVerso_NB
+[2025-02-24 13:33:41] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_RectoVerso_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale', '-E']
+[2025-02-24 13:33:41] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:33:41] [INFO] Installation de KMC227_GRPT_Recto_NB_Agraffes
+[2025-02-24 13:33:41] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_Recto_NB_Agraffes', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o Staple=1Staple(Left) -o Finisher=FS534 -o PageSize=A4 -o SelectColor=Grayscale', '-E']
+[2025-02-24 13:33:41] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:33:41] [INFO] Installation de KMC227_GRPT_RectoVerso_NB_Agraffes
+[2025-02-24 13:33:41] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_RectoVerso_NB_Agraffes', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o Staple=1Staple(Left) -o Finisher=FS534 -o PageSize=A4 -o SelectColor=Grayscale', '-E']
+[2025-02-24 13:33:41] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:33:41] [INFO] Installation de KMC227_GRPT_RectoVerso_Couleurs_Agraffes
+[2025-02-24 13:33:41] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_RectoVerso_Couleurs_Agraffes', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o Staple=1Staple(Left) -o Finisher=FS534 -o PageSize=A4 -o SelectColor=Color', '-E']
+[2025-02-24 13:33:41] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:33:41] [INFO] Installation de KMC227_GRPT_Recto_Couleurs_Agraffes
+[2025-02-24 13:33:41] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_Recto_Couleurs_Agraffes', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'lpd://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o Staple=1Staple(Left) -o Finisher=FS534 -o PageSize=A4 -o SelectColor=Color', '-E']
+[2025-02-24 13:33:41] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:33:41] [INFO] Redémarrage du service
+[2025-02-24 13:33:41] [INFO] Redémarrage du service réussi
+[2025-02-24 13:33:41] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-24 13:33:41] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-24 13:33:41] [INFO] Installation de Epson-C4200_BT_Recto_NB
+[2025-02-24 13:33:41] [INFO] Commande lpadmin: ['lpadmin', '-p', 'Epson-C4200_BT_Recto_NB', '-mopenprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None', '-E']
+[2025-02-24 13:33:42] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:33:42] [INFO] Installation de Epson-C4200_BT_Recto_Couleurs
+[2025-02-24 13:33:42] [INFO] Commande lpadmin: ['lpadmin', '-p', 'Epson-C4200_BT_Recto_Couleurs', '-mopenprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=Color', '-E']
+[2025-02-24 13:33:42] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:33:42] [INFO] Installation de Epson-C4200_BT_RectoVerso_Couleurs
+[2025-02-24 13:33:42] [INFO] Commande lpadmin: ['lpadmin', '-p', 'Epson-C4200_BT_RectoVerso_Couleurs', '-mopenprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=Color', '-E']
+[2025-02-24 13:33:43] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:33:43] [INFO] Installation de Epson-C4200_BT_RectoVerso_NB
+[2025-02-24 13:33:43] [INFO] Commande lpadmin: ['lpadmin', '-p', 'Epson-C4200_BT_RectoVerso_NB', '-mopenprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=None', '-E']
+[2025-02-24 13:33:43] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:33:43] [INFO] Redémarrage du service
+[2025-02-24 13:33:43] [INFO] Redémarrage du service réussi
+[2025-02-24 13:33:43] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:33:43] [INFO] 4 imprimantes à supprimer
+[2025-02-24 13:42:50] [INFO] Installation de l'imprimante CORG avec ip 128.81.2.185
+[2025-02-24 13:42:50] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-24 13:42:50] [INFO] Installation de KMC227_CORG_Recto_NB
+[2025-02-24 13:42:50] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_CORG_Recto_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'ipp://128.81.2.185', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale', '-E']
+[2025-02-24 13:42:50] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:42:50] [INFO] Installation de KMC227_CORG_RectoVerso_NB
+[2025-02-24 13:42:50] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_CORG_RectoVerso_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'ipp://128.81.2.185', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale', '-E']
+[2025-02-24 13:42:50] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:42:50] [INFO] Redémarrage du service
+[2025-02-24 13:42:50] [INFO] Redémarrage du service réussi
+[2025-02-24 13:42:50] [INFO] Installation de l'imprimante GRPT avec ip 128.81.2.184
+[2025-02-24 13:42:50] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-24 13:42:50] [INFO] Installation de KMC227_GRPT_Recto_NB
+[2025-02-24 13:42:50] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_Recto_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'ipp://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale', '-E']
+[2025-02-24 13:42:50] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:42:50] [INFO] Installation de KMC227_GRPT_Recto_Couleurs
+[2025-02-24 13:42:50] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_Recto_Couleurs', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'ipp://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Color', '-E']
+[2025-02-24 13:42:50] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:42:50] [INFO] Installation de KMC227_GRPT_RectoVerso_Couleurs
+[2025-02-24 13:42:50] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_RectoVerso_Couleurs', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'ipp://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Color', '-E']
+[2025-02-24 13:42:50] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:42:50] [INFO] Installation de KMC227_GRPT_RectoVerso_NB
+[2025-02-24 13:42:50] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_RectoVerso_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'ipp://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale', '-E']
+[2025-02-24 13:42:50] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:42:50] [INFO] Installation de KMC227_GRPT_Recto_NB_Agraffes
+[2025-02-24 13:42:50] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_Recto_NB_Agraffes', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'ipp://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o Staple=1Staple(Left) -o Finisher=FS534 -o PageSize=A4 -o SelectColor=Grayscale', '-E']
+[2025-02-24 13:42:50] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:42:50] [INFO] Installation de KMC227_GRPT_RectoVerso_NB_Agraffes
+[2025-02-24 13:42:50] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_RectoVerso_NB_Agraffes', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'ipp://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o Staple=1Staple(Left) -o Finisher=FS534 -o PageSize=A4 -o SelectColor=Grayscale', '-E']
+[2025-02-24 13:42:50] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:42:50] [INFO] Installation de KMC227_GRPT_RectoVerso_Couleurs_Agraffes
+[2025-02-24 13:42:50] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_RectoVerso_Couleurs_Agraffes', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'ipp://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o Staple=1Staple(Left) -o Finisher=FS534 -o PageSize=A4 -o SelectColor=Color', '-E']
+[2025-02-24 13:42:50] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:42:50] [INFO] Installation de KMC227_GRPT_Recto_Couleurs_Agraffes
+[2025-02-24 13:42:50] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_Recto_Couleurs_Agraffes', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'ipp://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o Staple=1Staple(Left) -o Finisher=FS534 -o PageSize=A4 -o SelectColor=Color', '-E']
+[2025-02-24 13:42:50] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:42:50] [INFO] Redémarrage du service
+[2025-02-24 13:42:50] [INFO] Redémarrage du service réussi
+[2025-02-24 13:42:50] [INFO] Installation de l'imprimante BOGUS avec ip 192.168.1.220
+[2025-02-24 13:42:50] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-24 13:42:50] [INFO] Installation de Epson-C4200_BOGUS_Recto_NB
+[2025-02-24 13:42:50] [INFO] Commande lpadmin: ['lpadmin', '-p', 'Epson-C4200_BOGUS_Recto_NB', '-mopenprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None', '-E']
+[2025-02-24 13:42:51] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:42:51] [INFO] Installation de Epson-C4200_BOGUS_Recto_Couleurs
+[2025-02-24 13:42:51] [INFO] Commande lpadmin: ['lpadmin', '-p', 'Epson-C4200_BOGUS_Recto_Couleurs', '-mopenprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=Color', '-E']
+[2025-02-24 13:42:51] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:42:51] [INFO] Installation de Epson-C4200_BOGUS_RectoVerso_Couleurs
+[2025-02-24 13:42:51] [INFO] Commande lpadmin: ['lpadmin', '-p', 'Epson-C4200_BOGUS_RectoVerso_Couleurs', '-mopenprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=Color', '-E']
+[2025-02-24 13:42:52] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:42:52] [INFO] Installation de Epson-C4200_BOGUS_RectoVerso_NB
+[2025-02-24 13:42:52] [INFO] Commande lpadmin: ['lpadmin', '-p', 'Epson-C4200_BOGUS_RectoVerso_NB', '-mopenprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=None', '-E']
+[2025-02-24 13:42:52] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:42:52] [INFO] Redémarrage du service
+[2025-02-24 13:42:52] [INFO] Redémarrage du service réussi
+[2025-02-24 13:42:52] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:42:53] [INFO] 4 imprimantes à supprimer
+[2025-02-24 13:44:02] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:44:02] [INFO] 4 imprimantes à supprimer
+[2025-02-24 13:44:50] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:44:50] [INFO] 4 imprimantes à supprimer
+[2025-02-24 13:45:15] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:45:15] [INFO] 4 imprimantes à supprimer
+[2025-02-24 13:46:04] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:46:04] [INFO] 4 imprimantes à supprimer
+[2025-02-24 13:46:27] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:46:27] [INFO] 4 imprimantes à supprimer
+[2025-02-24 13:46:27] [INFO] ['lpadmin', '-x', 'Epson-C4200_BOGUS_Recto_Couleurs']
+[2025-02-24 13:46:27] [INFO] Suppression de Epson-C4200_BOGUS_Recto_Couleurs
+[2025-02-24 13:46:27] [INFO] ['lpadmin', '-x', 'Epson-C4200_BOGUS_Recto_NB']
+[2025-02-24 13:46:27] [INFO] Suppression de Epson-C4200_BOGUS_Recto_NB
+[2025-02-24 13:46:27] [INFO] ['lpadmin', '-x', 'Epson-C4200_BOGUS_RectoVerso_Couleurs']
+[2025-02-24 13:46:27] [INFO] Suppression de Epson-C4200_BOGUS_RectoVerso_Couleurs
+[2025-02-24 13:46:27] [INFO] ['lpadmin', '-x', 'Epson-C4200_BOGUS_RectoVerso_NB']
+[2025-02-24 13:46:27] [INFO] Suppression de Epson-C4200_BOGUS_RectoVerso_NB
+[2025-02-24 13:48:35] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:48:35] [INFO] 0 imprimantes à supprimer
+[2025-02-24 13:48:35] [ERROR] Erreur inattendue: division by zero
+Traceback (most recent call last):
+  File "/media/nicolas.voirin/Drive/install/plugins/delete_printer/exec.py", line 123, in execute_plugin
+    print_progress(current_step, total_step)
+  File "/media/nicolas.voirin/Drive/install/plugins/delete_printer/exec.py", line 33, in print_progress
+    progress = int((step * 100) / total)
+ZeroDivisionError: division by zero
+[2025-02-24 13:49:06] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:49:06] [INFO] 0 imprimantes à supprimer
+[2025-02-24 13:58:24] [INFO] Installation de l'imprimante BT avec ip 192.168.1.220
+[2025-02-24 13:58:24] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-24 13:58:24] [INFO] Installation de Epson-C4200_BT_Recto_NB
+[2025-02-24 13:58:24] [INFO] Commande lpadmin: ['lpadmin', '-p', 'Epson-C4200_BT_Recto_NB', '-mopenprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None', '-E']
+[2025-02-24 13:58:25] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:58:25] [INFO] Installation de Epson-C4200_BT_Recto_Couleurs
+[2025-02-24 13:58:25] [INFO] Commande lpadmin: ['lpadmin', '-p', 'Epson-C4200_BT_Recto_Couleurs', '-mopenprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=Color', '-E']
+[2025-02-24 13:58:25] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:58:25] [INFO] Installation de Epson-C4200_BT_RectoVerso_Couleurs
+[2025-02-24 13:58:25] [INFO] Commande lpadmin: ['lpadmin', '-p', 'Epson-C4200_BT_RectoVerso_Couleurs', '-mopenprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=Color', '-E']
+[2025-02-24 13:58:26] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:58:26] [INFO] Installation de Epson-C4200_BT_RectoVerso_NB
+[2025-02-24 13:58:26] [INFO] Commande lpadmin: ['lpadmin', '-p', 'Epson-C4200_BT_RectoVerso_NB', '-mopenprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', '-v', 'lpd://192.168.1.220', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=None', '-E']
+[2025-02-24 13:58:26] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:58:26] [INFO] Redémarrage du service
+[2025-02-24 13:58:26] [INFO] Redémarrage du service réussi
+[2025-02-24 13:58:26] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:58:26] [INFO] 14 imprimante(s) à supprimer
+[2025-02-24 13:58:26] [INFO] Suppression de Epson-C4200_BT_Recto_Couleurs
+[2025-02-24 13:58:26] [INFO] Suppression de Epson-C4200_BT_Recto_NB
+[2025-02-24 13:58:26] [INFO] Suppression de Epson-C4200_BT_RectoVerso_Couleurs
+[2025-02-24 13:58:26] [INFO] Suppression de Epson-C4200_BT_RectoVerso_NB
+[2025-02-24 13:58:26] [INFO] Suppression de KMC227_CORG_Recto_NB
+[2025-02-24 13:58:26] [INFO] Suppression de KMC227_CORG_RectoVerso_NB
+[2025-02-24 13:58:26] [INFO] Suppression de KMC227_GRPT_Recto_Couleurs
+[2025-02-24 13:58:26] [INFO] Suppression de KMC227_GRPT_Recto_Couleurs_Agraffes
+[2025-02-24 13:58:26] [INFO] Suppression de KMC227_GRPT_Recto_NB
+[2025-02-24 13:58:26] [INFO] Suppression de KMC227_GRPT_Recto_NB_Agraffes
+[2025-02-24 13:58:26] [INFO] Suppression de KMC227_GRPT_RectoVerso_Couleurs
+[2025-02-24 13:58:26] [INFO] Suppression de KMC227_GRPT_RectoVerso_Couleurs_Agraffes
+[2025-02-24 13:58:26] [INFO] Suppression de KMC227_GRPT_RectoVerso_NB
+[2025-02-24 13:58:26] [INFO] Suppression de KMC227_GRPT_RectoVerso_NB_Agraffes
+[2025-02-24 13:58:52] [INFO] Installation de l'imprimante CORG avec ip 128.81.2.185
+[2025-02-24 13:58:52] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-24 13:58:52] [INFO] Installation de KMC227_CORG_Recto_NB
+[2025-02-24 13:58:52] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_CORG_Recto_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'ipp://128.81.2.185', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale', '-E']
+[2025-02-24 13:58:52] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:58:52] [INFO] Installation de KMC227_CORG_RectoVerso_NB
+[2025-02-24 13:58:52] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_CORG_RectoVerso_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'ipp://128.81.2.185', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale', '-E']
+[2025-02-24 13:58:52] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:58:52] [INFO] Redémarrage du service
+[2025-02-24 13:58:53] [INFO] Redémarrage du service réussi
+[2025-02-24 13:58:53] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:58:53] [INFO] 0 imprimante(s) à supprimer
+[2025-02-24 13:59:15] [INFO] Installation de l'imprimante GRPT avec ip 128.81.2.184
+[2025-02-24 13:59:15] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-02-24 13:59:15] [INFO] Installation de KMC227_GRPT_Recto_NB
+[2025-02-24 13:59:15] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_Recto_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'ipp://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale', '-E']
+[2025-02-24 13:59:15] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:59:15] [INFO] Installation de KMC227_GRPT_Recto_Couleurs
+[2025-02-24 13:59:15] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_Recto_Couleurs', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'ipp://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Color', '-E']
+[2025-02-24 13:59:15] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:59:15] [INFO] Installation de KMC227_GRPT_RectoVerso_Couleurs
+[2025-02-24 13:59:15] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_RectoVerso_Couleurs', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'ipp://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Color', '-E']
+[2025-02-24 13:59:15] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:59:15] [INFO] Installation de KMC227_GRPT_RectoVerso_NB
+[2025-02-24 13:59:15] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_RectoVerso_NB', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'ipp://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale', '-E']
+[2025-02-24 13:59:15] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:59:15] [INFO] Installation de KMC227_GRPT_Recto_NB_Agraffes
+[2025-02-24 13:59:15] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_Recto_NB_Agraffes', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'ipp://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o Staple=1Staple(Left) -o Finisher=FS534 -o PageSize=A4 -o SelectColor=Grayscale', '-E']
+[2025-02-24 13:59:15] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:59:15] [INFO] Installation de KMC227_GRPT_RectoVerso_NB_Agraffes
+[2025-02-24 13:59:15] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_RectoVerso_NB_Agraffes', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'ipp://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o Staple=1Staple(Left) -o Finisher=FS534 -o PageSize=A4 -o SelectColor=Grayscale', '-E']
+[2025-02-24 13:59:15] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:59:15] [INFO] Installation de KMC227_GRPT_RectoVerso_Couleurs_Agraffes
+[2025-02-24 13:59:15] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_RectoVerso_Couleurs_Agraffes', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'ipp://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o Staple=1Staple(Left) -o Finisher=FS534 -o PageSize=A4 -o SelectColor=Color', '-E']
+[2025-02-24 13:59:15] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:59:15] [INFO] Installation de KMC227_GRPT_Recto_Couleurs_Agraffes
+[2025-02-24 13:59:15] [INFO] Commande lpadmin: ['lpadmin', '-p', 'KMC227_GRPT_Recto_Couleurs_Agraffes', '-P/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd', '-v', 'ipp://128.81.2.184', '-u', 'allow:all', '-o', '-o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o Staple=1Staple(Left) -o Finisher=FS534 -o PageSize=A4 -o SelectColor=Color', '-E']
+[2025-02-24 13:59:15] [ERROR] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-02-24 13:59:15] [INFO] Redémarrage du service
+[2025-02-24 13:59:16] [INFO] Redémarrage du service réussi
+[2025-02-24 13:59:16] [INFO] Listage des imprimantes à supprimer
+[2025-02-24 13:59:16] [INFO] 0 imprimante(s) à supprimer
+[2025-02-24 16:38:02] [INFO] 📠 Configuration serveur pour Numerisation
+[2025-02-24 16:38:02] [INFO] Ajout de l'utilisateur scan
+[2025-02-24 16:38:02] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-24 16:38:02] [ERROR] Erreur inattendue: End Of File (EOF). Exception style platform.
+<pexpect.pty_spawn.spawn object at 0x701001f04fa0>
+command: /usr/bin/smbpasswd
+args: ['/usr/bin/smbpasswd', '-a', 'scan']
+buffer (last 100 chars): b''
+before (last 100 chars): b'ldap admin password\r\n  -x                   delete user\r\n  -R ORDER             name resolve order\r\n'
+after: <class 'pexpect.exceptions.EOF'>
+match: None
+match_index: None
+exitstatus: None
+flag_eof: True
+pid: 73565
+child_fd: 6
+closed: False
+timeout: 30
+delimiter: <class 'pexpect.exceptions.EOF'>
+logfile: None
+logfile_read: None
+logfile_send: None
+maxread: 2000
+ignorecase: False
+searchwindowsize: None
+delaybeforesend: 0.05
+delayafterclose: 0.1
+delayafterterminate: 0.1
+searcher: searcher_re:
+    0: TIMEOUT
+    1: re.compile(b'New SMB password:')
+Traceback (most recent call last):
+  File "/media/nico/Drive/pcUtils/plugins/scan_plugin/exec.py", line 116, in execute_plugin
+    process.expect([pexpect.TIMEOUT,"New SMB password:"])
+  File "/media/nico/Drive/pcUtils/.venv/lib/python3.10/site-packages/pexpect/spawnbase.py", line 354, in expect
+    return self.expect_list(compiled_pattern_list,
+  File "/media/nico/Drive/pcUtils/.venv/lib/python3.10/site-packages/pexpect/spawnbase.py", line 383, in expect_list
+    return exp.expect_loop(timeout)
+  File "/media/nico/Drive/pcUtils/.venv/lib/python3.10/site-packages/pexpect/expect.py", line 179, in expect_loop
+    return self.eof(e)
+  File "/media/nico/Drive/pcUtils/.venv/lib/python3.10/site-packages/pexpect/expect.py", line 122, in eof
+    raise exc
+pexpect.exceptions.EOF: End Of File (EOF). Exception style platform.
+<pexpect.pty_spawn.spawn object at 0x701001f04fa0>
+command: /usr/bin/smbpasswd
+args: ['/usr/bin/smbpasswd', '-a', 'scan']
+buffer (last 100 chars): b''
+before (last 100 chars): b'ldap admin password\r\n  -x                   delete user\r\n  -R ORDER             name resolve order\r\n'
+after: <class 'pexpect.exceptions.EOF'>
+match: None
+match_index: None
+exitstatus: None
+flag_eof: True
+pid: 73565
+child_fd: 6
+closed: False
+timeout: 30
+delimiter: <class 'pexpect.exceptions.EOF'>
+logfile: None
+logfile_read: None
+logfile_send: None
+maxread: 2000
+ignorecase: False
+searchwindowsize: None
+delaybeforesend: 0.05
+delayafterclose: 0.1
+delayafterterminate: 0.1
+searcher: searcher_re:
+    0: TIMEOUT
+    1: re.compile(b'New SMB password:')
+[2025-02-24 16:38:44] [INFO] 📠 Configuration serveur pour Numerisation
+[2025-02-24 16:38:44] [INFO] Ajout de l'utilisateur scan
+[2025-02-24 16:38:44] [ERROR] useradd : l'utilisateur 'scan' existe déjà
+[2025-02-24 16:38:44] [ERROR] Erreur inattendue: End Of File (EOF). Exception style platform.
+<pexpect.pty_spawn.spawn object at 0x73bbb389e8f0>
+command: /usr/bin/smbpasswd
+args: ['/usr/bin/smbpasswd', '-a', 'scan']
+buffer (last 100 chars): b''
+before (last 100 chars): b'ldap admin password\r\n  -x                   delete user\r\n  -R ORDER             name resolve order\r\n'
+after: <class 'pexpect.exceptions.EOF'>
+match: None
+match_index: None
+exitstatus: None
+flag_eof: True
+pid: 73587
+child_fd: 6
+closed: False
+timeout: 30
+delimiter: <class 'pexpect.exceptions.EOF'>
+logfile: None
+logfile_read: None
+logfile_send: None
+maxread: 2000
+ignorecase: False
+searchwindowsize: None
+delaybeforesend: 0.05
+delayafterclose: 0.1
+delayafterterminate: 0.1
+searcher: searcher_re:
+    0: TIMEOUT
+    1: re.compile(b'New SMB password:')
+Traceback (most recent call last):
+  File "/media/nico/Drive/pcUtils/plugins/scan_plugin/exec.py", line 116, in execute_plugin
+    process.expect([pexpect.TIMEOUT,"New SMB password:"])
+  File "/media/nico/Drive/pcUtils/.venv/lib/python3.10/site-packages/pexpect/spawnbase.py", line 354, in expect
+    return self.expect_list(compiled_pattern_list,
+  File "/media/nico/Drive/pcUtils/.venv/lib/python3.10/site-packages/pexpect/spawnbase.py", line 383, in expect_list
+    return exp.expect_loop(timeout)
+  File "/media/nico/Drive/pcUtils/.venv/lib/python3.10/site-packages/pexpect/expect.py", line 179, in expect_loop
+    return self.eof(e)
+  File "/media/nico/Drive/pcUtils/.venv/lib/python3.10/site-packages/pexpect/expect.py", line 122, in eof
+    raise exc
+pexpect.exceptions.EOF: End Of File (EOF). Exception style platform.
+<pexpect.pty_spawn.spawn object at 0x73bbb389e8f0>
+command: /usr/bin/smbpasswd
+args: ['/usr/bin/smbpasswd', '-a', 'scan']
+buffer (last 100 chars): b''
+before (last 100 chars): b'ldap admin password\r\n  -x                   delete user\r\n  -R ORDER             name resolve order\r\n'
+after: <class 'pexpect.exceptions.EOF'>
+match: None
+match_index: None
+exitstatus: None
+flag_eof: True
+pid: 73587
+child_fd: 6
+closed: False
+timeout: 30
+delimiter: <class 'pexpect.exceptions.EOF'>
+logfile: None
+logfile_read: None
+logfile_send: None
+maxread: 2000
+ignorecase: False
+searchwindowsize: None
+delaybeforesend: 0.05
+delayafterclose: 0.1
+delayafterterminate: 0.1
+searcher: searcher_re:
+    0: TIMEOUT
+    1: re.compile(b'New SMB password:')
+[2025-02-25 09:01:51] [INFO] Listage des imprimantes à supprimer
+[2025-02-25 09:01:52] [INFO] 0 imprimante(s) à supprimer

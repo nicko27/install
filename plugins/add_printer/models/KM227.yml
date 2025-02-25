@@ -1,5 +1,5 @@
 title: Photocopieur Konica Minolta 227
-nom: KM227
+nom: KMC227
 ppdFile: /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd
 couleurs: '0'
 rectoverso: '1'
@@ -9,9 +9,9 @@ orecto: -o KMDuplex=1Sided
 orectoverso: -o KMDuplex=2Sided
 onb: -o SelectColor=Grayscale
 ocouleurs: -o SelectColor=Color
-oagraffes: ''
+oagraffes: -o Staple=1Staple(Left) -o Finisher=FS534
 oa4: -o PageSize=A4
 oa3: -o PageSize=A3
 ocommun: ''
 mode: ppd
-socket: lpd://
+socket: ipp://
