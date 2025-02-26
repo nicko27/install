@@ -1,26 +1,26 @@
 import sys
 import os
 import glob
-# Obtenir le chemin absolu du dossier libs
-# Si main.py est au même niveau que le dossier libs
+# Get the absolute path to the libs folder
+# Assuming main.py is at the same level as the libs folder
 libs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'libs')
 
-# Ajouter tous les sous-dossiers de libs au chemin de recherche
+# Add all libs subdirectories to the search path
 for pkg_dir in glob.glob(os.path.join(libs_dir, '*')):
-    # Chercher les dossiers qui contiennent des packages Python
-    # Typiquement, c'est là où les fichiers .dist-info ou .py sont stockés
+    # Look for directories containing Python packages
+    # Typically where .dist-info or .py files are stored
     for subdir in glob.glob(os.path.join(pkg_dir, '*')):
         if os.path.isdir(subdir) and (
             subdir.endswith('.dist-info') or 
             os.path.exists(os.path.join(subdir, '__init__.py')) or
             subdir.endswith('.data')
         ):
-            # Ajouter le dossier parent au chemin de recherche
+            # Add the parent directory to the search path
             parent_dir = os.path.dirname(subdir)
             if parent_dir not in sys.path:
                 sys.path.insert(0, parent_dir)
         
-        # Aussi ajouter le dossier principal du package au chemin
+        # Also add the main package directory to the path
         if pkg_dir not in sys.path:
             sys.path.insert(0, pkg_dir)
 
@@ -47,7 +47,7 @@ def load_config(config_file):
         with open(config_file, 'r') as f:
             return yaml.load(f)
     except Exception as e:
-        print(f"Erreur lors du chargement de la configuration: {e}")
+        print(f"Error loading configuration: {e}")
         return {}
 
 def parse_params(params):
@@ -59,29 +59,29 @@ def parse_params(params):
             key, value = param.split('=')
             config[key.strip()] = value.strip()
         except ValueError:
-            print(f"Format invalide pour le paramètre: {param}. Utiliser clé=valeur")
+            print(f"Invalid format for parameter: {param}. Use key=value")
     return config
 
 if __name__ == "__main__":
     args = parse_args()
     
     if args.plugin:
-        # Exécution directe d'un plugin
+        # Direct execution of a plugin
         config = {}
-        # Charger la configuration depuis le fichier si spécifié
+        # Load configuration from file if specified
         if args.config:
             config.update(load_config(args.config))
-        # Ajouter les paramètres de la ligne de commande
+        # Add command line parameters
         if args.params:
             config.update(parse_params(args.params))
             
-        # Créer la configuration du plugin
+        # Create plugin configuration
         plugins_config = {args.plugin: config}
         
-        # Lancer directement l'écran d'exécution
+        # Launch execution screen directly
         app = ExecutionScreen(plugins_config)
         app.run()
     else:
-        # Interface normale de sélection
+        # Normal selection interface
         app = Choice()
         app.run()

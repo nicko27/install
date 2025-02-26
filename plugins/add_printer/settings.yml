@@ -33,4 +33,5 @@ config_fields:
     not_empty: true
     placeholder: "Ex: 192.168.1.100"
     dynamic_default:
-      script: get_default_ip.py
+      script: get_ip.py
+      function: get_local_ip

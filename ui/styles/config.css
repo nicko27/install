@@ -60,6 +60,8 @@ Screen {
 
 .field-label {
     margin-right: 1;
+    margin-top:1;
+    margin-bottom:1;
 }
 
 .field-description {
@@ -72,6 +74,7 @@ Screen {
 
 .required-star {
     color: red;
+    margin-top:1;
 }
 
 Input.error {
@@ -117,4 +120,9 @@ ConfigField.disabled Select {
 #button-container Button {
     margin-left: 1;
     min-width: 15;
+}
+
+.checkbox-group-label{
+    height:100%;
+    content-align: center middle;
 }

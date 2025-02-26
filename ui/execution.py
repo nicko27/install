@@ -284,7 +284,7 @@ class ExecutionWidget(Container):
                     
                     # Exécuter le plugin et attendre sa fin
                     # Exécuter le plugin et attendre sa fin
-                    await self.run_plugin(plugin_id, plugin_widget, config["icon"]+" "+config['name'], config["config"], executed, total_plugins, result_queue)
+                    await self.run_plugin(plugin_id, plugin_widget, config['name'], config["config"], executed, total_plugins, result_queue)
                     
                     # Récupérer le résultat
                     success, message = await result_queue.get()
@@ -599,11 +599,11 @@ class ExecutionWidget(Container):
                 
                 # Styles de couleur améliorés pour une meilleure visibilité
                 level_styles = {
-                    'debug': 'dim grey',      # Plus subtil pour le debug
-                    'info': 'bright_cyan',    # Plus visible pour l'info
-                    'warning': 'bright_yellow', # Plus visible pour les avertissements
-                    'error': 'bright_red',    # Plus visible pour les erreurs
-                    'success': 'bright_green' # Plus visible pour les succès
+                    'debug': 'grey',
+                    'info': 'cyan',
+                    'warning': 'yellow',
+                    'error': 'red',
+                    'success': 'green'
                 }
                 style = level_styles.get(level, 'white')
                 

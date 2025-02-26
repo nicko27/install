@@ -1,7 +1,64 @@
-2025-02-25 09:36:41,880 - install_ui - INFO - Attempting to get dynamic default for field: printer_ip
-2025-02-25 09:36:41,880 - install_ui - INFO - Field config: {'type': 'ip', 'label': "Adresse IP de l'imprimante à supprimer", 'required': True, 'not_empty': True, 'enabled_if': {'field': 'printer_all', 'value': False}, 'placeholder': 'Ex: 192.168.1.100', 'dynamic_default': {'script': 'get_default_ip.py', 'function': 'get_local_ip'}, 'id': 'printer_ip'}
-2025-02-25 09:36:41,880 - install_ui - INFO - Returning default value: 
-2025-02-25 09:36:41,909 - install_ui - DEBUG - Field scan_directory: enabled_if={'field': 'confirm_config', 'value': True}, dep_field=None, dep_value=None
-2025-02-25 09:36:41,913 - install_ui - DEBUG - Field printer_ip: enabled_if={'field': 'printer_all', 'value': False}, dep_field=printer_all, dep_value=True
-2025-02-25 09:36:41,913 - install_ui - DEBUG - Field printer_ip should be initially disabled
-2025-02-25 09:36:41,914 - install_ui - DEBUG - TextField printer_ip is initially disabled
+2025-02-26 17:19:23,698 - install_ui - DEBUG - Field user_all: enabled_if={'field': 'user_select', 'value': 'has_options'}, dep_field=user_select, dep_value=None
+2025-02-26 17:19:23,699 - install_ui - DEBUG - Field user_all should be initially disabled
+2025-02-26 17:19:23,699 - install_ui - DEBUG - CheckboxField user_all is initially disabled
+2025-02-26 17:19:23,704 - install_ui - INFO - Getting dynamic options for field home_dst_dir
+2025-02-26 17:19:23,704 - install_ui - INFO - Using global script from utils: get_usb.py
+2025-02-26 17:19:23,704 - install_ui - INFO - Full script path: /media/nico/Drive/pcUtils/ui/../utils/get_usb.py
+2025-02-26 17:19:23,704 - install_ui - DEBUG - Loading module get_usb from /media/nico/Drive/pcUtils/ui/../utils/get_usb.py
+2025-02-26 17:19:23,704 - install_ui - DEBUG - Module get_usb loaded successfully
+2025-02-26 17:19:23,704 - install_ui - DEBUG - Using function: get_usb
+2025-02-26 17:19:23,704 - install_ui - DEBUG - Using named value parameter include_system_disk=False
+2025-02-26 17:19:23,704 - install_ui - INFO - Calling get_usb with args: [], kwargs: {'include_system_disk': False}
+2025-02-26 17:19:23,710 - install_ui - INFO - Successfully retrieved data from get_usb
+2025-02-26 17:19:23,710 - install_ui - INFO - Got 3 items from get_usb
+2025-02-26 17:19:23,710 - install_ui - DEBUG - Normalizing options with label_key='description', value_key='device'
+2025-02-26 17:19:23,710 - install_ui - DEBUG - Options is a list with 3 items
+2025-02-26 17:19:23,710 - install_ui - DEBUG -   Raw option 0: <class 'dict'>: {'device': 'sda1', 'path': '/dev/sda1', 'size': '879M', 'mounted': False, 'mount_point': '', 'fs_type': 'vfat', 'description': '/dev/sda1 → Non monté (vfat, 879M)'}
+2025-02-26 17:19:23,710 - install_ui - DEBUG -   Raw option 1: <class 'dict'>: {'device': 'sda2', 'path': '/dev/sda2', 'size': '27,8G', 'mounted': False, 'mount_point': '', 'fs_type': 'ext4', 'description': '/dev/sda2 → Non monté (ext4, 27,8G)'}
+2025-02-26 17:19:23,710 - install_ui - DEBUG -   Raw option 2: <class 'dict'>: {'device': 'sdb1', 'path': '/dev/sdb1', 'size': '1,8T', 'mounted': True, 'mount_point': '/media/nico/Drive', 'fs_type': 'ext4', 'description': '/dev/sdb1 → /media/nico/Drive (ext4, 1,8T)'}
+2025-02-26 17:19:23,710 - install_ui - DEBUG -   From dict: raw_label='/dev/sda1 → Non monté (vfat, 879M)', raw_value='sda1'
+2025-02-26 17:19:23,710 - install_ui - DEBUG -   Final normalized: '/dev/sda1 → Non monté (vfat, 879M)' -> 'sda1'
+2025-02-26 17:19:23,710 - install_ui - DEBUG -   From dict: raw_label='/dev/sda2 → Non monté (ext4, 27,8G)', raw_value='sda2'
+2025-02-26 17:19:23,710 - install_ui - DEBUG -   Final normalized: '/dev/sda2 → Non monté (ext4, 27,8G)' -> 'sda2'
+2025-02-26 17:19:23,711 - install_ui - DEBUG -   From dict: raw_label='/dev/sdb1 → /media/nico/Drive (ext4, 1,8T)', raw_value='sdb1'
+2025-02-26 17:19:23,711 - install_ui - DEBUG -   Final normalized: '/dev/sdb1 → /media/nico/Drive (ext4, 1,8T)' -> 'sdb1'
+2025-02-26 17:19:23,711 - install_ui - INFO - Normalized 3 options
+2025-02-26 17:19:23,711 - install_ui - INFO -   Option 0: '/dev/sda1 → Non monté (vfat, 879M)' -> 'sda1'
+2025-02-26 17:19:23,711 - install_ui - INFO -   Option 1: '/dev/sda2 → Non monté (ext4, 27,8G)' -> 'sda2'
+2025-02-26 17:19:23,711 - install_ui - INFO -   Option 2: '/dev/sdb1 → /media/nico/Drive (ext4, 1,8T)' -> 'sdb1'
+2025-02-26 17:19:23,711 - install_ui - INFO - Normalized 3 options for field home_dst_dir
+2025-02-26 17:19:23,747 - install_ui - INFO - Field home_src_dir value changed from '/home' to '/home'
+2025-02-26 17:19:23,748 - install_ui - INFO - No dependent fields updated for home_src_dir
+2025-02-26 17:19:23,752 - install_ui - DEBUG - Field home_dst_dir value changed from sda1 to sda1
+2025-02-26 17:19:23,752 - install_ui - INFO - Plugin home_copy mounted, initializing dependencies...
+2025-02-26 17:19:23,752 - install_ui - DEBUG - Field user_select correctly depends on home_src_dir
+2025-02-26 17:19:23,752 - install_ui - DEBUG - Field user_all enabled_if correctly references user_select
+2025-02-26 17:19:23,752 - install_ui - DEBUG - Checking has_options for user_select: False
+2025-02-26 17:19:23,752 - install_ui - DEBUG - Initialized enabled state for field user_all: disabled=True
+2025-02-26 17:19:23,752 - install_ui - INFO - Field home_src_dir has 1 dependent fields: ['user_select']
+2025-02-26 17:19:23,752 - install_ui - INFO - Parent field home_src_dir has value '/home'
+2025-02-26 17:19:23,753 - install_ui - INFO - Initializing dynamic options for dependent field user_select
+2025-02-26 17:19:23,753 - install_ui - INFO - Getting dynamic options for field user_select
+2025-02-26 17:19:23,753 - install_ui - INFO - Using global script from utils: get_users.py
+2025-02-26 17:19:23,753 - install_ui - INFO - Full script path: /media/nico/Drive/pcUtils/ui/../utils/get_users.py
+2025-02-26 17:19:23,753 - install_ui - DEBUG - Loading module get_users from /media/nico/Drive/pcUtils/ui/../utils/get_users.py
+2025-02-26 17:19:23,753 - install_ui - DEBUG - Module get_users loaded successfully
+2025-02-26 17:19:23,753 - install_ui - DEBUG - Using function: get_users
+2025-02-26 17:19:23,753 - install_ui - DEBUG - Using named parameter home_dir=/home
+2025-02-26 17:19:23,753 - install_ui - INFO - Calling get_users with args: [], kwargs: {'home_dir': '/home'}
+2025-02-26 17:19:23,753 - install_ui - INFO - Successfully retrieved data from get_users
+2025-02-26 17:19:23,754 - install_ui - INFO - Got 2 items from get_users
+2025-02-26 17:19:23,754 - install_ui - DEBUG - Normalizing options with label_key='description', value_key='username'
+2025-02-26 17:19:23,754 - install_ui - DEBUG - Options is a list with 2 items
+2025-02-26 17:19:23,754 - install_ui - DEBUG -   Raw option 0: <class 'dict'>: {'username': 'jack', 'home_path': '/home/jack', 'description': 'jack', 'uid': 1002, 'gid': 1002, 'shell': '/bin/bash', 'group': 'jack'}
+2025-02-26 17:19:23,754 - install_ui - DEBUG -   Raw option 1: <class 'dict'>: {'username': 'nico', 'home_path': '/home/nico', 'description': 'nico', 'uid': 1000, 'gid': 1000, 'shell': '/bin/bash', 'group': 'nico'}
+2025-02-26 17:19:23,754 - install_ui - DEBUG -   From dict: raw_label='jack', raw_value='jack'
+2025-02-26 17:19:23,754 - install_ui - DEBUG -   Final normalized: 'jack' -> 'jack'
+2025-02-26 17:19:23,754 - install_ui - DEBUG -   From dict: raw_label='nico', raw_value='nico'
+2025-02-26 17:19:23,754 - install_ui - DEBUG -   Final normalized: 'nico' -> 'nico'
+2025-02-26 17:19:23,754 - install_ui - INFO - Normalized 2 options
+2025-02-26 17:19:23,754 - install_ui - INFO -   Option 0: 'jack' -> 'jack'
+2025-02-26 17:19:23,754 - install_ui - INFO -   Option 1: 'nico' -> 'nico'
+2025-02-26 17:19:23,754 - install_ui - INFO - Normalized 2 options for field user_select
+2025-02-26 17:19:23,754 - install_ui - INFO - Field user_select has 2 options
+2025-02-26 17:19:23,754 - install_ui - INFO - Plugin home_copy initialization completed
