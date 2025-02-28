@@ -4,6 +4,7 @@ import grp
 import traceback
 
 def get_users(home_dir='/home'):
+    print(f"[DEBUG] get_users called with home_dir={home_dir}")
     """
     Récupère la liste des utilisateurs à partir d'un répertoire home spécifique.
     
@@ -57,6 +58,7 @@ def get_users(home_dir='/home'):
         
         # Trier par nom d'utilisateur
         users.sort(key=lambda x: x['username'].lower())
+        print(f"[DEBUG] get_users found {len(users)} users: {[u['username'] for u in users]}")
         return True, users
         
     except Exception as e:

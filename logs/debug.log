@@ -1,64 +1,203 @@
-2025-02-26 17:19:23,698 - install_ui - DEBUG - Field user_all: enabled_if={'field': 'user_select', 'value': 'has_options'}, dep_field=user_select, dep_value=None
-2025-02-26 17:19:23,699 - install_ui - DEBUG - Field user_all should be initially disabled
-2025-02-26 17:19:23,699 - install_ui - DEBUG - CheckboxField user_all is initially disabled
-2025-02-26 17:19:23,704 - install_ui - INFO - Getting dynamic options for field home_dst_dir
-2025-02-26 17:19:23,704 - install_ui - INFO - Using global script from utils: get_usb.py
-2025-02-26 17:19:23,704 - install_ui - INFO - Full script path: /media/nico/Drive/pcUtils/ui/../utils/get_usb.py
-2025-02-26 17:19:23,704 - install_ui - DEBUG - Loading module get_usb from /media/nico/Drive/pcUtils/ui/../utils/get_usb.py
-2025-02-26 17:19:23,704 - install_ui - DEBUG - Module get_usb loaded successfully
-2025-02-26 17:19:23,704 - install_ui - DEBUG - Using function: get_usb
-2025-02-26 17:19:23,704 - install_ui - DEBUG - Using named value parameter include_system_disk=False
-2025-02-26 17:19:23,704 - install_ui - INFO - Calling get_usb with args: [], kwargs: {'include_system_disk': False}
-2025-02-26 17:19:23,710 - install_ui - INFO - Successfully retrieved data from get_usb
-2025-02-26 17:19:23,710 - install_ui - INFO - Got 3 items from get_usb
-2025-02-26 17:19:23,710 - install_ui - DEBUG - Normalizing options with label_key='description', value_key='device'
-2025-02-26 17:19:23,710 - install_ui - DEBUG - Options is a list with 3 items
-2025-02-26 17:19:23,710 - install_ui - DEBUG -   Raw option 0: <class 'dict'>: {'device': 'sda1', 'path': '/dev/sda1', 'size': '879M', 'mounted': False, 'mount_point': '', 'fs_type': 'vfat', 'description': '/dev/sda1 → Non monté (vfat, 879M)'}
-2025-02-26 17:19:23,710 - install_ui - DEBUG -   Raw option 1: <class 'dict'>: {'device': 'sda2', 'path': '/dev/sda2', 'size': '27,8G', 'mounted': False, 'mount_point': '', 'fs_type': 'ext4', 'description': '/dev/sda2 → Non monté (ext4, 27,8G)'}
-2025-02-26 17:19:23,710 - install_ui - DEBUG -   Raw option 2: <class 'dict'>: {'device': 'sdb1', 'path': '/dev/sdb1', 'size': '1,8T', 'mounted': True, 'mount_point': '/media/nico/Drive', 'fs_type': 'ext4', 'description': '/dev/sdb1 → /media/nico/Drive (ext4, 1,8T)'}
-2025-02-26 17:19:23,710 - install_ui - DEBUG -   From dict: raw_label='/dev/sda1 → Non monté (vfat, 879M)', raw_value='sda1'
-2025-02-26 17:19:23,710 - install_ui - DEBUG -   Final normalized: '/dev/sda1 → Non monté (vfat, 879M)' -> 'sda1'
-2025-02-26 17:19:23,710 - install_ui - DEBUG -   From dict: raw_label='/dev/sda2 → Non monté (ext4, 27,8G)', raw_value='sda2'
-2025-02-26 17:19:23,710 - install_ui - DEBUG -   Final normalized: '/dev/sda2 → Non monté (ext4, 27,8G)' -> 'sda2'
-2025-02-26 17:19:23,711 - install_ui - DEBUG -   From dict: raw_label='/dev/sdb1 → /media/nico/Drive (ext4, 1,8T)', raw_value='sdb1'
-2025-02-26 17:19:23,711 - install_ui - DEBUG -   Final normalized: '/dev/sdb1 → /media/nico/Drive (ext4, 1,8T)' -> 'sdb1'
-2025-02-26 17:19:23,711 - install_ui - INFO - Normalized 3 options
-2025-02-26 17:19:23,711 - install_ui - INFO -   Option 0: '/dev/sda1 → Non monté (vfat, 879M)' -> 'sda1'
-2025-02-26 17:19:23,711 - install_ui - INFO -   Option 1: '/dev/sda2 → Non monté (ext4, 27,8G)' -> 'sda2'
-2025-02-26 17:19:23,711 - install_ui - INFO -   Option 2: '/dev/sdb1 → /media/nico/Drive (ext4, 1,8T)' -> 'sdb1'
-2025-02-26 17:19:23,711 - install_ui - INFO - Normalized 3 options for field home_dst_dir
-2025-02-26 17:19:23,747 - install_ui - INFO - Field home_src_dir value changed from '/home' to '/home'
-2025-02-26 17:19:23,748 - install_ui - INFO - No dependent fields updated for home_src_dir
-2025-02-26 17:19:23,752 - install_ui - DEBUG - Field home_dst_dir value changed from sda1 to sda1
-2025-02-26 17:19:23,752 - install_ui - INFO - Plugin home_copy mounted, initializing dependencies...
-2025-02-26 17:19:23,752 - install_ui - DEBUG - Field user_select correctly depends on home_src_dir
-2025-02-26 17:19:23,752 - install_ui - DEBUG - Field user_all enabled_if correctly references user_select
-2025-02-26 17:19:23,752 - install_ui - DEBUG - Checking has_options for user_select: False
-2025-02-26 17:19:23,752 - install_ui - DEBUG - Initialized enabled state for field user_all: disabled=True
-2025-02-26 17:19:23,752 - install_ui - INFO - Field home_src_dir has 1 dependent fields: ['user_select']
-2025-02-26 17:19:23,752 - install_ui - INFO - Parent field home_src_dir has value '/home'
-2025-02-26 17:19:23,753 - install_ui - INFO - Initializing dynamic options for dependent field user_select
-2025-02-26 17:19:23,753 - install_ui - INFO - Getting dynamic options for field user_select
-2025-02-26 17:19:23,753 - install_ui - INFO - Using global script from utils: get_users.py
-2025-02-26 17:19:23,753 - install_ui - INFO - Full script path: /media/nico/Drive/pcUtils/ui/../utils/get_users.py
-2025-02-26 17:19:23,753 - install_ui - DEBUG - Loading module get_users from /media/nico/Drive/pcUtils/ui/../utils/get_users.py
-2025-02-26 17:19:23,753 - install_ui - DEBUG - Module get_users loaded successfully
-2025-02-26 17:19:23,753 - install_ui - DEBUG - Using function: get_users
-2025-02-26 17:19:23,753 - install_ui - DEBUG - Using named parameter home_dir=/home
-2025-02-26 17:19:23,753 - install_ui - INFO - Calling get_users with args: [], kwargs: {'home_dir': '/home'}
-2025-02-26 17:19:23,753 - install_ui - INFO - Successfully retrieved data from get_users
-2025-02-26 17:19:23,754 - install_ui - INFO - Got 2 items from get_users
-2025-02-26 17:19:23,754 - install_ui - DEBUG - Normalizing options with label_key='description', value_key='username'
-2025-02-26 17:19:23,754 - install_ui - DEBUG - Options is a list with 2 items
-2025-02-26 17:19:23,754 - install_ui - DEBUG -   Raw option 0: <class 'dict'>: {'username': 'jack', 'home_path': '/home/jack', 'description': 'jack', 'uid': 1002, 'gid': 1002, 'shell': '/bin/bash', 'group': 'jack'}
-2025-02-26 17:19:23,754 - install_ui - DEBUG -   Raw option 1: <class 'dict'>: {'username': 'nico', 'home_path': '/home/nico', 'description': 'nico', 'uid': 1000, 'gid': 1000, 'shell': '/bin/bash', 'group': 'nico'}
-2025-02-26 17:19:23,754 - install_ui - DEBUG -   From dict: raw_label='jack', raw_value='jack'
-2025-02-26 17:19:23,754 - install_ui - DEBUG -   Final normalized: 'jack' -> 'jack'
-2025-02-26 17:19:23,754 - install_ui - DEBUG -   From dict: raw_label='nico', raw_value='nico'
-2025-02-26 17:19:23,754 - install_ui - DEBUG -   Final normalized: 'nico' -> 'nico'
-2025-02-26 17:19:23,754 - install_ui - INFO - Normalized 2 options
-2025-02-26 17:19:23,754 - install_ui - INFO -   Option 0: 'jack' -> 'jack'
-2025-02-26 17:19:23,754 - install_ui - INFO -   Option 1: 'nico' -> 'nico'
-2025-02-26 17:19:23,754 - install_ui - INFO - Normalized 2 options for field user_select
-2025-02-26 17:19:23,754 - install_ui - INFO - Field user_select has 2 options
-2025-02-26 17:19:23,754 - install_ui - INFO - Plugin home_copy initialization completed
+2025-02-28 09:24:56,247 - install_ui.main - INFO - Starting application
+2025-02-28 09:24:56,256 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/textual-2.1.1-py3-none-any to sys.path
+2025-02-28 09:24:56,258 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/platformdirs-4.3.6-py3-none-any to sys.path
+2025-02-28 09:24:56,260 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64 to sys.path
+2025-02-28 09:24:56,261 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/uc_micro_py-1.0.3-py3-none-any to sys.path
+2025-02-28 09:24:56,263 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/pexpect-4.9.0-py2.py3-none-any to sys.path
+2025-02-28 09:24:56,265 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/linkify_it_py-2.0.3-py3-none-any to sys.path
+2025-02-28 09:24:56,267 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/typing_extensions-4.12.2-py3-none-any to sys.path
+2025-02-28 09:24:56,269 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/mdit_py_plugins-0.4.2-py3-none-any to sys.path
+2025-02-28 09:24:56,271 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/ruamel.yaml-0.18.10-py3-none-any to sys.path
+2025-02-28 09:24:56,272 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/rich-13.9.4-py3-none-any to sys.path
+2025-02-28 09:24:56,274 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/ptyprocess-0.7.0-py2.py3-none-any to sys.path
+2025-02-28 09:24:56,715 - install_ui.choice - DEBUG - Initializing Choice application
+2025-02-28 09:24:56,715 - asyncio - DEBUG - Using selector: EpollSelector
+2025-02-28 09:25:09,647 - install_ui.validation - DEBUG - Initializing validation plugin registry
+2025-02-28 09:25:09,647 - install_ui.validation - DEBUG - Searching for plugins in /media/nico/Drive/pcUtils/ui/components/validation/plugins
+2025-02-28 09:25:09,648 - install_ui.validation - DEBUG - Found 11 files in plugin directory
+2025-02-28 09:25:09,649 - install_ui.validation - DEBUG - Registering validation plugin 'CrossFieldValidation' as 'crossfield'
+2025-02-28 09:25:09,651 - install_ui.validation - DEBUG - Registering validation plugin 'EmailValidation' as 'email'
+2025-02-28 09:25:09,651 - install_ui.validation - DEBUG - Registering validation plugin 'LengthValidation' as 'length'
+2025-02-28 09:25:09,651 - install_ui.validation - DEBUG - Registering validation plugin 'PatternValidation' as 'pattern'
+2025-02-28 09:25:09,652 - install_ui.validation - DEBUG - Registering validation plugin 'DateFormatValidation' as 'dateformat'
+2025-02-28 09:25:09,652 - install_ui.validation - DEBUG - Registering validation plugin 'DateRangeValidation' as 'daterange'
+2025-02-28 09:25:09,653 - install_ui.validation - DEBUG - Registering validation plugin 'LengthValidation' as 'length'
+2025-02-28 09:25:09,654 - install_ui.validation - DEBUG - Registering validation plugin 'FloatValidation' as 'float'
+2025-02-28 09:25:09,654 - install_ui.validation - DEBUG - Registering validation plugin 'IntegerValidation' as 'integer'
+2025-02-28 09:25:09,655 - install_ui.validation - DEBUG - Registering validation plugin 'RangeValidation' as 'range'
+2025-02-28 09:25:09,656 - install_ui.validation - DEBUG - Registering validation plugin 'FileExistsValidation' as 'fileexists'
+2025-02-28 09:25:09,656 - install_ui.validation - DEBUG - Registering validation plugin 'FileExtensionValidation' as 'fileextension'
+2025-02-28 09:25:09,657 - install_ui.validation - DEBUG - Registering validation plugin 'MultipleSelectionValidation' as 'multipleselection'
+2025-02-28 09:25:09,658 - install_ui.validation - DEBUG - Registering validation plugin 'IPAddressValidation' as 'ip'
+2025-02-28 09:25:09,658 - install_ui.validation - DEBUG - Registering validation plugin 'IPAddressValidation' as 'ipaddress'
+2025-02-28 09:25:09,659 - install_ui.validation - DEBUG - Registering validation plugin 'RequiredValidation' as 'required'
+2025-02-28 09:25:09,660 - install_ui.validation - INFO - Found 15 validation plugins
+2025-02-28 09:25:09,761 - install_ui.components - INFO - Looking for components in: /media/nico/Drive/pcUtils/ui/components/fields
+2025-02-28 09:25:09,762 - install_ui.components - INFO - Found field module: checkbox_field.py
+2025-02-28 09:25:09,762 - install_ui.components - INFO - Loading module: ui.components.fields.checkbox_field
+2025-02-28 09:25:09,764 - install_ui.components - INFO - Found field class: CheckboxField -> checkbox
+2025-02-28 09:25:09,765 - install_ui.components - INFO - Registering component CheckboxField for field type 'checkbox'
+2025-02-28 09:25:09,765 - install_ui.components - INFO - Current registry: ['checkbox']
+2025-02-28 09:25:09,765 - install_ui.components - INFO - Found field module: textarea_field.py
+2025-02-28 09:25:09,766 - install_ui.components - INFO - Loading module: ui.components.fields.textarea_field
+2025-02-28 09:25:09,767 - install_ui.components - INFO - Found field class: TextAreaField -> text_area
+2025-02-28 09:25:09,768 - install_ui.components - INFO - Registering component TextAreaField for field type 'text_area'
+2025-02-28 09:25:09,768 - install_ui.components - INFO - Current registry: ['checkbox', 'text_area']
+2025-02-28 09:25:09,768 - install_ui.components - INFO - Found field module: directory_field.py
+2025-02-28 09:25:09,768 - install_ui.components - INFO - Loading module: ui.components.fields.directory_field
+2025-02-28 09:25:09,770 - install_ui.components - INFO - Found field class: DirectoryField -> directory
+2025-02-28 09:25:09,771 - install_ui.components - INFO - Registering component DirectoryField for field type 'directory'
+2025-02-28 09:25:09,771 - install_ui.components - INFO - Current registry: ['checkbox', 'text_area', 'directory']
+2025-02-28 09:25:09,771 - install_ui.components - INFO - Found field class: TextField -> text
+2025-02-28 09:25:09,772 - install_ui.components - INFO - Registering component TextField for field type 'text'
+2025-02-28 09:25:09,772 - install_ui.components - INFO - Current registry: ['checkbox', 'text_area', 'directory', 'text']
+2025-02-28 09:25:09,772 - install_ui.components - INFO - Found field module: ip_field.py
+2025-02-28 09:25:09,773 - install_ui.components - INFO - Loading module: ui.components.fields.ip_field
+2025-02-28 09:25:09,774 - install_ui.components - INFO - Found field class: IPField -> ip
+2025-02-28 09:25:09,774 - install_ui.components - INFO - Registering component IPField for field type 'ip'
+2025-02-28 09:25:09,775 - install_ui.components - INFO - Current registry: ['checkbox', 'text_area', 'directory', 'text', 'ip']
+2025-02-28 09:25:09,775 - install_ui.components - INFO - Found field class: TextField -> text
+2025-02-28 09:25:09,776 - install_ui.components - INFO - Registering component TextField for field type 'text'
+2025-02-28 09:25:09,776 - install_ui.components - INFO - Current registry: ['checkbox', 'text_area', 'directory', 'text', 'ip']
+2025-02-28 09:25:09,777 - install_ui.components - INFO - Found field module: file_field.py
+2025-02-28 09:25:09,777 - install_ui.components - INFO - Loading module: ui.components.fields.file_field
+2025-02-28 09:25:09,779 - install_ui.components - INFO - Found field class: FileField -> file
+2025-02-28 09:25:09,779 - install_ui.components - INFO - Registering component FileField for field type 'file'
+2025-02-28 09:25:09,779 - install_ui.components - INFO - Current registry: ['checkbox', 'text_area', 'directory', 'text', 'ip', 'file']
+2025-02-28 09:25:09,780 - install_ui.components - INFO - Found field class: TextField -> text
+2025-02-28 09:25:09,780 - install_ui.components - INFO - Registering component TextField for field type 'text'
+2025-02-28 09:25:09,781 - install_ui.components - INFO - Current registry: ['checkbox', 'text_area', 'directory', 'text', 'ip', 'file']
+2025-02-28 09:25:09,781 - install_ui.components - INFO - Found field module: number_field.py
+2025-02-28 09:25:09,781 - install_ui.components - INFO - Loading module: ui.components.fields.number_field
+2025-02-28 09:25:09,783 - install_ui.components - INFO - Found field class: NumberField -> number
+2025-02-28 09:25:09,783 - install_ui.components - INFO - Registering component NumberField for field type 'number'
+2025-02-28 09:25:09,783 - install_ui.components - INFO - Current registry: ['checkbox', 'text_area', 'directory', 'text', 'ip', 'file', 'number']
+2025-02-28 09:25:09,783 - install_ui.components - INFO - Found field module: radio_group_field.py
+2025-02-28 09:25:09,784 - install_ui.components - INFO - Loading module: ui.components.fields.radio_group_field
+2025-02-28 09:25:09,785 - install_ui.components - INFO - Found field class: RadioGroupField -> radio_group
+2025-02-28 09:25:09,785 - install_ui.components - INFO - Registering component RadioGroupField for field type 'radio_group'
+2025-02-28 09:25:09,786 - install_ui.components - INFO - Current registry: ['checkbox', 'text_area', 'directory', 'text', 'ip', 'file', 'number', 'radio_group']
+2025-02-28 09:25:09,786 - install_ui.components - INFO - Found field module: select_field.py
+2025-02-28 09:25:09,786 - install_ui.components - INFO - Loading module: ui.components.fields.select_field
+2025-02-28 09:25:09,788 - install_ui.components - INFO - Found field class: SelectField -> select
+2025-02-28 09:25:09,788 - install_ui.components - INFO - Registering component SelectField for field type 'select'
+2025-02-28 09:25:09,788 - install_ui.components - INFO - Current registry: ['checkbox', 'text_area', 'directory', 'text', 'ip', 'file', 'number', 'radio_group', 'select']
+2025-02-28 09:25:09,788 - install_ui.components - INFO - Found field module: text_field.py
+2025-02-28 09:25:09,788 - install_ui.components - INFO - Loading module: ui.components.fields.text_field
+2025-02-28 09:25:09,790 - install_ui.components - INFO - Found field class: TextField -> text
+2025-02-28 09:25:09,790 - install_ui.components - INFO - Registering component TextField for field type 'text'
+2025-02-28 09:25:09,791 - install_ui.components - INFO - Current registry: ['checkbox', 'text_area', 'directory', 'text', 'ip', 'file', 'number', 'radio_group', 'select']
+2025-02-28 09:25:09,791 - install_ui.components - INFO - Found field module: date_field.py
+2025-02-28 09:25:09,791 - install_ui.components - INFO - Loading module: ui.components.fields.date_field
+2025-02-28 09:25:09,793 - install_ui.components - INFO - Found field class: DateField -> date
+2025-02-28 09:25:09,793 - install_ui.components - INFO - Registering component DateField for field type 'date'
+2025-02-28 09:25:09,793 - install_ui.components - INFO - Current registry: ['checkbox', 'text_area', 'directory', 'text', 'ip', 'file', 'number', 'radio_group', 'select', 'date']
+2025-02-28 09:25:09,793 - install_ui.components - INFO - Found field class: TextField -> text
+2025-02-28 09:25:09,793 - install_ui.components - INFO - Registering component TextField for field type 'text'
+2025-02-28 09:25:09,794 - install_ui.components - INFO - Current registry: ['checkbox', 'text_area', 'directory', 'text', 'ip', 'file', 'number', 'radio_group', 'select', 'date']
+2025-02-28 09:25:09,794 - install_ui.components - INFO - Found field module: checkbox_group_field.py
+2025-02-28 09:25:09,794 - install_ui.components - INFO - Loading module: ui.components.fields.checkbox_group_field
+2025-02-28 09:25:09,796 - install_ui.components - INFO - Found field class: CheckboxGroupField -> checkbox_group
+2025-02-28 09:25:09,796 - install_ui.components - INFO - Registering component CheckboxGroupField for field type 'checkbox_group'
+2025-02-28 09:25:09,796 - install_ui.components - INFO - Current registry: ['checkbox', 'text_area', 'directory', 'text', 'ip', 'file', 'number', 'radio_group', 'select', 'date', 'checkbox_group']
+2025-02-28 09:25:09,796 - install_ui.components - INFO - Found field module: password_field.py
+2025-02-28 09:25:09,796 - install_ui.components - INFO - Loading module: ui.components.fields.password_field
+2025-02-28 09:25:09,798 - install_ui.components - INFO - Found field class: PasswordField -> password
+2025-02-28 09:25:09,799 - install_ui.components - INFO - Registering component PasswordField for field type 'password'
+2025-02-28 09:25:09,799 - install_ui.components - INFO - Current registry: ['checkbox', 'text_area', 'directory', 'text', 'ip', 'file', 'number', 'radio_group', 'select', 'date', 'checkbox_group', 'password']
+2025-02-28 09:25:09,799 - install_ui.components - INFO - Found field class: TextField -> text
+2025-02-28 09:25:09,799 - install_ui.components - INFO - Registering component TextField for field type 'text'
+2025-02-28 09:25:09,799 - install_ui.components - INFO - Current registry: ['checkbox', 'text_area', 'directory', 'text', 'ip', 'file', 'number', 'radio_group', 'select', 'date', 'checkbox_group', 'password']
+2025-02-28 09:25:09,800 - install_ui.validation - INFO - Found 15 validation plugins
+2025-02-28 09:25:09,800 - install_ui.validation - DEBUG - Found plugin 'CrossFieldValidation' as 'crossfield'
+2025-02-28 09:25:09,800 - install_ui.validation - DEBUG - Found plugin 'EmailValidation' as 'email'
+2025-02-28 09:25:09,800 - install_ui.validation - DEBUG - Found plugin 'LengthValidation' as 'length'
+2025-02-28 09:25:09,801 - install_ui.validation - DEBUG - Found plugin 'PatternValidation' as 'pattern'
+2025-02-28 09:25:09,801 - install_ui.validation - DEBUG - Found plugin 'DateFormatValidation' as 'dateformat'
+2025-02-28 09:25:09,801 - install_ui.validation - DEBUG - Found plugin 'DateRangeValidation' as 'daterange'
+2025-02-28 09:25:09,801 - install_ui.validation - DEBUG - Found plugin 'FloatValidation' as 'float'
+2025-02-28 09:25:09,801 - install_ui.validation - DEBUG - Found plugin 'IntegerValidation' as 'integer'
+2025-02-28 09:25:09,801 - install_ui.validation - DEBUG - Found plugin 'RangeValidation' as 'range'
+2025-02-28 09:25:09,802 - install_ui.validation - DEBUG - Found plugin 'FileExistsValidation' as 'fileexists'
+2025-02-28 09:25:09,802 - install_ui.validation - DEBUG - Found plugin 'FileExtensionValidation' as 'fileextension'
+2025-02-28 09:25:09,802 - install_ui.validation - DEBUG - Found plugin 'MultipleSelectionValidation' as 'multipleselection'
+2025-02-28 09:25:09,802 - install_ui.validation - DEBUG - Found plugin 'IPAddressValidation' as 'ip'
+2025-02-28 09:25:09,802 - install_ui.validation - DEBUG - Found plugin 'IPAddressValidation' as 'ipaddress'
+2025-02-28 09:25:09,803 - install_ui.validation - DEBUG - Found plugin 'RequiredValidation' as 'required'
+2025-02-28 09:25:09,803 - install_ui.config - INFO - Available validation plugins: {'crossfield': 'Validates a field against another field', 'email': 'Validates email addresses using a simple regex pattern', 'length': 'Validates text length', 'pattern': 'Validates that text matches a pattern', 'dateformat': 'Validates date format', 'daterange': 'Validates date range', 'float': 'Validates that a value is a float', 'integer': 'Validates that a value is an integer', 'range': 'Validates that a number is within a range', 'fileexists': 'Validates that a file exists', 'fileextension': 'Validates file extension', 'multipleselection': 'Validates multiple selection count', 'ip': 'Validates IP address format', 'ipaddress': 'Validates IP address format', 'required': 'Validates that a field is not empty'}
+2025-02-28 09:25:15,075 - install_ui.config - DEBUG - === Starting configuration screen creation ===
+2025-02-28 09:25:15,079 - install_ui.config - DEBUG - Created ScrollableContainer with id 'config-container'
+2025-02-28 09:25:15,080 - install_ui.config - DEBUG - Processing 1 plugin instances
+2025-02-28 09:25:15,081 - install_ui.config - DEBUG - === Creating config for plugin add_printer (instance 1) ===
+2025-02-28 09:25:15,082 - install_ui.config - DEBUG - === Creating config for plugin add_printer (instance 1) ===
+2025-02-28 09:25:15,084 - install_ui.config - DEBUG - Plugin directory: /media/nico/Drive/pcUtils/ui/../plugins/add_printer
+2025-02-28 09:25:15,085 - install_ui.config - INFO - Checking for config file: /media/nico/Drive/pcUtils/ui/../plugins/add_printer/config.yaml
+2025-02-28 09:25:15,086 - install_ui.config - INFO - Checking for config file: /media/nico/Drive/pcUtils/ui/../plugins/add_printer/settings.yml
+2025-02-28 09:25:15,087 - install_ui.config - INFO - Found config file: /media/nico/Drive/pcUtils/ui/../plugins/add_printer/settings.yml
+2025-02-28 09:25:20,218 - install_ui.config - INFO - Plugin metadata: name=Ajout d'imprimante, icon=🖨
+2025-02-28 09:25:21,365 - install_ui.config - INFO - Found 3 fields in config
+2025-02-28 09:25:23,968 - install_ui.config - INFO - Processing field: printer_name with type text
+2025-02-28 09:25:26,333 - install_ui.config - INFO - Processing field: printer_model with type select
+2025-02-28 09:25:29,337 - install_ui.config - INFO - Processing field: printer_ip with type ip
+2025-02-28 09:25:35,444 - install_ui.config - DEBUG - Created container: PluginConfigContainer
+2025-02-28 09:25:39,787 - install_ui.config - DEBUG - Creating action buttons
+2025-02-28 09:25:46,057 - install_ui.config - DEBUG - Configuration screen creation complete
+2025-02-28 09:25:58,567 - install_ui.config - DEBUG - === Starting composition of plugin add_printer ===
+2025-02-28 09:25:58,568 - install_ui.config - DEBUG - Plugin name: Ajout d'imprimante
+2025-02-28 09:25:58,568 - install_ui.config - DEBUG - Plugin icon: 🖨
+2025-02-28 09:25:58,568 - install_ui.config - DEBUG - Plugin description: Ajouter une imprimante en utilisant les modèles prédéfinis
+2025-02-28 09:25:58,568 - install_ui.config - DEBUG - Number of fields: 3
+2025-02-28 09:25:58,569 - install_ui.config - DEBUG - Fields list: [{'type': 'text', 'label': "Nom de l'imprimante", 'description': "Nom de l'imprimante (sans espaces)", 'required': True, 'placeholder': 'Ex: Bureau_RDC', 'validate': 'no_spaces', 'default': 'BT', 'plugin_id': 'add_printer', 'id': 'printer_name'}, {'type': 'select', 'label': "Modèle d'imprimante", 'description': "Sélectionner le modèle d'imprimante", 'required': True, 'allow_blank': False, 'plugin_id': 'add_printer', 'dynamic_options': {'script': 'get_printer_models.py', 'function': 'get_printer_models', 'value_key': 'value', 'label_key': 'description'}, 'id': 'printer_model'}, {'type': 'ip', 'label': 'Adresse IP', 'description': "Adresse IP de l'imprimante", 'required': True, 'not_empty': True, 'placeholder': 'Ex: 192.168.1.100', 'plugin_id': 'add_printer', 'dynamic_default': {'script': 'get_ip.py', 'function': 'get_local_ip', 'value_key': 1}, 'id': 'printer_ip'}]
+2025-02-28 09:25:58,570 - install_ui.config - DEBUG - Creating plugin header
+2025-02-28 09:25:58,570 - install_ui.config - DEBUG - Adding title: 🖨 Ajout d'imprimante
+2025-02-28 09:25:58,571 - install_ui.config - DEBUG - Adding description: Ajouter une imprimante en utilisant les modèles prédéfinis
+2025-02-28 09:25:58,572 - install_ui.config - DEBUG - Header created successfully
+2025-02-28 09:25:58,572 - install_ui.config - DEBUG - === Starting field creation ===
+2025-02-28 09:25:58,572 - install_ui.config - DEBUG - Created fields group with class 'plugin-fields'
+2025-02-28 09:25:58,572 - install_ui.config - DEBUG - === Processing field printer_name (type: text) ===
+2025-02-28 09:25:58,573 - install_ui.config - DEBUG - Complete field config: {'type': 'text', 'label': "Nom de l'imprimante", 'description': "Nom de l'imprimante (sans espaces)", 'required': True, 'placeholder': 'Ex: Bureau_RDC', 'validate': 'no_spaces', 'default': 'BT', 'plugin_id': 'add_printer', 'id': 'printer_name'}
+2025-02-28 09:25:58,573 - install_ui.config - DEBUG - Looking up component for type 'text'
+2025-02-28 09:25:58,574 - install_ui.components - INFO - Found component TextField for field type 'text'
+2025-02-28 09:25:58,574 - install_ui.config - DEBUG - Found field class: TextField
+2025-02-28 09:25:58,574 - install_ui.config - DEBUG - Creating field instance with plugin_id=add_printer, field_id=printer_name
+2025-02-28 09:25:58,575 - install_ui.components - INFO - Creating field printer_name with config: {'type': 'text', 'label': "Nom de l'imprimante", 'description': "Nom de l'imprimante (sans espaces)", 'required': True, 'placeholder': 'Ex: Bureau_RDC', 'validate': 'no_spaces', 'default': 'BT', 'plugin_id': 'add_printer', 'id': 'printer_name'}
+2025-02-28 09:25:58,575 - install_ui.config - DEBUG - Field instance created successfully: TextField
+2025-02-28 09:25:58,576 - install_ui.config - DEBUG - Field added to fields_by_id dictionary
+2025-02-28 09:25:58,576 - install_ui.config - DEBUG - Composing field printer_name
+2025-02-28 09:25:58,576 - install_ui.config - DEBUG - Field printer_name composed successfully
+2025-02-28 09:25:58,576 - install_ui.config - DEBUG - === Processing field printer_model (type: select) ===
+2025-02-28 09:25:58,577 - install_ui.config - DEBUG - Complete field config: {'type': 'select', 'label': "Modèle d'imprimante", 'description': "Sélectionner le modèle d'imprimante", 'required': True, 'allow_blank': False, 'plugin_id': 'add_printer', 'dynamic_options': {'script': 'get_printer_models.py', 'function': 'get_printer_models', 'value_key': 'value', 'label_key': 'description'}, 'id': 'printer_model'}
+2025-02-28 09:25:58,577 - install_ui.config - DEBUG - Looking up component for type 'select'
+2025-02-28 09:25:58,577 - install_ui.components - INFO - Found component SelectField for field type 'select'
+2025-02-28 09:25:58,577 - install_ui.config - DEBUG - Found field class: SelectField
+2025-02-28 09:25:58,577 - install_ui.config - DEBUG - Creating field instance with plugin_id=add_printer, field_id=printer_model
+2025-02-28 09:25:58,578 - install_ui.components - INFO - Creating field printer_model with config: {'type': 'select', 'label': "Modèle d'imprimante", 'description': "Sélectionner le modèle d'imprimante", 'required': True, 'allow_blank': False, 'plugin_id': 'add_printer', 'dynamic_options': {'script': 'get_printer_models.py', 'function': 'get_printer_models', 'value_key': 'value', 'label_key': 'description'}, 'id': 'printer_model'}
+2025-02-28 09:25:58,579 - install_ui.config - DEBUG - Field instance created successfully: SelectField
+2025-02-28 09:25:58,579 - install_ui.config - DEBUG - Field added to fields_by_id dictionary
+2025-02-28 09:25:58,579 - install_ui.config - DEBUG - Composing field printer_model
+2025-02-28 09:25:58,579 - install_ui.config - DEBUG - Field printer_model composed successfully
+2025-02-28 09:25:58,579 - install_ui.config - DEBUG - === Processing field printer_ip (type: ip) ===
+2025-02-28 09:25:58,580 - install_ui.config - DEBUG - Complete field config: {'type': 'ip', 'label': 'Adresse IP', 'description': "Adresse IP de l'imprimante", 'required': True, 'not_empty': True, 'placeholder': 'Ex: 192.168.1.100', 'plugin_id': 'add_printer', 'dynamic_default': {'script': 'get_ip.py', 'function': 'get_local_ip', 'value_key': 1}, 'id': 'printer_ip'}
+2025-02-28 09:25:58,580 - install_ui.config - DEBUG - Looking up component for type 'ip'
+2025-02-28 09:25:58,580 - install_ui.components - INFO - Found component IPField for field type 'ip'
+2025-02-28 09:25:58,580 - install_ui.config - DEBUG - Found field class: IPField
+2025-02-28 09:25:58,581 - install_ui.config - DEBUG - Creating field instance with plugin_id=add_printer, field_id=printer_ip
+2025-02-28 09:25:58,581 - install_ui.components - INFO - Creating field printer_ip with config: {'type': 'ip', 'label': 'Adresse IP', 'description': "Adresse IP de l'imprimante", 'required': True, 'not_empty': True, 'placeholder': 'Ex: 192.168.1.100', 'plugin_id': 'add_printer', 'dynamic_default': {'script': 'get_ip.py', 'function': 'get_local_ip', 'value_key': 1}, 'id': 'printer_ip'}
+2025-02-28 09:25:58,582 - install_ui.components - INFO - Loading script from: /media/nico/Drive/pcUtils/plugins/add_printer/get_ip.py
+2025-02-28 09:25:58,583 - install_ui.components - DEBUG - Using function: get_local_ip
+2025-02-28 09:25:58,583 - install_ui.components - INFO - Calling get_local_ip with args: [], kwargs: {}
+2025-02-28 09:25:58,583 - install_ui.components - INFO - Successfully retrieved options from get_local_ip
+2025-02-28 09:25:58,584 - install_ui.components - DEBUG - Normalizing options with label_key='description', value_key='1'
+2025-02-28 09:25:58,584 - install_ui.components - DEBUG - Options is a <class 'tuple'> with N/A items
+2025-02-28 09:25:58,584 - install_ui.config - DEBUG - Field instance created successfully: IPField
+2025-02-28 09:25:58,584 - install_ui.config - DEBUG - Field added to fields_by_id dictionary
+2025-02-28 09:25:58,584 - install_ui.config - DEBUG - Composing field printer_ip
+2025-02-28 09:25:58,585 - install_ui.config - DEBUG - Field printer_ip composed successfully
+2025-02-28 09:25:58,585 - install_ui.config - DEBUG - Finished creating all fields
+2025-02-28 09:26:00,195 - install_ui - INFO - Got 21 options for select field printer_model
+2025-02-28 09:26:00,518 - install_ui.validation - DEBUG - Creating validation rule for type 'required'
+2025-02-28 09:26:00,525 - install_ui.validation - DEBUG - Creating validation rule for type 'required'
+2025-02-28 09:26:00,526 - install_ui.validation - DEBUG - Creating validation rule for type 'ip'
+2025-02-28 09:26:00,528 - install_ui.validation - DEBUG - Creating validation rule for type 'required'
+2025-02-28 09:28:05,795 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x7925f6358910>

@@ -3,13 +3,13 @@ Choice {
 }
 
 #main-content {
-    height: 88%;
+    height: 90%;
     padding: 1;
 }
 
 #plugins-column {
     width: 2fr;
-    height:95%;
+    height:100%;
 }
 
 #selected-plugins {
@@ -85,7 +85,7 @@ PluginCard.selected {
     display:block;   
     margin-top:1;
     width:100%;
-    text-align: center;
+    content-align: center middle;
 }
 
 .plugin-name{

@@ -1,3 +1,3 @@
 pexpect
 textual
-ruamel.yaml
+ruamel.yamlemail-validator>=2.0.0

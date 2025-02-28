@@ -10,6 +10,7 @@ Screen {
     padding: 1;
     overflow-y: auto;
     margin-bottom: 0;
+    height:90%;
 }
 
 .plugin-container {
@@ -110,16 +111,19 @@ ConfigField.disabled Select {
     color: $text-muted;
 }
 
+
 #button-container {
+    border-top: heavy $primary;
     width: 100%;
-    height: 3;
-    align: right middle;
-    padding: 0 1;
+    align-horizontal: right;
+    padding: 1 2;
+    min-height: 5;
 }
 
 #button-container Button {
     margin-left: 1;
     min-width: 15;
+    content-align: right middle;
 }
 
 .checkbox-group-label{

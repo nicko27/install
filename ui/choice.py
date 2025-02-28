@@ -8,6 +8,9 @@ from textual.message import Message
 import os
 from ruamel.yaml import YAML
 
+from .logging import get_logger
+logger = get_logger('choice')
+
 # Classe représentant une carte de plugin
 class PluginCard(Static):
     """A widget to represent a single plugin"""
@@ -184,6 +187,7 @@ class Choice(App):
     
     def __init__(self):
         super().__init__()
+        logger.debug("Initializing Choice application")
         self.selected_plugins = []  # Cette liste contiendra maintenant des tuples (plugin_name, instance_id)
         self.instance_counter = {}  # Pour suivre le nombre d'instances de chaque plugin
 
@@ -263,28 +267,25 @@ class Choice(App):
     async def action_configure_selected(self) -> None:
         """Configure selected plugins"""
         from ui.config import PluginConfig
+        from ui.execution import ExecutionScreen
         
         if not self.selected_plugins:
             self.notify("Aucun plugin sélectionné", severity="error")  # Notification si aucun plugin n'est sélectionné
             return
             
-        # Passer les plugins avec leurs IDs d'instance
-        plugin_instances = [(p[0], p[1]) for p in self.selected_plugins]
+        # Créer l'écran de configuration pour tous les plugins sélectionnés
+        config_screen = PluginConfig(self.selected_plugins)
         
-        # Lancer l'interface de configuration
-        config_app = PluginConfig(plugin_instances)
-        result = await self.push_screen(config_app)
+        # Afficher l'écran de configuration et attendre qu'il se termine
+        await self.push_screen(config_screen)
         
-        if result:
-            # Sauvegarder la configuration pour chaque plugin
-            for plugin, config in result.items():
-                config_dir = os.path.join('plugins', plugin, 'config')
-                os.makedirs(config_dir, exist_ok=True)
-                
-                config_file = os.path.join(config_dir, 'config.yml')
-                yaml = YAML()
-                with open(config_file, 'w') as f:
-                    yaml.dump(config, f, default_flow_style=False)
+        # Récupérer la configuration depuis l'écran de configuration
+        config = config_screen.current_config
+        
+        # Si une configuration a été définie, passer à l'écran d'exécution
+        if config:
+            execution_screen = ExecutionScreen(self.selected_plugins, config)
+            await self.push_screen(execution_screen)
 
     def action_quit(self) -> None:
         """Quit the application"""

@@ -1,0 +1,133 @@
+/* Custom styles for documentation */
+
+/* Code blocks */
+pre[class*="language-"] {
+    border-radius: 0.5rem;
+    margin: 1.5rem 0;
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Link hover effects */
+a:not(.button) {
+    transition: all 0.2s ease;
+}
+
+a:not(.button):hover {
+    color: #3B82F6;
+    text-decoration: none;
+}
+
+/* Card hover effects */
+.card {
+    transition: all 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Button styles */
+.button {
+    transition: all 0.2s ease;
+}
+
+.button:hover {
+    transform: translateY(-1px);
+}
+
+.button:active {
+    transform: translateY(1px);
+}
+
+/* Section transitions */
+section {
+    transition: opacity 0.3s ease;
+}
+
+/* Navigation highlight */
+.nav-link {
+    position: relative;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: #3B82F6;
+    transition: width 0.2s ease;
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+/* Print styles */
+@media print {
+    .sidebar {
+        display: none;
+    }
+
+    .content {
+        margin-left: 0;
+    }
+
+    a[href]::after {
+        content: " (" attr(href) ")";
+    }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #1a1a1a;
+        color: #e5e5e5;
+    }
+
+    .bg-white {
+        background: #2d2d2d;
+    }
+
+    .text-gray-800 {
+        color: #e5e5e5;
+    }
+
+    .text-gray-600 {
+        color: #a0a0a0;
+    }
+
+    pre[class*="language-"] {
+        background: #1a1a1a !important;
+    }
+
+    .border {
+        border-color: #404040;
+    }
+}

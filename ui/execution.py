@@ -27,7 +27,8 @@ from textual.binding import Binding
 from .choice import get_plugin_folder_name
 
 # Configuration du logger
-logger = logging.getLogger('install_ui')
+from .logging import get_logger
+logger = get_logger('execution')
 logger.setLevel(logging.DEBUG)
 
 # Handler pour le fichier

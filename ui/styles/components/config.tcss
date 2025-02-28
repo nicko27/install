@@ -1,0 +1,41 @@
+/* Configuration variables for components */
+
+/* Colors */
+$primary: #007bff;
+$secondary: #6c757d;
+$success: #28a745;
+$danger: #dc3545;
+$warning: #ffc107;
+$info: #17a2b8;
+$light: #f8f9fa;
+$dark: #343a40;
+
+/* Font sizes */
+$font-size-sm: 12;
+$font-size-md: 14;
+$font-size-lg: 16;
+
+/* Spacing */
+$spacing-xs: 1;
+$spacing-sm: 2;
+$spacing-md: 4;
+$spacing-lg: 8;
+
+/* Border radius */
+$border-radius-sm: 2;
+$border-radius-md: 4;
+$border-radius-lg: 8;
+
+/* Transitions */
+$transition-fast: 100ms;
+$transition-normal: 200ms;
+$transition-slow: 300ms;
+
+/* Z-index layers */
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;

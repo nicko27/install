@@ -1,6 +1,12 @@
 import sys
 import os
 import glob
+
+# Configure logging first
+from ui.logging import get_logger
+logger = get_logger('main')
+logger.info('Starting application')
+
 # Get the absolute path to the libs folder
 # Assuming main.py is at the same level as the libs folder
 libs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'libs')
@@ -19,10 +25,12 @@ for pkg_dir in glob.glob(os.path.join(libs_dir, '*')):
             parent_dir = os.path.dirname(subdir)
             if parent_dir not in sys.path:
                 sys.path.insert(0, parent_dir)
+                logger.debug(f"Added {parent_dir} to sys.path")
         
         # Also add the main package directory to the path
         if pkg_dir not in sys.path:
             sys.path.insert(0, pkg_dir)
+            logger.debug(f"Added {pkg_dir} to sys.path")
 
 
 import argparse

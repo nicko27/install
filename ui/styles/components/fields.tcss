@@ -1,0 +1,157 @@
+/* Styles for field components */
+@import "config.tcss";
+
+/* Base field styles */
+BaseField {
+    width: 100%;
+    margin: $spacing-sm 0;
+    font-size: $font-size-md;
+}
+
+/* Input fields */
+Input {
+    width: 100%;
+    border: solid $secondary;
+    border-radius: $border-radius-sm;
+    padding: $spacing-sm;
+    transition: border $transition-normal;
+}
+
+Input:focus {
+    border: solid $primary;
+    outline: none;
+}
+
+Input.error {
+    border: solid $danger;
+}
+
+Input.disabled {
+    color: $secondary;
+    background: $light;
+    cursor: not-allowed;
+}
+
+/* Checkbox fields */
+CheckboxField {
+    margin: $spacing-sm 0;
+}
+
+/* Select fields */
+SelectField {
+    margin: $spacing-sm 0;
+}
+
+/* File fields */
+FileField {
+    margin: $spacing-sm 0;
+}
+
+Button.browse {
+    margin-left: $spacing-sm;
+    background: $primary;
+    color: $light;
+    border-radius: $border-radius-sm;
+    padding: $spacing-sm $spacing-md;
+    transition: background $transition-normal;
+}
+
+Button.browse:hover {
+    background: darken($primary, 10%);
+}
+
+/* Error messages */
+FieldError {
+    color: $danger;
+    padding: $spacing-sm;
+    margin-left: $spacing-sm;
+    display: none;
+    font-size: $font-size-sm;
+}
+
+FieldError.visible {
+    display: block;
+}
+
+/* Labels */
+Label {
+    width: 100%;
+    padding-bottom: $spacing-sm;
+    color: $dark;
+}
+
+Label.required::after {
+    content: "*";
+    color: $danger;
+    margin-left: $spacing-xs;
+}
+
+/* Group fields */
+RadioGroupField, CheckboxGroupField {
+    margin: $spacing-sm 0;
+}
+
+.radio-option, .checkbox-option {
+    margin: $spacing-sm 0;
+    padding: $spacing-sm;
+    border-radius: $border-radius-sm;
+    transition: background $transition-normal;
+}
+
+.radio-option:hover, .checkbox-option:hover {
+    background: $light;
+}
+
+/* Directory fields */
+DirectoryField {
+    margin: $spacing-sm 0;
+}
+
+/* IP fields */
+IPField {
+    margin: $spacing-sm 0;
+}
+
+/* Date fields */
+DateField {
+    margin: $spacing-sm 0;
+}
+
+/* Number fields */
+NumberField {
+    margin: $spacing-sm 0;
+}
+
+/* Password fields */
+PasswordField {
+    margin: $spacing-sm 0;
+}
+
+/* TextArea fields */
+TextAreaField {
+    margin: $spacing-sm 0;
+    min-height: 5;
+}
+
+TextArea {
+    width: 100%;
+    border: solid $secondary;
+    border-radius: $border-radius-sm;
+    padding: $spacing-sm;
+    transition: border $transition-normal;
+}
+
+TextArea:focus {
+    border: solid $primary;
+    outline: none;
+}
+
+TextArea.error {
+    border: solid $danger;
+}
+
+TextArea.disabled {
+    color: $secondary;
+    background: $light;
+    cursor: not-allowed;
+}

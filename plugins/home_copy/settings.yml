@@ -17,7 +17,7 @@ config_fields:
     label: Sélectionner les utilisateurs à copier
     depends_on: home_src_dir
     dynamic_options:
-      script: get_users
+      script: get_users.py
       global: true
       function: get_users
       args:
@@ -25,31 +25,20 @@ config_fields:
           param_name: home_dir
       value_key: username
       label_key: description
-      
+
   user_all:
     type: checkbox
     label: Copier tous les comptes utilisateurs
-    default: true
-    # Sera caché si aucun utilisateur n'est disponible
+    # Désactivé si aucun utilisateur n'est disponible
     enabled_if:
       field: user_select
-      value: has_options  # Valeur spéciale qui sera vérifiée dans le code
-      
+      value: has_options
+
   home_dst_dir:
-    type: select
+    type: directory
     label: Dossier home destination
-    default: /home
     required: true
     not_empty: true
-    dynamic_options:
-      global: true
-      script: get_usb.py
-      function: get_usb
-      args:
-        - param_name: include_system_disk
-          value: false
-      value_key: device
-      label_key: description
 
   machine_dir:
     type: checkbox

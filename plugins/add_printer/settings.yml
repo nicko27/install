@@ -4,6 +4,7 @@ version: 1.0
 category: Système
 multiple: true
 icon: 🖨
+id: add_printer
 config_fields:
   printer_name:
     type: text
@@ -13,6 +14,7 @@ config_fields:
     placeholder: "Ex: Bureau_RDC"
     validate: no_spaces
     default: "BT"
+    plugin_id: add_printer
 
   printer_model:
     type: select
@@ -20,10 +22,12 @@ config_fields:
     description: Sélectionner le modèle d'imprimante
     required: true
     allow_blank: false
+    plugin_id: add_printer
     dynamic_options:
       script: get_printer_models.py
+      function: get_printer_models
       value_key: value
-      label_key: label
+      label_key: description
 
   printer_ip:
     type: ip
@@ -32,6 +36,8 @@ config_fields:
     required: true
     not_empty: true
     placeholder: "Ex: 192.168.1.100"
+    plugin_id: add_printer
     dynamic_default:
       script: get_ip.py
       function: get_local_ip
+      value_key: 1
