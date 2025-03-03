@@ -35,10 +35,31 @@ config_fields:
       value: has_options
 
   home_dst_dir:
-    type: directory
-    label: Dossier home destination
+    type: select
+    label: Support de destination
     required: true
-    not_empty: true
+    dynamic_options:
+      script: get_usb.py
+      global: true
+      function: get_usb
+      args:
+        - value: false
+          param_name: include_system_disk
+      value_key: path
+      label_key: description
+
+  mount_if_needed:
+    type: checkbox
+    label: Monter le périphérique si nécessaire (si non monté)
+    default: true
+    depends_on: home_dst_dir
+
+  subdir_path:
+    type: text
+    label: Sous-dossier dans le support (optionnel)
+    placeholder: "Laisser vide pour copier à la racine"
+    depends_on: home_dst_dir
+    help_text: "Chemin relatif où copier les données, par exemple: 'backups/utilisateurs'"
 
   machine_dir:
     type: checkbox

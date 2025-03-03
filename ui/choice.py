@@ -1,4 +1,3 @@
-from textwrap import wrap
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical, ScrollableContainer
 from textual.widgets import Label, Header, Footer, Button, Static
@@ -11,6 +10,55 @@ from ruamel.yaml import YAML
 from .logging import get_logger
 logger = get_logger('choice')
 
+# Création d'une instance YAML unique pour tout le programme
+yaml = YAML()
+
+# Fonction pour obtenir le nom du dossier d'un plugin
+def get_plugin_folder_name(plugin_name: str) -> str:
+    """Retourne le nom du dossier d'un plugin à partir de son nom.
+    
+    Args:
+        plugin_name: Le nom du plugin (peut inclure l'ID d'instance)
+        
+    Returns:
+        str: Le nom du dossier du plugin
+    """
+    # Extraire le nom de base du plugin (sans l'ID d'instance)
+    base_name = plugin_name.split('_')[0] + '_' + plugin_name.split('_')[1]
+    test_type = base_name + '_test'
+    
+    # Vérifier si la version test existe
+    test_path = os.path.join('plugins', test_type)
+    if os.path.exists(test_path):
+        return test_type
+    
+    # Sinon retourner le nom de base
+    return base_name
+
+# Fonction pour charger les informations d'un plugin
+def load_plugin_info(plugin_name: str, default_info=None) -> dict:
+    """Charge les informations d'un plugin depuis son fichier settings.yml
+    
+    Args:
+        plugin_name: Le nom du plugin
+        default_info: Informations par défaut en cas d'erreur
+        
+    Returns:
+        dict: Les informations du plugin
+    """
+    if default_info is None:
+        default_info = {"name": plugin_name, "description": "No description available", "icon": "📦"}
+        
+    folder_name = get_plugin_folder_name(plugin_name)
+    settings_path = os.path.join('plugins', folder_name, 'settings.yml')
+    
+    try:
+        with open(settings_path, 'r') as f:
+            return yaml.load(f)
+    except Exception as e:
+        logger.error(f"Error loading plugin {plugin_name}: {e}")
+        return default_info
+
 # Classe représentant une carte de plugin
 class PluginCard(Static):
     """A widget to represent a single plugin"""
@@ -19,19 +67,7 @@ class PluginCard(Static):
     def __init__(self, plugin_name: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.plugin_name = plugin_name  # Nom du plugin
-        self.plugin_info = self._load_plugin_info()  # Charger les informations du plugin
-
-    def _load_plugin_info(self) -> dict:
-        """Load plugin information from settings.yml"""
-        folder_name = get_plugin_folder_name(self.plugin_name)  # Obtenir le nom du dossier du plugin
-        settings_path = os.path.join('plugins', folder_name, 'settings.yml')  # Chemin vers le fichier settings.yml
-        yaml = YAML()
-        try:
-            with open(settings_path, 'r') as f:
-                return yaml.load(f)  # Charger les informations du plugin depuis le fichier YAML
-        except Exception as e:
-            print(f"Error loading plugin {self.plugin_name}: {e}")
-            return {"name": self.plugin_name, "description": "No description available"}  # Retourner une description par défaut en cas d'erreur
+        self.plugin_info = load_plugin_info(plugin_name)  # Charger les informations du plugin
 
     def compose(self) -> ComposeResult:
         """Compose the plugin card"""
@@ -45,18 +81,13 @@ class PluginCard(Static):
     def on_click(self) -> None:
         """Handle click to select/deselect plugin"""
         # Vérifier si le plugin est multiple
-        folder_name = get_plugin_folder_name(self.plugin_name)
-        settings_path = os.path.join('plugins', folder_name, 'settings.yml')
-        try:
-            with open(settings_path, 'r') as f:
-                settings = yaml.load(f)
-                multiple = settings.get('multiple', False)  # Vérifier si le plugin peut être sélectionné plusieurs fois
-        except Exception:
-            multiple = False
+        plugin_info = load_plugin_info(self.plugin_name)
+        multiple = plugin_info.get('multiple', False)  # Vérifier si le plugin peut être sélectionné plusieurs fois
 
         # Si le plugin est multiple et déjà sélectionné, on ajoute une nouvelle instance
         if multiple and self.selected:
-            self.app.post_message(self.PluginSelectionChanged(self.plugin_name, True, self))
+            # Envoyer un message spécial pour ajouter une instance
+            self.app.post_message(self.AddPluginInstance(self.plugin_name, self))
         else:
             # Sinon, on bascule l'état et on envoie le message approprié
             self.selected = not self.selected
@@ -77,6 +108,13 @@ class PluginCard(Static):
             self.plugin_name = plugin_name  # Nom du plugin
             self.selected = selected  # État de sélection
             self.source = source  # Source du message (la carte du plugin)
+            
+    class AddPluginInstance(Message):
+        """Message spécifique pour ajouter une instance d'un plugin multiple"""
+        def __init__(self, plugin_name: str, source: Widget):
+            super().__init__()
+            self.plugin_name = plugin_name
+            self.source = source
 
 # Classe représentant un élément de la liste des plugins sélectionnés
 class PluginListItem(Horizontal):
@@ -84,16 +122,7 @@ class PluginListItem(Horizontal):
         super().__init__()
         self.plugin_name, self.instance_id = plugin_data  # Nom du plugin et ID d'instance
         self.index = index  # Index de l'élément dans la liste
-        self.plugin_info = self._load_plugin_info()  # Charger les informations du plugin
-
-    def _load_plugin_info(self) -> dict:
-        settings_path = os.path.join('plugins', self.plugin_name, 'settings.yml')  # Chemin vers le fichier settings.yml
-        yaml = YAML()
-        try:
-            with open(settings_path, 'r') as f:
-                return yaml.load(f)  # Charger les informations du plugin depuis le fichier YAML
-        except Exception:
-            return {"name": self.plugin_name, "icon": "📦"}  # Retourner des informations par défaut en cas d'erreur
+        self.plugin_info = load_plugin_info(self.plugin_name, {"name": self.plugin_name, "icon": "📦"})
 
     def compose(self) -> ComposeResult:
         name = self.plugin_info.get('name', self.plugin_name)  # Nom du plugin
@@ -135,7 +164,7 @@ class SelectedPluginsPanel(Static):
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button presses in the selected plugins panel"""
         if event.button.id and event.button.id.startswith('remove_'):
-            # Extraire l'ID d'instance (dernier élément après le dernier _)
+            # Extraire les informations du bouton
             parts = event.button.id.replace('remove_', '').split('_')
             instance_id = int(parts[-1])
             # Le nom du plugin est tout ce qui est entre 'remove_' et le dernier _
@@ -153,29 +182,6 @@ class SelectedPluginsPanel(Static):
                     if card.plugin_name == plugin_name:
                         card.selected = False
                         card.update_styles()
-                        self.app.post_message(card.PluginSelectionChanged(plugin_name, False, card))
-
-# Fonction pour obtenir le nom du dossier d'un plugin
-def get_plugin_folder_name(plugin_name: str) -> str:
-    """Retourne le nom du dossier d'un plugin à partir de son nom.
-    
-    Args:
-        plugin_name: Le nom du plugin (peut inclure l'ID d'instance)
-        
-    Returns:
-        str: Le nom du dossier du plugin
-    """
-    # Extraire le nom de base du plugin (sans l'ID d'instance)
-    base_name = plugin_name.split('_')[0] + '_' + plugin_name.split('_')[1]
-    test_type = base_name + '_test'
-    
-    # Vérifier si la version test existe
-    test_path = os.path.join('plugins', test_type)
-    if os.path.exists(test_path):
-        return test_type
-    
-    # Sinon retourner le nom de base
-    return base_name
 
 # Classe principale de l'application
 class Choice(App):
@@ -206,11 +212,11 @@ class Choice(App):
         yield Footer()  # Pied de page de l'application
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
-        """Handle button presses in the selected plugins panel"""
+        """Handle button presses in the main application"""
         if event.button.id == "configure_selected":
-            await self.app.action_configure_selected()  # Action pour configurer les plugins sélectionnés
+            await self.action_configure_selected()  # Action pour configurer les plugins sélectionnés
         elif event.button.id == "quit":
-            self.app.exit()  # Quitter l'application
+            self.exit()  # Quitter l'application
 
     def create_plugin_cards(self) -> list:
         """Create plugin cards dynamically"""
@@ -225,44 +231,69 @@ class Choice(App):
                     os.path.exists(os.path.join(plugins_dir, plugin_name, 'exec.bash')))
             ]
         except Exception as e:
-            print(f"Error discovering plugins: {e}")
+            logger.error(f"Error discovering plugins: {e}")
             return []
 
     def on_plugin_card_plugin_selection_changed(self, message: PluginCard.PluginSelectionChanged) -> None:
-        """Handle plugin selection changes"""
-        # Charger les settings du plugin pour vérifier s'il peut être sélectionné plusieurs fois
-        settings_path = os.path.join('plugins', message.plugin_name, 'settings.yml')
-        yaml = YAML()
-        try:
-            with open(settings_path, 'r') as f:
-                settings = yaml.load(f)
-                multiple = settings.get('multiple', False)  # Vérifier si le plugin peut être sélectionné plusieurs fois
-        except Exception:
-            multiple = False
-
-        # Si le message indique une sélection
+        """Handle regular plugin selection changes (first selection or deselection)"""
         if message.selected:
-            # Si c'est un plugin multiple ou pas encore sélectionné
-            if multiple or not any(p[0] == message.plugin_name for p in self.selected_plugins):
-                # Incrémenter le compteur d'instances pour ce plugin
-                if message.plugin_name not in self.instance_counter:
-                    self.instance_counter[message.plugin_name] = 0
-                self.instance_counter[message.plugin_name] += 1
-                
-                # Ajouter le plugin avec son ID d'instance
-                instance_id = self.instance_counter[message.plugin_name]
-                self.selected_plugins.append((message.plugin_name, instance_id))
-            else:
-                # Si le plugin n'est pas multiple et déjà sélectionné, on annule la sélection
+            # Vérifier si le plugin est multiple
+            plugin_info = load_plugin_info(message.plugin_name)
+            multiple = plugin_info.get('multiple', False)
+            
+            # Si le plugin n'est pas multiple et est déjà sélectionné, annuler la sélection
+            if not multiple and any(p[0] == message.plugin_name for p in self.selected_plugins):
                 message.source.selected = False
                 message.source.update_styles()
+                return
+                
+            # Sinon, ajouter une nouvelle instance
+            if message.plugin_name not in self.instance_counter:
+                self.instance_counter[message.plugin_name] = 0
+            self.instance_counter[message.plugin_name] += 1
+            
+            instance_id = self.instance_counter[message.plugin_name]
+            self.selected_plugins.append((message.plugin_name, instance_id))
         else:
             # Désélection : on retire toutes les instances du plugin
             self.selected_plugins = [(p, i) for p, i in self.selected_plugins if p != message.plugin_name]
+            # Réinitialiser le compteur d'instances
+            if message.plugin_name in self.instance_counter:
+                del self.instance_counter[message.plugin_name]
 
         # Mettre à jour le panneau
         panel = self.query_one("#selected-plugins", SelectedPluginsPanel)
         panel.update_plugins(self.selected_plugins)
+    
+    def on_plugin_card_add_plugin_instance(self, message: PluginCard.AddPluginInstance) -> None:
+        """Gérer l'ajout d'une instance pour les plugins multiples"""
+        # Incrémenter le compteur d'instances
+        if message.plugin_name not in self.instance_counter:
+            self.instance_counter[message.plugin_name] = 0
+        self.instance_counter[message.plugin_name] += 1
+        
+        # Ajouter la nouvelle instance à la liste
+        instance_id = self.instance_counter[message.plugin_name]
+        self.selected_plugins.append((message.plugin_name, instance_id))
+        
+        # Mettre à jour le panneau
+        panel = self.query_one("#selected-plugins", SelectedPluginsPanel)
+        panel.update_plugins(self.selected_plugins)
+        
+        # Effet visuel pour indiquer que l'instance a été ajoutée
+        # Nous utilisons simplement l'ajout de classe sans essayer de la retirer automatiquement
+        # Cette solution est la plus compatible avec toutes les versions de Textual
+        message.source.add_class("instance-added")
+        
+        # Note: Si vous souhaitez ajouter un effet temporaire, vous devrez définir
+        # une règle CSS qui fait disparaître l'effet après un court délai, par exemple:
+        # .instance-added {
+        #    animation: flash 0.3s forwards;
+        # }
+        # @keyframes flash {
+        #    0% { background-color: highlight; }
+        #    100% { background-color: transparent; }
+        # }
 
     async def action_configure_selected(self) -> None:
         """Configure selected plugins"""

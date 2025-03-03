@@ -6,8 +6,8 @@ def get_local_ip():
     Récupère l'adresse IP locale de la machine.
     
     Returns:
-        tuple(bool, str): Tuple contenant:
-            - True et l'adresse IP en cas de succès
+        tuple(bool, dict) ou tuple(bool, str): Tuple contenant:
+            - True et un dictionnaire avec l'adresse IP en cas de succès
             - False et un message d'erreur en cas d'échec
     """
     # Crée un socket pour obtenir l'adresse IP locale
@@ -17,7 +17,7 @@ def get_local_ip():
         # Essaie de se connecter à un hôte externe, mais sans envoyer de données.
         s.connect(('10.254.254.254', 1))  # Adresse IP non-routable (en dehors de ton réseau local)
         local_ip = s.getsockname()[0]     # Récupère l'adresse IP locale de l'interface
-        octet_1,octet_2,octet_3,octet_4 = local_ip.split('.')
+        octet_1, octet_2, octet_3, octet_4 = local_ip.split('.')
         
         # Règles spécifiques pour certaines plages d'IP
         if octet_1 == '128' and octet_2 == '81' and octet_3 in ['2','3']:
@@ -26,7 +26,9 @@ def get_local_ip():
             local_ip = '128.81.4.184'
         else:
             local_ip = f"{octet_1}.{octet_2}.{octet_3}.220"
-        return (True, local_ip)
+        
+        # Retourne un dictionnaire au lieu d'un tuple simple valeur
+        return True, {"ip": local_ip}
         
     except Exception as e:
         error_msg = f"Erreur lors de la récupération de l'IP locale: {str(e)}"
@@ -39,4 +41,3 @@ def get_local_ip():
             s.close()
         except:
             pass
-

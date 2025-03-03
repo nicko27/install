@@ -37,8 +37,8 @@ def get_printer_models():
     """Récupère la liste des modèles d'imprimantes depuis le répertoire des modèles
     
     Returns:
-        tuple(bool, list): Tuple contenant:
-            - True et la liste des modèles d'imprimantes en cas de succès
+        tuple(bool, dict): Tuple contenant:
+            - True et un dictionnaire contenant la liste des modèles d'imprimantes en cas de succès
             - False et un message d'erreur en cas d'échec
     """
     try:
@@ -50,7 +50,7 @@ def get_printer_models():
         
         if not os.path.exists(models_dir):
             print("Le dossier des modèles n'existe pas")
-            return True, []
+            return True, {"models": []}
             
         for model_file in os.listdir(models_dir):
             if not model_file.endswith('.yml'):
@@ -76,8 +76,18 @@ def get_printer_models():
         
         # Trier par description
         options.sort(key=lambda x: x['description'])
+        
+        # Ensure we always have at least one option
+        if not options:
+            # Add a default option if no models were found
+            options.append({
+                'description': 'Default Model',
+                'value': 'default_model'
+            })
+            print("No models found, added a default model")
+            
         print(f"Liste finale des options: {options}")
-        return True, options
+        return True, {"models": options}
         
     except Exception as e:
         error_msg = f"Erreur lors de la récupération des modèles d'imprimantes: {str(e)}"
