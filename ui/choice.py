@@ -219,17 +219,37 @@ class Choice(App):
             self.exit()  # Quitter l'application
 
     def create_plugin_cards(self) -> list:
-        """Create plugin cards dynamically"""
+        """Create plugin cards dynamically and sort by the 'name' field in settings.yml"""
         plugins_dir = 'plugins'
+        plugin_cards = []
         try:
-            return [
-                PluginCard(plugin_name) 
-                for plugin_name in os.listdir(plugins_dir) 
-                if os.path.isdir(os.path.join(plugins_dir, plugin_name)) and 
-                   os.path.exists(os.path.join(plugins_dir, plugin_name, 'settings.yml')) and
-                   (os.path.exists(os.path.join(plugins_dir, plugin_name, 'exec.py')) or 
-                    os.path.exists(os.path.join(plugins_dir, plugin_name, 'exec.bash')))
-            ]
+            # Récupérer tous les plugins valides
+            valid_plugins = []
+            for plugin_name in os.listdir(plugins_dir):
+                plugin_path = os.path.join(plugins_dir, plugin_name)
+                settings_path = os.path.join(plugin_path, 'settings.yml')
+                exec_py_path = os.path.join(plugin_path, 'exec.py')
+                exec_bash_path = os.path.join(plugin_path, 'exec.bash')
+                
+                # Vérifier si le plugin est valide
+                if (os.path.isdir(plugin_path) and 
+                    os.path.exists(settings_path) and 
+                    (os.path.exists(exec_py_path) or os.path.exists(exec_bash_path))):
+                    
+                    # Charger les informations du plugin
+                    plugin_info = load_plugin_info(plugin_name)
+                    # Stocker le tuple (nom affiché, nom du plugin) pour le tri
+                    display_name = plugin_info.get('name', plugin_name)
+                    valid_plugins.append((display_name, plugin_name))
+            
+            # Trier par le nom affiché (qui est le champ 'name' de settings.yml)
+            valid_plugins.sort(key=lambda x: x[0].lower())  # Tri insensible à la casse
+            
+            # Créer les cartes dans l'ordre trié
+            for _, plugin_name in valid_plugins:
+                plugin_cards.append(PluginCard(plugin_name))
+                
+            return plugin_cards
         except Exception as e:
             logger.error(f"Error discovering plugins: {e}")
             return []

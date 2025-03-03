@@ -1,4 +1,4 @@
-/media/nico/Drive/pcUtils
+.
 ├── docs
 │   ├── assets
 │   │   ├── script.js
@@ -1222,7 +1222,6 @@
 ├── logs
 │   └── debug.log
 ├── main.py
-├── Pipfile
 ├── plugins
 │   ├── add_printer
 │   │   ├── exec.py
@@ -1300,23 +1299,8 @@
 │       ├── __init__.py
 │       ├── README.md
 │       └── settings.yml
-├── pyproject.toml
 ├── requirements.txt
 ├── start.sh
-├── test_checkbox.py
-├── test_config.py
-├── test_config_simple.py
-├── test_multi_fields.py
-├── test_plugin_config.py
-├── tests
-│   └── ui
-│       └── components
-│           └── validation
-│               ├── plugins
-│               │   ├── test_number.py
-│               │   └── test_required.py
-│               └── test_plugin_registry.py
-├── test_select.py
 ├── tree.txt
 ├── ui
 │   ├── choice.py
@@ -1326,6 +1310,7 @@
 │   │   ├── directory_field.py
 │   │   ├── __init__.py
 │   │   ├── ip_field.py
+│   │   ├── password_field.py
 │   │   ├── plugin_config_container.py
 │   │   ├── __pycache__
 │   │   │   ├── checkbox_field.cpython-310.pyc
@@ -1333,6 +1318,7 @@
 │   │   │   ├── directory_field.cpython-310.pyc
 │   │   │   ├── __init__.cpython-310.pyc
 │   │   │   ├── ip_field.cpython-310.pyc
+│   │   │   ├── password_field.cpython-310.pyc
 │   │   │   ├── plugin_config_container.cpython-310.pyc
 │   │   │   ├── select_field.cpython-310.pyc
 │   │   │   └── text_field.cpython-310.pyc
@@ -1348,6 +1334,11 @@
 │   │   ├── execution.cpython-310.pyc
 │   │   ├── logging.cpython-310.pyc
 │   │   └── utils.cpython-310.pyc
+│   ├── ssh_manager
+│   │   ├── __pycache__
+│   │   │   └── ssh_manager.cpython-310.pyc
+│   │   ├── ssh_config.yml
+│   │   └── ssh_manager.py
 │   ├── styles
 │   │   ├── choice.css
 │   │   ├── config.css
@@ -1362,4 +1353,4 @@
     ├── README.md
     └── system_info.py
 
-113 directories, 1249 files
+110 directories, 1243 files

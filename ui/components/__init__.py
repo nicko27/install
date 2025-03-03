@@ -19,4 +19,5 @@ __all__ = [
     'CheckboxField', 
     'SelectField',
     'PluginConfigContainer'
+    'PasswordField'
 ]

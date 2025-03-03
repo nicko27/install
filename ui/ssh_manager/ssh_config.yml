@@ -1,0 +1,46 @@
+# Configuration des champs SSH pour l'exécution à distance
+name: "Configuration SSH globale"
+icon: "🔒"
+description: "Paramètres de connexion pour l'exécution distante des plugins"
+hint: "Activez l'exécution distante sur au moins un plugin pour configurer SSH"
+
+# Définition des champs de configuration
+fields:
+  ssh_ips:
+    type: "text"
+    label: "Adresses IP (séparées par des virgules)"
+    description: "Peut inclure des caractères génériques (ex: 192.168.1.*) et des virgules"
+    placeholder: "150.27.2.*"
+    required: true
+  
+  ssh_user:
+    type: "text"
+    label: "Utilisateur SSH"
+    default: "nicolas.voirin"
+    required: true
+  
+  ssh_passwd:
+    type: "password"  # À adapter selon si PasswordField est disponible
+    label: "Mot de passe SSH"
+    required: true
+  
+  ssh_sms_enabled:
+    type: "checkbox"
+    label: "Authentification via la SMS"
+    default: false
+  
+  ssh_sms:
+    type: "text"
+    label: "Nom de machine de la SMS"
+    default: "ggd027sf"
+    placeholder: "ggd027sf...."
+    required: true
+    enabled_if:
+      field: "ssh_sms_enabled"
+      value: true
+
+  ssh_exception_ips:
+    type: "text"
+    label: "Adresses IP exclues de l'exception"
+    placeholder: "150.27.2.200,150.27.2.21*,150.27.2.22*"
+    required: false
