@@ -10,12 +10,11 @@ from .choice import get_plugin_folder_name
 from .components.plugin_config_container import PluginConfigContainer
 from .components.text_field import TextField
 from .components.checkbox_field import CheckboxField
-# Si vous avez créé le fichier password_field.py, importez-le ici
-# from .components.password_field import PasswordField
-# Sinon, nous utiliserons TextField pour les mots de passe temporairement
+from .components.password_field import PasswordField  # Import du champ de mot de passe
+from .ssh_manager.ssh_manager import SSHManager  # Import du gestionnaire SSH
 
-# Import du nouveau gestionnaire SSH
-from .ssh_manager.ssh_manager import SSHManager
+# Ne pas importer ExecutionScreen directement pour éviter les imports circulaires
+# L'importation sera faite dans les méthodes qui en ont besoin
 
 logger = setup_logging()
 
@@ -217,62 +216,63 @@ class PluginConfig(Screen):
         )
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        """Handle button presses"""
-        if event.button.id == "cancel":
-            self.app.pop_screen()
-        elif event.button.id == "validate":
-            # Check all fields
-            has_errors = False
-            
-            # Vérifier les champs globaux SSH s'ils sont présents
-            has_remote_enabled = False
-            for plugin_key, field in self.plugins_remote_enabled.items():
-                if field.get_value():
-                    has_remote_enabled = True
-                    break
-            
-            if has_remote_enabled and self.global_fields:
-                for field_id, field in self.global_fields.items():
-                    if isinstance(field, TextField):
-                        # Vérifier si le champ est actif (non désactivé par une dépendance)
-                        if not field.disabled:
-                            value = field.input.value
-                            is_valid, error_msg = field.validate_input(value)
-                            if not is_valid:
-                                field.input.add_class('error')
-                                field.input.tooltip = error_msg
-                                has_errors = True
-                                logger.error(f"Validation error in global field {field_id}: {error_msg}")
-            
-            # Vérifier les champs des plugins
-            for plugin_name, instance_id in self.plugin_instances:
-                plugin_fields = self.query(f"#plugin_{plugin_name}_{instance_id} ConfigField")
-                for field in plugin_fields:
-                    if isinstance(field, TextField):
-                        # Vérifier si le champ est actif (non désactivé par une dépendance)
-                        if not field.disabled:
-                            value = field.input.value
-                            is_valid, error_msg = field.validate_input(value)
-                            if not is_valid:
-                                field.input.add_class('error')
-                                field.input.tooltip = error_msg
-                                has_errors = True
-                                logger.error(f"Validation error in {field.field_id}: {error_msg}")
-            
-            if has_errors:
-                return
-            
-            # Collecter les configurations
-            self.collect_configurations()
-            
-            # Import here to avoid circular imports
-            from .execution import ExecutionScreen
-            
-            # Create execution screen
-            execution_screen = ExecutionScreen(self.current_config)
-            
-            # Replace current screen with execution screen
-            self.app.switch_screen(execution_screen)
+            """Handle button presses"""
+            if event.button.id == "cancel":
+                self.app.pop_screen()
+            elif event.button.id == "validate":
+                # Check all fields
+                has_errors = False
+                
+                # Vérifier les champs globaux SSH s'ils sont présents
+                has_remote_enabled = False
+                for plugin_key, field in self.plugins_remote_enabled.items():
+                    if field.get_value():
+                        has_remote_enabled = True
+                        break
+                
+                if has_remote_enabled and self.global_fields:
+                    for field_id, field in self.global_fields.items():
+                        if isinstance(field, TextField):
+                            # Vérifier si le champ est actif (non désactivé par une dépendance)
+                            if not field.disabled:
+                                value = field.input.value
+                                is_valid, error_msg = field.validate_input(value)
+                                if not is_valid:
+                                    field.input.add_class('error')
+                                    field.input.tooltip = error_msg
+                                    has_errors = True
+                                    logger.error(f"Validation error in global field {field_id}: {error_msg}")
+                
+                # Vérifier les champs des plugins
+                for plugin_name, instance_id in self.plugin_instances:
+                    plugin_fields = self.query(f"#plugin_{plugin_name}_{instance_id} ConfigField")
+                    for field in plugin_fields:
+                        if isinstance(field, TextField):
+                            # Vérifier si le champ est actif (non désactivé par une dépendance)
+                            if not field.disabled:
+                                value = field.input.value
+                                is_valid, error_msg = field.validate_input(value)
+                                if not is_valid:
+                                    field.input.add_class('error')
+                                    field.input.tooltip = error_msg
+                                    has_errors = True
+                                    logger.error(f"Validation error in {field.field_id}: {error_msg}")
+                
+                if has_errors:
+                    return
+                
+                # Collecter les configurations
+                self.collect_configurations()
+                
+                # Import ici pour éviter les imports circulaires
+                # Mise à jour de l'import pour utiliser la nouvelle structure
+                from .executor import ExecutionScreen
+                
+                # Create execution screen
+                execution_screen = ExecutionScreen(self.current_config)
+                
+                # Replace current screen with execution screen
+                self.app.switch_screen(execution_screen)
 
     def on_checkbox_changed(self, event):
         """Gère les changements d'état des checkboxes d'exécution distante et SSH"""

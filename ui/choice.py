@@ -318,7 +318,8 @@ class Choice(App):
     async def action_configure_selected(self) -> None:
         """Configure selected plugins"""
         from ui.config import PluginConfig
-        from ui.execution import ExecutionScreen
+        # Mise à jour de l'import pour utiliser la nouvelle structure
+        from ui.executor import ExecutionScreen
         
         if not self.selected_plugins:
             self.notify("Aucun plugin sélectionné", severity="error")  # Notification si aucun plugin n'est sélectionné
@@ -335,7 +336,7 @@ class Choice(App):
         
         # Si une configuration a été définie, passer à l'écran d'exécution
         if config:
-            execution_screen = ExecutionScreen(self.selected_plugins, config)
+            execution_screen = ExecutionScreen(config)
             await self.push_screen(execution_screen)
 
     def action_quit(self) -> None:

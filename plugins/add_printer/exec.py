@@ -33,20 +33,13 @@ import logging
 import threading
 from datetime import datetime
 from ruamel.yaml import YAML
+import traceback
 
 # Configuration du logging
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-LOG_FILE = os.path.join(BASE_DIR, "logs", "mysql_install.log")
 formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] %(message)s',
                             datefmt='%Y-%m-%d %H:%M:%S')
 
-logger = logging.getLogger('mysql_install')
-logger.setLevel(logging.DEBUG)
-
-# Handler pour le fichier
-file_handler = logging.FileHandler(LOG_FILE)
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
+logger = logging.getLogger('add_printer')
 
 # Handler pour la console
 console_handler = logging.StreamHandler()
@@ -353,4 +346,5 @@ if __name__ == "__main__":
         sys.exit(1)
     except Exception as e:
         print(f"Erreur inattendue: {e}")
+        
         sys.exit(1)
