@@ -27,25 +27,21 @@ for pkg_dir in glob.glob(os.path.join(libs_dir, '*')):
 
 
 import json
-import time
 import subprocess
 import logging
-import threading
 from datetime import datetime
 from ruamel.yaml import YAML
-import traceback
 
 # Configuration du logging
 formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] %(message)s',
                             datefmt='%Y-%m-%d %H:%M:%S')
 
-logger = logging.getLogger('delete_printer')
+logger = logging.getLogger('lara_install')
 
 # Handler pour la console
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
-
 
 def print_progress(step: int, total: int):
     """Affiche la progression"""
@@ -105,60 +101,87 @@ def run_command(cmd, input_data=None, no_output=False,print_command=False):
     return process.returncode == 0, stdout, stderr
 
 
-def delete_printer(printer_name):
-    cmd=["lpadmin", "-x", printer_name]
-    logger.info(f"Commande lpadmin: {cmd}")
-    returnValue,stdout,stderr = run_command(cmd)
-    return returnValue
-
 def execute_plugin(config):
     """Point d'entrée pour l'exécution du plugin"""
     try:
-        printer_all =config.get('printer_all')
-        printer_ip = config.get('printer_ip')
+        total_steps = 4
+        current_step = 0
 
-        current_step =0
-        total_step=1
 
-        logger.info("Listage des imprimantes à supprimer")
-        current_step+=1
-        if printer_all:
-            # Get the list of printers and count them
-            returnValue, stdout, stderr = run_command(["lpstat", "-p"], no_output=True)
-            printers_list = [line.split()[1] for line in stdout.splitlines()]
-            nb_impr = len(printers_list)  # Count the number of printers
-            total_step += nb_impr  # Add this count to total_step
-        else:
-            # Get the count of printers matching the given printer_ip
-            returnValue, stdout, stderr = run_command(["lpstat", "-t"], no_output=True)
-            printers_list = [line.split()[2] for line in stdout.splitlines() if printer_ip in line]
-            nb_impr = len(printers_list)  # Count the matching printers
-            total_step += nb_impr  # Set the total step count
-
-        # Log the number of printers to delete
-        logger.info(f"{nb_impr} imprimante(s) à supprimer")
-
-        # Update progress
-        print_progress(current_step, total_step)
         returnValue=True
-        print(printers_list)
-        for printer_name in printers_list:
-            if returnValue==True:
-                returnValue,stdout,stderr=run_command(["lpadmin","-x",printer_name])
-                print(returnValue)
-                msg=f"Suppression de {printer_name}"
-                if returnValue==True:
-                    logger.info(msg)
-                else:
-                    logger.error(msg)
-            current_step+=1
-            print_progress(current_step, total_step)
-
-
-        if (returnValue==True):
-            return True, "Suppression(s) d'imprimante(s) effectué(s) avec succès"
+        if not os.path.exists("/etc/apt/sources.list.d/lara.list"):
+            logger.info("Création du fichier /etc/apt/sources.list.d/lara.list")
+            with open("/etc/apt/sources.list.d/lara.list", "w") as f:
+                f.write("deb http://gendbuntu.gendarmerie.fr/jammy/gendarmerie-dev/lara-waiting jammy main")
+            logger.info("Fichier /etc/apt/sources.list.d/lara.list créé")
         else:
-            return False, "Erreur lors de la suppression d'imprimante(s)"
+            logger.info("Le fichier /etc/apt/sources.list.d/lara.list existe déjà")
+        current_step += 1
+        print_progress(current_step, total_steps)
+
+        if returnValue==True:
+            logger.info("Vérification de l'installation de lara v2")
+            returnValue, stdout, stderr = run_command(['dpkg', '-l', 'lara-vosk-model'],no_output=True)
+            if returnValue==True:
+                logger.info("Lara est déjà installé, désinstallation")
+                returnValue, stdout, stderr = run_command(['apt', 'purge', '-y', 'lara-*'])
+                if returnValue==True:
+                    logger.info("Désinstallation de lara effectuée avec succès")
+                    returnValueLaraV2=True
+                else:
+                    logger.error("Erreur lors de la désinstallation de LARA")
+                    returnValueLaraV2=False
+            else:
+                logger.info("Lara v2 n'est pas installé")
+                returnValueLaraV2=True
+
+                current_step += 1
+                total_steps += 1
+                print_progress(current_step, total_steps)
+
+        if returnValueLaraV2==True:
+            logger.info("Vérification de l'installation de lara v3")
+            returnValue, stdout, stderr = run_command(['dpkg', '-l', 'lara-program'],no_output=True)
+            if returnValue==True:
+                logger.info("Lara est déjà installé, réinstallation")
+                reinstall = False
+            else:
+                logger.info("Lara n'est pas installé, installation")
+                reinstall = True
+
+            current_step += 1
+            print_progress(current_step, total_steps)
+
+        if returnValue==True:
+            logger.info("Mise à jour des paquets")
+            returnValue, stdout, stderr = run_command(['apt-get', 'update'])
+            if returnValue==True:
+                logger.info("Mise à jour des paquets effectuée avec succès")
+            else:
+                logger.error("Erreur lors de la mise à jour des paquets")
+
+        current_step += 1
+        print_progress(current_step, total_steps)
+
+        if returnValue==True:
+            if reinstall:
+                logger.info("Installation de lara")
+                returnValue, stdout, stderr = run_command(['apt-get', 'install', '-y', 'lara-program'])
+            else:
+                logger.info("Mise à jour de lara")
+                returnValue, stdout, stderr = run_command(['apt-get', 'install', '-y', 'lara-program', 'lara-pip-*', '--reinstall'])
+        current_step += 1
+        print_progress(current_step, total_steps)
+        if (returnValue==True):
+            if reinstall:
+                return True, "Installation de lara effectuée avec succès"
+            else:
+                return True, "Réinstallation de lara effectuée avec succès"
+        else:
+            if reinstall:
+                return False, "Erreur lors de le l'installation de LARA"
+            else:
+                return False, "Erreur lors de la réinstallation de LARA"
 
     except subprocess.CalledProcessError as e:
         error_msg = f"Erreur lors de l'exécution de la commande: {e}"
@@ -191,4 +214,5 @@ if __name__ == "__main__":
         sys.exit(1)
     except Exception as e:
         print(f"Erreur inattendue: {e}")
+
         sys.exit(1)

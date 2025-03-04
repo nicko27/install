@@ -1,33 +1,34 @@
-2025-03-03 16:16:22,890 - install_ui - DEBUG - Configuration SSH chargée: {'name': 'Configuration SSH globale', 'icon': '🔒', 'description': "Paramètres de connexion pour l'exécution distante des plugins", 'hint': "Activez l'exécution distante sur au moins un plugin pour configurer SSH", 'fields': {'ssh_ips': {'type': 'text', 'label': 'Adresses IP (séparées par des virgules)', 'description': 'Peut inclure des caractères génériques (ex: 192.168.1.*) et des virgules', 'placeholder': '150.27.2.*', 'required': True}, 'ssh_user': {'type': 'text', 'label': 'Utilisateur SSH', 'default': 'nicolas.voirin', 'required': True}, 'ssh_passwd': {'type': 'password', 'label': 'Mot de passe SSH', 'required': True}, 'ssh_sms_enabled': {'type': 'checkbox', 'label': 'Authentification via la SMS', 'default': False}, 'ssh_sms': {'type': 'text', 'label': 'Nom de machine de la SMS', 'default': 'ggd027sf', 'placeholder': 'ggd027sf....', 'required': True, 'enabled_if': {'field': 'ssh_sms_enabled', 'value': True}}, 'ssh_exception_ips': {'type': 'text', 'label': "Adresses IP exclues de l'exception", 'placeholder': '150.27.2.200,150.27.2.21*,150.27.2.22*', 'required': False}}}
-2025-03-03 16:16:22,924 - install_ui - DEBUG - Checking for remote execution plugins
-2025-03-03 16:16:22,924 - install_ui - DEBUG - Checking plugin home_copy with folder home_copy
-2025-03-03 16:16:22,924 - install_ui - DEBUG - Settings path: /media/nico/Drive/pcUtils/ui/../plugins/home_copy/settings.yml
-2025-03-03 16:16:22,937 - install_ui - DEBUG - Plugin home_copy remote_execution: False
-2025-03-03 16:16:22,937 - install_ui - DEBUG - Remote execution plugins: []
-2025-03-03 16:16:22,937 - install_ui - DEBUG - Has remote plugins: False
-2025-03-03 16:16:22,982 - install_ui - DEBUG - Field user_all: enabled_if={'field': 'user_select', 'value': 'has_options'}, dep_field=user_select, dep_value=None
-2025-03-03 16:16:22,982 - install_ui - DEBUG - Field user_all should be initially disabled
-2025-03-03 16:16:22,985 - install_ui - INFO - Loading script from: /media/nico/Drive/pcUtils/ui/components/../../utils/get_usb.py
-2025-03-03 16:16:22,985 - install_ui - DEBUG - Script exists: True
-2025-03-03 16:16:22,985 - install_ui - DEBUG - Python path: ['/media/nico/Drive/pcUtils/libs/ptyprocess-0.7.0-py2.py3-none-any', '/media/nico/Drive/pcUtils/libs/rich-13.9.4-py3-none-any', '/media/nico/Drive/pcUtils/libs/ruamel.yaml-0.18.10-py3-none-any', '/media/nico/Drive/pcUtils/libs/mdit_py_plugins-0.4.2-py3-none-any', '/media/nico/Drive/pcUtils/libs/typing_extensions-4.12.2-py3-none-any', '/media/nico/Drive/pcUtils/libs/linkify_it_py-2.0.3-py3-none-any', '/media/nico/Drive/pcUtils/libs/pexpect-4.9.0-py2.py3-none-any', '/media/nico/Drive/pcUtils/libs/uc_micro_py-1.0.3-py3-none-any', '/media/nico/Drive/pcUtils/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils/libs/pygments-2.19.1-py3-none-any', '/media/nico/Drive/pcUtils/libs/platformdirs-4.3.6-py3-none-any', '/media/nico/Drive/pcUtils/libs/textual-2.1.1-py3-none-any', '/media/nico/Drive/pcUtils', '/usr/lib/python310.zip', '/usr/lib/python3.10', '/usr/lib/python3.10/lib-dynload', '/home/nico/.local/lib/python3.10/site-packages', '/usr/local/lib/python3.10/dist-packages', '/usr/lib/python3/dist-packages', '/media/nico/Drive/pcUtils/ui/components/../../utils']
-2025-03-03 16:16:22,986 - install_ui - ERROR - Error loading dynamic options: attempted relative import with no known parent package
-2025-03-03 16:16:22,986 - install_ui - ERROR - Traceback:
-Traceback (most recent call last):
-  File "/media/nico/Drive/pcUtils/ui/components/select_field.py", line 150, in _get_options
-    spec.loader.exec_module(module)
-  File "<frozen importlib._bootstrap_external>", line 883, in exec_module
-  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
-  File "/media/nico/Drive/pcUtils/ui/components/../../utils/get_usb.py", line 7, in <module>
-    from .logging import get_logger
-ImportError: attempted relative import with no known parent package
-2025-03-03 16:16:22,986 - install_ui - INFO - Field home_dst_dir options: [('Error: attempted relative import with no known parent package', 'script_exception')]
-2025-03-03 16:16:22,986 - install_ui - INFO - Setting default value for home_dst_dir: script_exception
-2025-03-03 16:16:23,081 - install_ui - DEBUG - Select changed to: script_exception
-2025-03-03 16:16:23,082 - install_ui - INFO - Attempting to get dynamic default for field: mount_if_needed
-2025-03-03 16:16:23,082 - install_ui - INFO - Field config: {'type': 'checkbox', 'label': 'Monter le périphérique si nécessaire (si non monté)', 'default': True, 'depends_on': 'home_dst_dir', 'id': 'mount_if_needed'}
-2025-03-03 16:16:23,082 - install_ui - INFO - Returning default value: True
-2025-03-03 16:16:23,082 - install_ui - INFO - Attempting to get dynamic default for field: subdir_path
-2025-03-03 16:16:23,082 - install_ui - INFO - Field config: {'type': 'text', 'label': 'Sous-dossier dans le support (optionnel)', 'placeholder': 'Laisser vide pour copier à la racine', 'depends_on': 'home_dst_dir', 'help_text': "Chemin relatif où copier les données, par exemple: 'backups/utilisateurs'", 'id': 'subdir_path'}
-2025-03-03 16:16:23,082 - install_ui - INFO - Returning default value: 
-2025-03-03 16:16:43,645 - asyncio - ERROR - Unclosed client session
-client_session: <aiohttp.client.ClientSession object at 0x7adf8fb1d840>
+2025-03-03 17:24:43,293 - install_ui - DEBUG - Configuration SSH chargée: {'name': 'Configuration SSH globale', 'icon': '🔒', 'description': "Paramètres de connexion pour l'exécution distante des plugins", 'hint': "Activez l'exécution distante sur au moins un plugin pour configurer SSH", 'fields': {'ssh_ips': {'type': 'text', 'label': 'Adresses IP (séparées par des virgules)', 'description': 'Peut inclure des caractères génériques (ex: 192.168.1.*) et des virgules', 'placeholder': '150.27.2.*', 'required': True}, 'ssh_user': {'type': 'text', 'label': 'Utilisateur SSH', 'default': 'nicolas.voirin', 'required': True}, 'ssh_passwd': {'type': 'password', 'label': 'Mot de passe SSH', 'required': True}, 'ssh_sms_enabled': {'type': 'checkbox', 'label': 'Authentification via la SMS', 'default': False}, 'ssh_sms': {'type': 'text', 'label': 'Nom de machine de la SMS', 'default': 'ggd027sf', 'placeholder': 'ggd027sf....', 'required': True, 'enabled_if': {'field': 'ssh_sms_enabled', 'value': True}}, 'ssh_exception_ips': {'type': 'text', 'label': "Adresses IP exclues de l'exception", 'placeholder': '150.27.2.200,150.27.2.21*,150.27.2.22*', 'required': False}}}
+2025-03-03 17:24:43,418 - install_ui - DEBUG - Checking for remote execution plugins
+2025-03-03 17:24:43,418 - install_ui - DEBUG - Checking plugin lara_install with folder lara_install
+2025-03-03 17:24:43,419 - install_ui - DEBUG - Settings path: /media/nico/Drive/pcUtils/ui/../plugins/lara_install/settings.yml
+2025-03-03 17:24:43,426 - install_ui - DEBUG - Plugin lara_install remote_execution: True
+2025-03-03 17:24:43,426 - install_ui - DEBUG - Found remote execution plugin: lara_install
+2025-03-03 17:24:43,426 - install_ui - DEBUG - Remote execution plugins: ['lara_install']
+2025-03-03 17:24:43,426 - install_ui - DEBUG - Has remote plugins: True
+2025-03-03 17:24:43,432 - install_ui - DEBUG - Preparing remote execution checkbox for plugin lara_install_1
+2025-03-03 17:24:43,432 - install_ui - DEBUG - Adding SSH configuration section at the bottom
+2025-03-03 17:24:43,519 - install_ui - DEBUG - TextField ssh_ips is initially disabled
+2025-03-03 17:24:43,538 - install_ui - DEBUG - TextField ssh_user is initially disabled
+2025-03-03 17:24:43,547 - install_ui - DEBUG - TextField ssh_passwd is initially disabled
+2025-03-03 17:24:43,565 - install_ui - DEBUG - Field ssh_sms: enabled_if={'field': 'ssh_sms_enabled', 'value': True}, dep_field=ssh_sms_enabled, dep_value=False
+2025-03-03 17:24:43,565 - install_ui - DEBUG - Field ssh_sms should be initially disabled
+2025-03-03 17:24:43,567 - install_ui - DEBUG - TextField ssh_sms is initially disabled
+2025-03-03 17:24:43,575 - install_ui - DEBUG - TextField ssh_exception_ips is initially disabled
+2025-03-03 17:24:43,685 - install_ui - DEBUG - Adding remote execution checkbox for lara_install_1
+2025-03-03 17:24:48,391 - install_ui - DEBUG - Collected configuration: {'lara_install_1': {'plugin_name': 'lara_install', 'instance_id': 1, 'name': 'LARA', 'show_name': 'lara_install', 'icon': '🛠️', 'config': {'remote_execution': False}, 'remote_execution': False}}
+2025-03-03 17:24:50,936 - install_ui.execution_widget - DEBUG - Clic sur le bouton start-button
+2025-03-03 17:24:50,937 - install_ui.execution_widget - INFO - Démarrage de l'exécution
+2025-03-03 17:24:50,941 - install_ui.execution_widget - DEBUG - Bouton désactivé
+2025-03-03 17:24:50,944 - install_ui.execution_widget - DEBUG - Démarrage de l'exécution de 1 plugins
+2025-03-03 17:24:50,956 - install_ui.local_executor - INFO - Démarrage du plugin lara_install (lara_install_1)
+2025-03-03 17:24:50,965 - install_ui.local_executor - INFO - Détecté comme plugin Python
+2025-03-03 17:24:50,965 - install_ui.local_executor - INFO - Commande à exécuter : ['/bin/python3', '/media/nico/Drive/pcUtils/plugins/lara_install/exec.py', '{"remote_execution": false}']
+2025-03-03 17:24:56,461 - install_ui.executor_logger - ERROR - E: Impossible d'ouvrir le fichier verrou /var/lib/apt/lists/lock - open (13: Permission non accordée)
+2025-03-03 17:24:56,488 - install_ui.executor_logger - ERROR - E: Impossible de verrouiller le répertoire /var/lib/apt/lists/
+2025-03-03 17:24:56,556 - install_ui.executor_logger - ERROR - W: Problème de suppression du lien /var/cache/apt/pkgcache.bin - RemoveCaches (13: Permission non accordée)
+2025-03-03 17:24:56,601 - install_ui.executor_logger - ERROR - W: Problème de suppression du lien /var/cache/apt/srcpkgcache.bin - RemoveCaches (13: Permission non accordée)
+2025-03-03 17:25:08,638 - install_ui.executor_logger - ERROR - Erreur lors de la mise à jour des paquets
+2025-03-03 17:25:23,816 - install_ui.executor_logger - INFO - de la réinstallation de LARA
+2025-03-03 17:25:29,491 - install_ui.executor_logger - ERROR - LARA: Erreur lors de l'exécution (code 1)
+2025-03-03 17:25:29,502 - install_ui.execution_widget - ERROR - Arrêt de l'exécution suite à l'erreur du plugin lara_install

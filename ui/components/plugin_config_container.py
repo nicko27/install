@@ -20,7 +20,7 @@ class PluginConfigContainer(VerticalGroup):
     plugin_title = reactive("")   # Plugin name/title
     plugin_icon = reactive("")    # Plugin icon
     plugin_description = reactive("")  # Plugin description
-    
+
     def __init__(self, plugin: str, name: str, icon: str, description: str, fields_by_plugin: dict, fields_by_id: dict, config_fields: list, **kwargs):
         super().__init__(**kwargs)
         # Set the reactive attributes
@@ -37,11 +37,11 @@ class PluginConfigContainer(VerticalGroup):
         # Title and description
         with VerticalGroup(classes="plugin-header"):
             yield Label(f"{self.plugin_icon} {self.plugin_title}", classes="plugin-title")
-        
+
         if not self.config_fields:
             with HorizontalGroup(classes="no-config-container"):
                 yield Label("ℹ️", classes="no-config-icon")
-                yield Label(f"Nothing to configure for {self.plugin_title}", classes="no-config")
+                yield Label(f"Rien à configurer pour {self.plugin_title}", classes="no-config")
             return
 
         # Configuration fields
@@ -58,34 +58,34 @@ class PluginConfigContainer(VerticalGroup):
                 'checkbox': CheckboxField,
                 'select': SelectField
             }.get(field_type, TextField)
-            
+
             # Create field with access to other fields
             field = field_class(self.plugin_id, field_id, field_config, self.fields_by_id)
             self.fields_by_plugin[self.plugin_id][field_id] = field
             self.fields_by_id[field_id] = field
-            
+
             # If it's a checkbox, add an event handler
             if field_type == 'checkbox':
                 field.on_checkbox_changed = self.on_checkbox_changed
-            
+
             yield field
-            
+
     def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
         """Handle checkbox state changes"""
         # Find the field that emitted the event
         checkbox_id = event.checkbox.id
         logger.debug(f"Checkbox changed: {checkbox_id} -> {event.value}")
-        
+
         for field in self.fields_by_plugin[self.plugin_id].values():
             if isinstance(field, CheckboxField) and checkbox_id == f"checkbox_{field.plugin_path}_{field.field_id}":
                 logger.debug(f"Found matching checkbox field: {field.field_id}")
                 field.value = event.value
-                
+
                 # Update dependent fields
                 for dependent_field in self.fields_by_id.values():
                     if dependent_field.enabled_if and dependent_field.enabled_if['field'] == field.field_id:
                         logger.debug(f"Found dependent field: {dependent_field.field_id} with enabled_if={dependent_field.enabled_if}")
-                        
+
                         # Handle any widget type that can be disabled
                         for widget_type in [Input, Select, Button]:
                             try:
@@ -93,17 +93,17 @@ class PluginConfigContainer(VerticalGroup):
                                 logger.debug(f"Found widget of type {widget_type.__name__} for field {dependent_field.field_id}")
                             except Exception:
                                 continue
-                                
+
                             # If we got here, we found the widget
                             should_disable = field.value != dependent_field.enabled_if['value']
                             logger.debug(f"Field {dependent_field.field_id}: should_disable={should_disable} (checkbox value={field.value}, enabled_if value={dependent_field.enabled_if['value']})")
-                            
+
                             # Always remove existing classes first
                             dependent_field.remove_class('disabled')
                             dependent_field.disabled = False
                             widget.remove_class('disabled')
                             widget.disabled = False
-                            
+
                             if should_disable:
                                 logger.debug(f"Disabling widget for field {dependent_field.field_id}")
                                 dependent_field.add_class('disabled')

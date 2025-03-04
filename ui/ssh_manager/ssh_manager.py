@@ -6,12 +6,12 @@ logger = setup_logging()
 
 class SSHManager:
     """Gestionnaire des configurations SSH pour l'exécution à distance des plugins."""
-    
+
     def __init__(self):
         """Initialise le gestionnaire SSH."""
-        self.config_path = os.path.join(os.path.dirname(__file__), 'ssh_config.yml')
+        self.config_path = os.path.join(os.path.dirname(__file__), 'ssh_fields.yml')
         self.ssh_config = self._load_config()
-    
+
     def _load_config(self):
         """Charge la configuration SSH depuis le fichier YAML."""
         try:
@@ -63,23 +63,23 @@ class SSHManager:
                     }
                 }
             }
-    
+
     def get_ssh_fields(self):
         """Retourne la définition des champs de configuration SSH."""
         return self.ssh_config.get("fields", {})
-    
+
     def get_ssh_name(self):
         """Retourne le nom de la section SSH."""
         return self.ssh_config.get("name", "Configuration SSH globale")
-    
+
     def get_ssh_icon(self):
         """Retourne l'icône de la section SSH."""
         return self.ssh_config.get("icon", "🔒")
-    
+
     def get_ssh_description(self):
         """Retourne la description de la section SSH."""
         return self.ssh_config.get("description", "")
-    
+
     def get_ssh_hint(self):
         """Retourne l'indice à afficher pour la configuration SSH."""
         return self.ssh_config.get("hint", "")
