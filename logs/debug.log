@@ -1,34 +1,5 @@
-2025-03-03 17:24:43,293 - install_ui - DEBUG - Configuration SSH chargée: {'name': 'Configuration SSH globale', 'icon': '🔒', 'description': "Paramètres de connexion pour l'exécution distante des plugins", 'hint': "Activez l'exécution distante sur au moins un plugin pour configurer SSH", 'fields': {'ssh_ips': {'type': 'text', 'label': 'Adresses IP (séparées par des virgules)', 'description': 'Peut inclure des caractères génériques (ex: 192.168.1.*) et des virgules', 'placeholder': '150.27.2.*', 'required': True}, 'ssh_user': {'type': 'text', 'label': 'Utilisateur SSH', 'default': 'nicolas.voirin', 'required': True}, 'ssh_passwd': {'type': 'password', 'label': 'Mot de passe SSH', 'required': True}, 'ssh_sms_enabled': {'type': 'checkbox', 'label': 'Authentification via la SMS', 'default': False}, 'ssh_sms': {'type': 'text', 'label': 'Nom de machine de la SMS', 'default': 'ggd027sf', 'placeholder': 'ggd027sf....', 'required': True, 'enabled_if': {'field': 'ssh_sms_enabled', 'value': True}}, 'ssh_exception_ips': {'type': 'text', 'label': "Adresses IP exclues de l'exception", 'placeholder': '150.27.2.200,150.27.2.21*,150.27.2.22*', 'required': False}}}
-2025-03-03 17:24:43,418 - install_ui - DEBUG - Checking for remote execution plugins
-2025-03-03 17:24:43,418 - install_ui - DEBUG - Checking plugin lara_install with folder lara_install
-2025-03-03 17:24:43,419 - install_ui - DEBUG - Settings path: /media/nico/Drive/pcUtils/ui/../plugins/lara_install/settings.yml
-2025-03-03 17:24:43,426 - install_ui - DEBUG - Plugin lara_install remote_execution: True
-2025-03-03 17:24:43,426 - install_ui - DEBUG - Found remote execution plugin: lara_install
-2025-03-03 17:24:43,426 - install_ui - DEBUG - Remote execution plugins: ['lara_install']
-2025-03-03 17:24:43,426 - install_ui - DEBUG - Has remote plugins: True
-2025-03-03 17:24:43,432 - install_ui - DEBUG - Preparing remote execution checkbox for plugin lara_install_1
-2025-03-03 17:24:43,432 - install_ui - DEBUG - Adding SSH configuration section at the bottom
-2025-03-03 17:24:43,519 - install_ui - DEBUG - TextField ssh_ips is initially disabled
-2025-03-03 17:24:43,538 - install_ui - DEBUG - TextField ssh_user is initially disabled
-2025-03-03 17:24:43,547 - install_ui - DEBUG - TextField ssh_passwd is initially disabled
-2025-03-03 17:24:43,565 - install_ui - DEBUG - Field ssh_sms: enabled_if={'field': 'ssh_sms_enabled', 'value': True}, dep_field=ssh_sms_enabled, dep_value=False
-2025-03-03 17:24:43,565 - install_ui - DEBUG - Field ssh_sms should be initially disabled
-2025-03-03 17:24:43,567 - install_ui - DEBUG - TextField ssh_sms is initially disabled
-2025-03-03 17:24:43,575 - install_ui - DEBUG - TextField ssh_exception_ips is initially disabled
-2025-03-03 17:24:43,685 - install_ui - DEBUG - Adding remote execution checkbox for lara_install_1
-2025-03-03 17:24:48,391 - install_ui - DEBUG - Collected configuration: {'lara_install_1': {'plugin_name': 'lara_install', 'instance_id': 1, 'name': 'LARA', 'show_name': 'lara_install', 'icon': '🛠️', 'config': {'remote_execution': False}, 'remote_execution': False}}
-2025-03-03 17:24:50,936 - install_ui.execution_widget - DEBUG - Clic sur le bouton start-button
-2025-03-03 17:24:50,937 - install_ui.execution_widget - INFO - Démarrage de l'exécution
-2025-03-03 17:24:50,941 - install_ui.execution_widget - DEBUG - Bouton désactivé
-2025-03-03 17:24:50,944 - install_ui.execution_widget - DEBUG - Démarrage de l'exécution de 1 plugins
-2025-03-03 17:24:50,956 - install_ui.local_executor - INFO - Démarrage du plugin lara_install (lara_install_1)
-2025-03-03 17:24:50,965 - install_ui.local_executor - INFO - Détecté comme plugin Python
-2025-03-03 17:24:50,965 - install_ui.local_executor - INFO - Commande à exécuter : ['/bin/python3', '/media/nico/Drive/pcUtils/plugins/lara_install/exec.py', '{"remote_execution": false}']
-2025-03-03 17:24:56,461 - install_ui.executor_logger - ERROR - E: Impossible d'ouvrir le fichier verrou /var/lib/apt/lists/lock - open (13: Permission non accordée)
-2025-03-03 17:24:56,488 - install_ui.executor_logger - ERROR - E: Impossible de verrouiller le répertoire /var/lib/apt/lists/
-2025-03-03 17:24:56,556 - install_ui.executor_logger - ERROR - W: Problème de suppression du lien /var/cache/apt/pkgcache.bin - RemoveCaches (13: Permission non accordée)
-2025-03-03 17:24:56,601 - install_ui.executor_logger - ERROR - W: Problème de suppression du lien /var/cache/apt/srcpkgcache.bin - RemoveCaches (13: Permission non accordée)
-2025-03-03 17:25:08,638 - install_ui.executor_logger - ERROR - Erreur lors de la mise à jour des paquets
-2025-03-03 17:25:23,816 - install_ui.executor_logger - INFO - de la réinstallation de LARA
-2025-03-03 17:25:29,491 - install_ui.executor_logger - ERROR - LARA: Erreur lors de l'exécution (code 1)
-2025-03-03 17:25:29,502 - install_ui.execution_widget - ERROR - Arrêt de l'exécution suite à l'erreur du plugin lara_install
+2025-03-04 11:48:33,777 - install_ui.config_manager - DEBUG - Config globale 'ssh' chargée: {'name': 'Configuration SSH globale', 'icon': '🔒', 'description': "Paramètres de connexion pour l'exécution distante des plugins", 'hint': "Activez l'exécution distante sur au moins un plugin pour configurer SSH", 'fields': {'ssh_ips': {'type': 'text', 'label': 'Adresses IP (séparées par des virgules)', 'description': 'Peut inclure des caractères génériques (ex: 192.168.1.*) et des virgules', 'placeholder': '150.27.2.*', 'required': True}, 'ssh_user': {'type': 'text', 'label': 'Utilisateur SSH', 'default': 'nicolas.voirin', 'required': True}, 'ssh_passwd': {'type': 'password', 'label': 'Mot de passe SSH', 'required': True}, 'ssh_sms_enabled': {'type': 'checkbox', 'label': 'Authentification via la SMS', 'default': False}, 'ssh_sms': {'type': 'text', 'label': 'Nom de machine de la SMS', 'default': 'ggd027sf', 'placeholder': 'ggd027sf....', 'required': True, 'enabled_if': {'field': 'ssh_sms_enabled', 'value': True}}, 'ssh_exception_ips': {'type': 'text', 'label': "Adresses IP exclues de l'exception", 'placeholder': '150.27.2.200,150.27.2.21*,150.27.2.22*', 'required': False}}}
+2025-03-04 11:48:33,791 - install_ui.config_manager - DEBUG - Config plugin 'home_copy' chargée
+2025-03-04 11:48:33,793 - install_ui.config_manager - DEBUG - Config plugin 'lara_install' chargée
+2025-03-04 11:48:34,432 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x743eed75feb0>

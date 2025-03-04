@@ -102,6 +102,14 @@
 │   │   │   ├── popen_spawn.py
 │   │   │   ├── pty_spawn.py
 │   │   │   ├── pxssh.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── exceptions.cpython-310.pyc
+│   │   │   │   ├── expect.cpython-310.pyc
+│   │   │   │   ├── __init__.cpython-310.pyc
+│   │   │   │   ├── pty_spawn.cpython-310.pyc
+│   │   │   │   ├── run.cpython-310.pyc
+│   │   │   │   ├── spawnbase.cpython-310.pyc
+│   │   │   │   └── utils.cpython-310.pyc
 │   │   │   ├── replwrap.py
 │   │   │   ├── run.py
 │   │   │   ├── screen.py
@@ -141,6 +149,10 @@
 │   │   │   ├── _fork_pty.py
 │   │   │   ├── __init__.py
 │   │   │   ├── ptyprocess.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-310.pyc
+│   │   │   │   ├── ptyprocess.cpython-310.pyc
+│   │   │   │   └── util.cpython-310.pyc
 │   │   │   └── util.py
 │   │   └── ptyprocess-0.7.0.dist-info
 │   │       ├── LICENSE
@@ -1225,7 +1237,6 @@
 ├── plugins
 │   ├── add_printer
 │   │   ├── exec.py
-│   │   ├── get_ip.py
 │   │   ├── get_printer_models.py
 │   │   ├── models
 │   │   │   ├── EC4200.yml
@@ -1249,10 +1260,6 @@
 │   │   │   ├── KM361i.yml
 │   │   │   ├── KM4051iC.yml
 │   │   │   └── KM4051i.yml
-│   │   ├── __pycache__
-│   │   │   ├── get_default_ip.cpython-310.pyc
-│   │   │   ├── get_ip.cpython-310.pyc
-│   │   │   └── get_printer_models.cpython-310.pyc
 │   │   └── settings.yml
 │   ├── delete_printer
 │   │   ├── exec.py
@@ -1290,6 +1297,9 @@
 │   │   │   ├── get_usb.cpython-310.pyc
 │   │   │   └── get_users.cpython-310.pyc
 │   │   └── settings.yml
+│   ├── lara_install
+│   │   ├── exec.py
+│   │   └── settings.yml
 │   ├── README_BASH.md
 │   ├── README_PYTHON.md
 │   ├── README_SCRIPT_INTERACTIVE.md
@@ -1312,21 +1322,27 @@
 │   │   ├── ip_field.py
 │   │   ├── password_field.py
 │   │   ├── plugin_config_container.py
-│   │   ├── __pycache__
-│   │   │   ├── checkbox_field.cpython-310.pyc
-│   │   │   ├── config_field.cpython-310.pyc
-│   │   │   ├── directory_field.cpython-310.pyc
-│   │   │   ├── __init__.cpython-310.pyc
-│   │   │   ├── ip_field.cpython-310.pyc
-│   │   │   ├── password_field.cpython-310.pyc
-│   │   │   ├── plugin_config_container.cpython-310.pyc
-│   │   │   ├── select_field.cpython-310.pyc
-│   │   │   └── text_field.cpython-310.pyc
 │   │   ├── select_field.py
 │   │   └── text_field.py
 │   ├── config.py
 │   ├── config.py.old
-│   ├── execution.py
+│   ├── execution.py.old
+│   ├── executor
+│   │   ├── execution_screen.py
+│   │   ├── execution_widget.py
+│   │   ├── __init__.py
+│   │   ├── local_executor.py
+│   │   ├── logger_utils.py
+│   │   ├── plugin_container.py
+│   │   ├── __pycache__
+│   │   │   ├── execution_screen.cpython-310.pyc
+│   │   │   ├── execution_widget.cpython-310.pyc
+│   │   │   ├── __init__.cpython-310.pyc
+│   │   │   ├── local_executor.cpython-310.pyc
+│   │   │   ├── logger_utils.cpython-310.pyc
+│   │   │   ├── plugin_container.cpython-310.pyc
+│   │   │   └── ssh_executor.cpython-310.pyc
+│   │   └── ssh_executor.py
 │   ├── logging.py
 │   ├── __pycache__
 │   │   ├── choice.cpython-310.pyc
@@ -1337,7 +1353,7 @@
 │   ├── ssh_manager
 │   │   ├── __pycache__
 │   │   │   └── ssh_manager.cpython-310.pyc
-│   │   ├── ssh_config.yml
+│   │   ├── ssh_fields.yml
 │   │   └── ssh_manager.py
 │   ├── styles
 │   │   ├── choice.css
@@ -1345,12 +1361,10 @@
 │   │   └── execution.css
 │   └── utils.py
 └── utils
+    ├── get_ip.py
     ├── get_usb.py
     ├── get_users.py
-    ├── __pycache__
-    │   ├── get_usb.cpython-310.pyc
-    │   └── get_users.cpython-310.pyc
     ├── README.md
     └── system_info.py
 
-110 directories, 1243 files
+112 directories, 1255 files

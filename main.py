@@ -4,6 +4,7 @@ import glob
 
 # Configure logging first
 from ui.logging import get_logger
+
 logger = get_logger('main')
 logger.info('Starting application')
 
@@ -17,7 +18,7 @@ for pkg_dir in glob.glob(os.path.join(libs_dir, '*')):
     # Typically where .dist-info or .py files are stored
     for subdir in glob.glob(os.path.join(pkg_dir, '*')):
         if os.path.isdir(subdir) and (
-            subdir.endswith('.dist-info') or 
+            subdir.endswith('.dist-info') or
             os.path.exists(os.path.join(subdir, '__init__.py')) or
             subdir.endswith('.data')
         ):
@@ -26,7 +27,7 @@ for pkg_dir in glob.glob(os.path.join(libs_dir, '*')):
             if parent_dir not in sys.path:
                 sys.path.insert(0, parent_dir)
                 logger.debug(f"Added {parent_dir} to sys.path")
-        
+
         # Also add the main package directory to the path
         if pkg_dir not in sys.path:
             sys.path.insert(0, pkg_dir)
@@ -36,6 +37,7 @@ for pkg_dir in glob.glob(os.path.join(libs_dir, '*')):
 import argparse
 from ruamel.yaml import YAML
 from ui.choice import Choice
+from ui.executor import ExecutionScreen
 
 
 
@@ -71,7 +73,7 @@ def parse_params(params):
 
 if __name__ == "__main__":
     args = parse_args()
-    
+
     if args.plugin:
         # Direct execution of a plugin
         config = {}
@@ -81,10 +83,10 @@ if __name__ == "__main__":
         # Add command line parameters
         if args.params:
             config.update(parse_params(args.params))
-            
+
         # Create plugin configuration
         plugins_config = {args.plugin: config}
-        
+
         # Launch execution screen directly
         app = ExecutionScreen(plugins_config)
         app.run()
