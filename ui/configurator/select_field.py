@@ -1,17 +1,24 @@
 from textual.app import ComposeResult
 from textual.widgets import Select
+from textual.containers import VerticalGroup, HorizontalGroup
 import os
 import importlib.util
 import sys
 
 from .config_field import ConfigField
-from ..utils import setup_logging
+from ..utils.logging import get_logger
 
-logger = setup_logging()
+logger = get_logger('select_field')
 
 class SelectField(ConfigField):
     """Select field with options"""
+
+    def __init__(self, source_id: str, field_id: str, field_config: dict, fields_by_id: dict = None, is_global: bool = False):
+        super().__init__(source_id, field_id, field_config, fields_by_id, is_global)
+        self.add_class("field-type-select")  # Ajouter une classe spécifique pour le type de champ
+
     def compose(self) -> ComposeResult:
+        # Render label and any other common elements
         yield from super().compose()
 
         # Get options in format accepted by Textual Select
@@ -38,34 +45,37 @@ class SelectField(ConfigField):
                 self.options.append(placeholder_option)
                 self.value = "placeholder"
 
-        # Create Select component with options
-        try:
-            self.select = Select(
-                options=self.options,
-                value=self.value,
-                id=f"select_{self.field_id}",
-                allow_blank=self.field_config.get('allow_blank', False)
-            )
-        except Exception as e:
-            logger.exception(f"Error creating Select widget: {e}")
-            # Fallback in case of error
-            basic_options = [("No valid options", "fallback")]
-            self.select = Select(
-                options=basic_options,
-                value="fallback",
-                id=f"select_{self.field_id}"
-            )
+        # Create a container for the select widget
+        with VerticalGroup(classes="field-input-container select-container"):
+            try:
+                self.select = Select(
+                    options=self.options,
+                    value=self.value,
+                    id=f"select_{self.field_id}",
+                    classes="field-select",
+                    allow_blank=self.field_config.get('allow_blank', False)
+                )
+            except Exception as e:
+                logger.exception(f"Error creating Select widget: {e}")
+                # Fallback in case of error
+                basic_options = [("No valid options", "fallback")]
+                self.select = Select(
+                    options=basic_options,
+                    value="fallback",
+                    id=f"select_{self.field_id}",
+                    classes="field-select error-select"
+                )
 
-        # Always initialize to enabled state first
-        self.select.disabled = False
-        self.select.remove_class('disabled')
+            # Always initialize to enabled state first
+            self.select.disabled = False
+            self.select.remove_class('disabled')
 
-        if self.disabled:
-            logger.debug(f"SelectField {self.field_id} is initially disabled")
-            self.select.disabled = True
-            self.select.add_class('disabled')
+            if self.disabled:
+                logger.debug(f"SelectField {self.field_id} is initially disabled")
+                self.select.disabled = True
+                self.select.add_class('disabled')
 
-        yield self.select
+            yield self.select
 
     def _normalize_options(self, options: list) -> list:
         """
@@ -122,10 +132,10 @@ class SelectField(ConfigField):
         if 'dynamic_options' in self.field_config:
             dynamic_config = self.field_config['dynamic_options']
 
-            # Déterminer le chemin du script (plugin ou utils)
+            # Déterminer le chemin du script (plugin ou utils_scripts)
             if dynamic_config.get('global', False):
-                # Script dans le dossier utils
-                script_path = os.path.join(os.path.dirname(__file__), '..', '..', 'utils', dynamic_config['script'])
+                # Script dans le dossier utils_scripts
+                script_path = os.path.join(os.path.dirname(__file__), '..', '..', 'utils_scripts', dynamic_config['script'])
             else:
                 # Script dans le dossier du plugin
                 script_path = os.path.join(os.path.dirname(__file__), '..', '..', 'plugins', self.source_id, dynamic_config['script'])

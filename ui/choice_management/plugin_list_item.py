@@ -3,7 +3,7 @@ from textual.containers import Horizontal
 from textual.widgets import Label, Button
 
 from .plugin_utils import load_plugin_info
-from ..logging import get_logger
+from ..utils.logging import get_logger
 
 logger = get_logger('plugin_list_item')
 

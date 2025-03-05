@@ -3,7 +3,7 @@ import os
 import glob
 
 # Configure logging first
-from ui.logging import get_logger
+from ui.utils.logging import get_logger
 
 logger = get_logger('main')
 logger.info('Starting application')

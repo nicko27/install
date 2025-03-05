@@ -1,111 +1,95 @@
+/* ====== CONFIGURATION SCREEN STYLES ====== */
+
+/* ==== GLOBAL STRUCTURE ==== */
 Screen {
+    background: $surface;
     height: 100%;
-    width: 100%;
 }
 
-#config-container {
-    background-color: red;
-}
-
-
-.config-container {
-    width: 100%;
-    height: 88%;
-    padding: 1;
-    overflow-y: auto;
-    margin-bottom: 0;
-    background-color: blue;
-}
-
-.config-content {
-    background-color: red;
-}
-
-#button-container {
-    border-top: heavy $primary;
-    width: 100%;
-    align-horizontal: right;
-    padding: 1 2;
-    min-height: 5;
-}
-
-#button-container Button {
+/* Page header */
+#window-config-title {
+    background: $surface;
     margin-left: 1;
-    min-width: 15;
-}
-
-.plugin-header {
+    margin-top: 1;
+    text-align: left;
+    text-style: bold;
+    width: 100%;
     margin-bottom: 1;
 }
 
-.plugin-description {
-    color: $text-muted;
-    text-align: left;
-
+#config-container-list {
+    height: 83%;
+    overflow-y: scroll;
 }
 
-.plugin-title {
+.config-fields {
+    background: $panel;
+    margin-left: 2;
+    margin-right: 2;
+    margin-bottom: 1;
+    padding: 1;
     width: 100%;
-    text-align: center;
-}
-
-.field-label {
-    margin-right: 1;
-}
-
-.field-description {
-    color: $text-muted;
-    width: 100%;
-    overflow: auto;
-    margin-top: 1;
-    margin-left: 1;
-}
-
-.required-star {
-    color: red;
-}
-
-Input.error {
-    border: tall $error;
-}
-
-ConfigField.disabled {
-    opacity: 0.5;
-}
-
-ConfigField.disabled Input,
-ConfigField.disabled Select {
-    background: $surface-darken-2 !important;
-    border: tall $background !important;
-    color: $text-muted !important;
-}
-
-.no-config-container {
-    width: 100%;
-    height: 3;
-    align: center middle;
-    border: tall $primary;
-    background: $boost;
-    margin: 1;
-}
-
-.no-config-icon {
-    color: $success;
-    margin-right: 1;
 }
 
 .no-config {
-    color: $text-muted;
-}
-
-#button-container {
     width: 100%;
-    height: 3;
-    align: right middle;
-    padding: 0 1;
+    height: auto;
+    background: $panel;
+    margin-bottom: 1;
+    padding-top: 1;
+    padding-bottom: 1
 }
 
-#button-container Button {
+.no-config-content {
+    width: 100%;
+    align-horizontal: center;
+}
+
+.no-config-icon {
+    margin-right: 3;
+}
+
+.no-config-label {
+    text-style: italic;
+}
+
+
+
+.field-header {
+    padding-left: 1;
+}
+
+.config-title {
+    background: $panel;
+    text-align: center;
+    text-style: bold;
+    width: 100%;
+    padding-top: 1;
+    margin-left: 2;
+    margin-right: 2;
+}
+
+.config-description {
+    background: $panel;
+    margin-left: 2;
+    margin-right: 2;
+    width: 100%;
+    display: none;
+    height: 0;
+}
+
+.required-star {
+    color: $error;
+    text-style: bold;
+}
+
+.input-container,
+.select-container,
+.checkbox-container {
+    margin-bottom: 1;
+}
+
+.browse-button {
     margin-left: 1;
-    min-width: 15;
+    margin-bottom: 1;
 }

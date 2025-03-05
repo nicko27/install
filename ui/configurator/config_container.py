@@ -4,14 +4,16 @@ from textual.widgets import Label, Input, Select, Button, Checkbox
 from textual.reactive import reactive
 from textual.widget import Widget
 
-from ..utils import setup_logging
 from .text_field import TextField
 from .directory_field import DirectoryField
 from .ip_field import IPField
 from .checkbox_field import CheckboxField
 from .select_field import SelectField
+from .checkbox_group_field import CheckboxGroupField
 
-logger = setup_logging()
+from ..utils.logging import get_logger
+
+logger = get_logger('config_container')
 
 class ConfigContainer(VerticalGroup):
     """Base container for configuration fields (both plugins and global configs)"""
@@ -50,35 +52,38 @@ class ConfigContainer(VerticalGroup):
                 yield Label(self.description, classes="config-description")
 
         if not self.config_fields:
-            with HorizontalGroup(classes="no-config-container"):
-                yield Label("ℹ️", classes="no-config-icon")
-                yield Label(f"Rien à configurer pour {self.title}", classes="no-config")
-            return
+            with VerticalGroup(classes="no-config"):
+                with HorizontalGroup(classes="no-config-content"):
+                    yield Label("ℹ️", classes="no-config-icon")
+                    yield Label(f"Rien à configurer pour ce plugin", classes="no-config-label")
+                return
 
-        # Configuration fields
-        for field_config in self.config_fields:
-            field_id = field_config.get('id')
-            if not field_id:
-                logger.warning(f"Field without id in {self.source_id}")
-                continue
-            field_type = field_config.get('type', 'text')
-            field_class = {
-                'text': TextField,
-                'directory': DirectoryField,
-                'ip': IPField,
-                'checkbox': CheckboxField,
-                'select': SelectField
-            }.get(field_type, TextField)
+        with VerticalGroup(classes="config-fields"):
+            # Configuration fields
+            for field_config in self.config_fields:
+                field_id = field_config.get('id')
+                if not field_id:
+                    logger.warning(f"Field without id in {self.source_id}")
+                    continue
+                field_type = field_config.get('type', 'text')
+                field_class = {
+                    'text': TextField,
+                    'directory': DirectoryField,
+                    'ip': IPField,
+                    'checkbox': CheckboxField,
+                    'select': SelectField,
+                    'checkbox_group': CheckboxGroupField
+                }.get(field_type, TextField)
 
-            # Create field with access to other fields and whether it's global
-            field = field_class(self.source_id, field_id, field_config, self.fields_by_id, is_global=self.is_global)
-            self.fields_by_id[field_id] = field
+                # Create field with access to other fields and whether it's global
+                field = field_class(self.source_id, field_id, field_config, self.fields_by_id, is_global=self.is_global)
+                self.fields_by_id[field_id] = field
 
-            # If it's a checkbox, add an event handler
-            if field_type == 'checkbox':
-                field.on_checkbox_changed = self.on_checkbox_changed
+                # If it's a checkbox or checkbox_group, add an event handler
+                if field_type in ['checkbox', 'checkbox_group']:
+                    field.on_checkbox_changed = self.on_checkbox_changed
 
-            yield field
+                yield field
 
     def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
         """Handle checkbox state changes"""

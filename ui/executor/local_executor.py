@@ -11,9 +11,8 @@ import threading
 from typing import Dict, Tuple
 import traceback
 
-from .logger_utils import LoggerUtils
+from ..utils.logging import get_logger
 from ..choice_management.plugin_utils import get_plugin_folder_name
-from ..logging import get_logger
 
 logger = get_logger('local_executor')
 

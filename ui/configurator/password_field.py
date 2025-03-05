@@ -2,9 +2,9 @@ from textual.app import ComposeResult
 from textual.widgets import Input
 
 from .text_field import TextField
-from ..utils import setup_logging
+from ..utils.logging import get_logger
 
-logger = setup_logging()
+logger = get_logger('password_field')
 
 class PasswordField(TextField):
     """Password input field that masks input"""

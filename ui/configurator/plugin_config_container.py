@@ -1,8 +1,8 @@
 from .config_container import ConfigContainer
-from ..utils import setup_logging
 from textual.widgets import Checkbox
+from ..utils.logging import get_logger
 
-logger = setup_logging()
+logger = get_logger('plugin_config_container')
 
 class PluginConfigContainer(ConfigContainer):
     """Container for plugin configuration fields"""

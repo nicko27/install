@@ -29,10 +29,7 @@ config_fields:
   user_all:
     type: checkbox
     label: Copier tous les comptes utilisateurs
-    # Désactivé si aucun utilisateur n'est disponible
-    enabled_if:
-      field: user_select
-      value: has_options
+    default: false
 
   home_dst_dir:
     type: select

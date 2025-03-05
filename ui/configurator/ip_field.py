@@ -1,5 +1,8 @@
 from textual.widgets import Input
 from .text_field import TextField
+from ..utils.logging import get_logger
+
+logger = get_logger('ip_field')
 
 class IPField(TextField):
     """IP address input field with validation"""

@@ -3,7 +3,7 @@ from textual.containers import Horizontal, Vertical, ScrollableContainer
 from textual.widgets import Label, Header, Footer, Button
 
 import os
-from .logging import get_logger
+from .utils.logging import get_logger
 from .choice_management.plugin_card import PluginCard
 from .choice_management.selected_plugins_panel import SelectedPluginsPanel
 from .choice_management.plugin_utils import load_plugin_info

@@ -2,13 +2,12 @@
 Module définissant le conteneur pour un plugin à exécuter.
 """
 
-import logging
+from ..utils.logging import get_logger
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal
 from textual.widgets import Label, ProgressBar
 
 from ..choice_management.plugin_utils import get_plugin_folder_name
-from ..logging import get_logger
 
 logger = get_logger('plugin_container')
 

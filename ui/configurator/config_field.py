@@ -2,11 +2,10 @@ from textual.app import ComposeResult
 from textual.containers import HorizontalGroup, VerticalGroup
 from textual.widgets import Label, Select
 import os
-import importlib.util
 
-from ..utils import setup_logging
+from ..utils.logging import get_logger
 
-logger = setup_logging()
+logger = get_logger('config_field')
 
 class ConfigField(VerticalGroup):
     """Base class for configuration fields"""
@@ -126,10 +125,11 @@ class ConfigField(VerticalGroup):
     def compose(self) -> ComposeResult:
         label = self.field_config.get('label', self.field_id)
 
-        with HorizontalGroup():
-            yield Label(label, classes="field-label")
+        with HorizontalGroup(classes="field-header", id=f"header_{self.field_id}"):
             if self.field_config.get('required', False):
-                yield Label("*", classes="required-star")
+                yield Label(f"{label} *", classes="field-label required-field")
+            else:
+                yield Label(label, classes="field-label")
 
         # Check if field should be enabled or not
         if self.enabled_if:

@@ -10,8 +10,7 @@ import ipaddress
 import pexpect
 from typing import List, Tuple
 
-from .logger_utils import LoggerUtils
-from ..logging import get_logger
+from ..utils.logging import get_logger
 
 logger = get_logger('ssh_executor')
 

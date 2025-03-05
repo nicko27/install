@@ -17,7 +17,7 @@ from .local_executor import LocalExecutor
 from .ssh_executor import SSHExecutor
 from .logger_utils import LoggerUtils
 from ..choice_management.plugin_utils import get_plugin_folder_name
-from ..logging import get_logger
+from ..utils.logging import get_logger
 
 logger = get_logger('execution_widget')
 

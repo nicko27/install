@@ -6,14 +6,15 @@ import os
 import traceback
 from ruamel.yaml import YAML
 
-from .utils import setup_logging
+from .utils.logging import get_logger
 from .choice_management.plugin_utils import get_plugin_folder_name
-from .components.plugin_config_container import PluginConfigContainer
-from .components.text_field import TextField
-from .components.checkbox_field import CheckboxField
-from .config_manager import ConfigManager
+from .configurator.plugin_config_container import PluginConfigContainer
+from .configurator.global_config_container import GlobalConfigContainer
+from .configurator.text_field import TextField
+from .configurator.checkbox_field import CheckboxField
+from .configurator.config_manager import ConfigManager
 
-logger = setup_logging()
+logger = get_logger('config')
 yaml = YAML()
 
 class PluginConfig(Screen):
@@ -66,7 +67,6 @@ class PluginConfig(Screen):
     def compose(self) -> ComposeResult:
         try:
             logger.debug("PluginConfig.compose() started")
-            print("PluginConfig.compose() started")  # Pour debugging direct
 
             yield Header()
 
@@ -75,10 +75,10 @@ class PluginConfig(Screen):
             has_remote_plugins = len(remote_plugins) > 0
             logger.debug(f"Has remote plugins: {has_remote_plugins}")
 
-            # Fallback label pour s'assurer que quelque chose s'affiche
-            yield Label("Configuration des plugins", id="config-title", classes="section-title")
+            # Titre de la configuration
+            yield Label("Configuration des plugins", id="window-config-title", classes="section-title")
 
-            with ScrollableContainer(id="config-container"):
+            with ScrollableContainer(id="config-container-list"):
                 # Add plugin configurations
                 for plugin_name, instance_id in self.plugin_instances:
                     logger.debug(f"Creating config for plugin: {plugin_name}_{instance_id}")
@@ -102,10 +102,12 @@ class PluginConfig(Screen):
                     # Render the plugin container
                     yield plugin_container
 
-                # For SSH section, use a simple container and yield it directly
+                # Add empty SSH configuration container if there are remote plugins
+                # Content will be added in on_mount
                 if has_remote_plugins:
-                    logger.debug("Adding SSH configuration section")
-                    yield Container(id="ssh-config", classes="config-container disabled-container")
+                    logger.debug("Adding empty SSH container (content will be added in on_mount)")
+                    self.ssh_container = Container(id="ssh-config", classes="config-container disabled-container")
+                    yield self.ssh_container
 
             with Horizontal(id="button-container"):
                 yield Button("Cancel", id="cancel", variant="error")
@@ -114,19 +116,17 @@ class PluginConfig(Screen):
             yield Footer()
 
             logger.debug("PluginConfig.compose() completed")
-            print("PluginConfig.compose() completed")  # Pour debugging direct
 
         except Exception as e:
             logger.error(f"Error in PluginConfig.compose(): {e}")
             logger.error(traceback.format_exc())
-            print(f"Error in PluginConfig.compose(): {e}")  # Pour debugging direct
 
             # En cas d'erreur, au moins retourner des widgets de base sans essayer de les monter
             yield Label("Une erreur s'est produite lors du chargement de la configuration", id="error-message")
             yield Button("Retour", id="cancel", variant="error")
 
     async def on_mount(self) -> None:
-        """Called when screen is mounted - used to add remote execution checkboxes"""
+        """Called when screen is mounted - used to add remote execution checkboxes and SSH fields"""
         try:
             logger.debug("PluginConfig.on_mount() started")
 
@@ -149,7 +149,7 @@ class PluginConfig(Screen):
 
                 # Create checkbox field
                 try:
-                    remote_field = CheckboxField(plugin_name, field_id, remote_config, is_global=False)
+                    remote_field = CheckboxField(plugin_name, field_id, remote_config, is_global=False,classes="remote-execution-checkbox")
 
                     # Store field for future reference
                     self.fields_by_plugin[plugin_name][field_id] = remote_field
@@ -160,6 +160,47 @@ class PluginConfig(Screen):
                     logger.debug(f"Successfully mounted checkbox for {plugin_key}")
                 except Exception as e:
                     logger.error(f"Error creating checkbox for {plugin_key}: {e}")
+
+            # Maintenant que tout est monté, on peut ajouter les champs SSH
+            if self.ssh_container:
+                logger.debug("Adding SSH fields to container")
+
+                # Get SSH fields from config manager
+                ssh_fields = self.config_manager.get_fields('ssh', is_global=True)
+                logger.debug(f"SSH fields: {ssh_fields}")
+
+                if ssh_fields:
+                    # Get SSH container metadata
+                    ssh_config = self.config_manager.global_configs.get('ssh', {})
+                    ssh_name = ssh_config.get('name', 'Configuration SSH')
+                    ssh_icon = ssh_config.get('icon', '🔒')
+                    ssh_description = ssh_config.get('description', '')
+
+                    # Prepare field configurations
+                    ssh_config_fields = []
+                    for field_id, field_config in ssh_fields.items():
+                        field_config_copy = field_config.copy()
+                        field_config_copy['id'] = field_id
+                        ssh_config_fields.append(field_config_copy)
+
+                    # Create SSH configuration container with fields
+                    ssh_content = GlobalConfigContainer(
+                        config_id='ssh',
+                        name=ssh_name,
+                        icon=ssh_icon,
+                        description=ssh_description,
+                        fields_by_id=self.fields_by_id,
+                        config_fields=ssh_config_fields,
+                    )
+
+                    # Mount SSH content inside SSH container
+                    await self.ssh_container.mount(ssh_content)
+                    logger.debug("SSH fields mounted successfully")
+
+            logger.debug("PluginConfig.on_mount() completed")
+        except Exception as e:
+            logger.error(f"Error in PluginConfig.on_mount(): {e}")
+            logger.error(traceback.format_exc())
 
             logger.debug("PluginConfig.on_mount() completed")
         except Exception as e:
@@ -201,8 +242,6 @@ class PluginConfig(Screen):
             if not plugin_config:
                 logger.error(f"No configuration found for plugin {plugin}")
                 container = Container(id=f"plugin_{plugin}_{instance_id}", classes="config-container")
-                # Ne pas utiliser mount ici
-                # Au lieu de cela, retourner le conteneur vide et le laisser être monté par compose
                 return container
 
             # Store fields for later lookup
@@ -216,10 +255,11 @@ class PluginConfig(Screen):
             # Get field configurations
             config_fields = []
             for field_id, field_config in plugin_config.get('config_fields', {}).items():
-                field_config['id'] = field_id
-                config_fields.append(field_config)
+                field_config_copy = field_config.copy()  # Create a copy to avoid modifying original
+                field_config_copy['id'] = field_id
+                config_fields.append(field_config_copy)
 
-            # Utiliser PluginConfigContainer qui fonctionne correctement avec compose
+            # Utiliser PluginConfigContainer avec la classe config-container
             return PluginConfigContainer(
                 plugin=plugin,
                 name=name,
@@ -436,7 +476,16 @@ class PluginConfig(Screen):
 
                     for field in plugin_fields:
                         if hasattr(field, 'variable_name'):
-                            config_values[field.variable_name] = field.get_value()
+                            value = field.get_value()
+                            # Gérer spécifiquement les valeurs des champs checkbox_group
+                            if hasattr(field, 'field_config') and field.field_config.get('type') == 'checkbox_group':
+                                # Si aucune valeur n'est sélectionnée, utiliser une liste vide
+                                if not value:
+                                    value = []
+                                # S'assurer que la valeur est une liste
+                                elif not isinstance(value, list):
+                                    value = [value]
+                            config_values[field.variable_name] = value
 
                     # Add SSH variables if plugin supports remote execution and it's enabled
                     if supports_remote and remote_enabled:

@@ -4,7 +4,7 @@ from textual.widgets import Label, Button, Static
 
 from .plugin_list_item import PluginListItem
 from .plugin_card import PluginCard
-from ..logging import get_logger
+from ..utils.logging import get_logger
 
 logger = get_logger('selected_plugins_panel')
 

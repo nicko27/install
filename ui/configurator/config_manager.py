@@ -1,6 +1,6 @@
 from ruamel.yaml import YAML
 import os
-from .logging import get_logger
+from ..utils.logging import get_logger
 
 logger = get_logger('config_manager')
 

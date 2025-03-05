@@ -10,7 +10,7 @@ from rich.text import Text
 from textual.widgets import Static
 from textual.containers import ScrollableContainer
 
-from ..logging import get_logger
+from ..utils.logging import get_logger
 
 logger = get_logger('executor_logger')
 

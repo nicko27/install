@@ -5,7 +5,7 @@ from textual.message import Message
 from textual.widget import Widget
 
 from .plugin_utils import load_plugin_info
-from ..logging import get_logger
+from ..utils.logging import get_logger
 
 logger = get_logger('plugin_card')
 

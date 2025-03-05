@@ -1334,7 +1334,8 @@
 │   │   │   └── selected_plugins_panel.cpython-310.pyc
 │   │   └── selected_plugins_panel.py
 │   ├── choice.py
-│   ├── components
+│   ├── config.py
+│   ├── configurator
 │   │   ├── checkbox_field.py
 │   │   ├── config_container.py
 │   │   ├── config_field.py
@@ -1349,6 +1350,7 @@
 │   │   │   ├── checkbox_field.cpython-310.pyc
 │   │   │   ├── config_container.cpython-310.pyc
 │   │   │   ├── config_field.cpython-310.pyc
+│   │   │   ├── config_manager.cpython-310.pyc
 │   │   │   ├── directory_field.cpython-310.pyc
 │   │   │   ├── global_config_container.cpython-310.pyc
 │   │   │   ├── __init__.cpython-310.pyc
@@ -1358,8 +1360,6 @@
 │   │   │   └── text_field.cpython-310.pyc
 │   │   ├── select_field.py
 │   │   └── text_field.py
-│   ├── config_manager.py
-│   ├── config.py
 │   ├── executor
 │   │   ├── execution_screen.py
 │   │   ├── execution_widget.py
@@ -1376,7 +1376,8 @@
 │   │   │   ├── plugin_container.cpython-310.pyc
 │   │   │   └── ssh_executor.cpython-310.pyc
 │   │   └── ssh_executor.py
-│   ├── logging.py
+│   ├── logs
+│   │   └── debug.log
 │   ├── __pycache__
 │   │   ├── choice.cpython-310.pyc
 │   │   ├── config.cpython-310.pyc
@@ -1393,12 +1394,19 @@
 │   │   ├── choice.css
 │   │   ├── config.css
 │   │   └── execution.css
-│   └── utils.py
-└── utils
+│   └── utils
+│       ├── logging.py
+│       ├── __pycache__
+│       │   ├── logging.cpython-310.pyc
+│       │   └── utils.cpython-310.pyc
+│       └── utils.py
+└── utils_scripts
     ├── get_ip.py
     ├── get_usb.py
     ├── get_users.py
+    ├── __pycache__
+    │   └── get_usb.cpython-310.pyc
     ├── README.md
     └── system_info.py
 
-116 directories, 1285 files
+120 directories, 1289 files
