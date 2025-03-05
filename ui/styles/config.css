@@ -1,182 +1,26 @@
-/* Plugin Configuration UI Styles */
-
 Screen {
     height: 100%;
     width: 100%;
-    layout: vertical;
-    overflow: hidden;
-}
-
-/* Main container */
-#main-container {
-    width: 100%;
-    height: 1fr;
-    layout: vertical;
-    overflow: hidden;
 }
 
 #config-container {
+    background-color: red;
+}
+
+
+.config-container {
     width: 100%;
-    height: 1fr;
+    height: 88%;
     padding: 1;
     overflow-y: auto;
     margin-bottom: 0;
+    background-color: blue;
 }
 
-/* Plugin containers */
-.plugin-container {
-    margin: 1;
-    border: tall $primary;
-    padding: 1;
-    background: $surface;
-    height: auto;
-    display: block;
-    layout: vertical;
+.config-content {
+    background-color: red;
 }
 
-.plugin-config {
-    background: $panel;
-    margin: 1;
-    padding: 1;
-    border: tall $primary;
-    height: auto;
-    layout: vertical;
-}
-
-/* Plugin header */
-.plugin-header {
-    margin-bottom: 1;
-    padding: 1;
-    height: auto;
-    layout: vertical;
-}
-
-.plugin-title {
-    text-style: bold;
-    width: 100%;
-    text-align: center;
-    padding: 1;
-    height: auto;
-}
-
-.plugin-description {
-    color: $text-muted;
-    text-align: left;
-    padding: 0 1;
-    height: auto;
-}
-
-/* Plugin fields container */
-.plugin-fields {
-    width: 100%;
-    height: auto;
-    min-height: 10;
-    layout: vertical;
-    padding: 1;
-    display: block;
-    overflow-y: auto;
-}
-
-/* Field containers */
-.field-container {
-    margin: 1;
-    padding: 1;
-    border: none;
-    layout: vertical;
-    display: block;
-    width: 100%;
-    height: auto;
-    min-height: 3;
-}
-
-.field-header {
-    layout: horizontal;
-    height: auto;
-    min-height: 1;
-    padding: 0 1;
-}
-
-.field-label {
-    margin-right: 1;
-    text-style: bold;
-}
-
-.field-description {
-    color: $text-muted;
-    padding: 0 1;
-    margin-bottom: 1;
-}
-
-.field-input-container {
-    margin: 1 0;
-    padding: 0 1;
-    min-height: 3;
-}
-
-/* Field elements */
-Input {
-    width: 100%;
-    margin: 0;
-    border: tall $primary;
-}
-
-Input:focus {
-    border: tall $accent;
-}
-
-Input.error {
-    border: tall $error;
-}
-
-Select {
-    width: 100%;
-    margin: 0;
-    border: tall $primary;
-}
-
-Select:focus {
-    border: tall $accent;
-}
-
-TextArea {
-    width: 100%;
-    min-height: 5;
-    margin: 0;
-    border: tall $primary;
-}
-
-TextArea:focus {
-    border: tall $accent;
-}
-
-/* Required field indicator */
-.required-star {
-    color: $error;
-    margin-left: 1;
-}
-
-/* Disabled states */
-.disabled {
-    opacity: 0.5;
-}
-
-.disabled Input,
-.disabled Select,
-.disabled TextArea,
-.disabled Button {
-    background: $surface-darken-2 !important;
-    border: tall $background !important;
-    color: $text-muted !important;
-}
-
-/* Error states */
-.error-message {
-    color: $error;
-    margin-top: 1;
-    padding: 0 1;
-}
-
-/* Button container */
 #button-container {
     border-top: heavy $primary;
     width: 100%;
@@ -185,24 +29,61 @@ TextArea:focus {
     min-height: 5;
 }
 
-.button-group {
-    width: 100%;
-    align-horizontal: right;
-    height: auto;
-}
-
 #button-container Button {
     margin-left: 1;
     min-width: 15;
-    content-align: center middle;
 }
 
-/* Empty state */
+.plugin-header {
+    margin-bottom: 1;
+}
+
+.plugin-description {
+    color: $text-muted;
+    text-align: left;
+
+}
+
+.plugin-title {
+    width: 100%;
+    text-align: center;
+}
+
+.field-label {
+    margin-right: 1;
+}
+
+.field-description {
+    color: $text-muted;
+    width: 100%;
+    overflow: auto;
+    margin-top: 1;
+    margin-left: 1;
+}
+
+.required-star {
+    color: red;
+}
+
+Input.error {
+    border: tall $error;
+}
+
+ConfigField.disabled {
+    opacity: 0.5;
+}
+
+ConfigField.disabled Input,
+ConfigField.disabled Select {
+    background: $surface-darken-2 !important;
+    border: tall $background !important;
+    color: $text-muted !important;
+}
+
 .no-config-container {
     width: 100%;
     height: 3;
     align: center middle;
-    color: $text-muted;
     border: tall $primary;
     background: $boost;
     margin: 1;
@@ -217,7 +98,14 @@ TextArea:focus {
     color: $text-muted;
 }
 
-.checkbox-group-label{
-    height:100%;
-    content-align: center middle;
+#button-container {
+    width: 100%;
+    height: 3;
+    align: right middle;
+    padding: 0 1;
+}
+
+#button-container Button {
+    margin-left: 1;
+    min-width: 15;
 }

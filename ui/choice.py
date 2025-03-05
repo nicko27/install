@@ -39,6 +39,7 @@ class Choice(App):
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button presses in the main application"""
+        logger.debug(f"Button pressed: {event.button.id}")
         if event.button.id == "configure_selected":
             await self.action_configure_selected()
         elif event.button.id == "quit":
@@ -49,6 +50,7 @@ class Choice(App):
         plugins_dir = 'plugins'
         plugin_cards = []
         try:
+            logger.debug(f"Scanning plugins directory: {plugins_dir}")
             # Récupérer tous les plugins valides
             valid_plugins = []
             for plugin_name in os.listdir(plugins_dir):
@@ -57,31 +59,51 @@ class Choice(App):
                 exec_py_path = os.path.join(plugin_path, 'exec.py')
                 exec_bash_path = os.path.join(plugin_path, 'exec.bash')
 
+                # Ajouter ces logs détaillés
+                logger.debug(f"Checking plugin: {plugin_name}")
+                logger.debug(f"  Path: {plugin_path} (exists: {os.path.isdir(plugin_path)})")
+                logger.debug(f"  Settings: {settings_path} (exists: {os.path.exists(settings_path)})")
+                logger.debug(f"  Exec Python: {exec_py_path} (exists: {os.path.exists(exec_py_path)})")
+                logger.debug(f"  Exec Bash: {exec_bash_path} (exists: {os.path.exists(exec_bash_path)})")
+
                 # Vérifier si le plugin est valide
                 if (os.path.isdir(plugin_path) and
                     os.path.exists(settings_path) and
                     (os.path.exists(exec_py_path) or os.path.exists(exec_bash_path))):
 
+                    # Ajouter ce log
+                    logger.debug(f"  Plugin {plugin_name} is valid")
+
                     # Charger les informations du plugin
-                    plugin_info = load_plugin_info(plugin_name)
-                    # Stocker le tuple (nom affiché, nom du plugin) pour le tri
-                    display_name = plugin_info.get('name', plugin_name)
-                    valid_plugins.append((display_name, plugin_name))
+                    try:
+                        plugin_info = load_plugin_info(plugin_name)
+                        display_name = plugin_info.get('name', plugin_name)
+                        valid_plugins.append((display_name, plugin_name))
+                        logger.debug(f"  Added to valid plugins: {plugin_name} as {display_name}")
+                    except Exception as e:
+                        logger.error(f"  Error loading plugin info for {plugin_name}: {e}")
+                else:
+                    logger.debug(f"  Plugin {plugin_name} is NOT valid")
 
             # Trier par le nom affiché (qui est le champ 'name' de settings.yml)
             valid_plugins.sort(key=lambda x: x[0].lower())  # Tri insensible à la casse
+            logger.debug(f"Valid plugins after sorting: {valid_plugins}")
 
             # Créer les cartes dans l'ordre trié
             for _, plugin_name in valid_plugins:
+                logger.debug(f"Creating card for plugin: {plugin_name}")
                 plugin_cards.append(PluginCard(plugin_name))
 
             return plugin_cards
         except Exception as e:
             logger.error(f"Error discovering plugins: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
             return []
 
     def on_plugin_card_plugin_selection_changed(self, message: PluginCard.PluginSelectionChanged) -> None:
         """Handle regular plugin selection changes (first selection or deselection)"""
+        logger.debug(f"Selection changed for plugin: {message.plugin_name} to {message.selected}")
         if message.selected:
             # Vérifier si le plugin est multiple
             plugin_info = load_plugin_info(message.plugin_name)
@@ -100,12 +122,14 @@ class Choice(App):
 
             instance_id = self.instance_counter[message.plugin_name]
             self.selected_plugins.append((message.plugin_name, instance_id))
+            logger.debug(f"Added plugin instance: {message.plugin_name} (id: {instance_id})")
         else:
             # Désélection : on retire toutes les instances du plugin
             self.selected_plugins = [(p, i) for p, i in self.selected_plugins if p != message.plugin_name]
             # Réinitialiser le compteur d'instances
             if message.plugin_name in self.instance_counter:
                 del self.instance_counter[message.plugin_name]
+            logger.debug(f"Removed all instances of plugin: {message.plugin_name}")
 
         # Mettre à jour le panneau
         panel = self.query_one("#selected-plugins", SelectedPluginsPanel)
@@ -121,6 +145,7 @@ class Choice(App):
         # Ajouter la nouvelle instance à la liste
         instance_id = self.instance_counter[message.plugin_name]
         self.selected_plugins.append((message.plugin_name, instance_id))
+        logger.debug(f"Added additional instance of plugin: {message.plugin_name} (id: {instance_id})")
 
         # Mettre à jour le panneau
         panel = self.query_one("#selected-plugins", SelectedPluginsPanel)
@@ -131,27 +156,53 @@ class Choice(App):
 
     async def action_configure_selected(self) -> None:
         """Configure selected plugins"""
-        from ui.config import PluginConfig
-        from ui.executor import ExecutionScreen
+        logger.debug("Starting action_configure_selected")
 
-        if not self.selected_plugins:
-            self.notify("Aucun plugin sélectionné", severity="error")
-            return
+        try:
+            from ui.config import PluginConfig
+            from ui.executor import ExecutionScreen
 
-        # Créer l'écran de configuration pour tous les plugins sélectionnés
-        config_screen = PluginConfig(self.selected_plugins)
+            if not self.selected_plugins:
+                logger.debug("No plugins selected")
+                self.notify("Aucun plugin sélectionné", severity="error")
+                return
 
-        # Afficher l'écran de configuration et attendre qu'il se termine
-        await self.push_screen(config_screen)
+            logger.debug(f"Selected plugins: {self.selected_plugins}")
 
-        # Récupérer la configuration depuis l'écran de configuration
-        config = config_screen.current_config
+            # Créer l'écran de configuration pour tous les plugins sélectionnés
+            logger.debug("Creating PluginConfig instance")
+            config_screen = PluginConfig(self.selected_plugins)
 
-        # Si une configuration a été définie, passer à l'écran d'exécution
-        if config:
-            execution_screen = ExecutionScreen(config)
-            await self.push_screen(execution_screen)
+            # S'assurer que current_config existe
+            if not hasattr(config_screen, 'current_config'):
+                logger.debug("Adding default current_config attribute")
+                config_screen.current_config = {}
+
+            # Afficher l'écran de configuration et attendre qu'il se termine
+            logger.debug("Pushing config screen")
+            await self.push_screen(config_screen)
+            logger.debug("Config screen pushed successfully")
+
+            # Récupérer la configuration avec sécurité
+            config = getattr(config_screen, 'current_config', None)
+            logger.debug(f"Config returned: {config is not None}")
+
+            # Si une configuration a été définie, passer à l'écran d'exécution
+            if config:
+                logger.debug("Creating and pushing execution screen")
+                execution_screen = ExecutionScreen(config)
+                await self.push_screen(execution_screen)
+                logger.debug("Execution screen pushed successfully")
+            else:
+                logger.debug("No configuration returned from config screen")
+
+        except Exception as e:
+            logger.error(f"Error in action_configure_selected: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            self.notify(f"Erreur: {str(e)}", severity="error")
 
     def action_quit(self) -> None:
         """Quit the application"""
+        logger.debug("Quitting application")
         self.exit()

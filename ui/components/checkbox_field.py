@@ -8,11 +8,11 @@ class CheckboxField(ConfigField):
     def compose(self) -> ComposeResult:
         yield from super().compose()
         self.checkbox = Checkbox(
-            id=f"checkbox_{self.plugin_path}_{self.field_id}",
+            id=f"checkbox_{self.source_id}_{self.field_id}",
             value=self.value or False
         )
         yield self.checkbox
 
     def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
-        if event.checkbox.id == f"checkbox_{self.plugin_path}_{self.field_id}":
+        if event.checkbox.id == f"checkbox_{self.source_id}_{self.field_id}":
             self.value = event.value

@@ -24,6 +24,12 @@ class ConfigContainer(VerticalGroup):
 
     def __init__(self, source_id: str, title: str, icon: str, description: str,
                  fields_by_id: dict, config_fields: list, is_global: bool = False, **kwargs):
+        if "classes" in kwargs:
+            if "config-container" not in kwargs["classes"]:
+                kwargs["classes"] += " config-container"
+        else:
+            kwargs["classes"] = "config-container"
+
         super().__init__(**kwargs)
         # Set the reactive attributes
         self.source_id = source_id
@@ -34,6 +40,7 @@ class ConfigContainer(VerticalGroup):
         # Non-reactive attributes
         self.fields_by_id = fields_by_id
         self.config_fields = config_fields
+
 
     def compose(self) -> ComposeResult:
         # Title and description

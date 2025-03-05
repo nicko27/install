@@ -7,7 +7,7 @@ from textual.app import ComposeResult
 from textual.containers import Container, Horizontal
 from textual.widgets import Label, ProgressBar
 
-from ..choice import get_plugin_folder_name
+from ..choice_management.plugin_utils import get_plugin_folder_name
 from ..logging import get_logger
 
 logger = get_logger('plugin_container')
@@ -17,7 +17,7 @@ class PluginContainer(Container):
 
     def __init__(self, plugin_id: str, plugin_name: str, plugin_show_name: str, plugin_icon: str):
         """Initialise le conteneur avec l'ID et le nom du plugin
-        
+
         Args:
             plugin_id: L'ID complet du plugin (ex: bash_interactive_1)
             plugin_name: Le nom interne du plugin
@@ -36,7 +36,7 @@ class PluginContainer(Container):
 
     def compose(self) -> ComposeResult:
         """Création des widgets du conteneur"""
-        with Horizontal():
+        with Horizontal(classes="plugin-content"):
             yield Label(self.plugin_icon+"  "+self.plugin_show_name, classes="plugin-name")
             yield ProgressBar(classes="plugin-progress", show_eta=False, total=100.0)
             yield Label("En attente", classes="plugin-status")
@@ -50,7 +50,7 @@ class PluginContainer(Container):
                 # Convertir la progression en pourcentage et s'assurer qu'elle est entre 0 et 100
                 progress_value = max(0, min(100, progress * 100))
                 progress_bar.update(progress=progress_value)
-            
+
             # Mettre à jour le texte de statut si fourni
             if step:
                 status_label = self.query_one(".plugin-status")
@@ -63,7 +63,7 @@ class PluginContainer(Container):
         """Mise à jour du statut du plugin"""
         # Mettre à jour les classes CSS
         self.classes = f"plugin-container {status}"
-        
+
         # Définir le texte du statut
         status_map = {
             'waiting': 'En attente',
@@ -74,6 +74,6 @@ class PluginContainer(Container):
         status_text = status_map.get(status, status)
         if message:
             status_text = f"{status_text} - {message}"
-        
+
         # Mettre à jour le widget de statut
         self.query_one(".plugin-status").update(status_text)

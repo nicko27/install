@@ -1,9 +1,12 @@
 .
+├── code_structure
+├── code_structure.png
 ├── docs
 │   ├── assets
 │   │   ├── script.js
 │   │   └── style.css
 │   └── index.html
+├── funcListsGraphs.py
 ├── libs
 │   ├── linkify_it_py-2.0.3-py3-none-any
 │   │   ├── linkify_it
@@ -1237,6 +1240,7 @@
 ├── plugins
 │   ├── add_printer
 │   │   ├── exec.py
+│   │   ├── get_ip.py
 │   │   ├── get_printer_models.py
 │   │   ├── models
 │   │   │   ├── EC4200.yml
@@ -1260,6 +1264,10 @@
 │   │   │   ├── KM361i.yml
 │   │   │   ├── KM4051iC.yml
 │   │   │   └── KM4051i.yml
+│   │   ├── __pycache__
+│   │   │   ├── get_default_ip.cpython-310.pyc
+│   │   │   ├── get_ip.cpython-310.pyc
+│   │   │   └── get_printer_models.cpython-310.pyc
 │   │   └── settings.yml
 │   ├── delete_printer
 │   │   ├── exec.py
@@ -1313,20 +1321,45 @@
 ├── start.sh
 ├── tree.txt
 ├── ui
+│   ├── choice_management
+│   │   ├── __init__.py
+│   │   ├── plugin_card.py
+│   │   ├── plugin_list_item.py
+│   │   ├── plugin_utils.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-310.pyc
+│   │   │   ├── plugin_card.cpython-310.pyc
+│   │   │   ├── plugin_list_item.cpython-310.pyc
+│   │   │   ├── plugin_utils.cpython-310.pyc
+│   │   │   └── selected_plugins_panel.cpython-310.pyc
+│   │   └── selected_plugins_panel.py
 │   ├── choice.py
 │   ├── components
 │   │   ├── checkbox_field.py
+│   │   ├── config_container.py
 │   │   ├── config_field.py
+│   │   ├── config_manager.py
 │   │   ├── directory_field.py
+│   │   ├── global_config_container.py
 │   │   ├── __init__.py
 │   │   ├── ip_field.py
 │   │   ├── password_field.py
 │   │   ├── plugin_config_container.py
+│   │   ├── __pycache__
+│   │   │   ├── checkbox_field.cpython-310.pyc
+│   │   │   ├── config_container.cpython-310.pyc
+│   │   │   ├── config_field.cpython-310.pyc
+│   │   │   ├── directory_field.cpython-310.pyc
+│   │   │   ├── global_config_container.cpython-310.pyc
+│   │   │   ├── __init__.cpython-310.pyc
+│   │   │   ├── ip_field.cpython-310.pyc
+│   │   │   ├── plugin_config_container.cpython-310.pyc
+│   │   │   ├── select_field.cpython-310.pyc
+│   │   │   └── text_field.cpython-310.pyc
 │   │   ├── select_field.py
 │   │   └── text_field.py
+│   ├── config_manager.py
 │   ├── config.py
-│   ├── config.py.old
-│   ├── execution.py.old
 │   ├── executor
 │   │   ├── execution_screen.py
 │   │   ├── execution_widget.py
@@ -1347,6 +1380,7 @@
 │   ├── __pycache__
 │   │   ├── choice.cpython-310.pyc
 │   │   ├── config.cpython-310.pyc
+│   │   ├── config_manager.cpython-310.pyc
 │   │   ├── execution.cpython-310.pyc
 │   │   ├── logging.cpython-310.pyc
 │   │   └── utils.cpython-310.pyc
@@ -1367,4 +1401,4 @@
     ├── README.md
     └── system_info.py
 
-112 directories, 1255 files
+116 directories, 1285 files
