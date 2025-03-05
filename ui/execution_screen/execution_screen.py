@@ -11,7 +11,7 @@ from .execution_widget import ExecutionWidget
 class ExecutionScreen(Screen):
     """Écran contenant le widget d'exécution des plugins"""
 
-    CSS_PATH = os.path.join(os.path.dirname(__file__), "../styles/execution.css")
+    CSS_PATH = os.path.join(os.path.dirname(__file__), "../styles/execution.tcss")
 
     def __init__(self, plugins_config: dict = None):
         """Initialise l'écran avec la configuration des plugins

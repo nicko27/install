@@ -8,14 +8,22 @@ import time
 import asyncio
 import ipaddress
 import pexpect
-from typing import List, Tuple
+import socket
+from typing import List, Tuple, Dict, Any, Optional
 
 from ..utils.logging import get_logger
+from ..ssh_manager.ssh_config_loader import SSHConfigLoader
+from .logger_utils import LoggerUtils
 
 logger = get_logger('ssh_executor')
 
 class SSHExecutor:
     """Classe pour l'exécution des plugins via SSH"""
+    
+    @staticmethod
+    def get_config() -> Dict[str, Any]:
+        """Récupère la configuration SSH"""
+        return SSHConfigLoader.get_instance().get_config()
     
     @staticmethod
     async def resolve_ips(app, ssh_ips, ssh_exception_ips):
@@ -76,6 +84,31 @@ class SSHExecutor:
     async def execute_ssh(app, ip_address, username, password, plugin_dir, plugin_id, plugin_config):
         """Exécute un plugin via SSH sur une machine distante"""
         try:
+            # Vérifier si on doit utiliser l'exécution locale
+            if SSHConfigLoader.get_instance().should_use_local_execution(ip_address):
+                await LoggerUtils.add_log(app, f"Utilisation de l'exécution locale pour {ip_address}", "info")
+                from .local_executor import LocalExecutor
+                # Créer une file d'attente pour les résultats
+                result_queue = asyncio.Queue()
+                # Exécuter le plugin localement
+                await LocalExecutor.run_local_plugin(
+                    app, plugin_id, app.plugins[plugin_id], 
+                    plugin_config.get('name', plugin_id), plugin_config, 0, 1, result_queue
+                )
+                # Récupérer le résultat
+                success, message = await result_queue.get()
+                return success, message
+            
+            # Obtenir les paramètres de configuration
+            ssh_config = SSHConfigLoader.get_instance()
+            connection_config = ssh_config.get_connection_config()
+            auth_config = ssh_config.get_authentication_config()
+            
+            # Récupérer les timeouts depuis la configuration
+            connect_timeout = connection_config.get('connect_timeout', 10)
+            transfer_timeout = connection_config.get('transfer_timeout', 60)
+            command_timeout = connection_config.get('command_timeout', 120)
+            
             await LoggerUtils.add_log(app, f"Connexion SSH à {ip_address}...", "info")
             
             # Créer le processus SSH avec pexpect
@@ -83,25 +116,34 @@ class SSHExecutor:
             ssh_process = pexpect.spawn(ssh_command, encoding='utf-8')
             
             # Gérer l'authentification
-            i = ssh_process.expect(['password:', 'continue connecting', pexpect.TIMEOUT, pexpect.EOF], timeout=10)
+            i = ssh_process.expect(['password:', 'continue connecting', pexpect.TIMEOUT, pexpect.EOF], timeout=connect_timeout)
             if i == 0:
                 ssh_process.sendline(password)
             elif i == 1:
-                ssh_process.sendline('yes')
-                ssh_process.expect('password:')
-                ssh_process.sendline(password)
+                # Auto-accepter la clé d'hôte si configuré
+                if auth_config.get('auto_add_keys', True):
+                    ssh_process.sendline('yes')
+                    ssh_process.expect('password:')
+                    ssh_process.sendline(password)
+                else:
+                    return False, f"Nouvelle clé d'hôte détectée pour {ip_address}, mais l'acceptation automatique est désactivée"
             else:
-                return False, f"Erreur de connexion à {ip_address}"
+                return False, f"Erreur de connexion à {ip_address} (timeout: {connect_timeout}s)"
             
             # Vérifier l'authentification
-            i = ssh_process.expect(['$', '#', pexpect.TIMEOUT, pexpect.EOF], timeout=10)
+            i = ssh_process.expect(['$', '#', pexpect.TIMEOUT, pexpect.EOF], timeout=connect_timeout)
             if i >= 2:
                 return False, f"Échec de l'authentification sur {ip_address}"
             
             await LoggerUtils.add_log(app, f"Connexion établie avec {ip_address}", "success")
             
+            # Obtenir les paramètres d'exécution
+            execution_config = ssh_config.get_execution_config()
+            remote_temp_dir = execution_config.get('remote_temp_dir', '/tmp/pcutils')
+            cleanup_temp_files = execution_config.get('cleanup_temp_files', True)
+            
             # Créer un répertoire temporaire
-            temp_dir = f"/tmp/pcutils_{plugin_id}_{int(time.time())}"
+            temp_dir = f"{remote_temp_dir}_{plugin_id}_{int(time.time())}"
             ssh_process.sendline(f"mkdir -p {temp_dir}")
             ssh_process.expect(['$', '#'])
             
@@ -109,12 +151,12 @@ class SSHExecutor:
             await LoggerUtils.add_log(app, f"Transfert des fichiers vers {ip_address}...", "info")
             scp_command = f"scp -r {plugin_dir}/* {username}@{ip_address}:{temp_dir}/"
             scp_process = pexpect.spawn(scp_command, encoding='utf-8')
-            i = scp_process.expect(['password:', pexpect.TIMEOUT, pexpect.EOF], timeout=30)
+            i = scp_process.expect(['password:', pexpect.TIMEOUT, pexpect.EOF], timeout=connect_timeout)
             if i == 0:
                 scp_process.sendline(password)
             
             # Attendre la fin du transfert
-            scp_process.expect(pexpect.EOF, timeout=60)
+            scp_process.expect(pexpect.EOF, timeout=transfer_timeout)
             await LoggerUtils.add_log(app, f"Transfert terminé vers {ip_address}", "success")
             
             # Identifier le type de plugin
@@ -148,12 +190,17 @@ class SSHExecutor:
                     logger.error(f"Erreur de lecture SSH: {str(e)}")
                     break
             
-            # Nettoyer les fichiers temporaires
-            ssh_process.sendline(f"rm -rf {temp_dir}")
+            # Nettoyer les fichiers temporaires si configuré
+            if cleanup_temp_files:
+                ssh_process.sendline(f"rm -rf {temp_dir}")
             ssh_process.sendline("exit")
             
             # Vérifier si l'exécution s'est bien passée
             success = "Exécution terminée avec succès" in output or "Progression : 100%" in output
+            
+            # Journaliser la sortie complète si configuré
+            if ssh_config.get_logging_config().get('log_full_output', False):
+                logger.debug(f"Sortie complète de l'exécution SSH sur {ip_address}:\n{output}")
             
             if success:
                 return True, "Exécution SSH terminée avec succès"
@@ -243,13 +290,21 @@ class SSHExecutor:
             
             await LoggerUtils.add_log(app, f"Machines accessibles: {', '.join(valid_ips)}", "info")
             
+            # Obtenir la configuration d'exécution
+            ssh_config = SSHConfigLoader.get_instance()
+            execution_config = ssh_config.get_execution_config()
+            parallel_execution = execution_config.get('parallel_execution', False)
+            max_parallel = execution_config.get('max_parallel', 5)
+            
             # Exécution sur chaque IP valide
             total_ips = len(valid_ips)
             success_count = 0
             
-            for idx, ip in enumerate(valid_ips):
-                ip_progress = 0.1 + (0.9 * idx / total_ips)
-                plugin_widget.update_progress(ip_progress, f"Connexion à {ip}...")
+            # Fonction pour exécuter un plugin sur une IP
+            async def execute_on_ip(ip, progress_start, progress_end):
+                nonlocal success_count
+                # Mettre à jour la progression
+                plugin_widget.update_progress(progress_start, f"Connexion à {ip}...")
                 
                 # Préparer la configuration avec les données SSH pour ce plugin
                 plugin_config = config.copy()
@@ -269,11 +324,41 @@ class SSHExecutor:
                     app, ip, ssh_user, ssh_passwd, plugin_dir, plugin_id, plugin_config
                 )
                 
+                # Mettre à jour la progression
+                plugin_widget.update_progress(progress_end, f"Terminé sur {ip}")
+                
                 if success:
                     success_count += 1
                     await LoggerUtils.add_log(app, f"Exécution réussie sur {ip}", "success")
                 else:
                     await LoggerUtils.add_log(app, f"Échec sur {ip}: {message}", "error")
+                
+                return success, message
+            
+            # Exécution parallèle ou séquentielle selon la configuration
+            if parallel_execution and total_ips > 1:
+                await LoggerUtils.add_log(app, f"Exécution parallèle sur {min(total_ips, max_parallel)} machines", "info")
+                
+                # Créer des groupes d'IPs pour limiter la parallélisation
+                for i in range(0, total_ips, max_parallel):
+                    batch = valid_ips[i:i+max_parallel]
+                    batch_size = len(batch)
+                    
+                    # Créer les tâches pour ce groupe
+                    tasks = []
+                    for j, ip in enumerate(batch):
+                        progress_start = 0.1 + (0.9 * (i + j) / total_ips)
+                        progress_end = 0.1 + (0.9 * (i + j + 1) / total_ips)
+                        tasks.append(execute_on_ip(ip, progress_start, progress_end))
+                    
+                    # Exécuter les tâches en parallèle
+                    await asyncio.gather(*tasks)
+            else:
+                # Exécution séquentielle
+                for idx, ip in enumerate(valid_ips):
+                    progress_start = 0.1 + (0.9 * idx / total_ips)
+                    progress_end = 0.1 + (0.9 * (idx + 1) / total_ips)
+                    await execute_on_ip(ip, progress_start, progress_end)
             
             # Résultat final
             if success_count > 0:

@@ -6,23 +6,25 @@ import os
 import traceback
 from ruamel.yaml import YAML
 
-from .utils.logging import get_logger
-from .choice_management.plugin_utils import get_plugin_folder_name
-from .configurator.plugin_config_container import PluginConfigContainer
-from .configurator.global_config_container import GlobalConfigContainer
-from .configurator.text_field import TextField
-from .configurator.checkbox_field import CheckboxField
-from .configurator.config_manager import ConfigManager
+from ..utils.logging import get_logger
+from ..choice_screen.plugin_utils import get_plugin_folder_name
+from .plugin_config_container import PluginConfigContainer
+from .global_config_container import GlobalConfigContainer
+from .text_field import TextField
+from .checkbox_field import CheckboxField
+from .config_manager import ConfigManager
 
 logger = get_logger('config')
+# Configuration de ruamel.yaml pour préserver les commentaires
 yaml = YAML()
+yaml.preserve_quotes = True
 
 class PluginConfig(Screen):
     """Plugin configuration screen"""
     BINDINGS = [
         ("esc", "quit", "Quit"),
     ]
-    CSS_PATH = "styles/config.css"
+    CSS_PATH = "../styles/config.tcss"
 
     def __init__(self, plugin_instances: list, name: str | None = None) -> None:
         try:
@@ -74,6 +76,7 @@ class PluginConfig(Screen):
             remote_plugins = self.get_remote_execution_plugins()
             has_remote_plugins = len(remote_plugins) > 0
             logger.debug(f"Has remote plugins: {has_remote_plugins}")
+            logger.debug(f"Remote plugins list: {remote_plugins}")
 
             # Titre de la configuration
             yield Label("Configuration des plugins", id="window-config-title", classes="section-title")
@@ -85,6 +88,7 @@ class PluginConfig(Screen):
                     plugin_container = self._create_plugin_config(plugin_name, instance_id)
 
                     # If plugin supports remote execution, prepare its checkbox
+                    logger.debug(f"Checking if {plugin_name} is in remote_plugins: {plugin_name in remote_plugins}")
                     if plugin_name in remote_plugins:
                         logger.debug(f"Preparing remote execution checkbox for plugin {plugin_name}_{instance_id}")
 
@@ -149,14 +153,37 @@ class PluginConfig(Screen):
 
                 # Create checkbox field
                 try:
-                    remote_field = CheckboxField(plugin_name, field_id, remote_config, is_global=False,classes="remote-execution-checkbox")
+                    # Créer une configuration plus explicite et visible
+                    remote_config = {
+                        "type": "checkbox",
+                        "label": "⚠️ Activer l'exécution distante pour ce plugin",
+                        "description": "Cochez cette case pour exécuter ce plugin via SSH sur des machines distantes",
+                        "default": False,
+                        "id": field_id,
+                        "variable": "remote_execution_enabled",
+                        "required": True
+                    }
+                    
+                    remote_field = CheckboxField(plugin_name, field_id, remote_config, self.fields_by_id, is_global=False)
+                    remote_field.add_class("remote-execution-checkbox")
 
                     # Store field for future reference
                     self.fields_by_plugin[plugin_name][field_id] = remote_field
                     self.plugins_remote_enabled[plugin_key] = remote_field
 
-                    # Mount checkbox in the plugin container
-                    await container.mount(remote_field)
+                    # Créer un conteneur spécifique pour la case à cocher d'exécution distante
+                    from textual.containers import VerticalGroup
+                    from textual.widgets import Label
+                    remote_container = VerticalGroup(classes="remote-execution-container")
+                    
+                    # Ajouter une étiquette explicite
+                    remote_label = Label("🔗 Configuration de l'exécution à distance", classes="remote-execution-label")
+                    await remote_container.mount(remote_label)
+                    await remote_container.mount(remote_field)
+                    
+                    # Mount the remote container in the plugin container
+                    logger.debug(f"Container for {plugin_key}: {container}")
+                    await container.mount(remote_container)
                     logger.debug(f"Successfully mounted checkbox for {plugin_key}")
                 except Exception as e:
                     logger.error(f"Error creating checkbox for {plugin_key}: {e}")
@@ -211,6 +238,7 @@ class PluginConfig(Screen):
         """Return list of plugins that support remote execution"""
         try:
             remote_plugins = []
+            logger.debug(f"Plugin instances to check for remote execution: {self.plugin_instances}")
 
             for plugin_name, _ in self.plugin_instances:
                 # Get plugin folder name
@@ -218,8 +246,13 @@ class PluginConfig(Screen):
                 settings_path = os.path.join(os.path.dirname(__file__), '..', 'plugins', folder_name, 'settings.yml')
 
                 try:
-                    with open(settings_path, 'r') as f:
-                        settings = yaml.load(f)
+                    logger.debug(f"Reading settings from: {settings_path}")
+                    with open(settings_path, 'r', encoding='utf-8') as f:
+                        file_content = f.read()
+                        logger.debug(f"File content: {file_content}")
+                        from io import StringIO
+                        settings = yaml.load(StringIO(file_content))
+                        logger.debug(f"Loaded settings: {settings}")
                         remote_exec = settings.get('remote_execution', False)
                         logger.debug(f"Plugin {plugin_name} remote_execution: {remote_exec}")
                         if remote_exec:
@@ -320,7 +353,7 @@ class PluginConfig(Screen):
 
                 # Import here to avoid circular imports
                 try:
-                    from .executor import ExecutionScreen
+                    from ..executor.execution_screen import ExecutionScreen
 
                     # Create execution screen
                     logger.debug("Creating ExecutionScreen")
@@ -450,8 +483,10 @@ class PluginConfig(Screen):
                     folder_name = get_plugin_folder_name(plugin_name)
                     settings_path = os.path.join(os.path.dirname(__file__), '..', 'plugins', folder_name, 'settings.yml')
 
-                    with open(settings_path, 'r') as f:
-                        settings = yaml.load(f)
+                    with open(settings_path, 'r', encoding='utf-8') as f:
+                        file_content = f.read()
+                        from io import StringIO
+                        settings = yaml.load(StringIO(file_content))
                         supports_remote = settings.get('remote_execution', False)
                 except Exception as e:
                     logger.error(f"Error checking remote execution for {plugin_name}: {e}")
@@ -499,8 +534,10 @@ class PluginConfig(Screen):
                     try:
                         folder_name = get_plugin_folder_name(plugin_name)
                         settings_path = os.path.join(os.path.dirname(__file__), '..', 'plugins', folder_name, 'settings.yml')
-                        with open(settings_path, 'r') as f:
-                            plugin_settings = yaml.load(f)
+                        with open(settings_path, 'r', encoding='utf-8') as f:
+                            file_content = f.read()
+                            from io import StringIO
+                            plugin_settings = yaml.load(StringIO(file_content))
                     except Exception as e:
                         logger.error(f"Error loading settings for {plugin_name}: {e}")
 

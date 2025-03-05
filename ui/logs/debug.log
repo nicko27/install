@@ -1,260 +1,266 @@
-2025-03-05 14:46:58,748 - install_ui.main - INFO - Starting application
-2025-03-05 14:46:58,748 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/textual-2.1.1-py3-none-any to sys.path
-2025-03-05 14:46:58,749 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/platformdirs-4.3.6-py3-none-any to sys.path
-2025-03-05 14:46:58,749 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/pygments-2.19.1-py3-none-any to sys.path
-2025-03-05 14:46:58,749 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64 to sys.path
-2025-03-05 14:46:58,749 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/uc_micro_py-1.0.3-py3-none-any to sys.path
-2025-03-05 14:46:58,749 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/pexpect-4.9.0-py2.py3-none-any to sys.path
-2025-03-05 14:46:58,749 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/linkify_it_py-2.0.3-py3-none-any to sys.path
-2025-03-05 14:46:58,749 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/typing_extensions-4.12.2-py3-none-any to sys.path
-2025-03-05 14:46:58,749 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/mdit_py_plugins-0.4.2-py3-none-any to sys.path
-2025-03-05 14:46:58,749 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/ruamel.yaml-0.18.10-py3-none-any to sys.path
-2025-03-05 14:46:58,750 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/rich-13.9.4-py3-none-any to sys.path
-2025-03-05 14:46:58,750 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/ptyprocess-0.7.0-py2.py3-none-any to sys.path
-2025-03-05 14:46:58,980 - install_ui.choice - DEBUG - Initializing Choice application
-2025-03-05 14:46:58,980 - asyncio - DEBUG - Using selector: EpollSelector
-2025-03-05 14:46:58,994 - install_ui.choice - DEBUG - Scanning plugins directory: plugins
-2025-03-05 14:46:58,994 - install_ui.choice - DEBUG - Checking plugin: lara_install
-2025-03-05 14:46:58,995 - install_ui.choice - DEBUG -   Path: plugins/lara_install (exists: True)
-2025-03-05 14:46:58,995 - install_ui.choice - DEBUG -   Settings: plugins/lara_install/settings.yml (exists: True)
-2025-03-05 14:46:58,995 - install_ui.choice - DEBUG -   Exec Python: plugins/lara_install/exec.py (exists: True)
-2025-03-05 14:46:58,995 - install_ui.choice - DEBUG -   Exec Bash: plugins/lara_install/exec.bash (exists: False)
-2025-03-05 14:46:58,995 - install_ui.choice - DEBUG -   Plugin lara_install is valid
-2025-03-05 14:46:58,995 - install_ui.plugin_utils - DEBUG - Loading plugin info for: lara_install
-2025-03-05 14:46:58,995 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: lara_install
-2025-03-05 14:46:58,995 - install_ui.plugin_utils - DEBUG -   Test path: plugins/lara_install_test (exists: False)
-2025-03-05 14:46:58,995 - install_ui.plugin_utils - DEBUG -   Base path: plugins/lara_install (exists: True)
-2025-03-05 14:46:58,995 - install_ui.plugin_utils - DEBUG -   Returning base folder name: lara_install
-2025-03-05 14:46:58,995 - install_ui.plugin_utils - DEBUG -   Folder name: lara_install
-2025-03-05 14:46:58,995 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/lara_install/settings.yml (exists: True)
-2025-03-05 14:46:59,010 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for lara_install
-2025-03-05 14:46:59,010 - install_ui.choice - DEBUG -   Added to valid plugins: lara_install as LARA
-2025-03-05 14:46:59,010 - install_ui.choice - DEBUG - Checking plugin: home_copy
-2025-03-05 14:46:59,010 - install_ui.choice - DEBUG -   Path: plugins/home_copy (exists: True)
-2025-03-05 14:46:59,010 - install_ui.choice - DEBUG -   Settings: plugins/home_copy/settings.yml (exists: True)
-2025-03-05 14:46:59,010 - install_ui.choice - DEBUG -   Exec Python: plugins/home_copy/exec.py (exists: True)
-2025-03-05 14:46:59,011 - install_ui.choice - DEBUG -   Exec Bash: plugins/home_copy/exec.bash (exists: False)
-2025-03-05 14:46:59,011 - install_ui.choice - DEBUG -   Plugin home_copy is valid
-2025-03-05 14:46:59,011 - install_ui.plugin_utils - DEBUG - Loading plugin info for: home_copy
-2025-03-05 14:46:59,011 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: home_copy
-2025-03-05 14:46:59,011 - install_ui.plugin_utils - DEBUG -   Test path: plugins/home_copy_test (exists: False)
-2025-03-05 14:46:59,011 - install_ui.plugin_utils - DEBUG -   Base path: plugins/home_copy (exists: True)
-2025-03-05 14:46:59,011 - install_ui.plugin_utils - DEBUG -   Returning base folder name: home_copy
-2025-03-05 14:46:59,011 - install_ui.plugin_utils - DEBUG -   Folder name: home_copy
-2025-03-05 14:46:59,011 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/home_copy/settings.yml (exists: True)
-2025-03-05 14:46:59,028 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for home_copy
-2025-03-05 14:46:59,028 - install_ui.choice - DEBUG -   Added to valid plugins: home_copy as Copie de comptes utilisateurs
-2025-03-05 14:46:59,028 - install_ui.choice - DEBUG - Checking plugin: README_PYTHON.md
-2025-03-05 14:46:59,028 - install_ui.choice - DEBUG -   Path: plugins/README_PYTHON.md (exists: False)
-2025-03-05 14:46:59,028 - install_ui.choice - DEBUG -   Settings: plugins/README_PYTHON.md/settings.yml (exists: False)
-2025-03-05 14:46:59,028 - install_ui.choice - DEBUG -   Exec Python: plugins/README_PYTHON.md/exec.py (exists: False)
-2025-03-05 14:46:59,028 - install_ui.choice - DEBUG -   Exec Bash: plugins/README_PYTHON.md/exec.bash (exists: False)
-2025-03-05 14:46:59,028 - install_ui.choice - DEBUG -   Plugin README_PYTHON.md is NOT valid
-2025-03-05 14:46:59,028 - install_ui.choice - DEBUG - Checking plugin: README_BASH.md
-2025-03-05 14:46:59,028 - install_ui.choice - DEBUG -   Path: plugins/README_BASH.md (exists: False)
-2025-03-05 14:46:59,028 - install_ui.choice - DEBUG -   Settings: plugins/README_BASH.md/settings.yml (exists: False)
-2025-03-05 14:46:59,028 - install_ui.choice - DEBUG -   Exec Python: plugins/README_BASH.md/exec.py (exists: False)
-2025-03-05 14:46:59,028 - install_ui.choice - DEBUG -   Exec Bash: plugins/README_BASH.md/exec.bash (exists: False)
-2025-03-05 14:46:59,028 - install_ui.choice - DEBUG -   Plugin README_BASH.md is NOT valid
-2025-03-05 14:46:59,028 - install_ui.choice - DEBUG - Checking plugin: README_SCRIPT_INTERACTIVE.md
-2025-03-05 14:46:59,028 - install_ui.choice - DEBUG -   Path: plugins/README_SCRIPT_INTERACTIVE.md (exists: False)
-2025-03-05 14:46:59,028 - install_ui.choice - DEBUG -   Settings: plugins/README_SCRIPT_INTERACTIVE.md/settings.yml (exists: False)
-2025-03-05 14:46:59,029 - install_ui.choice - DEBUG -   Exec Python: plugins/README_SCRIPT_INTERACTIVE.md/exec.py (exists: False)
-2025-03-05 14:46:59,029 - install_ui.choice - DEBUG -   Exec Bash: plugins/README_SCRIPT_INTERACTIVE.md/exec.bash (exists: False)
-2025-03-05 14:46:59,029 - install_ui.choice - DEBUG -   Plugin README_SCRIPT_INTERACTIVE.md is NOT valid
-2025-03-05 14:46:59,029 - install_ui.choice - DEBUG - Checking plugin: add_printer
-2025-03-05 14:46:59,029 - install_ui.choice - DEBUG -   Path: plugins/add_printer (exists: True)
-2025-03-05 14:46:59,029 - install_ui.choice - DEBUG -   Settings: plugins/add_printer/settings.yml (exists: True)
-2025-03-05 14:46:59,029 - install_ui.choice - DEBUG -   Exec Python: plugins/add_printer/exec.py (exists: True)
-2025-03-05 14:46:59,029 - install_ui.choice - DEBUG -   Exec Bash: plugins/add_printer/exec.bash (exists: False)
-2025-03-05 14:46:59,029 - install_ui.choice - DEBUG -   Plugin add_printer is valid
-2025-03-05 14:46:59,029 - install_ui.plugin_utils - DEBUG - Loading plugin info for: add_printer
-2025-03-05 14:46:59,029 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
-2025-03-05 14:46:59,029 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
-2025-03-05 14:46:59,029 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
-2025-03-05 14:46:59,029 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
-2025-03-05 14:46:59,030 - install_ui.plugin_utils - DEBUG -   Folder name: add_printer
-2025-03-05 14:46:59,030 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/add_printer/settings.yml (exists: True)
-2025-03-05 14:46:59,040 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for add_printer
-2025-03-05 14:46:59,040 - install_ui.choice - DEBUG -   Added to valid plugins: add_printer as Ajout d'imprimante
-2025-03-05 14:46:59,040 - install_ui.choice - DEBUG - Checking plugin: scan_plugin
-2025-03-05 14:46:59,040 - install_ui.choice - DEBUG -   Path: plugins/scan_plugin (exists: True)
-2025-03-05 14:46:59,040 - install_ui.choice - DEBUG -   Settings: plugins/scan_plugin/settings.yml (exists: True)
-2025-03-05 14:46:59,040 - install_ui.choice - DEBUG -   Exec Python: plugins/scan_plugin/exec.py (exists: True)
-2025-03-05 14:46:59,040 - install_ui.choice - DEBUG -   Exec Bash: plugins/scan_plugin/exec.bash (exists: False)
-2025-03-05 14:46:59,040 - install_ui.choice - DEBUG -   Plugin scan_plugin is valid
-2025-03-05 14:46:59,040 - install_ui.plugin_utils - DEBUG - Loading plugin info for: scan_plugin
-2025-03-05 14:46:59,040 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: scan_plugin
-2025-03-05 14:46:59,040 - install_ui.plugin_utils - DEBUG -   Test path: plugins/scan_plugin_test (exists: False)
-2025-03-05 14:46:59,040 - install_ui.plugin_utils - DEBUG -   Base path: plugins/scan_plugin (exists: True)
-2025-03-05 14:46:59,040 - install_ui.plugin_utils - DEBUG -   Returning base folder name: scan_plugin
-2025-03-05 14:46:59,040 - install_ui.plugin_utils - DEBUG -   Folder name: scan_plugin
-2025-03-05 14:46:59,040 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/scan_plugin/settings.yml (exists: True)
-2025-03-05 14:46:59,053 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for scan_plugin
-2025-03-05 14:46:59,053 - install_ui.choice - DEBUG -   Added to valid plugins: scan_plugin as Configuration serveur pour Numerisation
-2025-03-05 14:46:59,053 - install_ui.choice - DEBUG - Checking plugin: delete_printer
-2025-03-05 14:46:59,053 - install_ui.choice - DEBUG -   Path: plugins/delete_printer (exists: True)
-2025-03-05 14:46:59,053 - install_ui.choice - DEBUG -   Settings: plugins/delete_printer/settings.yml (exists: True)
-2025-03-05 14:46:59,053 - install_ui.choice - DEBUG -   Exec Python: plugins/delete_printer/exec.py (exists: True)
-2025-03-05 14:46:59,053 - install_ui.choice - DEBUG -   Exec Bash: plugins/delete_printer/exec.bash (exists: False)
-2025-03-05 14:46:59,053 - install_ui.choice - DEBUG -   Plugin delete_printer is valid
-2025-03-05 14:46:59,053 - install_ui.plugin_utils - DEBUG - Loading plugin info for: delete_printer
-2025-03-05 14:46:59,053 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: delete_printer
-2025-03-05 14:46:59,053 - install_ui.plugin_utils - DEBUG -   Test path: plugins/delete_printer_test (exists: False)
-2025-03-05 14:46:59,053 - install_ui.plugin_utils - DEBUG -   Base path: plugins/delete_printer (exists: True)
-2025-03-05 14:46:59,053 - install_ui.plugin_utils - DEBUG -   Returning base folder name: delete_printer
-2025-03-05 14:46:59,054 - install_ui.plugin_utils - DEBUG -   Folder name: delete_printer
-2025-03-05 14:46:59,054 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/delete_printer/settings.yml (exists: True)
-2025-03-05 14:46:59,059 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for delete_printer
-2025-03-05 14:46:59,059 - install_ui.choice - DEBUG -   Added to valid plugins: delete_printer as Suppression d'imprimante(s)
-2025-03-05 14:46:59,059 - install_ui.choice - DEBUG - Valid plugins after sorting: [("Ajout d'imprimante", 'add_printer'), ('Configuration serveur pour Numerisation', 'scan_plugin'), ('Copie de comptes utilisateurs', 'home_copy'), ('LARA', 'lara_install'), ("Suppression d'imprimante(s)", 'delete_printer')]
-2025-03-05 14:46:59,059 - install_ui.choice - DEBUG - Creating card for plugin: add_printer
-2025-03-05 14:46:59,060 - install_ui.plugin_utils - DEBUG - Loading plugin info for: add_printer
-2025-03-05 14:46:59,060 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
-2025-03-05 14:46:59,060 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
-2025-03-05 14:46:59,060 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
-2025-03-05 14:46:59,060 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
-2025-03-05 14:46:59,060 - install_ui.plugin_utils - DEBUG -   Folder name: add_printer
-2025-03-05 14:46:59,060 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/add_printer/settings.yml (exists: True)
-2025-03-05 14:46:59,070 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for add_printer
-2025-03-05 14:46:59,070 - install_ui.choice - DEBUG - Creating card for plugin: scan_plugin
-2025-03-05 14:46:59,070 - install_ui.plugin_utils - DEBUG - Loading plugin info for: scan_plugin
-2025-03-05 14:46:59,071 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: scan_plugin
-2025-03-05 14:46:59,071 - install_ui.plugin_utils - DEBUG -   Test path: plugins/scan_plugin_test (exists: False)
-2025-03-05 14:46:59,071 - install_ui.plugin_utils - DEBUG -   Base path: plugins/scan_plugin (exists: True)
-2025-03-05 14:46:59,071 - install_ui.plugin_utils - DEBUG -   Returning base folder name: scan_plugin
-2025-03-05 14:46:59,071 - install_ui.plugin_utils - DEBUG -   Folder name: scan_plugin
-2025-03-05 14:46:59,071 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/scan_plugin/settings.yml (exists: True)
-2025-03-05 14:46:59,079 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for scan_plugin
-2025-03-05 14:46:59,079 - install_ui.choice - DEBUG - Creating card for plugin: home_copy
-2025-03-05 14:46:59,079 - install_ui.plugin_utils - DEBUG - Loading plugin info for: home_copy
-2025-03-05 14:46:59,080 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: home_copy
-2025-03-05 14:46:59,080 - install_ui.plugin_utils - DEBUG -   Test path: plugins/home_copy_test (exists: False)
-2025-03-05 14:46:59,080 - install_ui.plugin_utils - DEBUG -   Base path: plugins/home_copy (exists: True)
-2025-03-05 14:46:59,080 - install_ui.plugin_utils - DEBUG -   Returning base folder name: home_copy
-2025-03-05 14:46:59,080 - install_ui.plugin_utils - DEBUG -   Folder name: home_copy
-2025-03-05 14:46:59,080 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/home_copy/settings.yml (exists: True)
-2025-03-05 14:46:59,093 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for home_copy
-2025-03-05 14:46:59,093 - install_ui.choice - DEBUG - Creating card for plugin: lara_install
-2025-03-05 14:46:59,094 - install_ui.plugin_utils - DEBUG - Loading plugin info for: lara_install
-2025-03-05 14:46:59,094 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: lara_install
-2025-03-05 14:46:59,094 - install_ui.plugin_utils - DEBUG -   Test path: plugins/lara_install_test (exists: False)
-2025-03-05 14:46:59,094 - install_ui.plugin_utils - DEBUG -   Base path: plugins/lara_install (exists: True)
-2025-03-05 14:46:59,094 - install_ui.plugin_utils - DEBUG -   Returning base folder name: lara_install
-2025-03-05 14:46:59,094 - install_ui.plugin_utils - DEBUG -   Folder name: lara_install
-2025-03-05 14:46:59,094 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/lara_install/settings.yml (exists: True)
-2025-03-05 14:46:59,096 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for lara_install
-2025-03-05 14:46:59,096 - install_ui.choice - DEBUG - Creating card for plugin: delete_printer
-2025-03-05 14:46:59,096 - install_ui.plugin_utils - DEBUG - Loading plugin info for: delete_printer
-2025-03-05 14:46:59,096 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: delete_printer
-2025-03-05 14:46:59,096 - install_ui.plugin_utils - DEBUG -   Test path: plugins/delete_printer_test (exists: False)
-2025-03-05 14:46:59,096 - install_ui.plugin_utils - DEBUG -   Base path: plugins/delete_printer (exists: True)
-2025-03-05 14:46:59,096 - install_ui.plugin_utils - DEBUG -   Returning base folder name: delete_printer
-2025-03-05 14:46:59,096 - install_ui.plugin_utils - DEBUG -   Folder name: delete_printer
-2025-03-05 14:46:59,096 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/delete_printer/settings.yml (exists: True)
-2025-03-05 14:46:59,102 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for delete_printer
-2025-03-05 14:47:00,345 - install_ui.plugin_utils - DEBUG - Loading plugin info for: home_copy
-2025-03-05 14:47:00,346 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: home_copy
-2025-03-05 14:47:00,346 - install_ui.plugin_utils - DEBUG -   Test path: plugins/home_copy_test (exists: False)
-2025-03-05 14:47:00,346 - install_ui.plugin_utils - DEBUG -   Base path: plugins/home_copy (exists: True)
-2025-03-05 14:47:00,346 - install_ui.plugin_utils - DEBUG -   Returning base folder name: home_copy
-2025-03-05 14:47:00,346 - install_ui.plugin_utils - DEBUG -   Folder name: home_copy
-2025-03-05 14:47:00,346 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/home_copy/settings.yml (exists: True)
-2025-03-05 14:47:00,370 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for home_copy
-2025-03-05 14:47:00,374 - install_ui.choice - DEBUG - Selection changed for plugin: home_copy to True
-2025-03-05 14:47:00,374 - install_ui.plugin_utils - DEBUG - Loading plugin info for: home_copy
-2025-03-05 14:47:00,374 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: home_copy
-2025-03-05 14:47:00,374 - install_ui.plugin_utils - DEBUG -   Test path: plugins/home_copy_test (exists: False)
-2025-03-05 14:47:00,374 - install_ui.plugin_utils - DEBUG -   Base path: plugins/home_copy (exists: True)
-2025-03-05 14:47:00,374 - install_ui.plugin_utils - DEBUG -   Returning base folder name: home_copy
-2025-03-05 14:47:00,374 - install_ui.plugin_utils - DEBUG -   Folder name: home_copy
-2025-03-05 14:47:00,374 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/home_copy/settings.yml (exists: True)
-2025-03-05 14:47:00,397 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for home_copy
-2025-03-05 14:47:00,397 - install_ui.choice - DEBUG - Added plugin instance: home_copy (id: 1)
-2025-03-05 14:47:00,398 - install_ui.plugin_utils - DEBUG - Loading plugin info for: home_copy
-2025-03-05 14:47:00,398 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: home_copy
-2025-03-05 14:47:00,398 - install_ui.plugin_utils - DEBUG -   Test path: plugins/home_copy_test (exists: False)
-2025-03-05 14:47:00,398 - install_ui.plugin_utils - DEBUG -   Base path: plugins/home_copy (exists: True)
-2025-03-05 14:47:00,398 - install_ui.plugin_utils - DEBUG -   Returning base folder name: home_copy
-2025-03-05 14:47:00,398 - install_ui.plugin_utils - DEBUG -   Folder name: home_copy
-2025-03-05 14:47:00,398 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/home_copy/settings.yml (exists: True)
-2025-03-05 14:47:00,421 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for home_copy
-2025-03-05 14:47:02,036 - install_ui.choice - DEBUG - Button pressed: configure_selected
-2025-03-05 14:47:02,036 - install_ui.choice - DEBUG - Starting action_configure_selected
-2025-03-05 14:47:02,045 - install_ui.choice - DEBUG - Selected plugins: [('home_copy', 1)]
-2025-03-05 14:47:02,045 - install_ui.choice - DEBUG - Creating PluginConfig instance
-2025-03-05 14:47:02,045 - install_ui.config - DEBUG - Initializing PluginConfig
-2025-03-05 14:47:02,045 - install_ui.config - DEBUG - Plugin instances: [('home_copy', 1)]
-2025-03-05 14:47:02,045 - install_ui.config - DEBUG - Creating ConfigManager
-2025-03-05 14:47:02,045 - install_ui.config - DEBUG - Loading SSH config from: /media/nico/Drive/pcUtils/ui/ssh_manager/ssh_fields.yml
-2025-03-05 14:47:02,059 - install_ui.config_manager - DEBUG - Global config 'ssh' loaded: {'name': 'Configuration SSH globale', 'icon': '🔒', 'description': "Paramètres de connexion pour l'exécution distante des plugins", 'hint': "Activez l'exécution distante sur au moins un plugin pour configurer SSH", 'fields': {'ssh_ips': {'type': 'text', 'label': 'Adresses IP (séparées par des virgules)', 'description': 'Peut inclure des caractères génériques (ex: 192.168.1.*) et des virgules', 'placeholder': '150.27.2.*', 'required': True}, 'ssh_user': {'type': 'text', 'label': 'Utilisateur SSH', 'default': 'nicolas.voirin', 'required': True}, 'ssh_passwd': {'type': 'password', 'label': 'Mot de passe SSH', 'required': True}, 'ssh_sms_enabled': {'type': 'checkbox', 'label': 'Authentification via la SMS', 'default': False}, 'ssh_sms': {'type': 'text', 'label': 'Nom de machine de la SMS', 'default': 'ggd027sf', 'placeholder': 'ggd027sf....', 'required': True, 'enabled_if': {'field': 'ssh_sms_enabled', 'value': True}}, 'ssh_exception_ips': {'type': 'text', 'label': "Adresses IP exclues de l'exception", 'placeholder': '150.27.2.200,150.27.2.21*,150.27.2.22*', 'required': False}}}
-2025-03-05 14:47:02,059 - install_ui.config - DEBUG - Initializing fields for plugin: home_copy
-2025-03-05 14:47:02,059 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: home_copy
-2025-03-05 14:47:02,059 - install_ui.plugin_utils - DEBUG -   Test path: plugins/home_copy_test (exists: False)
-2025-03-05 14:47:02,059 - install_ui.plugin_utils - DEBUG -   Base path: plugins/home_copy (exists: True)
-2025-03-05 14:47:02,059 - install_ui.plugin_utils - DEBUG -   Returning base folder name: home_copy
-2025-03-05 14:47:02,059 - install_ui.config - DEBUG - Loading plugin config from: /media/nico/Drive/pcUtils/ui/../plugins/home_copy/settings.yml
-2025-03-05 14:47:02,073 - install_ui.config_manager - DEBUG - Plugin config 'home_copy' loaded
-2025-03-05 14:47:02,073 - install_ui.config - DEBUG - PluginConfig initialized successfully
-2025-03-05 14:47:02,073 - install_ui.choice - DEBUG - Pushing config screen
-2025-03-05 14:47:02,104 - install_ui.config - DEBUG - PluginConfig.compose() started
-2025-03-05 14:47:02,104 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: home_copy
-2025-03-05 14:47:02,105 - install_ui.plugin_utils - DEBUG -   Test path: plugins/home_copy_test (exists: False)
-2025-03-05 14:47:02,105 - install_ui.plugin_utils - DEBUG -   Base path: plugins/home_copy (exists: True)
-2025-03-05 14:47:02,105 - install_ui.plugin_utils - DEBUG -   Returning base folder name: home_copy
-2025-03-05 14:47:02,119 - install_ui.config - DEBUG - Plugin home_copy remote_execution: False
-2025-03-05 14:47:02,119 - install_ui.config - DEBUG - Remote execution plugins: []
-2025-03-05 14:47:02,119 - install_ui.config - DEBUG - Has remote plugins: False
-2025-03-05 14:47:02,120 - install_ui.config - DEBUG - Creating config for plugin: home_copy_1
-2025-03-05 14:47:02,121 - install_ui.config - DEBUG - PluginConfig.compose() completed
-2025-03-05 14:47:02,158 - install_ui.checkbox_group_field - DEBUG - Loading dynamic options with config: {'script': 'get_users.py', 'global': True, 'function': 'get_users', 'args': [{'field': 'home_src_dir', 'param_name': 'home_dir'}], 'value_key': 'username', 'label_key': 'description'}
-2025-03-05 14:47:02,158 - install_ui.checkbox_group_field - DEBUG - Loading script from: /media/nico/Drive/pcUtils/ui/configurator/../../utils_scripts/get_users.py
-2025-03-05 14:47:02,158 - install_ui.checkbox_group_field - DEBUG - Script exists: True
-2025-03-05 14:47:02,158 - install_ui.checkbox_group_field - DEBUG - Python path: ['/media/nico/Drive/pcUtils/libs/ptyprocess-0.7.0-py2.py3-none-any', '/media/nico/Drive/pcUtils/libs/rich-13.9.4-py3-none-any', '/media/nico/Drive/pcUtils/libs/ruamel.yaml-0.18.10-py3-none-any', '/media/nico/Drive/pcUtils/libs/mdit_py_plugins-0.4.2-py3-none-any', '/media/nico/Drive/pcUtils/libs/typing_extensions-4.12.2-py3-none-any', '/media/nico/Drive/pcUtils/libs/linkify_it_py-2.0.3-py3-none-any', '/media/nico/Drive/pcUtils/libs/pexpect-4.9.0-py2.py3-none-any', '/media/nico/Drive/pcUtils/libs/uc_micro_py-1.0.3-py3-none-any', '/media/nico/Drive/pcUtils/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils/libs/pygments-2.19.1-py3-none-any', '/media/nico/Drive/pcUtils/libs/platformdirs-4.3.6-py3-none-any', '/media/nico/Drive/pcUtils/libs/textual-2.1.1-py3-none-any', '/media/nico/Drive/pcUtils', '/usr/lib/python310.zip', '/usr/lib/python3.10', '/usr/lib/python3.10/lib-dynload', '/home/nico/.local/share/virtualenvs/pcUtils-Tmk79YJ4/lib/python3.10/site-packages', '/media/nico/Drive/pcUtils/ui/configurator/../../utils_scripts']
-2025-03-05 14:47:02,159 - get_users - ERROR - Erreur d'importation du module de logging: No module named 'utils'
-2025-03-05 14:47:02,159 - install_ui.checkbox_group_field - DEBUG - Using function: get_users
-2025-03-05 14:47:02,159 - install_ui.checkbox_group_field - DEBUG - Calling get_users with args=[], kwargs={'home_dir': '/home'}
-2025-03-05 14:47:02,159 - get_users - DEBUG - get_users called with home_dir=/home
-2025-03-05 14:47:02,159 - get_users - DEBUG - Script path: /media/nico/Drive/pcUtils/ui/configurator/../../utils_scripts/get_users.py
-2025-03-05 14:47:02,159 - get_users - DEBUG - Current working directory: /media/nico/Drive/pcUtils
-2025-03-05 14:47:02,159 - get_users - DEBUG - get_users found 2 users: ['jack', 'nico']
-2025-03-05 14:47:02,159 - install_ui.checkbox_group_field - DEBUG - Result from get_users: (True, [{'username': 'jack', 'home_path': '/home/jack', 'description': 'jack', 'uid': 1002, 'gid': 1002, 'shell': '/bin/bash', 'group': 'jack'}, {'username': 'nico', 'home_path': '/home/nico', 'description': 'nico', 'uid': 1000, 'gid': 1000, 'shell': '/bin/bash', 'group': 'nico'}])
-2025-03-05 14:47:02,159 - install_ui.checkbox_group_field - DEBUG - Checkbox group options for user_select: [('jack', 'jack'), ('nico', 'nico')]
-2025-03-05 14:47:02,162 - install_ui.select_field - INFO - Loading script from: /media/nico/Drive/pcUtils/ui/configurator/../../utils_scripts/get_usb.py
-2025-03-05 14:47:02,162 - install_ui.select_field - DEBUG - Script exists: True
-2025-03-05 14:47:02,162 - install_ui.select_field - DEBUG - Python path: ['/media/nico/Drive/pcUtils/libs/ptyprocess-0.7.0-py2.py3-none-any', '/media/nico/Drive/pcUtils/libs/rich-13.9.4-py3-none-any', '/media/nico/Drive/pcUtils/libs/ruamel.yaml-0.18.10-py3-none-any', '/media/nico/Drive/pcUtils/libs/mdit_py_plugins-0.4.2-py3-none-any', '/media/nico/Drive/pcUtils/libs/typing_extensions-4.12.2-py3-none-any', '/media/nico/Drive/pcUtils/libs/linkify_it_py-2.0.3-py3-none-any', '/media/nico/Drive/pcUtils/libs/pexpect-4.9.0-py2.py3-none-any', '/media/nico/Drive/pcUtils/libs/uc_micro_py-1.0.3-py3-none-any', '/media/nico/Drive/pcUtils/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils/libs/pygments-2.19.1-py3-none-any', '/media/nico/Drive/pcUtils/libs/platformdirs-4.3.6-py3-none-any', '/media/nico/Drive/pcUtils/libs/textual-2.1.1-py3-none-any', '/media/nico/Drive/pcUtils', '/usr/lib/python310.zip', '/usr/lib/python3.10', '/usr/lib/python3.10/lib-dynload', '/home/nico/.local/share/virtualenvs/pcUtils-Tmk79YJ4/lib/python3.10/site-packages', '/media/nico/Drive/pcUtils/ui/configurator/../../utils_scripts', '/media/nico/Drive/pcUtils/ui/configurator/../../utils_scripts']
-2025-03-05 14:47:02,164 - get_usb - ERROR - Erreur d'importation du module de logging: No module named 'utils'
-2025-03-05 14:47:02,165 - install_ui.select_field - DEBUG - Using function: get_usb
-2025-03-05 14:47:02,165 - get_usb - DEBUG - Recherche des périphériques USB (include_system_disk=False)
-2025-03-05 14:47:02,165 - get_usb - DEBUG - Exécution de la commande lsblk
-2025-03-05 14:47:02,179 - get_usb - DEBUG - Disque système identifié: nvme0n1
-2025-03-05 14:47:02,179 - get_usb - DEBUG - Exclusion du disque système: nvme0n1
-2025-03-05 14:47:02,179 - get_usb - DEBUG - Trouvé 1 périphériques de stockage
-2025-03-05 14:47:02,179 - install_ui.select_field - INFO - Got result from get_usb: (True, [{'device': 'sda1', 'path': '/dev/sda1', 'size': '1,8T', 'mounted': True, 'mount_point': '/media/nico/Drive', 'fs_type': 'ext4', 'label': 'Drive', 'model': '015-2E8174', 'description': 'Drive 015-2E8174 /dev/sda1 → /media/nico/Drive (ext4, 1,8T)'}])
-2025-03-05 14:47:02,179 - install_ui.select_field - INFO - Processed data type: <class 'list'> for options
-2025-03-05 14:47:02,179 - install_ui.select_field - INFO - Processing list data: [{'device': 'sda1', 'path': '/dev/sda1', 'size': '1,8T', 'mounted': True, 'mount_point': '/media/nico/Drive', 'fs_type': 'ext4', 'label': 'Drive', 'model': '015-2E8174', 'description': 'Drive 015-2E8174 /dev/sda1 → /media/nico/Drive (ext4, 1,8T)'}]
-2025-03-05 14:47:02,179 - install_ui.select_field - INFO - Final normalized options: [('Drive 015-2E8174 /dev/sda1 → /media/nico/Drive (ext4, 1,8T)', 'Drive 015-2E8174 /dev/sda1 → /media/nico/Drive (ext4, 1,8T)')]
-2025-03-05 14:47:02,180 - install_ui.select_field - INFO - Field home_dst_dir options: [('Drive 015-2E8174 /dev/sda1 → /media/nico/Drive (ext4, 1,8T)', 'Drive 015-2E8174 /dev/sda1 → /media/nico/Drive (ext4, 1,8T)')]
-2025-03-05 14:47:02,180 - install_ui.select_field - INFO - Setting default value for home_dst_dir: Drive 015-2E8174 /dev/sda1 → /media/nico/Drive (ext4, 1,8T)
-2025-03-05 14:47:02,245 - install_ui.select_field - DEBUG - Select changed to: Drive 015-2E8174 /dev/sda1 → /media/nico/Drive (ext4, 1,8T)
-2025-03-05 14:47:02,247 - install_ui.config - DEBUG - PluginConfig.on_mount() started
-2025-03-05 14:47:02,247 - install_ui.config - DEBUG - PluginConfig.on_mount() completed
-2025-03-05 14:47:02,530 - install_ui.choice - DEBUG - Config screen pushed successfully
-2025-03-05 14:47:02,530 - install_ui.choice - DEBUG - Config returned: True
-2025-03-05 14:47:02,531 - install_ui.choice - DEBUG - No configuration returned from config screen
-2025-03-05 14:47:06,672 - install_ui.config_container - DEBUG - Checkbox changed: checkbox_home_copy_user_all -> True
-2025-03-05 14:47:06,673 - install_ui.config_container - DEBUG - Found matching checkbox field: user_all
-2025-03-05 14:47:06,673 - install_ui.config_container - DEBUG - Checkbox changed: checkbox_home_copy_user_all -> True
-2025-03-05 14:47:06,673 - install_ui.config_container - DEBUG - Found matching checkbox field: user_all
-2025-03-05 14:47:06,674 - install_ui.config - DEBUG - Checkbox changed: checkbox_home_copy_user_all -> True
-2025-03-05 14:47:07,992 - install_ui.config_container - DEBUG - Checkbox changed: checkbox_home_copy_user_all -> False
-2025-03-05 14:47:07,992 - install_ui.config_container - DEBUG - Found matching checkbox field: user_all
-2025-03-05 14:47:07,992 - install_ui.config_container - DEBUG - Checkbox changed: checkbox_home_copy_user_all -> False
-2025-03-05 14:47:07,992 - install_ui.config_container - DEBUG - Found matching checkbox field: user_all
-2025-03-05 14:47:07,993 - install_ui.config - DEBUG - Checkbox changed: checkbox_home_copy_user_all -> False
-2025-03-05 14:47:13,842 - install_ui.config - DEBUG - Button pressed: cancel
-2025-03-05 14:47:13,842 - install_ui.config - DEBUG - Cancel button pressed, popping screen
-2025-03-05 14:47:13,884 - install_ui.choice - DEBUG - Button pressed: cancel
-2025-03-05 14:47:15,031 - install_ui.choice - DEBUG - Button pressed: quit
-2025-03-05 14:48:21,284 - asyncio - ERROR - Unclosed client session
-client_session: <aiohttp.client.ClientSession object at 0x7438ebd8c820>
+2025-03-05 15:33:08,089 - install_ui.main - INFO - Starting application
+2025-03-05 15:33:08,090 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/textual-2.1.1-py3-none-any to sys.path
+2025-03-05 15:33:08,090 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/platformdirs-4.3.6-py3-none-any to sys.path
+2025-03-05 15:33:08,090 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/pygments-2.19.1-py3-none-any to sys.path
+2025-03-05 15:33:08,090 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64 to sys.path
+2025-03-05 15:33:08,090 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/uc_micro_py-1.0.3-py3-none-any to sys.path
+2025-03-05 15:33:08,090 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/pexpect-4.9.0-py2.py3-none-any to sys.path
+2025-03-05 15:33:08,090 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/linkify_it_py-2.0.3-py3-none-any to sys.path
+2025-03-05 15:33:08,090 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/typing_extensions-4.12.2-py3-none-any to sys.path
+2025-03-05 15:33:08,091 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/mdit_py_plugins-0.4.2-py3-none-any to sys.path
+2025-03-05 15:33:08,091 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/ruamel.yaml-0.18.10-py3-none-any to sys.path
+2025-03-05 15:33:08,091 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/rich-13.9.4-py3-none-any to sys.path
+2025-03-05 15:33:08,091 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/ptyprocess-0.7.0-py2.py3-none-any to sys.path
+2025-03-05 15:33:08,330 - install_ui.choice - DEBUG - Initializing Choice application
+2025-03-05 15:33:08,330 - asyncio - DEBUG - Using selector: EpollSelector
+2025-03-05 15:33:08,356 - install_ui.choice - DEBUG - Scanning plugins directory: plugins
+2025-03-05 15:33:08,357 - install_ui.choice - DEBUG - Checking plugin: lara_install
+2025-03-05 15:33:08,357 - install_ui.choice - DEBUG -   Path: plugins/lara_install (exists: True)
+2025-03-05 15:33:08,357 - install_ui.choice - DEBUG -   Settings: plugins/lara_install/settings.yml (exists: True)
+2025-03-05 15:33:08,358 - install_ui.choice - DEBUG -   Exec Python: plugins/lara_install/exec.py (exists: True)
+2025-03-05 15:33:08,358 - install_ui.choice - DEBUG -   Exec Bash: plugins/lara_install/exec.bash (exists: False)
+2025-03-05 15:33:08,358 - install_ui.choice - DEBUG -   Plugin lara_install is valid
+2025-03-05 15:33:08,358 - install_ui.plugin_utils - DEBUG - Loading plugin info for: lara_install
+2025-03-05 15:33:08,358 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: lara_install
+2025-03-05 15:33:08,358 - install_ui.plugin_utils - DEBUG -   Test path: plugins/lara_install_test (exists: False)
+2025-03-05 15:33:08,358 - install_ui.plugin_utils - DEBUG -   Base path: plugins/lara_install (exists: True)
+2025-03-05 15:33:08,358 - install_ui.plugin_utils - DEBUG -   Returning base folder name: lara_install
+2025-03-05 15:33:08,358 - install_ui.plugin_utils - DEBUG -   Folder name: lara_install
+2025-03-05 15:33:08,358 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/lara_install/settings.yml (exists: True)
+2025-03-05 15:33:08,369 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for lara_install
+2025-03-05 15:33:08,369 - install_ui.choice - DEBUG -   Added to valid plugins: lara_install as LARA
+2025-03-05 15:33:08,369 - install_ui.choice - DEBUG - Checking plugin: home_copy
+2025-03-05 15:33:08,370 - install_ui.choice - DEBUG -   Path: plugins/home_copy (exists: True)
+2025-03-05 15:33:08,370 - install_ui.choice - DEBUG -   Settings: plugins/home_copy/settings.yml (exists: True)
+2025-03-05 15:33:08,370 - install_ui.choice - DEBUG -   Exec Python: plugins/home_copy/exec.py (exists: True)
+2025-03-05 15:33:08,370 - install_ui.choice - DEBUG -   Exec Bash: plugins/home_copy/exec.bash (exists: False)
+2025-03-05 15:33:08,370 - install_ui.choice - DEBUG -   Plugin home_copy is valid
+2025-03-05 15:33:08,370 - install_ui.plugin_utils - DEBUG - Loading plugin info for: home_copy
+2025-03-05 15:33:08,370 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: home_copy
+2025-03-05 15:33:08,370 - install_ui.plugin_utils - DEBUG -   Test path: plugins/home_copy_test (exists: False)
+2025-03-05 15:33:08,370 - install_ui.plugin_utils - DEBUG -   Base path: plugins/home_copy (exists: True)
+2025-03-05 15:33:08,370 - install_ui.plugin_utils - DEBUG -   Returning base folder name: home_copy
+2025-03-05 15:33:08,370 - install_ui.plugin_utils - DEBUG -   Folder name: home_copy
+2025-03-05 15:33:08,370 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/home_copy/settings.yml (exists: True)
+2025-03-05 15:33:08,384 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for home_copy
+2025-03-05 15:33:08,384 - install_ui.choice - DEBUG -   Added to valid plugins: home_copy as Copie de comptes utilisateurs
+2025-03-05 15:33:08,384 - install_ui.choice - DEBUG - Checking plugin: README_PYTHON.md
+2025-03-05 15:33:08,384 - install_ui.choice - DEBUG -   Path: plugins/README_PYTHON.md (exists: False)
+2025-03-05 15:33:08,385 - install_ui.choice - DEBUG -   Settings: plugins/README_PYTHON.md/settings.yml (exists: False)
+2025-03-05 15:33:08,385 - install_ui.choice - DEBUG -   Exec Python: plugins/README_PYTHON.md/exec.py (exists: False)
+2025-03-05 15:33:08,385 - install_ui.choice - DEBUG -   Exec Bash: plugins/README_PYTHON.md/exec.bash (exists: False)
+2025-03-05 15:33:08,385 - install_ui.choice - DEBUG -   Plugin README_PYTHON.md is NOT valid
+2025-03-05 15:33:08,385 - install_ui.choice - DEBUG - Checking plugin: README_BASH.md
+2025-03-05 15:33:08,385 - install_ui.choice - DEBUG -   Path: plugins/README_BASH.md (exists: False)
+2025-03-05 15:33:08,385 - install_ui.choice - DEBUG -   Settings: plugins/README_BASH.md/settings.yml (exists: False)
+2025-03-05 15:33:08,385 - install_ui.choice - DEBUG -   Exec Python: plugins/README_BASH.md/exec.py (exists: False)
+2025-03-05 15:33:08,385 - install_ui.choice - DEBUG -   Exec Bash: plugins/README_BASH.md/exec.bash (exists: False)
+2025-03-05 15:33:08,385 - install_ui.choice - DEBUG -   Plugin README_BASH.md is NOT valid
+2025-03-05 15:33:08,385 - install_ui.choice - DEBUG - Checking plugin: README_SCRIPT_INTERACTIVE.md
+2025-03-05 15:33:08,385 - install_ui.choice - DEBUG -   Path: plugins/README_SCRIPT_INTERACTIVE.md (exists: False)
+2025-03-05 15:33:08,385 - install_ui.choice - DEBUG -   Settings: plugins/README_SCRIPT_INTERACTIVE.md/settings.yml (exists: False)
+2025-03-05 15:33:08,385 - install_ui.choice - DEBUG -   Exec Python: plugins/README_SCRIPT_INTERACTIVE.md/exec.py (exists: False)
+2025-03-05 15:33:08,385 - install_ui.choice - DEBUG -   Exec Bash: plugins/README_SCRIPT_INTERACTIVE.md/exec.bash (exists: False)
+2025-03-05 15:33:08,385 - install_ui.choice - DEBUG -   Plugin README_SCRIPT_INTERACTIVE.md is NOT valid
+2025-03-05 15:33:08,385 - install_ui.choice - DEBUG - Checking plugin: add_printer
+2025-03-05 15:33:08,386 - install_ui.choice - DEBUG -   Path: plugins/add_printer (exists: True)
+2025-03-05 15:33:08,386 - install_ui.choice - DEBUG -   Settings: plugins/add_printer/settings.yml (exists: True)
+2025-03-05 15:33:08,386 - install_ui.choice - DEBUG -   Exec Python: plugins/add_printer/exec.py (exists: True)
+2025-03-05 15:33:08,386 - install_ui.choice - DEBUG -   Exec Bash: plugins/add_printer/exec.bash (exists: False)
+2025-03-05 15:33:08,386 - install_ui.choice - DEBUG -   Plugin add_printer is valid
+2025-03-05 15:33:08,386 - install_ui.plugin_utils - DEBUG - Loading plugin info for: add_printer
+2025-03-05 15:33:08,386 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
+2025-03-05 15:33:08,386 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-05 15:33:08,386 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-05 15:33:08,386 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-05 15:33:08,386 - install_ui.plugin_utils - DEBUG -   Folder name: add_printer
+2025-03-05 15:33:08,386 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/add_printer/settings.yml (exists: True)
+2025-03-05 15:33:08,395 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for add_printer
+2025-03-05 15:33:08,395 - install_ui.choice - DEBUG -   Added to valid plugins: add_printer as Ajout d'imprimante
+2025-03-05 15:33:08,395 - install_ui.choice - DEBUG - Checking plugin: scan_plugin
+2025-03-05 15:33:08,395 - install_ui.choice - DEBUG -   Path: plugins/scan_plugin (exists: True)
+2025-03-05 15:33:08,395 - install_ui.choice - DEBUG -   Settings: plugins/scan_plugin/settings.yml (exists: True)
+2025-03-05 15:33:08,395 - install_ui.choice - DEBUG -   Exec Python: plugins/scan_plugin/exec.py (exists: True)
+2025-03-05 15:33:08,395 - install_ui.choice - DEBUG -   Exec Bash: plugins/scan_plugin/exec.bash (exists: False)
+2025-03-05 15:33:08,396 - install_ui.choice - DEBUG -   Plugin scan_plugin is valid
+2025-03-05 15:33:08,396 - install_ui.plugin_utils - DEBUG - Loading plugin info for: scan_plugin
+2025-03-05 15:33:08,396 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: scan_plugin
+2025-03-05 15:33:08,396 - install_ui.plugin_utils - DEBUG -   Test path: plugins/scan_plugin_test (exists: False)
+2025-03-05 15:33:08,396 - install_ui.plugin_utils - DEBUG -   Base path: plugins/scan_plugin (exists: True)
+2025-03-05 15:33:08,396 - install_ui.plugin_utils - DEBUG -   Returning base folder name: scan_plugin
+2025-03-05 15:33:08,396 - install_ui.plugin_utils - DEBUG -   Folder name: scan_plugin
+2025-03-05 15:33:08,396 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/scan_plugin/settings.yml (exists: True)
+2025-03-05 15:33:08,404 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for scan_plugin
+2025-03-05 15:33:08,404 - install_ui.choice - DEBUG -   Added to valid plugins: scan_plugin as Configuration serveur pour Numerisation
+2025-03-05 15:33:08,404 - install_ui.choice - DEBUG - Checking plugin: delete_printer
+2025-03-05 15:33:08,404 - install_ui.choice - DEBUG -   Path: plugins/delete_printer (exists: True)
+2025-03-05 15:33:08,404 - install_ui.choice - DEBUG -   Settings: plugins/delete_printer/settings.yml (exists: True)
+2025-03-05 15:33:08,404 - install_ui.choice - DEBUG -   Exec Python: plugins/delete_printer/exec.py (exists: True)
+2025-03-05 15:33:08,405 - install_ui.choice - DEBUG -   Exec Bash: plugins/delete_printer/exec.bash (exists: False)
+2025-03-05 15:33:08,405 - install_ui.choice - DEBUG -   Plugin delete_printer is valid
+2025-03-05 15:33:08,405 - install_ui.plugin_utils - DEBUG - Loading plugin info for: delete_printer
+2025-03-05 15:33:08,405 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: delete_printer
+2025-03-05 15:33:08,405 - install_ui.plugin_utils - DEBUG -   Test path: plugins/delete_printer_test (exists: False)
+2025-03-05 15:33:08,405 - install_ui.plugin_utils - DEBUG -   Base path: plugins/delete_printer (exists: True)
+2025-03-05 15:33:08,405 - install_ui.plugin_utils - DEBUG -   Returning base folder name: delete_printer
+2025-03-05 15:33:08,405 - install_ui.plugin_utils - DEBUG -   Folder name: delete_printer
+2025-03-05 15:33:08,405 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/delete_printer/settings.yml (exists: True)
+2025-03-05 15:33:08,410 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for delete_printer
+2025-03-05 15:33:08,411 - install_ui.choice - DEBUG -   Added to valid plugins: delete_printer as Suppression d'imprimante(s)
+2025-03-05 15:33:08,411 - install_ui.choice - DEBUG - Valid plugins after sorting: [("Ajout d'imprimante", 'add_printer'), ('Configuration serveur pour Numerisation', 'scan_plugin'), ('Copie de comptes utilisateurs', 'home_copy'), ('LARA', 'lara_install'), ("Suppression d'imprimante(s)", 'delete_printer')]
+2025-03-05 15:33:08,411 - install_ui.choice - DEBUG - Creating card for plugin: add_printer
+2025-03-05 15:33:08,411 - install_ui.plugin_utils - DEBUG - Loading plugin info for: add_printer
+2025-03-05 15:33:08,411 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
+2025-03-05 15:33:08,411 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-05 15:33:08,411 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-05 15:33:08,411 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-05 15:33:08,411 - install_ui.plugin_utils - DEBUG -   Folder name: add_printer
+2025-03-05 15:33:08,411 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/add_printer/settings.yml (exists: True)
+2025-03-05 15:33:08,420 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for add_printer
+2025-03-05 15:33:08,420 - install_ui.choice - DEBUG - Creating card for plugin: scan_plugin
+2025-03-05 15:33:08,421 - install_ui.plugin_utils - DEBUG - Loading plugin info for: scan_plugin
+2025-03-05 15:33:08,421 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: scan_plugin
+2025-03-05 15:33:08,421 - install_ui.plugin_utils - DEBUG -   Test path: plugins/scan_plugin_test (exists: False)
+2025-03-05 15:33:08,421 - install_ui.plugin_utils - DEBUG -   Base path: plugins/scan_plugin (exists: True)
+2025-03-05 15:33:08,421 - install_ui.plugin_utils - DEBUG -   Returning base folder name: scan_plugin
+2025-03-05 15:33:08,421 - install_ui.plugin_utils - DEBUG -   Folder name: scan_plugin
+2025-03-05 15:33:08,421 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/scan_plugin/settings.yml (exists: True)
+2025-03-05 15:33:08,429 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for scan_plugin
+2025-03-05 15:33:08,429 - install_ui.choice - DEBUG - Creating card for plugin: home_copy
+2025-03-05 15:33:08,430 - install_ui.plugin_utils - DEBUG - Loading plugin info for: home_copy
+2025-03-05 15:33:08,430 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: home_copy
+2025-03-05 15:33:08,430 - install_ui.plugin_utils - DEBUG -   Test path: plugins/home_copy_test (exists: False)
+2025-03-05 15:33:08,430 - install_ui.plugin_utils - DEBUG -   Base path: plugins/home_copy (exists: True)
+2025-03-05 15:33:08,430 - install_ui.plugin_utils - DEBUG -   Returning base folder name: home_copy
+2025-03-05 15:33:08,430 - install_ui.plugin_utils - DEBUG -   Folder name: home_copy
+2025-03-05 15:33:08,430 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/home_copy/settings.yml (exists: True)
+2025-03-05 15:33:08,443 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for home_copy
+2025-03-05 15:33:08,443 - install_ui.choice - DEBUG - Creating card for plugin: lara_install
+2025-03-05 15:33:08,444 - install_ui.plugin_utils - DEBUG - Loading plugin info for: lara_install
+2025-03-05 15:33:08,444 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: lara_install
+2025-03-05 15:33:08,444 - install_ui.plugin_utils - DEBUG -   Test path: plugins/lara_install_test (exists: False)
+2025-03-05 15:33:08,444 - install_ui.plugin_utils - DEBUG -   Base path: plugins/lara_install (exists: True)
+2025-03-05 15:33:08,444 - install_ui.plugin_utils - DEBUG -   Returning base folder name: lara_install
+2025-03-05 15:33:08,444 - install_ui.plugin_utils - DEBUG -   Folder name: lara_install
+2025-03-05 15:33:08,444 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/lara_install/settings.yml (exists: True)
+2025-03-05 15:33:08,446 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for lara_install
+2025-03-05 15:33:08,446 - install_ui.choice - DEBUG - Creating card for plugin: delete_printer
+2025-03-05 15:33:08,446 - install_ui.plugin_utils - DEBUG - Loading plugin info for: delete_printer
+2025-03-05 15:33:08,446 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: delete_printer
+2025-03-05 15:33:08,446 - install_ui.plugin_utils - DEBUG -   Test path: plugins/delete_printer_test (exists: False)
+2025-03-05 15:33:08,446 - install_ui.plugin_utils - DEBUG -   Base path: plugins/delete_printer (exists: True)
+2025-03-05 15:33:08,446 - install_ui.plugin_utils - DEBUG -   Returning base folder name: delete_printer
+2025-03-05 15:33:08,446 - install_ui.plugin_utils - DEBUG -   Folder name: delete_printer
+2025-03-05 15:33:08,446 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/delete_printer/settings.yml (exists: True)
+2025-03-05 15:33:08,452 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for delete_printer
+2025-03-05 15:33:09,074 - install_ui.plugin_utils - DEBUG - Loading plugin info for: add_printer
+2025-03-05 15:33:09,075 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
+2025-03-05 15:33:09,075 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-05 15:33:09,076 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-05 15:33:09,076 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-05 15:33:09,076 - install_ui.plugin_utils - DEBUG -   Folder name: add_printer
+2025-03-05 15:33:09,076 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/add_printer/settings.yml (exists: True)
+2025-03-05 15:33:09,110 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for add_printer
+2025-03-05 15:33:09,114 - install_ui.choice - DEBUG - Selection changed for plugin: add_printer to True
+2025-03-05 15:33:09,114 - install_ui.plugin_utils - DEBUG - Loading plugin info for: add_printer
+2025-03-05 15:33:09,114 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
+2025-03-05 15:33:09,114 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-05 15:33:09,114 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-05 15:33:09,114 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-05 15:33:09,114 - install_ui.plugin_utils - DEBUG -   Folder name: add_printer
+2025-03-05 15:33:09,114 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/add_printer/settings.yml (exists: True)
+2025-03-05 15:33:09,125 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for add_printer
+2025-03-05 15:33:09,126 - install_ui.choice - DEBUG - Added plugin instance: add_printer (id: 1)
+2025-03-05 15:33:09,126 - install_ui.plugin_utils - DEBUG - Loading plugin info for: add_printer
+2025-03-05 15:33:09,126 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
+2025-03-05 15:33:09,126 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-05 15:33:09,126 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-05 15:33:09,126 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-05 15:33:09,126 - install_ui.plugin_utils - DEBUG -   Folder name: add_printer
+2025-03-05 15:33:09,126 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/add_printer/settings.yml (exists: True)
+2025-03-05 15:33:09,136 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for add_printer
+2025-03-05 15:33:09,907 - install_ui.choice - DEBUG - Button pressed: configure_selected
+2025-03-05 15:33:09,908 - install_ui.choice - DEBUG - Starting action_configure_selected
+2025-03-05 15:33:09,919 - install_ui.choice - DEBUG - Selected plugins: [('add_printer', 1)]
+2025-03-05 15:33:09,919 - install_ui.choice - DEBUG - Creating PluginConfig instance
+2025-03-05 15:33:09,919 - install_ui.config - DEBUG - Initializing PluginConfig
+2025-03-05 15:33:09,919 - install_ui.config - DEBUG - Plugin instances: [('add_printer', 1)]
+2025-03-05 15:33:09,919 - install_ui.config - DEBUG - Creating ConfigManager
+2025-03-05 15:33:09,919 - install_ui.config - DEBUG - Loading SSH config from: /media/nico/Drive/pcUtils/ui/config_screen/ssh_manager/ssh_fields.yml
+2025-03-05 15:33:09,920 - install_ui.config_manager - ERROR - Error loading config 'ssh': [Errno 2] No such file or directory: '/media/nico/Drive/pcUtils/ui/config_screen/ssh_manager/ssh_fields.yml'
+2025-03-05 15:33:09,920 - install_ui.config - DEBUG - Initializing fields for plugin: add_printer
+2025-03-05 15:33:09,920 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
+2025-03-05 15:33:09,920 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-05 15:33:09,920 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-05 15:33:09,920 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-05 15:33:09,920 - install_ui.config - DEBUG - Loading plugin config from: /media/nico/Drive/pcUtils/ui/config_screen/../plugins/add_printer/settings.yml
+2025-03-05 15:33:09,920 - install_ui.config_manager - ERROR - Error loading plugin 'add_printer': [Errno 2] No such file or directory: '/media/nico/Drive/pcUtils/ui/config_screen/../plugins/add_printer/settings.yml'
+2025-03-05 15:33:09,920 - install_ui.config - DEBUG - PluginConfig initialized successfully
+2025-03-05 15:33:09,920 - install_ui.choice - DEBUG - Pushing config screen
+2025-03-05 15:33:09,948 - install_ui.config - DEBUG - PluginConfig.compose() started
+2025-03-05 15:33:09,949 - install_ui.config - DEBUG - Plugin instances to check for remote execution: [('add_printer', 1)]
+2025-03-05 15:33:09,949 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
+2025-03-05 15:33:09,949 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-05 15:33:09,949 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-05 15:33:09,949 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-05 15:33:09,949 - install_ui.config - DEBUG - Reading settings from: /media/nico/Drive/pcUtils/ui/config_screen/../plugins/add_printer/settings.yml
+2025-03-05 15:33:09,949 - install_ui.config - ERROR - Error reading /media/nico/Drive/pcUtils/ui/config_screen/../plugins/add_printer/settings.yml: [Errno 2] No such file or directory: '/media/nico/Drive/pcUtils/ui/config_screen/../plugins/add_printer/settings.yml'
+2025-03-05 15:33:09,949 - install_ui.config - DEBUG - Remote execution plugins: []
+2025-03-05 15:33:09,949 - install_ui.config - DEBUG - Has remote plugins: False
+2025-03-05 15:33:09,949 - install_ui.config - DEBUG - Remote plugins list: []
+2025-03-05 15:33:09,949 - install_ui.config - DEBUG - Creating config for plugin: add_printer_1
+2025-03-05 15:33:09,949 - install_ui.config - ERROR - No configuration found for plugin add_printer
+2025-03-05 15:33:09,949 - install_ui.config - DEBUG - Checking if add_printer is in remote_plugins: False
+2025-03-05 15:33:09,951 - install_ui.config - DEBUG - PluginConfig.compose() completed
+2025-03-05 15:33:10,022 - install_ui.config - DEBUG - PluginConfig.on_mount() started
+2025-03-05 15:33:10,022 - install_ui.config - DEBUG - PluginConfig.on_mount() completed
+2025-03-05 15:33:10,085 - install_ui.choice - DEBUG - Config screen pushed successfully
+2025-03-05 15:33:10,086 - install_ui.choice - DEBUG - Config returned: True
+2025-03-05 15:33:10,086 - install_ui.choice - DEBUG - No configuration returned from config screen
+2025-03-05 15:33:15,854 - install_ui.config - DEBUG - Button pressed: cancel
+2025-03-05 15:33:15,854 - install_ui.config - DEBUG - Cancel button pressed, popping screen
+2025-03-05 15:33:15,882 - install_ui.choice - DEBUG - Button pressed: cancel
+2025-03-05 15:33:16,916 - install_ui.choice - DEBUG - Button pressed: configure_selected
+2025-03-05 15:33:16,917 - install_ui.choice - DEBUG - Starting action_configure_selected
+2025-03-05 15:33:16,917 - install_ui.choice - DEBUG - Selected plugins: [('add_printer', 1)]
+2025-03-05 15:33:16,917 - install_ui.choice - DEBUG - Creating PluginConfig instance
+2025-03-05 15:33:16,918 - install_ui.config - DEBUG - Initializing PluginConfig
+2025-03-05 15:33:16,919 - install_ui.config - DEBUG - Plugin instances: [('add_printer', 1)]
+2025-03-05 15:33:16,920 - install_ui.config - DEBUG - Creating ConfigManager
+2025-03-05 15:33:16,921 - install_ui.config - DEBUG - Loading SSH config from: /media/nico/Drive/pcUtils/ui/config_screen/ssh_manager/ssh_fields.yml
+2025-03-05 15:33:16,921 - install_ui.config_manager - ERROR - Error loading config 'ssh': [Errno 2] No such file or directory: '/media/nico/Drive/pcUtils/ui/config_screen/ssh_manager/ssh_fields.yml'
+2025-03-05 15:33:16,921 - install_ui.config - DEBUG - Initializing fields for plugin: add_printer
+2025-03-05 15:33:16,921 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
+2025-03-05 15:33:16,922 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-05 15:33:16,922 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-05 15:33:16,922 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-05 15:33:16,922 - install_ui.config - DEBUG - Loading plugin config from: /media/nico/Drive/pcUtils/ui/config_screen/../plugins/add_printer/settings.yml
+2025-03-05 15:33:16,922 - install_ui.config_manager - ERROR - Error loading plugin 'add_printer': [Errno 2] No such file or directory: '/media/nico/Drive/pcUtils/ui/config_screen/../plugins/add_printer/settings.yml'
+2025-03-05 15:33:16,923 - install_ui.config - DEBUG - PluginConfig initialized successfully
+2025-03-05 15:33:16,923 - install_ui.choice - DEBUG - Pushing config screen
+2025-03-05 15:33:16,926 - install_ui.config - DEBUG - PluginConfig.compose() started
+2025-03-05 15:33:16,927 - install_ui.config - DEBUG - Plugin instances to check for remote execution: [('add_printer', 1)]
+2025-03-05 15:33:16,927 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
+2025-03-05 15:33:16,927 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-05 15:33:16,927 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-05 15:33:16,927 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-05 15:33:16,927 - install_ui.config - DEBUG - Reading settings from: /media/nico/Drive/pcUtils/ui/config_screen/../plugins/add_printer/settings.yml
+2025-03-05 15:33:16,927 - install_ui.config - ERROR - Error reading /media/nico/Drive/pcUtils/ui/config_screen/../plugins/add_printer/settings.yml: [Errno 2] No such file or directory: '/media/nico/Drive/pcUtils/ui/config_screen/../plugins/add_printer/settings.yml'
+2025-03-05 15:33:16,928 - install_ui.config - DEBUG - Remote execution plugins: []
+2025-03-05 15:33:16,928 - install_ui.config - DEBUG - Has remote plugins: False
+2025-03-05 15:33:16,928 - install_ui.config - DEBUG - Remote plugins list: []
+2025-03-05 15:33:16,928 - install_ui.config - DEBUG - Creating config for plugin: add_printer_1
+2025-03-05 15:33:16,929 - install_ui.config - ERROR - No configuration found for plugin add_printer
+2025-03-05 15:33:16,929 - install_ui.config - DEBUG - Checking if add_printer is in remote_plugins: False
+2025-03-05 15:33:16,932 - install_ui.config - DEBUG - PluginConfig.compose() completed
+2025-03-05 15:33:16,958 - install_ui.config - DEBUG - PluginConfig.on_mount() started
+2025-03-05 15:33:16,958 - install_ui.config - DEBUG - PluginConfig.on_mount() completed
+2025-03-05 15:33:17,004 - install_ui.choice - DEBUG - Config screen pushed successfully
+2025-03-05 15:33:17,004 - install_ui.choice - DEBUG - Config returned: True
+2025-03-05 15:33:17,004 - install_ui.choice - DEBUG - No configuration returned from config screen
+2025-03-05 15:33:18,770 - install_ui.config - DEBUG - Button pressed: cancel
+2025-03-05 15:33:18,771 - install_ui.config - DEBUG - Cancel button pressed, popping screen
+2025-03-05 15:33:18,806 - install_ui.choice - DEBUG - Button pressed: cancel
+2025-03-05 15:33:19,375 - install_ui.choice - DEBUG - Quitting application
+2025-03-05 15:33:19,706 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x77499ab1a050>

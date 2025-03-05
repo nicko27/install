@@ -3,7 +3,8 @@
 /* ==== GLOBAL STRUCTURE ==== */
 Screen {
     background: $surface;
-    height: 100%;
+    overflow: hidden;
+    height:1fr;
 }
 
 /* Page header */
@@ -19,7 +20,8 @@ Screen {
 
 #config-container-list {
     height: 83%;
-    overflow-y: scroll;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .config-fields {

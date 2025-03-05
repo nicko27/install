@@ -3,10 +3,10 @@ from textual.containers import Horizontal, Vertical, ScrollableContainer
 from textual.widgets import Label, Header, Footer, Button
 
 import os
-from .utils.logging import get_logger
-from .choice_management.plugin_card import PluginCard
-from .choice_management.selected_plugins_panel import SelectedPluginsPanel
-from .choice_management.plugin_utils import load_plugin_info
+from ..utils.logging import get_logger
+from .plugin_card import PluginCard
+from .selected_plugins_panel import SelectedPluginsPanel
+from .plugin_utils import load_plugin_info
 
 logger = get_logger('choice')
 
@@ -16,7 +16,7 @@ class Choice(App):
         ("escape", "quit", "Quitter"),  # Raccourci pour quitter l'application
     ]
 
-    CSS_PATH = "styles/choice.css"  # Chemin vers le fichier CSS
+    CSS_PATH = "../styles/choice.tcss"  # Chemin vers le fichier CSS
 
     def __init__(self):
         super().__init__()
@@ -159,8 +159,7 @@ class Choice(App):
         logger.debug("Starting action_configure_selected")
 
         try:
-            from ui.config import PluginConfig
-            from ui.executor import ExecutionScreen
+            from ui.config_screen.config_screen import PluginConfig
 
             if not self.selected_plugins:
                 logger.debug("No plugins selected")

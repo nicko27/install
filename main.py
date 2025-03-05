@@ -36,8 +36,7 @@ for pkg_dir in glob.glob(os.path.join(libs_dir, '*')):
 
 import argparse
 from ruamel.yaml import YAML
-from ui.choice import Choice
-from ui.executor import ExecutionScreen
+from ui.choice_screen.choice_screen import Choice
 
 
 

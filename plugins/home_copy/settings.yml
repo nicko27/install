@@ -2,7 +2,8 @@ name: Copie de comptes utilisateurs
 description: "Copie de comptes utilisateurs vers un support externe"
 version: 1.0
 category: Système
-multiple: true
+multiple: false
+remote_execution: true
 icon: 🏠
 config_fields:
   home_src_dir:
