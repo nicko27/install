@@ -5,15 +5,32 @@ import os
 import sys
 from typing import Tuple, List, Dict, Union, Any
 
-# Obtenir le chemin absolu du répertoire parent
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Déterminer le chemin absolu de la racine du projet pcUtils
+# Recherche le répertoire contenant le dossier 'plugins'
+def find_project_root():
+    # Commencer par le répertoire courant
+    current_dir = os.path.abspath(os.getcwd())
+    
+    # Remonter jusqu'à trouver le répertoire racine du projet
+    while current_dir != os.path.dirname(current_dir):  # Arrêter à la racine du système
+        if os.path.exists(os.path.join(current_dir, 'plugins')) and os.path.exists(os.path.join(current_dir, 'ui')):
+            return current_dir
+        current_dir = os.path.dirname(current_dir)
+    
+    # Si on ne trouve pas, utiliser le répertoire parent du script comme fallback
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Ajouter le répertoire parent au chemin de recherche Python
-if parent_dir not in sys.path:
-    sys.path.insert(0, parent_dir)
+# Obtenir le chemin absolu du répertoire racine du projet
+project_root = find_project_root()
 
-# Importer le module de logging
+# Ajouter le répertoire racine au chemin de recherche Python
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+# Configurer le logging
 try:
+    # Importer directement depuis le chemin absolu
+    sys.path.insert(0, os.path.join(project_root, 'ui'))
     from utils.logging import get_logger
     logger = get_logger('get_usb')
 except ImportError as e:

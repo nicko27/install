@@ -4,7 +4,7 @@
 Screen {
     background: $surface;
     overflow: hidden;
-    height:1fr;
+    height: 100%;
 }
 
 /* Page header */
@@ -19,22 +19,48 @@ Screen {
 }
 
 #config-container-list {
-    height: 83%;
     overflow-y: auto;
     overflow-x: hidden;
+    margin-bottom: 2;
+    height:83%;
+}
+
+.config-container{
+    height: auto;
+
+}
+
+#button-container {
+    border-top: heavy $primary;
+    width: 100%;
+    align-horizontal: right;
+    padding: 1 2;
+    min-height: 5;
+    height: auto;
+}
+
+#button-container Button {
+    margin-left: 1;
+    min-width: 15;
 }
 
 .config-fields {
     background: $panel;
     margin-left: 2;
     margin-right: 2;
-    margin-bottom: 1;
     padding: 1;
-    width: 100%;
+    margin-bottom:1;
+}
+
+.checkbox-group-label {
+    height:3;
+    content-align: left middle;
 }
 
 .no-config {
     width: 100%;
+    height: auto;
+    background: $panel;
     height: auto;
     background: $panel;
     margin-bottom: 1;
@@ -54,8 +80,6 @@ Screen {
 .no-config-label {
     text-style: italic;
 }
-
-
 
 .field-header {
     padding-left: 1;
@@ -87,11 +111,17 @@ Screen {
 
 .input-container,
 .select-container,
-.checkbox-container {
+.checkbox-container,
+.checkbox-group-container {
     margin-bottom: 1;
 }
 
 .browse-button {
     margin-left: 1;
     margin-bottom: 1;
+}
+
+.disabled-ssh-container{
+    visibility: hidden;
+    display: none;
 }

@@ -25,37 +25,70 @@ for pkg_dir in glob.glob(os.path.join(libs_dir, '*')):
         if pkg_dir not in sys.path:
             sys.path.insert(0, pkg_dir)
 
-
 import json
 import time
 import subprocess
 import logging
-import threading
+import traceback
 from datetime import datetime
 from ruamel.yaml import YAML
-import traceback
 
-# Configuration du logging
-formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] %(message)s',
-                            datefmt='%Y-%m-%d %H:%M:%S')
+# Ajout du chemin pour importer PluginLogger
+plugin_logger_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../ui/utils')
+if plugin_logger_path not in sys.path:
+    sys.path.insert(0, plugin_logger_path)
 
-logger = logging.getLogger('add_printer')
+try:
+    from plugin_logger import PluginLogger
+except ImportError:
+    # Classe de remplacement si l'import échoue
+    class PluginLogger:
+        def __init__(self, plugin_name=None):
+            self.plugin_name = plugin_name
+            self.total_steps = 1
+            self.current_step = 0
+            
+        def set_total_steps(self, total):
+            self.total_steps = max(1, total)
+            self.current_step = 0
+            
+        def next_step(self):
+            self.current_step += 1
+            current = min(self.current_step, self.total_steps)
+            self.update_progress(current / self.total_steps, current, self.total_steps)
+            return current
+        
+        def info(self, message):
+            print(f"[LOG] [INFO] {message}", flush=True)
+            
+        def warning(self, message):
+            print(f"[LOG] [WARNING] {message}", flush=True)
+            
+        def error(self, message):
+            print(f"[LOG] [ERROR] {message}", flush=True)
+            
+        def success(self, message):
+            print(f"[LOG] [SUCCESS] {message}", flush=True)
+            
+        def debug(self, message):
+            print(f"[LOG] [DEBUG] {message}", flush=True)
+            
+        def update_progress(self, percentage, current_step=None, total_steps=None):
+            percent = int(max(0, min(100, percentage * 100)))
+            if current_step is None:
+                current_step = self.current_step
+            if total_steps is None:
+                total_steps = self.total_steps
+            print(f"[PROGRESS] {percent} {current_step} {total_steps}", flush=True)
 
-# Handler pour la console
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
+# Initialiser le logger du plugin
+log = PluginLogger("add_printer")
 
-def print_progress(step: int, total: int):
-    """Affiche la progression"""
-    progress = int((step * 100) / total)
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [INFO] Progression : {progress}% (étape {step}/{total})")
-    sys.stdout.flush()  # Forcer l'envoi immédiat des données
-
-def run_command(cmd, input_data=None, no_output=False,print_command=False):
+def run_command(cmd, input_data=None, no_output=False, print_command=False):
     """Exécute une commande en utilisant Popen avec affichage en temps réel"""
     if print_command==True:
-    	logger.info(" ".join(cmd))
+        log.info(" ".join(cmd))
+        
     process = subprocess.Popen(
         cmd,
         stdin=subprocess.PIPE if input_data else None,
@@ -80,22 +113,22 @@ def run_command(cmd, input_data=None, no_output=False,print_command=False):
         
         if stdout_line:
             if no_output==False:
-                logger.info(stdout_line.rstrip())
+                log.info(stdout_line.rstrip())
             stdout_lines.append(stdout_line)
         
         if stderr_line:
             if no_output==False:
-                logger.error(stderr_line.rstrip())
+                log.error(stderr_line.rstrip())
             stderr_lines.append(stderr_line)
         
         if process.poll() is not None:
             for line in process.stdout:
                 if no_output==False:
-                    logger.info(line.rstrip())
+                    log.info(line.rstrip())
                 stdout_lines.append(line)
             for line in process.stderr:
                 if no_output==False:
-                    logger.error(line.rstrip())
+                    log.error(line.rstrip())
                 stderr_lines.append(line)
             break
     
@@ -104,7 +137,7 @@ def run_command(cmd, input_data=None, no_output=False,print_command=False):
     return process.returncode == 0, stdout, stderr
 
 
-def add_printer(printer_name, printer_mode,printer_file, printer_socket, bases_options, specials_options):
+def add_printer(printer_name, printer_mode, printer_file, printer_socket, bases_options, specials_options):
     options="-o cupsIPPSuplies=true -o printer-is-shared=false"
     opt=f"{options} {bases_options} {specials_options}"
     if printer_mode=="ppd" or printer_mode=="-P":
@@ -112,10 +145,10 @@ def add_printer(printer_name, printer_mode,printer_file, printer_socket, bases_o
     else:
         mode=f"-m{printer_file}"
     cmd=["lpadmin", "-p", printer_name, mode, "-v", printer_socket, "-u", "allow:all", "-o", opt, '-E']
-    returnValue,stdout,stderr = run_command(cmd,print_command=True)
+    returnValue,stdout,stderr = run_command(cmd, print_command=True)
     if returnValue==0:
         cmd=["lpadmin","-d",printer_name]
-        returnValue,stdout,stderr = run_command(cmd,print_command=True)    	
+        returnValue,stdout,stderr = run_command(cmd, print_command=True)    	
         return returnValue
     else:
         return returnValue
@@ -123,7 +156,6 @@ def add_printer(printer_name, printer_mode,printer_file, printer_socket, bases_o
 def execute_plugin(config):
     """Point d'entrée pour l'exécution du plugin"""
     try:
-
         # Récupérer la configuration
         printer_name = config.get('printer_name')
         printer_model = config.get('printer_model')
@@ -135,8 +167,8 @@ def execute_plugin(config):
             with open(model_path, 'r') as f:
                 printer_settings = yaml.load(f)
         except Exception as e:
-            logger.exception(f"Error loading settings for {printer_model}: {e}")
-            return Container()
+            log.error(f"Erreur lors du chargement des paramètres pour {printer_model}: {e}")
+            return False, f"Erreur lors du chargement des paramètres pour {printer_model}: {e}"
 
         couleurs=int(printer_settings.get('couleurs', 0))
         a3=int(printer_settings.get('a3', 0))
@@ -157,6 +189,7 @@ def execute_plugin(config):
 
         ip=f"{socket}{printer_ip}"
 
+        # Calculer le nombre total d'étapes
         total_steps = 3  # Base steps
 
         # Recto NB always
@@ -192,137 +225,117 @@ def execute_plugin(config):
             if couleurs == 1:
                 total_steps += 1  # Recto Couleurs A3
 
-        current_step = 0
+        # Définir le nombre total d'étapes dans le logger
+        log.set_total_steps(total_steps)
         
-        current_step += 1
-        print_progress(current_step, total_steps)
-        logger.info("Installation de l'imprimante {printer_name} avec ip {printer_ip}".format(printer_name=printer_name, printer_ip=printer_ip))
+        # Débuter avec la première étape
+        log.next_step()
+        log.info(f"Installation de l'imprimante {printer_name} avec ip {printer_ip}")
         
-        current_step += 1
-        logger.info("Suppression de la config evince pour éviter bug avec nouvelle imprimante")
+        log.next_step()
+        log.info("Suppression de la config evince pour éviter bug avec nouvelle imprimante")
         userList=os.listdir("/home")
         for user in userList:
             if os.path.exists("/home/{user}/.evince".format(user=user)):
                 os.rmdir("/home/{user}/.evince".format(user=user))
-        print_progress(current_step, total_steps)
-
-        current_step += 1
+        
+        log.next_step()
         name=f"{baseName}_{printer_name}_Recto_NB"
-        logger.info(f"Installation de {name}")
-        returnValue=add_printer(name, mode,ppdFile, ip, ocommun, f"{orecto} {oa4} {onb}")
-        print_progress(current_step, total_steps)
+        log.info(f"Installation de {name}")
+        returnValue=add_printer(name, mode, ppdFile, ip, ocommun, f"{orecto} {oa4} {onb}")
+        log.next_step()
 
         if (couleurs==1) and (returnValue==True):
-            current_step += 1
             name=f"{baseName}_{printer_name}_Recto_Couleurs"
-            logger.info(f"Installation de {name}")
-            returnValue=add_printer(name, mode,ppdFile, ip, ocommun, f"{orecto} {oa4} {ocouleurs}")
-            print_progress(current_step, total_steps)
+            log.info(f"Installation de {name}")
+            returnValue=add_printer(name, mode, ppdFile, ip, ocommun, f"{orecto} {oa4} {ocouleurs}")
+            log.next_step()
 
             if (rectoverso==1) and (returnValue==True):
-                current_step += 1
                 name=f"{baseName}_{printer_name}_RectoVerso_Couleurs"
-                logger.info(f"Installation de {name}")
-                returnValue=add_printer(name, mode,ppdFile, ip, ocommun, f"{orectoverso} {oa4} {ocouleurs}")
-                print_progress(current_step, total_steps)
+                log.info(f"Installation de {name}")
+                returnValue=add_printer(name, mode, ppdFile, ip, ocommun, f"{orectoverso} {oa4} {ocouleurs}")
+                log.next_step()
 
         if (rectoverso==1) and (returnValue==True):
-            current_step += 1
             name=f"{baseName}_{printer_name}_RectoVerso_NB"
-            logger.info(f"Installation de {name}")
-            returnValue=add_printer(name, mode,ppdFile, ip, ocommun, f"{orectoverso} {oa4} {onb}")
-            print_progress(current_step, total_steps)
-
+            log.info(f"Installation de {name}")
+            returnValue=add_printer(name, mode, ppdFile, ip, ocommun, f"{orectoverso} {oa4} {onb}")
+            log.next_step()
 
         if (agraffes==1) and (returnValue==True):
-            current_step += 1
             name=f"{baseName}_{printer_name}_Recto_NB_Agraffes"
-            logger.info(f"Installation de {name}")
-            returnValue=add_printer(name, mode,ppdFile, ip, ocommun, f"{orecto} {oagraffes} {oa4} {onb}")
-            print_progress(current_step, total_steps)
-
+            log.info(f"Installation de {name}")
+            returnValue=add_printer(name, mode, ppdFile, ip, ocommun, f"{orecto} {oagraffes} {oa4} {onb}")
+            log.next_step()
 
             if (rectoverso==1) and (returnValue==True):
-                current_step += 1
                 name=f"{baseName}_{printer_name}_RectoVerso_NB_Agraffes"
-                logger.info(f"Installation de {name}")
-                returnValue=add_printer(name, mode,ppdFile, ip, ocommun, f"{orectoverso} {oagraffes} {oa4} {onb}")
-                print_progress(current_step, total_steps)
-
+                log.info(f"Installation de {name}")
+                returnValue=add_printer(name, mode, ppdFile, ip, ocommun, f"{orectoverso} {oagraffes} {oa4} {onb}")
+                log.next_step()
 
                 if (couleurs==1) and (returnValue==True):
-                    current_step += 1
                     name=f"{baseName}_{printer_name}_RectoVerso_Couleurs_Agraffes"
-                    logger.info(f"Installation de {name}")
-                    returnValue=add_printer(name, mode,ppdFile, ip, ocommun, f"{orectoverso} {oagraffes} {oa4} {ocouleurs}")
-                    print_progress(current_step, total_steps)
-
+                    log.info(f"Installation de {name}")
+                    returnValue=add_printer(name, mode, ppdFile, ip, ocommun, f"{orectoverso} {oagraffes} {oa4} {ocouleurs}")
+                    log.next_step()
 
             if (couleurs==1) and (returnValue==True):
-                current_step += 1
                 name=f"{baseName}_{printer_name}_Recto_Couleurs_Agraffes"
-                logger.info(f"Installation de {name}")
-                returnValue=add_printer(name, mode,ppdFile, ip, ocommun, f"{orecto} {oagraffes} {oa4} {ocouleurs}")
-                print_progress(current_step, total_steps)
-
+                log.info(f"Installation de {name}")
+                returnValue=add_printer(name, mode, ppdFile, ip, ocommun, f"{orecto} {oagraffes} {oa4} {ocouleurs}")
+                log.next_step()
 
         if (a3==1) and (returnValue==True):
-            current_step += 1
             name=f"{baseName}_{printer_name}_Recto_NB_A3"
-            logger.info(f"Installation de {name}")
-            returnValue=add_printer(name, mode,ppdFile, ip, ocommun, f"{orecto} {oa3} {onb}")
-            print_progress(current_step, total_steps)
-
+            log.info(f"Installation de {name}")
+            returnValue=add_printer(name, mode, ppdFile, ip, ocommun, f"{orecto} {oa3} {onb}")
+            log.next_step()
 
             if (rectoverso==1) and (returnValue==True):
-                current_step += 1
                 name=f"{baseName}_{printer_name}_RectoVerso_NB_A3"
-                logger.info(f"Installation de {name}")
-                returnValue=add_printer(name, mode,ppdFile, ip, ocommun, f"{orectoverso} {oa3} {onb}")
-                print_progress(current_step, total_steps)
-                logger.info(f"Installation de {name}")
+                log.info(f"Installation de {name}")
+                returnValue=add_printer(name, mode, ppdFile, ip, ocommun, f"{orectoverso} {oa3} {onb}")
+                log.next_step()
 
                 if(couleurs==1) and (returnValue==True):
-                    current_step += 1
                     name=f"{baseName}_{printer_name}_RectoVerso_Couleurs_A3"
-                    logger.info(f"Installation de {name}")
-                    returnValue=add_printer(name, mode,ppdFile, ip, ocommun, f"{orectoverso} {oa3} {ocouleurs}")
-                    print_progress(current_step, total_steps)
-                    logger.info(f"Installation de {name}")
+                    log.info(f"Installation de {name}")
+                    returnValue=add_printer(name, mode, ppdFile, ip, ocommun, f"{orectoverso} {oa3} {ocouleurs}")
+                    log.next_step()
 
             if (couleurs==1) and (returnValue==True):
-                current_step += 1
                 name=f"{baseName}_{printer_name}_Recto_Couleurs_A3"
-                logger.info(f"Installation de {name}")
-                returnValue=add_printer(name, mode,ppdFile, ip, ocommun, f"{orecto} {oa3} {ocouleurs}")
-                print_progress(current_step, total_steps)
+                log.info(f"Installation de {name}")
+                returnValue=add_printer(name, mode, ppdFile, ip, ocommun, f"{orecto} {oa3} {ocouleurs}")
+                log.next_step()
 
-
-        
         if (returnValue==True):
-            logger.info("Redémarrage du service")
+            log.info("Redémarrage du service")
             success, stdout, stderr = run_command(['systemctl', 'restart', 'cups'])
-            current_step += 1
-            print_progress(current_step, total_steps)
 
             if not success:
-                logger.error(f"Erreur lors du redémarrage du service: {stderr}")
+                log.error(f"Erreur lors du redémarrage du service: {stderr}")
                 return False, "Erreur lors du redémarrage de Cups"
-            logger.info("Redémarrage du service réussi")
+            log.success("Redémarrage du service réussi")
             
         if (returnValue==True):
+            log.success("Ajout de l'imprimante effectué avec succès")
             return True, "Ajout de l'imprimante effectué avec succès"
         else:
+            log.error("Erreur lors de l'ajout de l'imprimante")
             return False, "Erreur lors de l'ajout de l'imprimante"
         
     except subprocess.CalledProcessError as e:
         error_msg = f"Erreur lors de l'exécution de la commande: {e}"
-        logger.error(error_msg)
+        log.error(error_msg)
         return False, error_msg
         
     except Exception as e:
         error_msg = f"Erreur inattendue: {str(e)}"
-        logger.exception(error_msg)
+        log.error(error_msg)
+        log.error(traceback.format_exc())
         return False, error_msg
 
 if __name__ == "__main__":
@@ -346,5 +359,4 @@ if __name__ == "__main__":
         sys.exit(1)
     except Exception as e:
         print(f"Erreur inattendue: {e}")
-        
         sys.exit(1)

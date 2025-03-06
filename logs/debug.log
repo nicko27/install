@@ -1,0 +1,346 @@
+2025-03-06 17:07:40,068 - install_ui.main - INFO - Starting application
+2025-03-06 17:07:40,068 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/textual-2.1.1-py3-none-any to sys.path
+2025-03-06 17:07:40,068 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/platformdirs-4.3.6-py3-none-any to sys.path
+2025-03-06 17:07:40,069 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/pygments-2.19.1-py3-none-any to sys.path
+2025-03-06 17:07:40,069 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64 to sys.path
+2025-03-06 17:07:40,069 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/uc_micro_py-1.0.3-py3-none-any to sys.path
+2025-03-06 17:07:40,069 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/pexpect-4.9.0-py2.py3-none-any to sys.path
+2025-03-06 17:07:40,069 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/linkify_it_py-2.0.3-py3-none-any to sys.path
+2025-03-06 17:07:40,069 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/typing_extensions-4.12.2-py3-none-any to sys.path
+2025-03-06 17:07:40,069 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/mdit_py_plugins-0.4.2-py3-none-any to sys.path
+2025-03-06 17:07:40,069 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/ruamel.yaml-0.18.10-py3-none-any to sys.path
+2025-03-06 17:07:40,069 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/rich-13.9.4-py3-none-any to sys.path
+2025-03-06 17:07:40,070 - install_ui.main - DEBUG - Added /media/nico/Drive/pcUtils/libs/ptyprocess-0.7.0-py2.py3-none-any to sys.path
+2025-03-06 17:07:40,475 - install_ui.choice - DEBUG - Initializing Choice application
+2025-03-06 17:07:40,475 - asyncio - DEBUG - Using selector: EpollSelector
+2025-03-06 17:07:40,512 - install_ui.choice - DEBUG - Scanning plugins directory: plugins
+2025-03-06 17:07:40,512 - install_ui.choice - DEBUG - Checking plugin: lara_install
+2025-03-06 17:07:40,513 - install_ui.choice - DEBUG -   Path: plugins/lara_install (exists: True)
+2025-03-06 17:07:40,513 - install_ui.choice - DEBUG -   Settings: plugins/lara_install/settings.yml (exists: True)
+2025-03-06 17:07:40,513 - install_ui.choice - DEBUG -   Exec Python: plugins/lara_install/exec.py (exists: True)
+2025-03-06 17:07:40,513 - install_ui.choice - DEBUG -   Exec Bash: plugins/lara_install/exec.bash (exists: False)
+2025-03-06 17:07:40,513 - install_ui.choice - DEBUG -   Plugin lara_install is valid
+2025-03-06 17:07:40,513 - install_ui.plugin_utils - DEBUG - Loading plugin info for: lara_install
+2025-03-06 17:07:40,513 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: lara_install
+2025-03-06 17:07:40,513 - install_ui.plugin_utils - DEBUG -   Test path: plugins/lara_install_test (exists: False)
+2025-03-06 17:07:40,513 - install_ui.plugin_utils - DEBUG -   Base path: plugins/lara_install (exists: True)
+2025-03-06 17:07:40,513 - install_ui.plugin_utils - DEBUG -   Returning base folder name: lara_install
+2025-03-06 17:07:40,514 - install_ui.plugin_utils - DEBUG -   Folder name: lara_install
+2025-03-06 17:07:40,514 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/lara_install/settings.yml (exists: True)
+2025-03-06 17:07:40,528 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for lara_install
+2025-03-06 17:07:40,528 - install_ui.choice - DEBUG -   Added to valid plugins: lara_install as LARA
+2025-03-06 17:07:40,528 - install_ui.choice - DEBUG - Checking plugin: home_copy
+2025-03-06 17:07:40,529 - install_ui.choice - DEBUG -   Path: plugins/home_copy (exists: True)
+2025-03-06 17:07:40,529 - install_ui.choice - DEBUG -   Settings: plugins/home_copy/settings.yml (exists: True)
+2025-03-06 17:07:40,529 - install_ui.choice - DEBUG -   Exec Python: plugins/home_copy/exec.py (exists: True)
+2025-03-06 17:07:40,529 - install_ui.choice - DEBUG -   Exec Bash: plugins/home_copy/exec.bash (exists: False)
+2025-03-06 17:07:40,529 - install_ui.choice - DEBUG -   Plugin home_copy is valid
+2025-03-06 17:07:40,529 - install_ui.plugin_utils - DEBUG - Loading plugin info for: home_copy
+2025-03-06 17:07:40,529 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: home_copy
+2025-03-06 17:07:40,529 - install_ui.plugin_utils - DEBUG -   Test path: plugins/home_copy_test (exists: False)
+2025-03-06 17:07:40,529 - install_ui.plugin_utils - DEBUG -   Base path: plugins/home_copy (exists: True)
+2025-03-06 17:07:40,529 - install_ui.plugin_utils - DEBUG -   Returning base folder name: home_copy
+2025-03-06 17:07:40,529 - install_ui.plugin_utils - DEBUG -   Folder name: home_copy
+2025-03-06 17:07:40,529 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/home_copy/settings.yml (exists: True)
+2025-03-06 17:07:40,546 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for home_copy
+2025-03-06 17:07:40,547 - install_ui.choice - DEBUG -   Added to valid plugins: home_copy as Copie de comptes utilisateurs
+2025-03-06 17:07:40,547 - install_ui.choice - DEBUG - Checking plugin: README_PYTHON.md
+2025-03-06 17:07:40,547 - install_ui.choice - DEBUG -   Path: plugins/README_PYTHON.md (exists: False)
+2025-03-06 17:07:40,547 - install_ui.choice - DEBUG -   Settings: plugins/README_PYTHON.md/settings.yml (exists: False)
+2025-03-06 17:07:40,547 - install_ui.choice - DEBUG -   Exec Python: plugins/README_PYTHON.md/exec.py (exists: False)
+2025-03-06 17:07:40,547 - install_ui.choice - DEBUG -   Exec Bash: plugins/README_PYTHON.md/exec.bash (exists: False)
+2025-03-06 17:07:40,547 - install_ui.choice - DEBUG -   Plugin README_PYTHON.md is NOT valid
+2025-03-06 17:07:40,547 - install_ui.choice - DEBUG - Checking plugin: README_BASH.md
+2025-03-06 17:07:40,547 - install_ui.choice - DEBUG -   Path: plugins/README_BASH.md (exists: False)
+2025-03-06 17:07:40,547 - install_ui.choice - DEBUG -   Settings: plugins/README_BASH.md/settings.yml (exists: False)
+2025-03-06 17:07:40,547 - install_ui.choice - DEBUG -   Exec Python: plugins/README_BASH.md/exec.py (exists: False)
+2025-03-06 17:07:40,548 - install_ui.choice - DEBUG -   Exec Bash: plugins/README_BASH.md/exec.bash (exists: False)
+2025-03-06 17:07:40,548 - install_ui.choice - DEBUG -   Plugin README_BASH.md is NOT valid
+2025-03-06 17:07:40,548 - install_ui.choice - DEBUG - Checking plugin: README_SCRIPT_INTERACTIVE.md
+2025-03-06 17:07:40,548 - install_ui.choice - DEBUG -   Path: plugins/README_SCRIPT_INTERACTIVE.md (exists: False)
+2025-03-06 17:07:40,548 - install_ui.choice - DEBUG -   Settings: plugins/README_SCRIPT_INTERACTIVE.md/settings.yml (exists: False)
+2025-03-06 17:07:40,548 - install_ui.choice - DEBUG -   Exec Python: plugins/README_SCRIPT_INTERACTIVE.md/exec.py (exists: False)
+2025-03-06 17:07:40,548 - install_ui.choice - DEBUG -   Exec Bash: plugins/README_SCRIPT_INTERACTIVE.md/exec.bash (exists: False)
+2025-03-06 17:07:40,548 - install_ui.choice - DEBUG -   Plugin README_SCRIPT_INTERACTIVE.md is NOT valid
+2025-03-06 17:07:40,548 - install_ui.choice - DEBUG - Checking plugin: add_printer
+2025-03-06 17:07:40,548 - install_ui.choice - DEBUG -   Path: plugins/add_printer (exists: True)
+2025-03-06 17:07:40,548 - install_ui.choice - DEBUG -   Settings: plugins/add_printer/settings.yml (exists: True)
+2025-03-06 17:07:40,549 - install_ui.choice - DEBUG -   Exec Python: plugins/add_printer/exec.py (exists: True)
+2025-03-06 17:07:40,549 - install_ui.choice - DEBUG -   Exec Bash: plugins/add_printer/exec.bash (exists: False)
+2025-03-06 17:07:40,549 - install_ui.choice - DEBUG -   Plugin add_printer is valid
+2025-03-06 17:07:40,549 - install_ui.plugin_utils - DEBUG - Loading plugin info for: add_printer
+2025-03-06 17:07:40,549 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
+2025-03-06 17:07:40,549 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-06 17:07:40,549 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-06 17:07:40,549 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-06 17:07:40,549 - install_ui.plugin_utils - DEBUG -   Folder name: add_printer
+2025-03-06 17:07:40,550 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/add_printer/settings.yml (exists: True)
+2025-03-06 17:07:40,562 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for add_printer
+2025-03-06 17:07:40,562 - install_ui.choice - DEBUG -   Added to valid plugins: add_printer as Ajout d'imprimante
+2025-03-06 17:07:40,562 - install_ui.choice - DEBUG - Checking plugin: scan_plugin
+2025-03-06 17:07:40,562 - install_ui.choice - DEBUG -   Path: plugins/scan_plugin (exists: True)
+2025-03-06 17:07:40,562 - install_ui.choice - DEBUG -   Settings: plugins/scan_plugin/settings.yml (exists: True)
+2025-03-06 17:07:40,562 - install_ui.choice - DEBUG -   Exec Python: plugins/scan_plugin/exec.py (exists: True)
+2025-03-06 17:07:40,562 - install_ui.choice - DEBUG -   Exec Bash: plugins/scan_plugin/exec.bash (exists: False)
+2025-03-06 17:07:40,562 - install_ui.choice - DEBUG -   Plugin scan_plugin is valid
+2025-03-06 17:07:40,563 - install_ui.plugin_utils - DEBUG - Loading plugin info for: scan_plugin
+2025-03-06 17:07:40,563 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: scan_plugin
+2025-03-06 17:07:40,563 - install_ui.plugin_utils - DEBUG -   Test path: plugins/scan_plugin_test (exists: False)
+2025-03-06 17:07:40,563 - install_ui.plugin_utils - DEBUG -   Base path: plugins/scan_plugin (exists: True)
+2025-03-06 17:07:40,563 - install_ui.plugin_utils - DEBUG -   Returning base folder name: scan_plugin
+2025-03-06 17:07:40,563 - install_ui.plugin_utils - DEBUG -   Folder name: scan_plugin
+2025-03-06 17:07:40,563 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/scan_plugin/settings.yml (exists: True)
+2025-03-06 17:07:40,572 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for scan_plugin
+2025-03-06 17:07:40,572 - install_ui.choice - DEBUG -   Added to valid plugins: scan_plugin as Configuration serveur pour Numerisation
+2025-03-06 17:07:40,572 - install_ui.choice - DEBUG - Checking plugin: delete_printer
+2025-03-06 17:07:40,572 - install_ui.choice - DEBUG -   Path: plugins/delete_printer (exists: True)
+2025-03-06 17:07:40,572 - install_ui.choice - DEBUG -   Settings: plugins/delete_printer/settings.yml (exists: True)
+2025-03-06 17:07:40,572 - install_ui.choice - DEBUG -   Exec Python: plugins/delete_printer/exec.py (exists: True)
+2025-03-06 17:07:40,572 - install_ui.choice - DEBUG -   Exec Bash: plugins/delete_printer/exec.bash (exists: False)
+2025-03-06 17:07:40,572 - install_ui.choice - DEBUG -   Plugin delete_printer is valid
+2025-03-06 17:07:40,572 - install_ui.plugin_utils - DEBUG - Loading plugin info for: delete_printer
+2025-03-06 17:07:40,572 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: delete_printer
+2025-03-06 17:07:40,572 - install_ui.plugin_utils - DEBUG -   Test path: plugins/delete_printer_test (exists: False)
+2025-03-06 17:07:40,572 - install_ui.plugin_utils - DEBUG -   Base path: plugins/delete_printer (exists: True)
+2025-03-06 17:07:40,573 - install_ui.plugin_utils - DEBUG -   Returning base folder name: delete_printer
+2025-03-06 17:07:40,573 - install_ui.plugin_utils - DEBUG -   Folder name: delete_printer
+2025-03-06 17:07:40,573 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/delete_printer/settings.yml (exists: True)
+2025-03-06 17:07:40,582 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for delete_printer
+2025-03-06 17:07:40,582 - install_ui.choice - DEBUG -   Added to valid plugins: delete_printer as Suppression d'imprimante(s)
+2025-03-06 17:07:40,582 - install_ui.choice - DEBUG - Valid plugins after sorting: [("Ajout d'imprimante", 'add_printer'), ('Configuration serveur pour Numerisation', 'scan_plugin'), ('Copie de comptes utilisateurs', 'home_copy'), ('LARA', 'lara_install'), ("Suppression d'imprimante(s)", 'delete_printer')]
+2025-03-06 17:07:40,582 - install_ui.choice - DEBUG - Creating card for plugin: add_printer
+2025-03-06 17:07:40,582 - install_ui.plugin_utils - DEBUG - Loading plugin info for: add_printer
+2025-03-06 17:07:40,582 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
+2025-03-06 17:07:40,582 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-06 17:07:40,582 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-06 17:07:40,583 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-06 17:07:40,583 - install_ui.plugin_utils - DEBUG -   Folder name: add_printer
+2025-03-06 17:07:40,583 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/add_printer/settings.yml (exists: True)
+2025-03-06 17:07:40,597 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for add_printer
+2025-03-06 17:07:40,597 - install_ui.choice - DEBUG - Creating card for plugin: scan_plugin
+2025-03-06 17:07:40,598 - install_ui.plugin_utils - DEBUG - Loading plugin info for: scan_plugin
+2025-03-06 17:07:40,598 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: scan_plugin
+2025-03-06 17:07:40,598 - install_ui.plugin_utils - DEBUG -   Test path: plugins/scan_plugin_test (exists: False)
+2025-03-06 17:07:40,598 - install_ui.plugin_utils - DEBUG -   Base path: plugins/scan_plugin (exists: True)
+2025-03-06 17:07:40,598 - install_ui.plugin_utils - DEBUG -   Returning base folder name: scan_plugin
+2025-03-06 17:07:40,598 - install_ui.plugin_utils - DEBUG -   Folder name: scan_plugin
+2025-03-06 17:07:40,598 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/scan_plugin/settings.yml (exists: True)
+2025-03-06 17:07:40,608 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for scan_plugin
+2025-03-06 17:07:40,608 - install_ui.choice - DEBUG - Creating card for plugin: home_copy
+2025-03-06 17:07:40,609 - install_ui.plugin_utils - DEBUG - Loading plugin info for: home_copy
+2025-03-06 17:07:40,609 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: home_copy
+2025-03-06 17:07:40,609 - install_ui.plugin_utils - DEBUG -   Test path: plugins/home_copy_test (exists: False)
+2025-03-06 17:07:40,609 - install_ui.plugin_utils - DEBUG -   Base path: plugins/home_copy (exists: True)
+2025-03-06 17:07:40,609 - install_ui.plugin_utils - DEBUG -   Returning base folder name: home_copy
+2025-03-06 17:07:40,609 - install_ui.plugin_utils - DEBUG -   Folder name: home_copy
+2025-03-06 17:07:40,609 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/home_copy/settings.yml (exists: True)
+2025-03-06 17:07:40,627 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for home_copy
+2025-03-06 17:07:40,627 - install_ui.choice - DEBUG - Creating card for plugin: lara_install
+2025-03-06 17:07:40,627 - install_ui.plugin_utils - DEBUG - Loading plugin info for: lara_install
+2025-03-06 17:07:40,627 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: lara_install
+2025-03-06 17:07:40,628 - install_ui.plugin_utils - DEBUG -   Test path: plugins/lara_install_test (exists: False)
+2025-03-06 17:07:40,628 - install_ui.plugin_utils - DEBUG -   Base path: plugins/lara_install (exists: True)
+2025-03-06 17:07:40,628 - install_ui.plugin_utils - DEBUG -   Returning base folder name: lara_install
+2025-03-06 17:07:40,628 - install_ui.plugin_utils - DEBUG -   Folder name: lara_install
+2025-03-06 17:07:40,628 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/lara_install/settings.yml (exists: True)
+2025-03-06 17:07:40,630 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for lara_install
+2025-03-06 17:07:40,630 - install_ui.choice - DEBUG - Creating card for plugin: delete_printer
+2025-03-06 17:07:40,630 - install_ui.plugin_utils - DEBUG - Loading plugin info for: delete_printer
+2025-03-06 17:07:40,630 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: delete_printer
+2025-03-06 17:07:40,631 - install_ui.plugin_utils - DEBUG -   Test path: plugins/delete_printer_test (exists: False)
+2025-03-06 17:07:40,631 - install_ui.plugin_utils - DEBUG -   Base path: plugins/delete_printer (exists: True)
+2025-03-06 17:07:40,631 - install_ui.plugin_utils - DEBUG -   Returning base folder name: delete_printer
+2025-03-06 17:07:40,631 - install_ui.plugin_utils - DEBUG -   Folder name: delete_printer
+2025-03-06 17:07:40,631 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/delete_printer/settings.yml (exists: True)
+2025-03-06 17:07:40,637 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for delete_printer
+2025-03-06 17:07:41,980 - install_ui.plugin_utils - DEBUG - Loading plugin info for: add_printer
+2025-03-06 17:07:41,980 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
+2025-03-06 17:07:41,980 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-06 17:07:41,980 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-06 17:07:41,980 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-06 17:07:41,980 - install_ui.plugin_utils - DEBUG -   Folder name: add_printer
+2025-03-06 17:07:41,981 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/add_printer/settings.yml (exists: True)
+2025-03-06 17:07:41,991 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for add_printer
+2025-03-06 17:07:41,994 - install_ui.choice - DEBUG - Selection changed for plugin: add_printer to True
+2025-03-06 17:07:41,995 - install_ui.plugin_utils - DEBUG - Loading plugin info for: add_printer
+2025-03-06 17:07:41,995 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
+2025-03-06 17:07:41,995 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-06 17:07:41,995 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-06 17:07:41,995 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-06 17:07:41,995 - install_ui.plugin_utils - DEBUG -   Folder name: add_printer
+2025-03-06 17:07:41,995 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/add_printer/settings.yml (exists: True)
+2025-03-06 17:07:42,010 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for add_printer
+2025-03-06 17:07:42,010 - install_ui.choice - DEBUG - Added plugin instance: add_printer (id: 1)
+2025-03-06 17:07:42,011 - install_ui.plugin_utils - DEBUG - Loading plugin info for: add_printer
+2025-03-06 17:07:42,011 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
+2025-03-06 17:07:42,011 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-06 17:07:42,011 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-06 17:07:42,011 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-06 17:07:42,012 - install_ui.plugin_utils - DEBUG -   Folder name: add_printer
+2025-03-06 17:07:42,012 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/add_printer/settings.yml (exists: True)
+2025-03-06 17:07:42,028 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for add_printer
+2025-03-06 17:07:42,927 - install_ui.choice - DEBUG - Button pressed: configure_selected
+2025-03-06 17:07:42,927 - install_ui.choice - DEBUG - Starting action_configure_selected
+2025-03-06 17:07:42,946 - install_ui.choice - DEBUG - Selected plugins: [('add_printer', 1)]
+2025-03-06 17:07:42,946 - install_ui.choice - DEBUG - Creating PluginConfig instance
+2025-03-06 17:07:42,946 - install_ui.config_screen - DEBUG - Initializing PluginConfig
+2025-03-06 17:07:42,947 - install_ui.config_screen - DEBUG - Plugin instances: [('add_printer', 1)]
+2025-03-06 17:07:42,947 - install_ui.config_screen - DEBUG - Creating ConfigManager
+2025-03-06 17:07:42,947 - install_ui.config_screen - DEBUG - Loading SSH config from: /media/nico/Drive/pcUtils/ui/ssh_manager/ssh_fields.yml
+2025-03-06 17:07:42,963 - install_ui.config_manager - DEBUG - Global config 'ssh' loaded: {'name': 'Configuration SSH globale', 'icon': '🔒', 'description': "Paramètres de connexion pour l'exécution distante des plugins", 'hint': "Activez l'exécution distante sur au moins un plugin pour configurer SSH", 'fields': {'ssh_ips': {'type': 'text', 'label': 'Adresses IP (séparées par des virgules)', 'description': 'Peut inclure des caractères génériques (ex: 192.168.1.*) et des virgules', 'placeholder': '150.27.2.*', 'required': True}, 'ssh_user': {'type': 'text', 'label': 'Utilisateur SSH', 'default': 'nicolas.voirin', 'required': True}, 'ssh_passwd': {'type': 'password', 'label': 'Mot de passe SSH', 'required': True}, 'ssh_sms_enabled': {'type': 'checkbox', 'label': 'Authentification via la SMS', 'default': False}, 'ssh_sms': {'type': 'text', 'label': 'Nom de machine de la SMS', 'default': 'ggd027sf', 'placeholder': 'ggd027sf....', 'required': True, 'enabled_if': {'field': 'ssh_sms_enabled', 'value': True}}, 'ssh_exception_ips': {'type': 'text', 'label': "Adresses IP exclues de l'exception", 'placeholder': '150.27.2.200,150.27.2.21*,150.27.2.22*', 'required': False}}}
+2025-03-06 17:07:42,964 - install_ui.config_screen - DEBUG - Initializing fields for plugin: add_printer
+2025-03-06 17:07:42,964 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
+2025-03-06 17:07:42,964 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-06 17:07:42,964 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-06 17:07:42,964 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-06 17:07:42,964 - install_ui.config_screen - DEBUG - Loading plugin config from: /media/nico/Drive/pcUtils/plugins/add_printer/settings.yml
+2025-03-06 17:07:42,977 - install_ui.config_manager - DEBUG - Plugin config 'add_printer' loaded
+2025-03-06 17:07:42,978 - install_ui.config_screen - DEBUG - PluginConfig initialized successfully
+2025-03-06 17:07:42,978 - install_ui.choice - DEBUG - Pushing config screen
+2025-03-06 17:07:43,019 - install_ui.config_screen - DEBUG - PluginConfig.compose() started
+2025-03-06 17:07:43,019 - install_ui.config_screen - DEBUG - Plugin instances to check for remote execution: [('add_printer', 1)]
+2025-03-06 17:07:43,020 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
+2025-03-06 17:07:43,020 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-06 17:07:43,020 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-06 17:07:43,020 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-06 17:07:43,020 - install_ui.config_screen - DEBUG - Reading settings from: /media/nico/Drive/pcUtils/plugins/add_printer/settings.yml
+2025-03-06 17:07:43,020 - install_ui.config_screen - DEBUG - File content: name: Ajout d'imprimante
+description: Ajouter une imprimante en utilisant les modèles prédéfinis
+version: 1.0
+category: Système
+multiple: true
+icon: 🖨
+# Ajout du support pour l'exécution distante
+remote_execution: true
+
+config_fields:
+  printer_name:
+    type: text
+    label: Nom de l'imprimante
+    description: Nom de l'imprimante (sans espaces)
+    required: true
+    placeholder: "Ex: Bureau_RDC"
+    validate: no_spaces
+    default: "BT"
+    plugin_id: add_printer
+
+  printer_model:
+    type: select
+    label: Modèle d'imprimante
+    description: Sélectionner le modèle d'imprimante
+    required: true
+    allow_blank: false
+    plugin_id: add_printer
+    dynamic_options:
+      script: get_printer_models.py
+      function: get_printer_models
+      value_key: models
+
+  printer_ip:
+    type: ip
+    label: Adresse IP
+    description: Adresse IP de l'imprimante
+    required: true
+    not_empty: true
+    placeholder: "Ex: 192.168.1.100"
+    plugin_id: add_printer
+    dynamic_default:
+      script: get_ip.py
+      function: get_local_ip
+      value_key: ip
+2025-03-06 17:07:43,031 - install_ui.config_screen - DEBUG - Loaded settings: {'name': "Ajout d'imprimante", 'description': 'Ajouter une imprimante en utilisant les modèles prédéfinis', 'version': 1.0, 'category': 'Système', 'multiple': True, 'icon': '🖨', 'remote_execution': True, 'config_fields': {'printer_name': {'type': 'text', 'label': "Nom de l'imprimante", 'description': "Nom de l'imprimante (sans espaces)", 'required': True, 'placeholder': 'Ex: Bureau_RDC', 'validate': 'no_spaces', 'default': 'BT', 'plugin_id': 'add_printer'}, 'printer_model': {'type': 'select', 'label': "Modèle d'imprimante", 'description': "Sélectionner le modèle d'imprimante", 'required': True, 'allow_blank': False, 'plugin_id': 'add_printer', 'dynamic_options': {'script': 'get_printer_models.py', 'function': 'get_printer_models', 'value_key': 'models'}}, 'printer_ip': {'type': 'ip', 'label': 'Adresse IP', 'description': "Adresse IP de l'imprimante", 'required': True, 'not_empty': True, 'placeholder': 'Ex: 192.168.1.100', 'plugin_id': 'add_printer', 'dynamic_default': {'script': 'get_ip.py', 'function': 'get_local_ip', 'value_key': 'ip'}}}}
+2025-03-06 17:07:43,032 - install_ui.config_screen - DEBUG - Plugin add_printer remote_execution: True
+2025-03-06 17:07:43,032 - install_ui.config_screen - DEBUG - Found remote execution plugin: add_printer
+2025-03-06 17:07:43,032 - install_ui.config_screen - DEBUG - Remote execution plugins: ['add_printer']
+2025-03-06 17:07:43,032 - install_ui.config_screen - DEBUG - Has remote plugins: True
+2025-03-06 17:07:43,032 - install_ui.config_screen - DEBUG - Remote plugins list: ['add_printer']
+2025-03-06 17:07:43,032 - install_ui.config_screen - DEBUG - Creating config for plugin: add_printer_1
+2025-03-06 17:07:43,032 - install_ui.config_screen - DEBUG - Checking if add_printer is in remote_plugins: True
+2025-03-06 17:07:43,033 - install_ui.config_screen - DEBUG - Adding remote execution checkbox for plugin add_printer_1
+2025-03-06 17:07:43,033 - install_ui.config_screen - DEBUG - Adding empty SSH container (content will be added in on_mount)
+2025-03-06 17:07:43,036 - install_ui.config_screen - DEBUG - PluginConfig.compose() completed
+2025-03-06 17:07:43,068 - install_ui.config_field - INFO - Attempting to get dynamic default for field: printer_ip
+2025-03-06 17:07:43,069 - install_ui.config_field - INFO - Field config: {'type': 'ip', 'label': 'Adresse IP', 'description': "Adresse IP de l'imprimante", 'required': True, 'not_empty': True, 'placeholder': 'Ex: 192.168.1.100', 'plugin_id': 'add_printer', 'dynamic_default': {'script': 'get_ip.py', 'function': 'get_local_ip', 'value_key': 'ip'}, 'id': 'printer_ip'}
+2025-03-06 17:07:43,069 - install_ui.config_field - INFO - Loading script from: /media/nico/Drive/pcUtils/ui/config_screen/../../plugins/add_printer/get_ip.py
+2025-03-06 17:07:43,070 - install_ui.config_field - INFO - Dynamic default value obtained: (True, {'ip': '192.168.1.220'})
+2025-03-06 17:07:43,098 - install_ui.select_field - INFO - Loading script from: /media/nico/Drive/pcUtils/ui/config_screen/../../plugins/add_printer/get_printer_models.py
+2025-03-06 17:07:43,098 - install_ui.select_field - DEBUG - Script exists: True
+2025-03-06 17:07:43,098 - install_ui.select_field - DEBUG - Python path: ['/media/nico/Drive/pcUtils/libs/ptyprocess-0.7.0-py2.py3-none-any', '/media/nico/Drive/pcUtils/libs/rich-13.9.4-py3-none-any', '/media/nico/Drive/pcUtils/libs/ruamel.yaml-0.18.10-py3-none-any', '/media/nico/Drive/pcUtils/libs/mdit_py_plugins-0.4.2-py3-none-any', '/media/nico/Drive/pcUtils/libs/typing_extensions-4.12.2-py3-none-any', '/media/nico/Drive/pcUtils/libs/linkify_it_py-2.0.3-py3-none-any', '/media/nico/Drive/pcUtils/libs/pexpect-4.9.0-py2.py3-none-any', '/media/nico/Drive/pcUtils/libs/uc_micro_py-1.0.3-py3-none-any', '/media/nico/Drive/pcUtils/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils/libs/pygments-2.19.1-py3-none-any', '/media/nico/Drive/pcUtils/libs/platformdirs-4.3.6-py3-none-any', '/media/nico/Drive/pcUtils/libs/textual-2.1.1-py3-none-any', '/media/nico/Drive/pcUtils', '/usr/lib/python310.zip', '/usr/lib/python3.10', '/usr/lib/python3.10/lib-dynload', '/home/nico/.local/lib/python3.10/site-packages', '/usr/local/lib/python3.10/dist-packages', '/usr/lib/python3/dist-packages', '/media/nico/Drive/pcUtils/ui/config_screen/../../plugins/add_printer']
+2025-03-06 17:07:43,098 - install_ui.select_field - DEBUG - Using function: get_printer_models
+2025-03-06 17:07:43,215 - install_ui.select_field - INFO - Got result from get_printer_models: (True, {'models': [{'description': 'Imprimante Epson C4200 Couleurs', 'value': 'EC4200.yml'}, {'description': 'Imprimante Epson M2000', 'value': 'EM2000.yml'}, {'description': 'Photocopieur Konica Minolta 227', 'value': 'KM227.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs', 'value': 'KM227C.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs Agrafes', 'value': 'KM227CA.yml'}, {'description': 'Photocopieur Konica Minolta 250i Couleurs', 'value': 'KM250iC.yml'}, {'description': 'Photocopieur Konica Minolta 251i Couleurs', 'value': 'KM251iC.yml'}, {'description': 'Photocopieur Konica Minolta 287', 'value': 'KM287.yml'}, {'description': 'Photocopieur Konica Minolta 287 Couleurs', 'value': 'KM287C.yml'}, {'description': 'Photocopieur Konica Minolta 301i', 'value': 'KM301i.yml'}, {'description': 'Photocopieur Konica Minolta 301i Agrafes', 'value': 'KM301iA.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs', 'value': 'KM301iC.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs Agrafes', 'value': 'KM301iCA.yml'}, {'description': 'Photocopieur Konica Minolta 360i Couleurs', 'value': 'KM360iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i', 'value': 'KM361i.yml'}, {'description': 'Photocopieur Konica Minolta 361i Agrafes', 'value': 'KM361iA.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs', 'value': 'KM361iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs Agrafes', 'value': 'KM361iCA.yml'}, {'description': 'Photocopieur Konica Minolta 4051i', 'value': 'KM4051i.yml'}, {'description': 'Photocopieur Konica Minolta 4051i Couleurs', 'value': 'KM4051iC.yml'}, {'description': 'Photocopieur Konica Minolta C251i Agrafes', 'value': 'KM251iCA.yml'}]})
+2025-03-06 17:07:43,215 - install_ui.select_field - INFO - Extracted data using value_key 'models': [{'description': 'Imprimante Epson C4200 Couleurs', 'value': 'EC4200.yml'}, {'description': 'Imprimante Epson M2000', 'value': 'EM2000.yml'}, {'description': 'Photocopieur Konica Minolta 227', 'value': 'KM227.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs', 'value': 'KM227C.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs Agrafes', 'value': 'KM227CA.yml'}, {'description': 'Photocopieur Konica Minolta 250i Couleurs', 'value': 'KM250iC.yml'}, {'description': 'Photocopieur Konica Minolta 251i Couleurs', 'value': 'KM251iC.yml'}, {'description': 'Photocopieur Konica Minolta 287', 'value': 'KM287.yml'}, {'description': 'Photocopieur Konica Minolta 287 Couleurs', 'value': 'KM287C.yml'}, {'description': 'Photocopieur Konica Minolta 301i', 'value': 'KM301i.yml'}, {'description': 'Photocopieur Konica Minolta 301i Agrafes', 'value': 'KM301iA.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs', 'value': 'KM301iC.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs Agrafes', 'value': 'KM301iCA.yml'}, {'description': 'Photocopieur Konica Minolta 360i Couleurs', 'value': 'KM360iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i', 'value': 'KM361i.yml'}, {'description': 'Photocopieur Konica Minolta 361i Agrafes', 'value': 'KM361iA.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs', 'value': 'KM361iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs Agrafes', 'value': 'KM361iCA.yml'}, {'description': 'Photocopieur Konica Minolta 4051i', 'value': 'KM4051i.yml'}, {'description': 'Photocopieur Konica Minolta 4051i Couleurs', 'value': 'KM4051iC.yml'}, {'description': 'Photocopieur Konica Minolta C251i Agrafes', 'value': 'KM251iCA.yml'}]
+2025-03-06 17:07:43,215 - install_ui.select_field - INFO - Processed data type: <class 'list'> for options
+2025-03-06 17:07:43,215 - install_ui.select_field - INFO - Processing list data: [{'description': 'Imprimante Epson C4200 Couleurs', 'value': 'EC4200.yml'}, {'description': 'Imprimante Epson M2000', 'value': 'EM2000.yml'}, {'description': 'Photocopieur Konica Minolta 227', 'value': 'KM227.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs', 'value': 'KM227C.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs Agrafes', 'value': 'KM227CA.yml'}, {'description': 'Photocopieur Konica Minolta 250i Couleurs', 'value': 'KM250iC.yml'}, {'description': 'Photocopieur Konica Minolta 251i Couleurs', 'value': 'KM251iC.yml'}, {'description': 'Photocopieur Konica Minolta 287', 'value': 'KM287.yml'}, {'description': 'Photocopieur Konica Minolta 287 Couleurs', 'value': 'KM287C.yml'}, {'description': 'Photocopieur Konica Minolta 301i', 'value': 'KM301i.yml'}, {'description': 'Photocopieur Konica Minolta 301i Agrafes', 'value': 'KM301iA.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs', 'value': 'KM301iC.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs Agrafes', 'value': 'KM301iCA.yml'}, {'description': 'Photocopieur Konica Minolta 360i Couleurs', 'value': 'KM360iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i', 'value': 'KM361i.yml'}, {'description': 'Photocopieur Konica Minolta 361i Agrafes', 'value': 'KM361iA.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs', 'value': 'KM361iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs Agrafes', 'value': 'KM361iCA.yml'}, {'description': 'Photocopieur Konica Minolta 4051i', 'value': 'KM4051i.yml'}, {'description': 'Photocopieur Konica Minolta 4051i Couleurs', 'value': 'KM4051iC.yml'}, {'description': 'Photocopieur Konica Minolta C251i Agrafes', 'value': 'KM251iCA.yml'}]
+2025-03-06 17:07:43,215 - install_ui.select_field - INFO - Final normalized options: [('Imprimante Epson C4200 Couleurs', 'EC4200.yml'), ('Imprimante Epson M2000', 'EM2000.yml'), ('Photocopieur Konica Minolta 227', 'KM227.yml'), ('Photocopieur Konica Minolta 227 Couleurs', 'KM227C.yml'), ('Photocopieur Konica Minolta 227 Couleurs Agrafes', 'KM227CA.yml'), ('Photocopieur Konica Minolta 250i Couleurs', 'KM250iC.yml'), ('Photocopieur Konica Minolta 251i Couleurs', 'KM251iC.yml'), ('Photocopieur Konica Minolta 287', 'KM287.yml'), ('Photocopieur Konica Minolta 287 Couleurs', 'KM287C.yml'), ('Photocopieur Konica Minolta 301i', 'KM301i.yml'), ('Photocopieur Konica Minolta 301i Agrafes', 'KM301iA.yml'), ('Photocopieur Konica Minolta 301i Couleurs', 'KM301iC.yml'), ('Photocopieur Konica Minolta 301i Couleurs Agrafes', 'KM301iCA.yml'), ('Photocopieur Konica Minolta 360i Couleurs', 'KM360iC.yml'), ('Photocopieur Konica Minolta 361i', 'KM361i.yml'), ('Photocopieur Konica Minolta 361i Agrafes', 'KM361iA.yml'), ('Photocopieur Konica Minolta 361i Couleurs', 'KM361iC.yml'), ('Photocopieur Konica Minolta 361i Couleurs Agrafes', 'KM361iCA.yml'), ('Photocopieur Konica Minolta 4051i', 'KM4051i.yml'), ('Photocopieur Konica Minolta 4051i Couleurs', 'KM4051iC.yml'), ('Photocopieur Konica Minolta C251i Agrafes', 'KM251iCA.yml')]
+2025-03-06 17:07:43,215 - install_ui.select_field - INFO - Field printer_model options: [('Imprimante Epson C4200 Couleurs', 'EC4200.yml'), ('Imprimante Epson M2000', 'EM2000.yml'), ('Photocopieur Konica Minolta 227', 'KM227.yml'), ('Photocopieur Konica Minolta 227 Couleurs', 'KM227C.yml'), ('Photocopieur Konica Minolta 227 Couleurs Agrafes', 'KM227CA.yml'), ('Photocopieur Konica Minolta 250i Couleurs', 'KM250iC.yml'), ('Photocopieur Konica Minolta 251i Couleurs', 'KM251iC.yml'), ('Photocopieur Konica Minolta 287', 'KM287.yml'), ('Photocopieur Konica Minolta 287 Couleurs', 'KM287C.yml'), ('Photocopieur Konica Minolta 301i', 'KM301i.yml'), ('Photocopieur Konica Minolta 301i Agrafes', 'KM301iA.yml'), ('Photocopieur Konica Minolta 301i Couleurs', 'KM301iC.yml'), ('Photocopieur Konica Minolta 301i Couleurs Agrafes', 'KM301iCA.yml'), ('Photocopieur Konica Minolta 360i Couleurs', 'KM360iC.yml'), ('Photocopieur Konica Minolta 361i', 'KM361i.yml'), ('Photocopieur Konica Minolta 361i Agrafes', 'KM361iA.yml'), ('Photocopieur Konica Minolta 361i Couleurs', 'KM361iC.yml'), ('Photocopieur Konica Minolta 361i Couleurs Agrafes', 'KM361iCA.yml'), ('Photocopieur Konica Minolta 4051i', 'KM4051i.yml'), ('Photocopieur Konica Minolta 4051i Couleurs', 'KM4051iC.yml'), ('Photocopieur Konica Minolta C251i Agrafes', 'KM251iCA.yml')]
+2025-03-06 17:07:43,216 - install_ui.select_field - INFO - Setting default value for printer_model: EC4200.yml
+2025-03-06 17:07:43,457 - install_ui.select_field - DEBUG - Select changed to: EC4200.yml
+2025-03-06 17:07:43,462 - install_ui.config_screen - DEBUG - PluginConfig.on_mount() started
+2025-03-06 17:07:43,463 - install_ui.config_screen - DEBUG - Adding SSH fields to container
+2025-03-06 17:07:43,463 - install_ui.config_screen - DEBUG - SSH fields: {'ssh_ips': {'type': 'text', 'label': 'Adresses IP (séparées par des virgules)', 'description': 'Peut inclure des caractères génériques (ex: 192.168.1.*) et des virgules', 'placeholder': '150.27.2.*', 'required': True}, 'ssh_user': {'type': 'text', 'label': 'Utilisateur SSH', 'default': 'nicolas.voirin', 'required': True}, 'ssh_passwd': {'type': 'password', 'label': 'Mot de passe SSH', 'required': True}, 'ssh_sms_enabled': {'type': 'checkbox', 'label': 'Authentification via la SMS', 'default': False}, 'ssh_sms': {'type': 'text', 'label': 'Nom de machine de la SMS', 'default': 'ggd027sf', 'placeholder': 'ggd027sf....', 'required': True, 'enabled_if': {'field': 'ssh_sms_enabled', 'value': True}}, 'ssh_exception_ips': {'type': 'text', 'label': "Adresses IP exclues de l'exception", 'placeholder': '150.27.2.200,150.27.2.21*,150.27.2.22*', 'required': False}}
+2025-03-06 17:07:43,484 - install_ui.config_field - DEBUG - Field ssh_sms: enabled_if={'field': 'ssh_sms_enabled', 'value': True}, dep_field=ssh_sms_enabled, dep_value=False
+2025-03-06 17:07:43,484 - install_ui.config_field - DEBUG - Field ssh_sms should be initially disabled
+2025-03-06 17:07:43,487 - install_ui.text_field - DEBUG - TextField ssh_sms is initially disabled
+2025-03-06 17:07:43,551 - install_ui.config_screen - DEBUG - SSH fields mounted successfully
+2025-03-06 17:07:43,551 - install_ui.config_screen - DEBUG - Toggling SSH config: enable=False
+2025-03-06 17:07:43,643 - install_ui.config_screen - DEBUG - PluginConfig.on_mount() completed
+2025-03-06 17:07:44,014 - install_ui.choice - DEBUG - Config screen pushed successfully
+2025-03-06 17:07:44,015 - install_ui.choice - DEBUG - Config returned: True
+2025-03-06 17:07:44,015 - install_ui.choice - DEBUG - No configuration returned from config screen
+2025-03-06 17:07:44,850 - install_ui.config_container - DEBUG - Checkbox changed: checkbox_add_printer_remote_exec_add_printer_1 -> True
+2025-03-06 17:07:44,851 - install_ui.config_container - DEBUG - Checkbox changed: checkbox_add_printer_remote_exec_add_printer_1 -> True
+2025-03-06 17:07:44,852 - install_ui.config_screen - DEBUG - Checkbox changed: checkbox_add_printer_remote_exec_add_printer_1 -> True
+2025-03-06 17:07:44,852 - install_ui.config_screen - DEBUG - Toggling SSH config: enable=True
+2025-03-06 17:09:03,415 - install_ui.config_screen - DEBUG - Button pressed: validate
+2025-03-06 17:09:03,416 - install_ui.config_screen - DEBUG - Validate button pressed
+2025-03-06 17:09:03,416 - install_ui.config_screen - DEBUG - Collecting configurations
+2025-03-06 17:09:03,416 - install_ui.config_screen - DEBUG - Found 6 SSH fields
+2025-03-06 17:09:03,416 - install_ui.config_screen - DEBUG - Collecting config for plugin: add_printer_1
+2025-03-06 17:09:03,416 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
+2025-03-06 17:09:03,416 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-06 17:09:03,416 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-06 17:09:03,416 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-06 17:09:03,426 - install_ui.config_screen - DEBUG - Found 3 fields for plugin add_printer
+2025-03-06 17:09:03,426 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
+2025-03-06 17:09:03,426 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-06 17:09:03,426 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-06 17:09:03,426 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-06 17:09:03,435 - install_ui.config_screen - DEBUG - Collected configuration: {'add_printer_1': {'plugin_name': 'add_printer', 'instance_id': 1, 'name': "Ajout d'imprimante", 'show_name': 'add_printer', 'icon': '🖨', 'config': {'printer_name': 'BT', 'printer_model': 'EC4200.yml', 'printer_ip': '192.168.1.220', 'ssh_ips': '192.168.1.136', 'ssh_user': 'nico', 'ssh_passwd': 'orion', 'ssh_sms_enabled': False, 'ssh_sms': 'ggd027sf', 'ssh_exception_ips': None, 'remote_execution': True}, 'remote_execution': True}}
+2025-03-06 17:09:03,435 - install_ui.config_screen - DEBUG - Collected configuration: {'add_printer_1': {'plugin_name': 'add_printer', 'instance_id': 1, 'name': "Ajout d'imprimante", 'show_name': 'add_printer', 'icon': '🖨', 'config': {'printer_name': 'BT', 'printer_model': 'EC4200.yml', 'printer_ip': '192.168.1.220', 'ssh_ips': '192.168.1.136', 'ssh_user': 'nico', 'ssh_passwd': 'orion', 'ssh_sms_enabled': False, 'ssh_sms': 'ggd027sf', 'ssh_exception_ips': None, 'remote_execution': True}, 'remote_execution': True}}
+2025-03-06 17:09:03,443 - install_ui.config_screen - DEBUG - Creating ExecutionScreen
+2025-03-06 17:09:03,444 - install_ui.config_screen - DEBUG - Switching to ExecutionScreen
+2025-03-06 17:09:03,485 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer_1
+2025-03-06 17:09:03,485 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-06 17:09:03,485 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-06 17:09:03,485 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-06 17:09:03,486 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer_1
+2025-03-06 17:09:03,486 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-06 17:09:03,486 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-06 17:09:03,486 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-06 17:09:03,549 - install_ui.executor_logger - INFO - Bienvenue dans l'écran d'exécution. Vous pouvez cliquer sur Démarrer pour lancer l'exécution.
+2025-03-06 17:09:03,841 - install_ui.choice - DEBUG - Button pressed: validate
+2025-03-06 17:09:08,209 - install_ui.execution_widget - DEBUG - Clic sur le bouton start-button
+2025-03-06 17:09:08,209 - install_ui.execution_widget - INFO - Démarrage de l'exécution
+2025-03-06 17:09:08,211 - install_ui.execution_widget - DEBUG - Bouton désactivé
+2025-03-06 17:09:08,212 - install_ui.executor_logger - INFO - Démarrage de l'exécution des plugins...
+2025-03-06 17:09:08,212 - install_ui.execution_widget - DEBUG - Démarrage de l'exécution de 1 plugins
+2025-03-06 17:09:08,217 - install_ui.ssh_executor - INFO - Démarrage du plugin add_printer (add_printer_1) en mode SSH
+2025-03-06 17:09:08,220 - install_ui.executor_logger - INFO - Mode SSH activé pour Ajout d'imprimante
+2025-03-06 17:09:08,223 - install_ui.executor_logger - DEBUG - Test de connectivité pour 192.168.1.136...
+2025-03-06 17:09:08,342 - install_ui.executor_logger - INFO - Machines accessibles: 192.168.1.136
+2025-03-06 17:09:08,348 - install_ui.ssh_config_loader - INFO - Configuration SSH chargée depuis /media/nico/Drive/pcUtils/ui/ssh_manager/ssh_config.yml
+2025-03-06 17:09:08,350 - install_ui.ssh_config_loader - DEBUG - Adresses IP locales détectées: ['127.0.1.1', '127.0.0.1']
+2025-03-06 17:09:08,353 - install_ui.executor_logger - INFO - Connexion SSH à 192.168.1.136...
+2025-03-06 17:09:08,486 - install_ui.executor_logger - ERROR - Échec sur 192.168.1.136: Erreur de connexion à 192.168.1.136 (timeout: 10s)
+2025-03-06 17:09:08,502 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer_1
+2025-03-06 17:09:08,502 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-06 17:09:08,502 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-06 17:09:08,503 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-06 17:09:08,517 - install_ui.executor_logger - ERROR - Erreur dans Ajout d'imprimante: Échec sur toutes les machines
+2025-03-06 17:09:08,517 - install_ui.execution_widget - WARNING - Continuation après erreur du plugin add_printer (option activée)
+2025-03-06 17:09:08,523 - install_ui.executor_logger - WARNING - Continuation après erreur (option activée)
+2025-03-06 17:09:08,530 - install_ui.executor_logger - INFO - Exécution terminée avec succès
+2025-03-06 17:09:08,536 - install_ui.choice - DEBUG - Button pressed: start-button
+2025-03-06 17:09:20,376 - install_ui.choice - DEBUG - Quitting application
+2025-03-06 17:09:20,704 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x7a32f18e9ff0>

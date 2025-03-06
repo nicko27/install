@@ -7,7 +7,7 @@ from textual.app import ComposeResult
 from textual.containers import Container, Horizontal
 from textual.widgets import Label, ProgressBar
 
-from ..choice_management.plugin_utils import get_plugin_folder_name
+from ..choice_screen.plugin_utils import get_plugin_folder_name
 
 logger = get_logger('plugin_container')
 

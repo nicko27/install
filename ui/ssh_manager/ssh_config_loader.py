@@ -3,10 +3,13 @@ Module pour charger et gérer la configuration SSH.
 """
 
 import os
-import yaml
+from ruamel.yaml import YAML
 import socket
 import ipaddress
 from typing import Dict, Any, Optional
+
+# Initialiser YAML
+yaml = YAML()
 
 from ..utils.logging import get_logger
 
@@ -47,7 +50,7 @@ class SSHConfigLoader:
             
             # Charger le fichier YAML
             with open(config_path, 'r') as file:
-                self._config = yaml.safe_load(file)
+                self._config = yaml.load(file)
             
             logger.info(f"Configuration SSH chargée depuis {config_path}")
             return self._config

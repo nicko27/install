@@ -5,14 +5,15 @@ Module pour l'exécution locale des plugins.
 import os
 import sys
 import json
-import re
 import asyncio
-import threading
-from typing import Dict, Tuple
+import logging
 import traceback
+from typing import Dict, Tuple
 
 from ..utils.logging import get_logger
-from ..choice_management.plugin_utils import get_plugin_folder_name
+from ..utils.messaging import Message, MessageType, parse_message
+from ..choice_screen.plugin_utils import get_plugin_folder_name
+from .logger_utils import LoggerUtils
 
 logger = get_logger('local_executor')
 
@@ -31,8 +32,8 @@ class LocalExecutor:
             plugin_widget.set_status('running')
             plugin_widget.update_progress(0.0, "Démarrage...")
 
-            # Obtenir le nom du dossier du plugin
-            folder_name = get_plugin_folder_name(plugin_id)
+            # Informer l'utilisateur du démarrage
+            await LoggerUtils.add_log(app, f"Démarrage de {plugin_show_name}", "info")
 
             # Construire le chemin du plugin
             plugin_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "plugins", folder_name)
@@ -72,7 +73,8 @@ class LocalExecutor:
                         break
                     line = line.decode().strip()
                     if line:
-                        await LocalExecutor.handle_output(app, line, plugin_widget, executed, total_plugins)
+                        # Traiter la ligne avec le nouveau système de gestion des messages
+                        await LoggerUtils.process_output_line(app, line, plugin_widget, executed, total_plugins)
 
             # Lancer la lecture des flux stdout et stderr
             await asyncio.gather(
@@ -85,142 +87,26 @@ class LocalExecutor:
 
             # Traiter le résultat
             if exit_code == 0:
-                await LoggerUtils.add_log(app, f"{plugin_show_name} terminé(e) avec succès")
+                success_msg = Message(MessageType.SUCCESS, f"{plugin_show_name} terminé(e) avec succès")
+                await LoggerUtils.display_message(app, success_msg)
                 plugin_widget.set_status('success')
                 await result_queue.put((True, "Exécution terminée avec succès"))
             else:
-                error_msg = f"Erreur lors de l'exécution (code {exit_code})"
-                plugin_widget.set_status('error', error_msg)
-                await LoggerUtils.add_log(app, f"{plugin_show_name}: {error_msg}", 'error')
-                await result_queue.put((False, error_msg))
+                error_msg = Message(MessageType.ERROR, f"{plugin_show_name}: Erreur lors de l'exécution (code {exit_code})")
+                await LoggerUtils.display_message(app, error_msg)
+                plugin_widget.set_status('error', f"Erreur (code {exit_code})")
+                await result_queue.put((False, f"Erreur lors de l'exécution (code {exit_code})"))
 
         except Exception as e:
             error_msg = f"Erreur lors de l'exécution: {str(e)}"
             logger.error(error_msg)
             logger.error(traceback.format_exc())
+            
+            # Envoyer l'erreur aux logs
+            error_obj = Message(MessageType.ERROR, error_msg)
+            await LoggerUtils.display_message(app, error_obj)
+            
             await result_queue.put((False, error_msg))
-
-    @staticmethod
-    async def handle_output(app, line: str, plugin_widget, executed, total_plugins):
-        """Gère les logs et la progression d'un plugin"""
-        try:
-            # Ignorer les lignes vides
-            if not line:
-                return
-
-            line = line.strip()
-            if not line:
-                return
-
-            # Parser le format standard [timestamp] [level] message
-            match = re.match(r'\[(.*?)\] \[(\w+)\] (.*)', line)
-            if match:
-                timestamp, level, message = match.groups()
-                level = level.lower()
-
-                # Gérer la progression si présente
-                if "Progression :" in message:
-                    progress_match = re.search(r'Progression : (\d+)% \(étape (\d+)/(\d+)\)', message)
-                    if progress_match:
-                        try:
-                            # Récupérer et valider les valeurs
-                            progress = float(progress_match.group(1)) / 100.0  # Convertir en fraction
-                            current_step = int(progress_match.group(2))
-                            total_steps = int(progress_match.group(3))
-
-                            # Vérifier que les valeurs sont valides
-                            if 0 <= progress <= 1 and current_step <= total_steps:
-                                step_text = f"Étape {current_step}/{total_steps}"
-
-                                # Mettre à jour la barre de progression du plugin
-                                plugin_widget.update_progress(progress, step_text)
-
-                                # Mettre à jour la progression globale
-                                global_progress = (executed + progress) / total_plugins
-                                LocalExecutor.update_global_progress(app, global_progress)
-
-                            return  # Ne pas ajouter aux logs
-                        except Exception as e:
-                            # Si l'analyse de la progression échoue, continuer avec le message normal
-                            logger.error(f"Erreur lors de l'analyse de la progression: {str(e)}")
-
-                # Traiter les autres types de messages
-                if level in ['error', 'warning', 'info', 'debug', 'success']:
-                    # Pour les erreurs et warnings, mettre à jour le statut
-                    if level in ['error', 'warning']:
-                        await LocalExecutor.sync_ui(
-                            app,
-                            plugin_widget,
-                            executed,
-                            total_plugins,
-                            status='error' if level == 'error' else 'warning',
-                            message=message,
-                            log_entry=line
-                        )
-                    else:
-                        await LocalExecutor.sync_ui(app, plugin_widget, executed, total_plugins, log_entry=line)
-            else:
-                # Ligne sans format standard, l'afficher telle quelle
-                # Vérifier s'il s'agit d'une erreur de permission
-                if "permission denied" in line.lower() or "error" in line.lower():
-                    await LocalExecutor.sync_ui(
-                        app,
-                        plugin_widget,
-                        executed,
-                        total_plugins,
-                        status='error',
-                        message="Erreur de permission",
-                        log_entry=f"[ERROR] {line}"
-                    )
-                else:
-                    await LocalExecutor.sync_ui(app, plugin_widget, executed, total_plugins, log_entry=line)
-
-        except Exception as e:
-            logger.error(f"Erreur dans handle_output: {str(e)}")
-            # Tenter de logger le message brut
-            try:
-                await LoggerUtils.add_log(app, f"Message non traité: {repr(line)}", 'error')
-            except:
-                pass
-
-    @staticmethod
-    async def sync_ui(app, plugin_widget, executed, total_plugins, progress=None, step=None, status=None, message=None, log_entry=None):
-        """Synchronise l'interface utilisateur avec les mises à jour du plugin"""
-        try:
-            # Mettre à jour la progression si spécifiée
-            if progress is not None:
-                # Vérifier si nous sommes dans le thread principal
-                if app._thread_id == threading.get_ident():
-                    # Dans le thread principal, appeler directement
-                    plugin_widget.update_progress(progress, step)
-                else:
-                    # Dans un thread différent, utiliser call_from_thread
-                    await app.call_from_thread(plugin_widget.update_progress, progress, step)
-                # Mettre à jour la progression globale
-                global_progress = (executed + progress) / total_plugins
-                await app.call_from_thread(LocalExecutor.update_global_progress, app, global_progress)
-
-            # Mettre à jour le statut si spécifié
-            if status is not None:
-                if app._thread_id == threading.get_ident():
-                    plugin_widget.set_status(status, message)
-                else:
-                    await app.call_from_thread(plugin_widget.set_status, status, message)
-
-            # Mettre à jour les logs si spécifié
-            if log_entry is not None:
-                if app._thread_id == threading.get_ident():
-                    resultat= log_entry.split(' ')
-                    level = resultat[2].lower().replace("[","").replace("]", "")
-                    message = ' '.join(resultat[3:])
-                    # Dans le thread principal
-                    await LoggerUtils.add_log(app, message, level)
-                else:
-                    # Dans un thread différent
-                    await app.call_from_thread(LoggerUtils.add_log, app, log_entry)
-
-        except Exception as e:
-            logger.error(f"Erreur lors de la mise à jour de l'UI: {str(e)}")
 
     @staticmethod
     def update_global_progress(app, progress: float):

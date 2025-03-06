@@ -1,6 +1,6 @@
 from textual.app import ComposeResult
 from textual.screen import Screen
-from textual.containers import Container, ScrollableContainer, Horizontal, Vertical
+from textual.containers import Container, ScrollableContainer, Horizontal, Vertical, VerticalGroup
 from textual.widgets import Header, Footer, Button, Label
 import os
 import traceback
@@ -14,7 +14,7 @@ from .text_field import TextField
 from .checkbox_field import CheckboxField
 from .config_manager import ConfigManager
 
-logger = get_logger('config')
+logger = get_logger('config_screen')
 # Configuration de ruamel.yaml pour préserver les commentaires
 yaml = YAML()
 yaml.preserve_quotes = True
@@ -37,7 +37,6 @@ class PluginConfig(Screen):
             self.fields_by_plugin = {}
             self.fields_by_id = {}
             self.plugins_remote_enabled = {}
-            self.remote_config_fields = {}
             self.ssh_container = None
 
             # Initialize the configuration manager
@@ -45,7 +44,8 @@ class PluginConfig(Screen):
             self.config_manager = ConfigManager()
 
             # Load SSH configuration
-            ssh_config_path = os.path.join(os.path.dirname(__file__), 'ssh_manager', 'ssh_fields.yml')
+            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+            ssh_config_path = os.path.join(project_root, 'ui', 'ssh_manager', 'ssh_fields.yml')
             logger.debug(f"Loading SSH config from: {ssh_config_path}")
             self.config_manager.load_global_config('ssh', ssh_config_path)
 
@@ -56,7 +56,9 @@ class PluginConfig(Screen):
 
                 # Load plugin configuration
                 folder_name = get_plugin_folder_name(plugin_name)
-                settings_path = os.path.join(os.path.dirname(__file__), '..', 'plugins', folder_name, 'settings.yml')
+                # Utiliser un chemin absolu pour accéder aux fichiers de configuration des plugins
+                project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+                settings_path = os.path.join(project_root, 'plugins', folder_name, 'settings.yml')
                 logger.debug(f"Loading plugin config from: {settings_path}")
                 self.config_manager.load_plugin_config(plugin_name, settings_path)
 
@@ -69,6 +71,9 @@ class PluginConfig(Screen):
     def compose(self) -> ComposeResult:
         try:
             logger.debug("PluginConfig.compose() started")
+            
+            # Import widgets at the beginning of the method
+            from textual.widgets import Label, Button
 
             yield Header()
 
@@ -87,22 +92,36 @@ class PluginConfig(Screen):
                     logger.debug(f"Creating config for plugin: {plugin_name}_{instance_id}")
                     plugin_container = self._create_plugin_config(plugin_name, instance_id)
 
-                    # If plugin supports remote execution, prepare its checkbox
+                    # If plugin supports remote execution, prepare the checkbox for the plugin container
                     logger.debug(f"Checking if {plugin_name} is in remote_plugins: {plugin_name in remote_plugins}")
                     if plugin_name in remote_plugins:
-                        logger.debug(f"Preparing remote execution checkbox for plugin {plugin_name}_{instance_id}")
+                        logger.debug(f"Adding remote execution checkbox for plugin {plugin_name}_{instance_id}")
 
                         # Create unique ID for the checkbox
                         remote_field_id = f"remote_exec_{plugin_name}_{instance_id}"
-
-                        # Store ID and plugin reference for later processing
-                        self.remote_config_fields[f"{plugin_name}_{instance_id}"] = {
-                            "field_id": remote_field_id,
-                            "plugin_name": plugin_name,
-                            "instance_id": instance_id,
-                            "container": plugin_container
+                        
+                        # Create checkbox configuration
+                        remote_config = {
+                            "type": "checkbox",
+                            "label": "⚠️  Activer l'exécution distante pour ce plugin",
+                            "description": "Cochez cette case pour exécuter ce plugin via SSH sur des machines distantes",
+                            "default": False,
+                            "id": remote_field_id,
+                            "variable": "remote_execution_enabled",
+                            "required": True
                         }
-
+                        
+                        # Create the checkbox field
+                        remote_field = CheckboxField(plugin_name, remote_field_id, remote_config, self.fields_by_id, is_global=False)
+                        remote_field.add_class("remote-execution-checkbox")
+                        
+                        # Store field for future reference
+                        self.fields_by_plugin[plugin_name][remote_field_id] = remote_field
+                        self.plugins_remote_enabled[f"{plugin_name}_{instance_id}"] = remote_field
+                        
+                        # Add the remote execution checkbox to the plugin container
+                        plugin_container.remote_field = remote_field
+                    
                     # Render the plugin container
                     yield plugin_container
 
@@ -110,8 +129,11 @@ class PluginConfig(Screen):
                 # Content will be added in on_mount
                 if has_remote_plugins:
                     logger.debug("Adding empty SSH container (content will be added in on_mount)")
-                    self.ssh_container = Container(id="ssh-config", classes="config-container disabled-container")
+                    self.ssh_container = Container(id="ssh-config", classes="ssh-container config-container disabled-container")
                     yield self.ssh_container
+                
+                # Ajouter un espace en bas pour garantir que tout le contenu est visible lors du scroll
+                yield Container(classes="scroll-spacer")
 
             with Horizontal(id="button-container"):
                 yield Button("Cancel", id="cancel", variant="error")
@@ -134,59 +156,8 @@ class PluginConfig(Screen):
         try:
             logger.debug("PluginConfig.on_mount() started")
 
-            # Now that the interface is mounted, we can add remote execution checkboxes
-            for plugin_key, config in self.remote_config_fields.items():
-                plugin_name = config["plugin_name"]
-                instance_id = config["instance_id"]
-                field_id = config["field_id"]
-                container = config["container"]
-
-                logger.debug(f"Adding remote execution checkbox for {plugin_key}")
-
-                # Create checkbox configuration
-                remote_config = {
-                    "type": "checkbox",
-                    "label": "Activer l'exécution distante pour ce plugin",
-                    "default": False,
-                    "id": field_id
-                }
-
-                # Create checkbox field
-                try:
-                    # Créer une configuration plus explicite et visible
-                    remote_config = {
-                        "type": "checkbox",
-                        "label": "⚠️ Activer l'exécution distante pour ce plugin",
-                        "description": "Cochez cette case pour exécuter ce plugin via SSH sur des machines distantes",
-                        "default": False,
-                        "id": field_id,
-                        "variable": "remote_execution_enabled",
-                        "required": True
-                    }
-                    
-                    remote_field = CheckboxField(plugin_name, field_id, remote_config, self.fields_by_id, is_global=False)
-                    remote_field.add_class("remote-execution-checkbox")
-
-                    # Store field for future reference
-                    self.fields_by_plugin[plugin_name][field_id] = remote_field
-                    self.plugins_remote_enabled[plugin_key] = remote_field
-
-                    # Créer un conteneur spécifique pour la case à cocher d'exécution distante
-                    from textual.containers import VerticalGroup
-                    from textual.widgets import Label
-                    remote_container = VerticalGroup(classes="remote-execution-container")
-                    
-                    # Ajouter une étiquette explicite
-                    remote_label = Label("🔗 Configuration de l'exécution à distance", classes="remote-execution-label")
-                    await remote_container.mount(remote_label)
-                    await remote_container.mount(remote_field)
-                    
-                    # Mount the remote container in the plugin container
-                    logger.debug(f"Container for {plugin_key}: {container}")
-                    await container.mount(remote_container)
-                    logger.debug(f"Successfully mounted checkbox for {plugin_key}")
-                except Exception as e:
-                    logger.error(f"Error creating checkbox for {plugin_key}: {e}")
+            # Now that the interface is mounted, we can add SSH fields
+            # Remote execution checkboxes are already added in compose() method
 
             # Maintenant que tout est monté, on peut ajouter les champs SSH
             if self.ssh_container:
@@ -223,11 +194,9 @@ class PluginConfig(Screen):
                     # Mount SSH content inside SSH container
                     await self.ssh_container.mount(ssh_content)
                     logger.debug("SSH fields mounted successfully")
-
-            logger.debug("PluginConfig.on_mount() completed")
-        except Exception as e:
-            logger.error(f"Error in PluginConfig.on_mount(): {e}")
-            logger.error(traceback.format_exc())
+                    
+                    # Disable SSH fields by default
+                    self.toggle_ssh_config(False)
 
             logger.debug("PluginConfig.on_mount() completed")
         except Exception as e:
@@ -243,7 +212,9 @@ class PluginConfig(Screen):
             for plugin_name, _ in self.plugin_instances:
                 # Get plugin folder name
                 folder_name = get_plugin_folder_name(plugin_name)
-                settings_path = os.path.join(os.path.dirname(__file__), '..', 'plugins', folder_name, 'settings.yml')
+                # Utiliser un chemin absolu pour accéder aux fichiers de configuration des plugins
+                project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+                settings_path = os.path.join(project_root, 'plugins', folder_name, 'settings.yml')
 
                 try:
                     logger.debug(f"Reading settings from: {settings_path}")
@@ -308,7 +279,6 @@ class PluginConfig(Screen):
         except Exception as e:
             logger.error(f"Error in _create_plugin_config for {plugin}: {e}")
             # Au lieu de monter des widgets, simplement retourner un conteneur vide
-            return Container(id=f"plugin_{plugin}_{instance_id}", classes="config-container error-container")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button presses"""
@@ -353,7 +323,7 @@ class PluginConfig(Screen):
 
                 # Import here to avoid circular imports
                 try:
-                    from ..executor.execution_screen import ExecutionScreen
+                    from ..execution_screen.execution_screen import ExecutionScreen
 
                     # Create execution screen
                     logger.debug("Creating ExecutionScreen")
@@ -406,9 +376,9 @@ class PluginConfig(Screen):
             logger.debug(f"Toggling SSH config: enable={enable}")
             if self.ssh_container:
                 if enable:
-                    self.ssh_container.remove_class("disabled-container")
+                    self.ssh_container.remove_class("disabled-ssh-container")
                 else:
-                    self.ssh_container.add_class("disabled-container")
+                    self.ssh_container.add_class("disabled-ssh-container")
 
                 # Update SSH field states
                 for field_id, field in self.fields_by_id.items():
@@ -481,7 +451,7 @@ class PluginConfig(Screen):
                 try:
                     # Get plugin folder name
                     folder_name = get_plugin_folder_name(plugin_name)
-                    settings_path = os.path.join(os.path.dirname(__file__), '..', 'plugins', folder_name, 'settings.yml')
+                    settings_path = os.path.join(os.path.dirname(__file__), '..', '..','plugins', folder_name, 'settings.yml')
 
                     with open(settings_path, 'r', encoding='utf-8') as f:
                         file_content = f.read()
@@ -533,7 +503,7 @@ class PluginConfig(Screen):
                     plugin_settings = {}
                     try:
                         folder_name = get_plugin_folder_name(plugin_name)
-                        settings_path = os.path.join(os.path.dirname(__file__), '..', 'plugins', folder_name, 'settings.yml')
+                        settings_path = os.path.join(os.path.dirname(__file__), '..','..', 'plugins', folder_name, 'settings.yml')
                         with open(settings_path, 'r', encoding='utf-8') as f:
                             file_content = f.read()
                             from io import StringIO

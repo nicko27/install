@@ -16,7 +16,8 @@ from .plugin_container import PluginContainer
 from .local_executor import LocalExecutor
 from .ssh_executor import SSHExecutor
 from .logger_utils import LoggerUtils
-from ..choice_management.plugin_utils import get_plugin_folder_name
+from ..utils.messaging import Message, MessageType
+from ..choice_screen.plugin_utils import get_plugin_folder_name
 from ..utils.logging import get_logger
 
 logger = get_logger('execution_widget')
@@ -27,12 +28,13 @@ class ExecutionWidget(Container):
     # État d'exécution
     is_running = reactive(False)
     continue_on_error = reactive(False)
-    show_logs = reactive(False)
-
+    show_logs = reactive(True)  # Logs visibles par défaut
+    
+    # Raccourcis clavier
     BINDINGS = [
-        Binding("l", "toggle_logs", "Afficher/Masquer les logs", show=False)
+        Binding("l", "toggle_logs", "Afficher/Masquer logs"),
     ]
-
+    
     def __init__(self, plugins_config: dict = None):
         """Initialise le widget avec la configuration des plugins"""
         super().__init__()
@@ -47,7 +49,6 @@ class ExecutionWidget(Container):
         # En-tête
         yield Header(name="Exécution des plugins")
 
-
         # Liste des plugins
         with ScrollableContainer(id="plugins-list"):
             # Créer les conteneurs de plugins
@@ -61,12 +62,14 @@ class ExecutionWidget(Container):
                 self.plugins[plugin_id] = container
                 yield container
 
-        # Zone des logs
+        # Zone des logs (visible par défaut)
         with Horizontal(id="logs"):
             with ScrollableContainer(id="logs-container"):
                 yield Static("", id="logs-text")
+        
         with Horizontal(id="button-container"):
             yield Button("Retour", id="back-button", variant="error")
+            yield Button("Afficher/Masquer logs", id="toggle-logs-button", variant="default")
             yield Checkbox("Continuer en cas d'erreur", id="continue-on-error", value=True)
             yield Label("Progression globale", id="global-progress-label")
             yield ProgressBar(id="global-progress", show_eta=False)
@@ -76,19 +79,19 @@ class ExecutionWidget(Container):
 
     async def on_mount(self) -> None:
         """Appelé au montage initial du widget"""
-
         # Initialisation basique
         self.update_global_progress(0)
         self.set_current_plugin("aucun")
 
-        # Initialiser l'état de la checkbox et des logs
-        self.continue_on_error = False
-        self.show_logs = False
+        # Initialiser l'état de la checkbox
+        self.continue_on_error = True  # True par défaut
 
-        # S'assurer que les logs sont masqués au démarrage
-        logs_container = self.query_one("#logs-container")
-        if logs_container:
-            logs_container.add_class("hidden")
+        # Afficher un message de bienvenue pour vérifier que les logs fonctionnent
+        welcome_msg = Message(
+            MessageType.INFO, 
+            "Bienvenue dans l'écran d'exécution. Vous pouvez cliquer sur Démarrer pour lancer l'exécution."
+        )
+        await LoggerUtils.display_message(self, welcome_msg)
 
     async def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
         """Gestion du changement d'état de la checkbox"""
@@ -111,7 +114,7 @@ class ExecutionWidget(Container):
                 await self.start_execution()
             elif button_id == "back-button":
                 # Import ici pour éviter les imports circulaires
-                from ..config import PluginConfig
+                from ..config_screen.config_screen import PluginConfig
 
                 # Extraire les infos de plugin_id
                 plugin_instances = []
@@ -128,6 +131,9 @@ class ExecutionWidget(Container):
 
                 # Revenir à l'écran de configuration
                 self.app.switch_screen(config_screen)
+            elif button_id == "toggle-logs-button":
+                # Afficher/Masquer les logs
+                self.action_toggle_logs()
             elif button_id == "quit-button":
                 self.app.exit()
 
@@ -164,17 +170,25 @@ class ExecutionWidget(Container):
             self.set_current_plugin("aucun")
             await LoggerUtils.clear_logs(self)
 
+            # Informer l'utilisateur
+            start_msg = Message(MessageType.INFO, "Démarrage de l'exécution des plugins...")
+            await LoggerUtils.display_message(self, start_msg)
+
             # Exécuter les plugins
             await self.run_plugins()
 
         except Exception as e:
             logger.error(f"Erreur lors du démarrage de l'exécution : {str(e)}")
-            await LoggerUtils.add_log(self, f"Erreur lors du démarrage : {str(e)}", 'error')
+            error_msg = Message(MessageType.ERROR, f"Erreur lors du démarrage : {str(e)}")
+            await LoggerUtils.display_message(self, error_msg)
+            
             # Réactiver le bouton en cas d'erreur
             start_button.disabled = False
             logger.debug("Bouton réactivé après erreur")
         finally:
             self.is_running = False
+            # Réactiver le bouton
+            start_button.disabled = False
 
     async def run_plugins(self):
         """Exécuter les plugins de façon séquentielle"""
@@ -218,14 +232,20 @@ class ExecutionWidget(Container):
 
                     if success:
                         plugin_widget.set_status('success')
+                        plugin_msg = Message(MessageType.SUCCESS, f"Plugin {config['name']} exécuté avec succès")
+                        await LoggerUtils.display_message(self, plugin_msg)
                     else:
                         plugin_widget.set_status('error', message)
+                        plugin_msg = Message(MessageType.ERROR, f"Erreur dans {config['name']}: {message}")
+                        await LoggerUtils.display_message(self, plugin_msg)
+                        
                         if not self.continue_on_error:
                             logger.error(f"Arrêt de l'exécution suite à l'erreur du plugin {plugin_folder}")
                             return
                         else:
                             logger.warning(f"Continuation après erreur du plugin {plugin_folder} (option activée)")
-                            await LoggerUtils.add_log(self, f"Continuation après erreur (option activée)", 'warning')
+                            cont_msg = Message(MessageType.WARNING, "Continuation après erreur (option activée)")
+                            await LoggerUtils.display_message(self, cont_msg)
 
                     executed += 1
                     # Mise à jour de la progression globale
@@ -237,23 +257,31 @@ class ExecutionWidget(Container):
 
                     logger.error(f"Erreur inattendue dans le plugin {plugin_folder}: {str(e)}")
                     plugin_widget.set_status('error', str(e))
-                    await LoggerUtils.add_log(self, f"Erreur inattendue: {str(e)}", 'error')
+                    
+                    error_msg = Message(MessageType.ERROR, f"Erreur inattendue: {str(e)}")
+                    await LoggerUtils.display_message(self, error_msg)
+                    
                     if not self.continue_on_error:
                         return
                     else:
                         logger.info(f"Continuation après erreur du plugin {plugin_folder} (option activée)")
-                        await LoggerUtils.add_log(self, f"Continuation après erreur (option activée)", 'warning')
+                        cont_msg = Message(MessageType.WARNING, "Continuation après erreur (option activée)")
+                        await LoggerUtils.display_message(self, cont_msg)
+                        
                         executed += 1
                         self.update_global_progress(executed / total_plugins)
 
             # Mise à jour finale
             self.update_global_progress(1.0)
             self.set_current_plugin("Terminé")
-            await LoggerUtils.add_log(self, "Exécution terminée avec succès")
+            
+            final_msg = Message(MessageType.SUCCESS, "Exécution terminée avec succès")
+            await LoggerUtils.display_message(self, final_msg)
 
         except Exception as e:
             logger.error(f"Erreur lors de l'exécution des plugins : {str(e)}")
-            await LoggerUtils.add_log(self, f"Erreur lors de l'exécution : {str(e)}", 'error')
+            error_msg = Message(MessageType.ERROR, f"Erreur lors de l'exécution : {str(e)}")
+            await LoggerUtils.display_message(self, error_msg)
 
     def update_global_progress(self, progress: float):
         """Mise à jour de la progression globale"""
@@ -273,5 +301,10 @@ class ExecutionWidget(Container):
                     break
 
     def action_toggle_logs(self) -> None:
-        """Afficher/Masquer les logs"""
+        """Afficher/Masquer les logs (appelé par le raccourci clavier ou le bouton)"""
         LoggerUtils.toggle_logs(self)
+        
+    # Méthode pour compatibilité avec loggers existants
+    async def display_log(self, message, level="info"):
+        """Méthode pour compatibilité avec anciens systèmes de logs"""
+        await LoggerUtils.add_log(self, message, level)

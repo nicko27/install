@@ -1319,27 +1319,31 @@
 │       └── settings.yml
 ├── requirements.txt
 ├── start.sh
+├── test.py
 ├── tree.txt
 ├── ui
-│   ├── choice_management
+│   ├── choice_screen
+│   │   ├── choice_screen.py
 │   │   ├── __init__.py
 │   │   ├── plugin_card.py
 │   │   ├── plugin_list_item.py
 │   │   ├── plugin_utils.py
 │   │   ├── __pycache__
+│   │   │   ├── choice.cpython-310.pyc
+│   │   │   ├── choice_screen.cpython-310.pyc
 │   │   │   ├── __init__.cpython-310.pyc
 │   │   │   ├── plugin_card.cpython-310.pyc
 │   │   │   ├── plugin_list_item.cpython-310.pyc
 │   │   │   ├── plugin_utils.cpython-310.pyc
 │   │   │   └── selected_plugins_panel.cpython-310.pyc
 │   │   └── selected_plugins_panel.py
-│   ├── choice.py
-│   ├── config.py
-│   ├── configurator
+│   ├── config_screen
 │   │   ├── checkbox_field.py
+│   │   ├── checkbox_group_field.py
 │   │   ├── config_container.py
 │   │   ├── config_field.py
 │   │   ├── config_manager.py
+│   │   ├── config_screen.py
 │   │   ├── directory_field.py
 │   │   ├── global_config_container.py
 │   │   ├── __init__.py
@@ -1348,9 +1352,11 @@
 │   │   ├── plugin_config_container.py
 │   │   ├── __pycache__
 │   │   │   ├── checkbox_field.cpython-310.pyc
+│   │   │   ├── checkbox_group_field.cpython-310.pyc
 │   │   │   ├── config_container.cpython-310.pyc
 │   │   │   ├── config_field.cpython-310.pyc
 │   │   │   ├── config_manager.cpython-310.pyc
+│   │   │   ├── config_screen.cpython-310.pyc
 │   │   │   ├── directory_field.cpython-310.pyc
 │   │   │   ├── global_config_container.cpython-310.pyc
 │   │   │   ├── __init__.cpython-310.pyc
@@ -1360,7 +1366,7 @@
 │   │   │   └── text_field.cpython-310.pyc
 │   │   ├── select_field.py
 │   │   └── text_field.py
-│   ├── executor
+│   ├── execution_screen
 │   │   ├── execution_screen.py
 │   │   ├── execution_widget.py
 │   │   ├── __init__.py
@@ -1376,8 +1382,6 @@
 │   │   │   ├── plugin_container.cpython-310.pyc
 │   │   │   └── ssh_executor.cpython-310.pyc
 │   │   └── ssh_executor.py
-│   ├── logs
-│   │   └── debug.log
 │   ├── __pycache__
 │   │   ├── choice.cpython-310.pyc
 │   │   ├── config.cpython-310.pyc
@@ -1386,27 +1390,34 @@
 │   │   ├── logging.cpython-310.pyc
 │   │   └── utils.cpython-310.pyc
 │   ├── ssh_manager
+│   │   ├── __init__.py
 │   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-310.pyc
+│   │   │   ├── ssh_config_loader.cpython-310.pyc
 │   │   │   └── ssh_manager.cpython-310.pyc
+│   │   ├── ssh_config_loader.py
+│   │   ├── ssh_config.yml
 │   │   ├── ssh_fields.yml
 │   │   └── ssh_manager.py
 │   ├── styles
-│   │   ├── choice.css
-│   │   ├── config.css
-│   │   └── execution.css
+│   │   ├── choice.tcss
+│   │   ├── config.tcss
+│   │   └── execution.tcss
 │   └── utils
 │       ├── logging.py
 │       ├── __pycache__
 │       │   ├── logging.cpython-310.pyc
 │       │   └── utils.cpython-310.pyc
 │       └── utils.py
+├── utils -> /media/nico/Drive/pcUtils/ui/utils
 └── utils_scripts
     ├── get_ip.py
     ├── get_usb.py
     ├── get_users.py
     ├── __pycache__
-    │   └── get_usb.cpython-310.pyc
+    │   ├── get_usb.cpython-310.pyc
+    │   └── get_users.cpython-310.pyc
     ├── README.md
     └── system_info.py
 
-120 directories, 1289 files
+120 directories, 1300 files
