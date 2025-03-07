@@ -10,6 +10,7 @@ from .ip_field import IPField
 from .checkbox_field import CheckboxField
 from .select_field import SelectField
 from .checkbox_group_field import CheckboxGroupField
+from .password_field import PasswordField
 
 from ..utils.logging import get_logger
 
@@ -72,7 +73,8 @@ class ConfigContainer(VerticalGroup):
                     'ip': IPField,
                     'checkbox': CheckboxField,
                     'select': SelectField,
-                    'checkbox_group': CheckboxGroupField
+                    'checkbox_group': CheckboxGroupField,
+                    'password': PasswordField
                 }.get(field_type, TextField)
 
                 # Create field with access to other fields and whether it's global

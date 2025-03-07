@@ -220,7 +220,6 @@ class PluginConfig(Screen):
                     logger.debug(f"Reading settings from: {settings_path}")
                     with open(settings_path, 'r', encoding='utf-8') as f:
                         file_content = f.read()
-                        logger.debug(f"File content: {file_content}")
                         from io import StringIO
                         settings = yaml.load(StringIO(file_content))
                         logger.debug(f"Loaded settings: {settings}")
@@ -473,54 +472,56 @@ class PluginConfig(Screen):
                     if hasattr(field, 'source_id') and field.source_id == plugin_name and
                     not field.field_id.startswith(f"remote_exec_{plugin_name}")
                 ]
+                
+                # Always process the plugin, even if it has no fields
+                # This ensures all plugins appear in the execution window
+                logger.debug(f"Found {len(plugin_fields)} fields for plugin {plugin_name}")
+                # Collect field values
+                config_values = {}
+                
+                # Get original plugin settings - moved outside the field loop to ensure it's always defined
+                plugin_settings = {}
+                try:
+                    folder_name = get_plugin_folder_name(plugin_name)
+                    settings_path = os.path.join(os.path.dirname(__file__), '..','..', 'plugins', folder_name, 'settings.yml')
+                    with open(settings_path, 'r', encoding='utf-8') as f:
+                        file_content = f.read()
+                        from io import StringIO
+                        plugin_settings = yaml.load(StringIO(file_content))
+                except Exception as e:
+                    logger.error(f"Error loading settings for {plugin_name}: {e}")
+                
+                for field in plugin_fields:
+                    if hasattr(field, 'variable_name'):
+                        value = field.get_value()
+                        # Gérer spécifiquement les valeurs des champs checkbox_group
+                        if hasattr(field, 'field_config') and field.field_config.get('type') == 'checkbox_group':
+                            # Si aucune valeur n'est sélectionnée, utiliser une liste vide
+                            if not value:
+                                value = []
+                            # S'assurer que la valeur est une liste
+                            elif not isinstance(value, list):
+                                value = [value]
+                        config_values[field.variable_name] = value
 
-                if plugin_fields:
-                    logger.debug(f"Found {len(plugin_fields)} fields for plugin {plugin_name}")
-                    # Collect field values
-                    config_values = {}
+                # Add SSH variables if plugin supports remote execution and it's enabled
+                if supports_remote and remote_enabled:
+                    config_values.update(ssh_config)
+                    config_values["remote_execution"] = True
+                else:
+                    config_values["remote_execution"] = False
 
-                    for field in plugin_fields:
-                        if hasattr(field, 'variable_name'):
-                            value = field.get_value()
-                            # Gérer spécifiquement les valeurs des champs checkbox_group
-                            if hasattr(field, 'field_config') and field.field_config.get('type') == 'checkbox_group':
-                                # Si aucune valeur n'est sélectionnée, utiliser une liste vide
-                                if not value:
-                                    value = []
-                                # S'assurer que la valeur est une liste
-                                elif not isinstance(value, list):
-                                    value = [value]
-                            config_values[field.variable_name] = value
-
-                    # Add SSH variables if plugin supports remote execution and it's enabled
-                    if supports_remote and remote_enabled:
-                        config_values.update(ssh_config)
-                        config_values["remote_execution"] = True
-                    else:
-                        config_values["remote_execution"] = False
-
-                    # Get original plugin settings
-                    plugin_settings = {}
-                    try:
-                        folder_name = get_plugin_folder_name(plugin_name)
-                        settings_path = os.path.join(os.path.dirname(__file__), '..','..', 'plugins', folder_name, 'settings.yml')
-                        with open(settings_path, 'r', encoding='utf-8') as f:
-                            file_content = f.read()
-                            from io import StringIO
-                            plugin_settings = yaml.load(StringIO(file_content))
-                    except Exception as e:
-                        logger.error(f"Error loading settings for {plugin_name}: {e}")
-
-                    # Store complete configuration
-                    self.current_config[plugin_key] = {
-                        'plugin_name': plugin_name,
-                        'instance_id': instance_id,
-                        'name': plugin_settings.get('name', plugin_name),
-                        'show_name': plugin_settings.get('plugin_name', plugin_name),
-                        'icon': plugin_settings.get('icon', '📦'),
-                        'config': config_values,
-                        'remote_execution': supports_remote and remote_enabled
-                    }
+                # Store complete configuration
+                self.current_config[plugin_key] = {
+                    'plugin_name': plugin_name,
+                    'instance_id': instance_id,
+                    'name': plugin_settings.get('name', plugin_name),
+                    'show_name': plugin_settings.get('plugin_name', plugin_name),
+                    'icon': plugin_settings.get('icon', '📦'),
+                    'config': config_values,
+                    'remote_execution': supports_remote and remote_enabled
+                }
+                logger.debug(f"Added plugin {plugin_key} to configuration")
 
             logger.debug(f"Collected configuration: {self.current_config}")
         except Exception as e:

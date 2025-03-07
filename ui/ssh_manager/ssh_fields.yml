@@ -11,17 +11,19 @@ fields:
     label: "Adresses IP (séparées par des virgules)"
     description: "Peut inclure des caractères génériques (ex: 192.168.1.*) et des virgules"
     placeholder: "150.27.2.*"
+    default: "192.168.1.136"
     required: true
   
   ssh_user:
     type: "text"
     label: "Utilisateur SSH"
-    default: "nicolas.voirin"
+    default: "nico"
     required: true
   
   ssh_passwd:
     type: "password"  # À adapter selon si PasswordField est disponible
     label: "Mot de passe SSH"
+    default: "orion1111"
     required: true
   
   ssh_sms_enabled:
@@ -43,4 +45,61 @@ fields:
     type: "text"
     label: "Adresses IP exclues de l'exception"
     placeholder: "150.27.2.200,150.27.2.21*,150.27.2.22*"
+    required: false
+    
+  ssh_root_same:
+    type: "checkbox"
+    label: "Utiliser les mêmes identifiants pour sudo"
+    description: "Utiliser les mêmes identifiants que ssh_user et ssh_passwd pour l'accès root"
+    default: true
+    
+  ssh_root_user:
+    type: "text"
+    label: "Utilisateur root SSH"
+    description: "Utilisateur à utiliser pour l'accès root via SSH"
+    placeholder: "root"
+    required: true
+    enabled_if:
+      field: "ssh_root_same"
+      value: false
+      
+  ssh_root_passwd:
+    type: "password"
+    label: "Mot de passe root SSH"
+    description: "Mot de passe à utiliser pour l'accès root via SSH"
+    required: true
+    enabled_if:
+      field: "ssh_root_same"
+      value: false
+      
+  local_root_same:
+    type: "checkbox"
+    label: "Utiliser les mêmes identifiants pour sudo local"
+    description: "Utiliser les mêmes identifiants que ssh_user et ssh_passwd pour l'accès root local"
+    default: true
+    
+  local_root_user:
+    type: "text"
+    label: "Utilisateur root local"
+    description: "Utilisateur à utiliser pour l'accès root local"
+    placeholder: "root"
+    required: true
+    enabled_if:
+      field: "local_root_same"
+      value: false
+      
+  local_root_passwd:
+    type: "password"
+    label: "Mot de passe root local"
+    description: "Mot de passe à utiliser pour l'accès root local"
+    required: true
+    enabled_if:
+      field: "local_root_same"
+      value: false
+    
+  ssh_port:
+    type: "text"
+    label: "Port SSH"
+    description: "Port SSH à utiliser (22 par défaut)"
+    default: "22"
     required: false

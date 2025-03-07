@@ -1,85 +1,101 @@
 #!/usr/bin/env python3
 import os
 import sys
-import glob
-# Get the absolute path to the libs folder
-# Assuming main.py is at the same level as the libs folder
-libs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../libs')
-
-# Add all libs subdirectories to the search path
-for pkg_dir in glob.glob(os.path.join(libs_dir, '*')):
-    # Look for directories containing Python packages
-    # Typically where .dist-info or .py files are stored
-    for subdir in glob.glob(os.path.join(pkg_dir, '*')):
-        if os.path.isdir(subdir) and (
-            subdir.endswith('.dist-info') or 
-            os.path.exists(os.path.join(subdir, '__init__.py')) or
-            subdir.endswith('.data')
-        ):
-            # Add the parent directory to the search path
-            parent_dir = os.path.dirname(subdir)
-            if parent_dir not in sys.path:
-                sys.path.insert(0, parent_dir)
-        
-        # Also add the main package directory to the path
-        if pkg_dir not in sys.path:
-            sys.path.insert(0, pkg_dir)
-
 import json
 import time
 import subprocess
 import logging
 import traceback
+import re
 from datetime import datetime
-from ruamel.yaml import YAML
 
-# Ajout du chemin pour importer PluginLogger
-plugin_logger_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../ui/utils')
-if plugin_logger_path not in sys.path:
-    sys.path.insert(0, plugin_logger_path)
-
-try:
-    from plugin_logger import PluginLogger
-except ImportError:
-    # Classe de remplacement si l'import échoue
-    class PluginLogger:
-        def __init__(self, plugin_name=None):
-            self.plugin_name = plugin_name
-            self.total_steps = 1
-            self.current_step = 0
-            
-        def set_total_steps(self, total):
-            self.total_steps = max(1, total)
-            self.current_step = 0
-            
-        def next_step(self):
-            self.current_step += 1
-            current = min(self.current_step, self.total_steps)
-            self.update_progress(current / self.total_steps, current, self.total_steps)
-            return current
+# Classe autonome pour le logging des plugins
+class PluginLogger:
+    def __init__(self, plugin_name=None):
+        self.plugin_name = plugin_name
+        self.total_steps = 1
+        self.current_step = 0
         
-        def info(self, message):
-            print(f"[LOG] [INFO] {message}", flush=True)
+    def set_total_steps(self, total):
+        self.total_steps = max(1, total)
+        self.current_step = 0
+        
+    def next_step(self):
+        self.current_step += 1
+        current = min(self.current_step, self.total_steps)
+        self.update_progress(current / self.total_steps, current, self.total_steps)
+        return current
+    
+    def info(self, message):
+        print(f"[LOG] [INFO] {message}", flush=True)
+        
+    def warning(self, message):
+        print(f"[LOG] [WARNING] {message}", flush=True)
+        
+    def error(self, message):
+        print(f"[LOG] [ERROR] {message}", flush=True)
+        
+    def success(self, message):
+        print(f"[LOG] [SUCCESS] {message}", flush=True)
+        
+    def debug(self, message):
+        print(f"[LOG] [DEBUG] {message}", flush=True)
+        
+    def update_progress(self, percentage, current_step=None, total_steps=None):
+        percent = int(max(0, min(100, percentage * 100)))
+        if current_step is None:
+            current_step = self.current_step
+        if total_steps is None:
+            total_steps = self.total_steps
+        print(f"[PROGRESS] {percent} {current_step} {total_steps}", flush=True)
+
+# Fonction pour analyser le YAML sans dépendances externes
+def self_parse_yaml(yaml_content):
+    """Parse YAML content without external dependencies.
+    This is a simple parser that handles basic YAML structures.
+    It doesn't support all YAML features but should work for our printer model files.
+    """
+    result = {}
+    
+    # Pour les fichiers de configuration d'imprimante, nous avons une structure simple
+    # avec des paires clé-valeur sur chaque ligne
+    for line in yaml_content.split('\n'):
+        # Ignorer les lignes vides et les commentaires
+        stripped_line = line.strip()
+        if not stripped_line or stripped_line.startswith('#'):
+            continue
+        
+        # Traiter les paires clé-valeur
+        if ':' in stripped_line:
+            key, value = stripped_line.split(':', 1)
+            key = key.strip()
+            value = value.strip()
             
-        def warning(self, message):
-            print(f"[LOG] [WARNING] {message}", flush=True)
-            
-        def error(self, message):
-            print(f"[LOG] [ERROR] {message}", flush=True)
-            
-        def success(self, message):
-            print(f"[LOG] [SUCCESS] {message}", flush=True)
-            
-        def debug(self, message):
-            print(f"[LOG] [DEBUG] {message}", flush=True)
-            
-        def update_progress(self, percentage, current_step=None, total_steps=None):
-            percent = int(max(0, min(100, percentage * 100)))
-            if current_step is None:
-                current_step = self.current_step
-            if total_steps is None:
-                total_steps = self.total_steps
-            print(f"[PROGRESS] {percent} {current_step} {total_steps}", flush=True)
+            # Traiter les différents types de valeurs
+            if not value:  # Valeur vide
+                result[key] = ''
+            # Chaînes entre guillemets
+            elif (value.startswith('"') and value.endswith('"')) or \
+                 (value.startswith('\'') and value.endswith('\'')):
+                result[key] = value[1:-1]  # Enlever les guillemets
+            # Booléens
+            elif value.lower() in ['true', 'yes', 'on']:
+                result[key] = True
+            elif value.lower() in ['false', 'no', 'off']:
+                result[key] = False
+            # Null/None
+            elif value.lower() in ['null', 'none', '~']:
+                result[key] = None
+            # Nombres
+            elif re.match(r'^-?\d+(\.\d+)?$', value):
+                if '.' in value:
+                    result[key] = float(value)
+                else:
+                    result[key] = int(value)
+            else:
+                result[key] = value
+    
+    return result
 
 # Initialiser le logger du plugin
 log = PluginLogger("add_printer")
@@ -140,11 +156,26 @@ def run_command(cmd, input_data=None, no_output=False, print_command=False):
 def add_printer(printer_name, printer_mode, printer_file, printer_socket, bases_options, specials_options):
     options="-o cupsIPPSuplies=true -o printer-is-shared=false"
     opt=f"{options} {bases_options} {specials_options}"
+    
+    # Vérifier si le mode et le fichier sont valides
+    if not printer_mode:
+        printer_mode = "-m"  # Mode par défaut
+    
     if printer_mode=="ppd" or printer_mode=="-P":
-        mode=f"-P{printer_file}"
+        mode_param = "-P"
     else:
-        mode=f"-m{printer_file}"
-    cmd=["lpadmin", "-p", printer_name, mode, "-v", printer_socket, "-u", "allow:all", "-o", opt, '-E']
+        mode_param = "-m"
+    
+    # Construire la commande avec les paramètres séparés
+    cmd=["lpadmin", "-p", printer_name]
+    
+    # Ajouter le mode et le fichier d'imprimante s'ils sont spécifiés
+    if printer_file:
+        cmd.extend([mode_param, printer_file])
+    
+    # Ajouter les autres paramètres
+    cmd.extend(["-v", printer_socket, "-u", "allow:all", "-o", opt, '-E'])
+    
     returnValue,stdout,stderr = run_command(cmd, print_command=True)
     if returnValue==0:
         cmd=["lpadmin","-d",printer_name]
@@ -161,14 +192,68 @@ def execute_plugin(config):
         printer_model = config.get('printer_model')
         printer_ip = config.get('printer_ip')
         
-        model_path = os.path.join(os.path.dirname(__file__), "models", printer_model)
-        yaml=YAML()
-        try:
-            with open(model_path, 'r') as f:
-                printer_settings = yaml.load(f)
-        except Exception as e:
-            log.error(f"Erreur lors du chargement des paramètres pour {printer_model}: {e}")
-            return False, f"Erreur lors du chargement des paramètres pour {printer_model}: {e}"
+        # Vérifier si le contenu du modèle est directement fourni dans la configuration
+        # Afficher les clés disponibles pour le débogage
+        log.debug(f"Clés disponibles dans la configuration: {list(config.keys())}")
+        if 'config' in config:
+            log.debug(f"Clés disponibles dans config['config']: {list(config['config'].keys())}")
+            
+        # D'abord chercher au niveau racine
+        model_content = config.get('printer_model_content')
+        if model_content:
+            log.debug(f"Trouvé printer_model_content au niveau racine, type: {type(model_content)}")
+        
+        # Si non trouvé, chercher dans le sous-dictionnaire config
+        if not model_content and 'config' in config and isinstance(config['config'], dict):
+            model_content = config['config'].get('printer_model_content')
+            if model_content:
+                log.debug(f"Trouvé printer_model_content dans config, type: {type(model_content)}")
+        
+        if model_content:
+            # Utiliser le contenu fourni directement
+            try:
+                # Vérifier si le contenu est déjà un dictionnaire
+                if isinstance(model_content, dict):
+                    printer_settings = model_content
+                    log.info(f"Utilisation du dictionnaire de paramètres fourni directement pour le modèle {printer_model}")
+                    log.debug(f"Contenu du dictionnaire: {json.dumps(printer_settings, indent=2)}")
+                else:
+                    # Essayer d'abord de le charger comme JSON
+                    try:
+                        printer_settings = json.loads(model_content)
+                        log.info(f"Contenu JSON parsé avec succès pour le modèle {printer_model}")
+                    except (json.JSONDecodeError, TypeError):
+                        # Si ce n'est pas du JSON valide, le traiter comme YAML simple
+                        log.info(f"Tentative de parsing YAML pour le modèle {printer_model}")
+                        printer_settings = self_parse_yaml(model_content)
+                        log.info(f"Contenu YAML parsé avec succès pour le modèle {printer_model}")
+                    
+                log.info(f"Utilisation des paramètres fournis directement pour le modèle {printer_model}")
+            except Exception as e:
+                log.warning(f"Problème lors du chargement des paramètres fournis pour {printer_model}: {e}")
+                log.debug(f"Type de model_content: {type(model_content)}")
+                if isinstance(model_content, str) and len(model_content) > 100:
+                    log.debug(f"Début du contenu: {model_content[:100]}...")
+                else:
+                    log.debug(f"Contenu: {model_content}")
+                # Continuer pour essayer de charger le fichier depuis le disque
+                model_content = None
+                
+        # Si pas de contenu valide, charger le fichier depuis le disque (méthode traditionnelle)
+        if not model_content:
+            model_path = os.path.join(os.path.dirname(__file__), "models", printer_model)
+            try:
+                with open(model_path, 'r') as f:
+                    content = f.read()
+                    # Essayer d'abord de le charger comme JSON
+                    try:
+                        printer_settings = json.loads(content)
+                    except json.JSONDecodeError:
+                        # Si ce n'est pas du JSON valide, le traiter comme YAML simple
+                        printer_settings = self_parse_yaml(content)
+            except Exception as e:
+                log.error(f"Erreur lors du chargement des paramètres pour {printer_model}: {e}")
+                return False, f"Erreur lors du chargement des paramètres pour {printer_model}: {e}"
 
         couleurs=int(printer_settings.get('couleurs', 0))
         a3=int(printer_settings.get('a3', 0))

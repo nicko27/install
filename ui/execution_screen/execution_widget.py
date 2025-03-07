@@ -43,6 +43,7 @@ class ExecutionWidget(Container):
         self._current_plugin = None
         self._total_plugins = 0
         self._executed_plugins = 0
+        logger.debug(f"ExecutionWidget initialized with {len(self.plugins_config)} plugins: {list(self.plugins_config.keys())}")
 
     def compose(self) -> ComposeResult:
         """Création de l'interface"""
@@ -52,14 +53,17 @@ class ExecutionWidget(Container):
         # Liste des plugins
         with ScrollableContainer(id="plugins-list"):
             # Créer les conteneurs de plugins
+            logger.debug(f"Creating plugin containers for {len(self.plugins_config)} plugins")
             for plugin_id, config in self.plugins_config.items():
                 # Récupérer le nom du plugin depuis son dossier
                 folder_name = get_plugin_folder_name(plugin_id)
                 plugin_name = config.get('plugin_name', folder_name)
                 plugin_icon = config.get('icon', '📦')
                 plugin_show_name = config.get('name', plugin_name)
+                logger.debug(f"Creating container for plugin {plugin_id}: name={plugin_name}, show_name={plugin_show_name}")
                 container = PluginContainer(plugin_id, plugin_name, plugin_show_name, plugin_icon)
                 self.plugins[plugin_id] = container
+                logger.debug(f"Added plugin container for {plugin_id}: {plugin_name}")
                 yield container
 
         # Zone des logs (visible par défaut)
@@ -69,7 +73,6 @@ class ExecutionWidget(Container):
         
         with Horizontal(id="button-container"):
             yield Button("Retour", id="back-button", variant="error")
-            yield Button("Afficher/Masquer logs", id="toggle-logs-button", variant="default")
             yield Checkbox("Continuer en cas d'erreur", id="continue-on-error", value=True)
             yield Label("Progression globale", id="global-progress-label")
             yield ProgressBar(id="global-progress", show_eta=False)
@@ -86,12 +89,6 @@ class ExecutionWidget(Container):
         # Initialiser l'état de la checkbox
         self.continue_on_error = True  # True par défaut
 
-        # Afficher un message de bienvenue pour vérifier que les logs fonctionnent
-        welcome_msg = Message(
-            MessageType.INFO, 
-            "Bienvenue dans l'écran d'exécution. Vous pouvez cliquer sur Démarrer pour lancer l'exécution."
-        )
-        await LoggerUtils.display_message(self, welcome_msg)
 
     async def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
         """Gestion du changement d'état de la checkbox"""
@@ -170,10 +167,6 @@ class ExecutionWidget(Container):
             self.set_current_plugin("aucun")
             await LoggerUtils.clear_logs(self)
 
-            # Informer l'utilisateur
-            start_msg = Message(MessageType.INFO, "Démarrage de l'exécution des plugins...")
-            await LoggerUtils.display_message(self, start_msg)
-
             # Exécuter les plugins
             await self.run_plugins()
 
@@ -195,10 +188,13 @@ class ExecutionWidget(Container):
         try:
             total_plugins = len(self.plugins)
             logger.debug(f"Démarrage de l'exécution de {total_plugins} plugins")
+            logger.debug(f"Plugins disponibles: {list(self.plugins.keys())}")
+            logger.debug(f"Plugins config: {list(self.plugins_config.keys())}")
             executed = 0
 
             for plugin_id, plugin_widget in self.plugins.items():
                 try:
+                    logger.debug(f"Préparation de l'exécution du plugin {plugin_id}")
                     config = self.plugins_config[plugin_id]
                     self.set_current_plugin(plugin_widget.plugin_name)
 
@@ -275,7 +271,18 @@ class ExecutionWidget(Container):
             self.update_global_progress(1.0)
             self.set_current_plugin("Terminé")
             
-            final_msg = Message(MessageType.SUCCESS, "Exécution terminée avec succès")
+            # Vérifier si des erreurs ont été rencontrées
+            has_errors = False
+            for plugin in self.plugins.values():
+                if "error" in plugin.classes:
+                    has_errors = True
+                    break
+            
+            if has_errors:
+                final_msg = Message(MessageType.WARNING, "Certains plugins ont rencontrés des erreurs")
+            else:
+                final_msg = Message(MessageType.SUCCESS, "Exécution terminée avec succès")
+                
             await LoggerUtils.display_message(self, final_msg)
 
         except Exception as e:
