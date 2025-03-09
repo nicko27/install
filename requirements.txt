@@ -1,3 +1,0 @@
-pexpect
-textual
-ruamel.yamlemail-validator>=2.0.0
