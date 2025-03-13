@@ -1,15 +1,12 @@
 .
-├── checkpoints
 ├── code_structure
 ├── code_structure.png
-├── config
 ├── docs
 │   ├── assets
 │   │   ├── script.js
 │   │   └── style.css
 │   └── index.html
 ├── funcListsGraphs.py
-├── install.sh
 ├── libs
 │   ├── linkify_it_py-2.0.3-py3-none-any
 │   │   ├── linkify_it
@@ -1240,7 +1237,6 @@
 ├── logs
 │   └── debug.log
 ├── main.py
-├── Pipfile
 ├── plugins
 │   ├── add_printer
 │   │   ├── exec.py
@@ -1321,30 +1317,11 @@
 │       ├── __init__.py
 │       ├── README.md
 │       └── settings.yml
-├── pyproject.toml
-├── reports
-│   ├── locale
-│   └── remote
+├── requirements.txt
 ├── start.sh
-├── test_checkbox.py
-├── test_config.py
-├── test_config_simple.py
-├── test_execution.py
-├── test_multi_fields.py
-├── test_plugin_config.py
 ├── test.py
-├── tests
-│   └── ui
-│       └── components
-│           └── validation
-│               ├── plugins
-│               │   ├── test_number.py
-│               │   └── test_required.py
-│               └── test_plugin_registry.py
-├── test_select.py
 ├── tree.txt
 ├── ui
-│   ├── auto_mode
 │   ├── choice_screen
 │   │   ├── choice_screen.py
 │   │   ├── __init__.py
@@ -1384,7 +1361,6 @@
 │   │   │   ├── global_config_container.cpython-310.pyc
 │   │   │   ├── __init__.cpython-310.pyc
 │   │   │   ├── ip_field.cpython-310.pyc
-│   │   │   ├── password_field.cpython-310.pyc
 │   │   │   ├── plugin_config_container.cpython-310.pyc
 │   │   │   ├── select_field.cpython-310.pyc
 │   │   │   └── text_field.cpython-310.pyc
@@ -1393,7 +1369,6 @@
 │   ├── execution_screen
 │   │   ├── execution_screen.py
 │   │   ├── execution_widget.py
-│   │   ├── file_content_handler.py
 │   │   ├── __init__.py
 │   │   ├── local_executor.py
 │   │   ├── logger_utils.py
@@ -1401,13 +1376,11 @@
 │   │   ├── __pycache__
 │   │   │   ├── execution_screen.cpython-310.pyc
 │   │   │   ├── execution_widget.cpython-310.pyc
-│   │   │   ├── file_content_handler.cpython-310.pyc
 │   │   │   ├── __init__.cpython-310.pyc
 │   │   │   ├── local_executor.cpython-310.pyc
 │   │   │   ├── logger_utils.cpython-310.pyc
 │   │   │   ├── plugin_container.cpython-310.pyc
 │   │   │   └── ssh_executor.cpython-310.pyc
-│   │   ├── root_credentials_manager.py
 │   │   └── ssh_executor.py
 │   ├── __pycache__
 │   │   ├── choice.cpython-310.pyc
@@ -1416,8 +1389,6 @@
 │   │   ├── execution.cpython-310.pyc
 │   │   ├── logging.cpython-310.pyc
 │   │   └── utils.cpython-310.pyc
-│   ├── report_viewer
-│   ├── sequence_manager
 │   ├── ssh_manager
 │   │   ├── __init__.py
 │   │   ├── __pycache__
@@ -1434,20 +1405,11 @@
 │   │   └── execution.tcss
 │   └── utils
 │       ├── logging.py
-│       ├── messaging.py
-│       ├── plugin_logger.py
 │       ├── __pycache__
 │       │   ├── logging.cpython-310.pyc
-│       │   ├── messaging.cpython-310.pyc
-│       │   ├── plugin_logger.cpython-310.pyc
 │       │   └── utils.cpython-310.pyc
 │       └── utils.py
-├── utils
-│   ├── get_ip.py
-│   ├── get_usb.py
-│   ├── get_users.py
-│   ├── README.md
-│   └── system_info.py
+├── utils -> /media/nico/Drive/pcUtils/ui/utils
 └── utils_scripts
     ├── get_ip.py
     ├── get_usb.py
@@ -1458,4 +1420,4 @@
     ├── README.md
     └── system_info.py
 
-134 directories, 1325 files
+120 directories, 1300 files

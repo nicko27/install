@@ -26,41 +26,59 @@ class PluginConfig(Screen):
     ]
     CSS_PATH = "../styles/config.tcss"
 
-    def __init__(self, plugin_instances: list, name: str | None = None) -> None:
+    def __init__(self, plugin_instances: list, name: str | None = None, sequence_file: str | None = None) -> None:
         try:
-            logger.debug("Initializing PluginConfig")
+            logger.debug("Initialisation de PluginConfig")
             super().__init__(name=name)
 
-            logger.debug(f"Plugin instances: {plugin_instances}")
+            logger.debug(f"Instances de plugins: {plugin_instances}")
             self.plugin_instances = plugin_instances
             self.current_config = {}
             self.fields_by_plugin = {}
             self.fields_by_id = {}
             self.plugins_remote_enabled = {}
             self.ssh_container = None
+            self.sequence_file = sequence_file
+            self.sequence_data = None
 
-            # Initialize the configuration manager
-            logger.debug("Creating ConfigManager")
+            # Charger la séquence si spécifiée
+            if sequence_file and os.path.exists(sequence_file):
+                try:
+                    yaml = YAML()
+                    with open(sequence_file, 'r') as f:
+                        self.sequence_data = yaml.load(f)
+                    logger.info(f"Séquence chargée: {sequence_file}")
+                except Exception as e:
+                    logger.error(f"Erreur chargement séquence: {e}")
+
+            # Initialiser le gestionnaire de configuration
+            logger.debug("Création ConfigManager")
             self.config_manager = ConfigManager()
 
-            # Load SSH configuration
+            # Charger la configuration SSH
             project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
             ssh_config_path = os.path.join(project_root, 'ui', 'ssh_manager', 'ssh_fields.yml')
-            logger.debug(f"Loading SSH config from: {ssh_config_path}")
+            logger.debug(f"Chargement config SSH depuis: {ssh_config_path}")
             self.config_manager.load_global_config('ssh', ssh_config_path)
 
-            # Initialize field collections
-            for plugin_name, _ in plugin_instances:
-                logger.debug(f"Initializing fields for plugin: {plugin_name}")
+            # Initialiser les collections de champs
+            for plugin_name, instance_id in plugin_instances:
+                logger.debug(f"Initialisation champs pour plugin: {plugin_name}")
                 self.fields_by_plugin[plugin_name] = {}
 
-                # Load plugin configuration
+                # Charger la configuration du plugin
                 folder_name = get_plugin_folder_name(plugin_name)
-                # Utiliser un chemin absolu pour accéder aux fichiers de configuration des plugins
-                project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
                 settings_path = os.path.join(project_root, 'plugins', folder_name, 'settings.yml')
-                logger.debug(f"Loading plugin config from: {settings_path}")
+                logger.debug(f"Chargement config plugin depuis: {settings_path}")
                 self.config_manager.load_plugin_config(plugin_name, settings_path)
+
+                # Charger les valeurs prédéfinies de la séquence
+                if self.sequence_data and 'plugins' in self.sequence_data:
+                    for plugin_config in self.sequence_data['plugins']:
+                        if (plugin_config['name'] == plugin_name and
+                            'variables' in plugin_config):
+                            logger.info(f"Variables prédéfinies trouvées pour {plugin_name}")
+                            self.current_config[f"{plugin_name}_{instance_id}"] = plugin_config['variables'].copy()
 
             logger.debug("PluginConfig initialized successfully")
         except Exception as e:

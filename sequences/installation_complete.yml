@@ -1,0 +1,86 @@
+name: Installation Complète
+description: Séquence complète d'installation avec vérification réseau et conditions
+version: 1.1
+author: pcUtils
+icon: 🔧
+stop_on_first_fail: true  # Arrêter si une étape échoue
+
+steps:
+  # Vérification réseau initiale
+  - plugin: network_check
+    export_result: NETWORK_STATUS  # Variable personnalisée
+    config:
+      check_type: basic
+      target_hosts: 
+        - printer.local
+        - 192.168.1.1
+      timeout: 5
+
+  # Vérification DNS optionnelle
+  - plugin: dns_check
+    conditions:
+      - variable: NETWORK_STATUS
+        operator: '=='
+        value: true
+      - variable: SYSTEM_DNS_ENABLED
+        operator: '=='
+        value: true
+    config:
+      dns_servers:
+        - 192.168.1.1
+      domains:
+        - printer.local
+
+  # Installation de l'imprimante
+  - plugin: add_printer
+    conditions:
+      - variable: NETWORK_STATUS
+        operator: '=='
+        value: true
+    config:
+      printer_name: HP LaserJet Pro
+      printer_ip: 192.168.1.100
+      printer_model: HP LaserJet Pro M404n
+
+  # Configuration CUPS
+  - plugin: cups_config
+    conditions:
+      - variable: ADD_PRINTER_STATUS
+        operator: '=='
+        value: true
+    config:
+      enable_sharing: true
+      allowed_users:
+        - admin
+        - printer_admin
+
+  # Test d'impression
+  - plugin: print_test
+    conditions:
+      - variable: ADD_PRINTER_STATUS
+        operator: '=='
+        value: true
+      - variable: CUPS_CONFIG_STATUS
+        operator: '=='
+        value: true
+    config:
+      test_page: true
+      duplex: false
+
+  # Vérification finale
+  - plugin: network_check
+    export_result: FINAL_STATUS
+    conditions:
+      - variable: PRINT_TEST_STATUS
+        operator: '=='
+        value: true
+    config:
+      check_type: full
+      target_hosts:
+        - printer.local
+      ports_to_check:
+        - 9100  # Port d'impression
+        - 631   # Port CUPS
+      dns_servers:
+        - 192.168.1.1
+      timeout: 10

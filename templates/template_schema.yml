@@ -1,0 +1,48 @@
+name: Schéma des Templates
+description: Définition de la structure des fichiers de template
+version: 1.0
+
+# Structure requise pour un template
+required:
+  - name          # Nom du template
+  - description   # Description détaillée
+  - variables     # Variables à configurer
+
+# Format des champs
+format:
+  name:
+    type: string
+    description: Nom court et descriptif du template
+    exemple: "Configuration Bureau"
+
+  description:
+    type: string
+    description: Description détaillée du template
+    exemple: "Configuration pour une imprimante de bureau standard"
+
+  variables:
+    type: object
+    description: Variables à configurer pour le plugin
+    exemple:
+      printer_name: Bureau_RDC
+      printer_ip: 192.168.1.100
+      printer_model: KM227
+
+# Règles de nommage des fichiers
+naming:
+  pattern: "[a-z0-9_]+\\.yml$"
+  description: "Fichiers .yml en minuscules avec underscores"
+  exemples:
+    - default.yml
+    - imprimante_bureau.yml
+    - config_standard.yml
+
+# Organisation des dossiers
+structure:
+  templates/           # Dossier racine des templates
+    ├── add_printer/  # Templates pour le plugin add_printer
+    │   ├── default.yml
+    │   └── *.yml
+    └── scan_plugin/  # Templates pour le plugin scan_plugin
+        ├── default.yml
+        └── *.yml

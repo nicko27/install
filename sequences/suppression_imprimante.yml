@@ -1,0 +1,15 @@
+name: Suppression Imprimante
+description: Supprime l'imprimante et nettoie la configuration de numérisation
+
+plugins:
+  - name: delete_printer
+    variables:
+      printer_name: Bureau_RDC
+      remove_drivers: true
+      clean_queues: true
+
+  - name: scan_plugin
+    variables:
+      user: scan
+      confirm: false
+      scan_directory: /partage/commun/Numerisation

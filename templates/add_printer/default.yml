@@ -1,0 +1,6 @@
+name: Configuration par défaut
+description: Configuration standard pour une imprimante réseau
+variables:
+  printer_name: Bureau_RDC
+  printer_ip: 192.168.1.100
+  printer_model: KM227

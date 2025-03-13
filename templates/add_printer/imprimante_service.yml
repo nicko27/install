@@ -1,0 +1,6 @@
+name: Configuration Service
+description: Configuration pour une imprimante de service
+variables:
+  printer_name: Service_Compta
+  printer_ip: 192.168.1.150
+  printer_model: KM227

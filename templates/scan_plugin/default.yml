@@ -1,0 +1,7 @@
+name: Configuration par défaut
+description: Configuration standard pour la numérisation
+variables:
+  user: scan
+  password: scan_secure_2024
+  confirm: true
+  scan_directory: /partage/commun/Numerisation

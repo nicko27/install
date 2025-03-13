@@ -1,0 +1,16 @@
+name: Installation et Configuration Imprimante
+description: Installation d'une imprimante avec configuration du scan
+
+plugins:
+  - name: add_printer
+    variables:
+      printer_name: Bureau_RDC
+      printer_ip: 192.168.1.100
+      printer_model: KM227
+
+  - name: scan_plugin
+    variables:
+      user: scan
+      password: scan_secure_2024
+      confirm: true
+      scan_directory: /partage/commun/Numerisation

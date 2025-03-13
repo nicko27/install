@@ -1,0 +1,43 @@
+name: string  # Nom de la séquence
+description: string  # Description détaillée
+stop_on_first_fail: boolean?  # Option globale d'arrêt sur erreur (optionnel)
+
+steps:
+  type: array
+  items:
+    type: object
+    properties:
+      plugin:
+        type: string
+        description: Nom du plugin à exécuter
+      
+      export_result:
+        type: string?
+        description: Nom de la variable pour exporter le résultat (optionnel)
+      
+      conditions:
+        type: array?
+        items:
+          type: object
+          properties:
+            variable:
+              type: string
+              description: Nom de la variable à évaluer
+            
+            operator:
+              type: string
+              enum: ['==', '!=', '>', '<', '>=', '<=', 'in', 'not in']
+              description: Opérateur de comparaison
+            
+            value:
+              type: any
+              description: Valeur attendue pour la comparaison
+          
+          required: [variable, operator, value]
+        description: Liste des conditions d'exécution (optionnel)
+      
+      config:
+        type: object?
+        description: Configuration spécifique au plugin (optionnel)
+    
+    required: [plugin]
