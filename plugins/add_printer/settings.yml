@@ -46,3 +46,4 @@ config_fields:
       script: get_ip.py
       function: get_local_ip
       value_key: ip
+      path: "@[scripts]"

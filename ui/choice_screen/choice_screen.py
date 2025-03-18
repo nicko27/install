@@ -4,6 +4,7 @@ from textual.app import App, ComposeResult
 from textual.containers import Horizontal, Vertical, ScrollableContainer
 from textual.widgets import Label, Header, Footer, Button
 import sys
+import os
 from logging import getLogger
 
 from .plugin_card import PluginCard
@@ -11,7 +12,6 @@ from .selected_plugins_panel import SelectedPluginsPanel
 from .plugin_utils import load_plugin_info
 from .sequence_handler import SequenceHandler
 from .template_handler import TemplateHandler
-from ..report_manager.report_manager import ReportManager
 
 logger = getLogger('choice')
 
@@ -109,8 +109,9 @@ class Choice(App):
             # Ajouter les séquences comme plugins spéciaux
             sequences = self.sequence_handler.get_available_sequences()
             for seq in sequences:
+                # Ajouter directement la séquence sans préfixe dans le nom d'affichage
                 valid_plugins.append(
-                    (f"🔄 {seq['name']} (Séquence)", f"__sequence__{seq['file_name']}")
+                    (seq['name'], f"__sequence__{seq['file_name']}")
                 )
 
             # Trier et créer les cartes
@@ -136,10 +137,12 @@ class Choice(App):
             return
 
         try:
-            # Réinitialiser les sélections actuelles
-            self.selected_plugins = []
-            self.instance_counter = {}
-
+            # Nous ajoutons toujours les plugins de la séquence à ceux déjà sélectionnés
+            
+            # Ajouter la séquence elle-même à la liste des plugins sélectionnés
+            sequence_name = f"__sequence__{sequence_path.name}"
+            self.selected_plugins.append((sequence_name, len(self.selected_plugins)))
+            
             # Ajouter chaque plugin de la séquence
             for plugin_config in sequence['plugins']:
                 plugin_name = plugin_config['name']
@@ -179,7 +182,7 @@ class Choice(App):
             if message.selected:
                 # Charger la séquence
                 seq_file = message.plugin_name.replace('__sequence__', '')
-                sequence_path = os.path.join('sequences', seq_file)
+                sequence_path = Path('sequences') / seq_file
                 self.load_sequence(sequence_path)
             return
 
@@ -280,3 +283,4 @@ class Choice(App):
         """Quit the application"""
         logger.debug("Quitting application")
         self.exit()
+        

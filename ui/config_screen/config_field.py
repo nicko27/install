@@ -52,10 +52,25 @@ class ConfigField(VerticalGroup):
                 try:
                     import importlib.util
 
-                    # Determine script path (global or plugin)
-                    if self.field_config['dynamic_default'].get('global', False):
+                    # Determine script path (custom path, global, or plugin)
+                    if 'path' in self.field_config['dynamic_default']:
+                        # Utiliser le chemin personnalisé
+                        path = self.field_config['dynamic_default']['path']
+                        
+                        # Gérer la syntaxe @[directory]
+                        if path.startswith('@[') and path.endswith(']'):
+                            dir_name = path[2:-1]  # Extraire le nom du répertoire entre @[ et ]
+                            if dir_name == 'scripts':
+                                script_path = os.path.join(os.path.dirname(__file__), '..', '..', 'scripts', script_name)
+                            else:
+                                # Chemin absolu pour d'autres répertoires
+                                script_path = os.path.join(os.path.dirname(__file__), '..', '..', dir_name, script_name)
+                        else:
+                            # Chemin absolu ou relatif spécifié directement
+                            script_path = os.path.join(path, script_name) if not os.path.isabs(path) else os.path.join(path, script_name)
+                    elif self.field_config['dynamic_default'].get('global', False):
                         # Script in utils folder
-                        script_path = os.path.join(os.path.dirname(__file__), '..', '..', 'utils', script_name)
+                        script_path = os.path.join(os.path.dirname(__file__), '..', '..', 'scripts', script_name)
                     else:
                         # Script in plugin folder
                         script_path = os.path.join(os.path.dirname(__file__), '..', '..', 'plugins', self.source_id, script_name)

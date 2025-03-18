@@ -1,6 +1,6 @@
 from textual.app import ComposeResult
 from textual.widgets import Label, Checkbox
-from textual.containers import Vertical, Horizontal
+from textual.containers import Vertical, Horizontal, VerticalGroup, HorizontalGroup
 from logging import getLogger
 
 logger = getLogger('plugin_config_container')

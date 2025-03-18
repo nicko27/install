@@ -110,6 +110,11 @@ class PluginConfig(Screen):
                     logger.debug(f"Creating config for plugin: {plugin_name}_{instance_id}")
                     plugin_container = self._create_plugin_config(plugin_name, instance_id)
 
+                    # Vérifier si le plugin_container a été créé correctement
+                    if plugin_container is None:
+                        logger.warning(f"Impossible de créer le conteneur pour {plugin_name}_{instance_id}, probablement une séquence")
+                        continue
+
                     # If plugin supports remote execution, prepare the checkbox for the plugin container
                     logger.debug(f"Checking if {plugin_name} is in remote_plugins: {plugin_name in remote_plugins}")
                     if plugin_name in remote_plugins:
@@ -258,6 +263,11 @@ class PluginConfig(Screen):
     def _create_plugin_config(self, plugin: str, instance_id: int) -> Container:
         """Create configuration container for a plugin"""
         try:
+            # Vérifier si c'est une séquence
+            if plugin.startswith('__sequence__'):
+                logger.warning(f"Skipping configuration for sequence: {plugin}")
+                return None
+                
             plugin_config = self.config_manager.plugin_configs.get(plugin, {})
 
             if not plugin_config:
@@ -295,7 +305,9 @@ class PluginConfig(Screen):
 
         except Exception as e:
             logger.error(f"Error in _create_plugin_config for {plugin}: {e}")
-            # Au lieu de monter des widgets, simplement retourner un conteneur vide
+            logger.error(traceback.format_exc())
+            # Au lieu de monter des widgets, simplement retourner None
+            return None
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button presses"""

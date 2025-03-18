@@ -1,7 +1,0 @@
-# Schéma définissant le format des fichiers de template
-name: "Nom du template"        # Nom à afficher dans le sélecteur
-description: "Description du template"  # Description optionnelle
-values:                       # Valeurs des champs à remplir
-  field1: "valeur1"           # Chaque clé correspond à un champ du plugin
-  field2: "valeur2"
-  field3: "valeur3"

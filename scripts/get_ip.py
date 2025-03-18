@@ -1,5 +1,18 @@
 import socket
 import traceback
+import sys
+import os
+
+# Ajouter le répertoire parent au chemin de recherche Python
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+try:
+    from utils.logging import get_logger
+    logger = get_logger('get_ip')
+except ImportError:
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger('get_ip')
 
 def get_local_ip():
     """
