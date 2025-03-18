@@ -111,13 +111,22 @@ class TemplateField(VerticalGroup):
         try:
             select = self.query_one(f"#{self.select_id}", Select)
             logger.debug(f"Widget Select trouvé avec ID: {self.select_id}")
-            self.watch(select, "changed", self.on_select_changed)
+            # Utiliser on_select_changed directement comme gestionnaire d'événement
+            select.on_changed = self.on_select_changed
             logger.debug(f"Événement 'changed' enregistré pour le widget Select")
         except Exception as e:
             logger.error(f"Erreur lors de l'enregistrement de l'événement: {e}")
     
     def on_select_changed(self, event: Select.Changed) -> None:
         """Gère le changement de template"""
-        if event.value:
-            logger.debug(f"Sélection du template {event.value} pour {self.plugin_name}")
-            self._apply_template(event.value)
+        # Vérifier si l'événement a une valeur ou si c'est un objet Select
+        if hasattr(event, 'value') and event.value:
+            value = event.value
+        elif hasattr(event, 'control') and event.control.value:
+            value = event.control.value
+        else:
+            logger.warning(f"Événement de changement sans valeur valide: {event}")
+            return
+            
+        logger.debug(f"Sélection du template {value} pour {self.plugin_name}")
+        self._apply_template(value)
