@@ -9,6 +9,9 @@ import traceback
 import re
 from datetime import datetime
 
+# Configurer le logger système
+sys_logger = logging.getLogger('install_ui.plugin.add_printer')
+
 # Classe autonome pour le logging des plugins
 class PluginLogger:
     def __init__(self, plugin_name=None):
@@ -187,16 +190,28 @@ def add_printer(printer_name, printer_mode, printer_file, printer_socket, bases_
 def execute_plugin(config):
     """Point d'entrée pour l'exécution du plugin"""
     try:
+        # Log de débogage pour indiquer le début de l'exécution
+        sys_logger.debug(f"Début de l'exécution du plugin add_printer avec config: {config}")
+        print(f"DEBUG: Début de l'exécution du plugin add_printer")
         # Récupérer la configuration
         printer_name = config.get('printer_name')
         printer_model = config.get('printer_model')
         printer_ip = config.get('printer_ip')
         
+        # Log de débogage pour les paramètres extraits
+        sys_logger.debug(f"Paramètres extraits: printer_name={printer_name}, printer_model={printer_model}, printer_ip={printer_ip}")
+        print(f"DEBUG: Paramètres extraits: printer_name={printer_name}, printer_model={printer_model}, printer_ip={printer_ip}")
+        
         # Vérifier si le contenu du modèle est directement fourni dans la configuration
         # Afficher les clés disponibles pour le débogage
         log.debug(f"Clés disponibles dans la configuration: {list(config.keys())}")
+        # Utiliser aussi le logger système pour s'assurer que les messages sont bien capturés
+        sys_logger.debug(f"Clés disponibles dans la configuration: {list(config.keys())}")
+        print(f"DEBUG: Clés disponibles dans la configuration: {list(config.keys())}")
         if 'config' in config:
             log.debug(f"Clés disponibles dans config['config']: {list(config['config'].keys())}")
+            sys_logger.debug(f"Clés disponibles dans config['config']: {list(config['config'].keys())}")
+            print(f"DEBUG: Clés disponibles dans config['config']: {list(config['config'].keys())}")
             
         # D'abord chercher au niveau racine
         model_content = config.get('printer_model_content')
@@ -208,6 +223,8 @@ def execute_plugin(config):
             model_content = config['config'].get('printer_model_content')
             if model_content:
                 log.debug(f"Trouvé printer_model_content dans config, type: {type(model_content)}")
+                sys_logger.debug(f"Trouvé printer_model_content dans config, type: {type(model_content)}")
+                print(f"DEBUG: Trouvé printer_model_content dans config, type: {type(model_content)}")
         
         if model_content:
             # Utiliser le contenu fourni directement
@@ -406,21 +423,41 @@ def execute_plugin(config):
             log.success("Redémarrage du service réussi")
             
         if (returnValue==True):
-            log.success("Ajout de l'imprimante effectué avec succès")
-            return True, "Ajout de l'imprimante effectué avec succès"
+            success_msg = "Ajout de l'imprimante effectué avec succès"
+            log.success(success_msg)
+            # Utiliser un format standard pour les messages de succès
+            print(f"SUCCESS: {success_msg}")
+            # Logger explicitement dans le système de logs
+            sys_logger.info(f"SUCCESS: {success_msg}")
+            return True, success_msg
         else:
-            log.error("Erreur lors de l'ajout de l'imprimante")
-            return False, "Erreur lors de l'ajout de l'imprimante"
+            error_msg = "Erreur lors de l'ajout de l'imprimante"
+            log.error(error_msg)
+            # S'assurer que l'erreur est bien visible dans les logs en utilisant un format standard
+            print(f"ERROR: {error_msg}")
+            # Logger explicitement dans le système de logs
+            sys_logger.error(f"ERROR: {error_msg}")
+            return False, error_msg
         
     except subprocess.CalledProcessError as e:
         error_msg = f"Erreur lors de l'exécution de la commande: {e}"
         log.error(error_msg)
+        # S'assurer que l'erreur est bien visible dans les logs en utilisant un format standard
+        print(f"ERROR: {error_msg}")
+        # Logger explicitement dans le système de logs
+        sys_logger.error(f"ERROR: {error_msg}")
         return False, error_msg
         
     except Exception as e:
         error_msg = f"Erreur inattendue: {str(e)}"
         log.error(error_msg)
         log.error(traceback.format_exc())
+        # S'assurer que l'erreur est bien visible dans les logs en utilisant un format standard
+        print(f"ERROR: {error_msg}")
+        print(f"DEBUG: {traceback.format_exc()}")
+        # Logger explicitement dans le système de logs
+        sys_logger.error(f"ERROR: {error_msg}")
+        sys_logger.debug(traceback.format_exc())
         return False, error_msg
 
 if __name__ == "__main__":

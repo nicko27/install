@@ -181,8 +181,55 @@ class LoggerUtils:
             if not line:
                 return False
             
-            # Parser le message
+            logger.debug(f"Traitement de la ligne: {line}")
+            
+            # Détection des messages d'erreur explicites
+            if line.startswith("ERROR:"):
+                error_msg = line[6:].strip()
+                logger.error(f"Erreur détectée: {error_msg}")
+                await LoggerUtils.add_log(app, error_msg, level="error")
+                return True
+            
+            # Détection des messages de succès explicites
+            if line.startswith("SUCCESS:"):
+                success_msg = line[8:].strip()
+                logger.info(f"Succès détecté: {success_msg}")
+                await LoggerUtils.add_log(app, success_msg, level="success")
+                return True
+            
+            # Détection des messages de débogage explicites
+            if line.startswith("DEBUG:"):
+                debug_msg = line[6:].strip()
+                logger.debug(f"Débogage détecté: {debug_msg}")
+                await LoggerUtils.add_log(app, debug_msg, level="debug")
+                return True
+            
+            # Détection directe du format de progression
+            progress_match = re.match(r'^\[PROGRESS\] (\d+) (\d+) (\d+)$', line)
+            if progress_match:
+                logger.debug(f"Format de progression détecté: {line}")
+                percent, step, total = progress_match.groups()
+                progress = int(percent) / 100.0
+                step_int = int(step)
+                total_int = int(total)
+                
+                if plugin_widget:
+                    logger.debug(f"Mise à jour de la progression: {progress:.2f} (étape {step_int}/{total_int})")
+                    step_text = f"Étape {step_int}/{total_int}" if total_int > 1 else f"{int(progress*100)}%"
+                    
+                    # Mettre à jour la barre de progression du plugin
+                    plugin_widget.update_progress(progress, step_text)
+                    
+                    # Mettre à jour la progression globale
+                    global_progress = (executed + progress) / total_plugins
+                    if hasattr(app, 'update_global_progress'):
+                        logger.debug(f"Mise à jour de la progression globale: {global_progress:.2f}")
+                        app.update_global_progress(global_progress)
+                return True
+            
+            # Parser le message pour les autres types
             message_obj = parse_message(line)
+            logger.debug(f"Message parsé: type={message_obj.type}, content={message_obj.content[:50]}..." if len(message_obj.content) > 50 else f"Message parsé: type={message_obj.type}, content={message_obj.content}")
             
             # Traiter selon le type
             if message_obj.type == MessageType.PROGRESS:
@@ -191,11 +238,13 @@ class LoggerUtils:
                     progress = message_obj.progress
                     step_text = f"Étape {message_obj.step}/{message_obj.total_steps}" if message_obj.step else f"{int(progress*100)}%"
                     
+                    logger.debug(f"Mise à jour de la progression via message_obj: {progress:.2f} ({step_text})")
                     plugin_widget.update_progress(progress, step_text)
                     
                     # Mettre à jour la progression globale
                     global_progress = (executed + progress) / total_plugins
                     if hasattr(app, 'update_global_progress'):
+                        logger.debug(f"Mise à jour de la progression globale: {global_progress:.2f}")
                         app.update_global_progress(global_progress)
                 return True
             else:

@@ -37,17 +37,35 @@ class ExecutionScreen(Screen):
         
     async def on_mount(self) -> None:
         """Appelé quand l'écran est monté"""
-        # Configurer le gestionnaire de rapports si présent
-        widget = self.query_one(ExecutionWidget)
-        if widget and self.report_manager:
-            widget.report_manager = self.report_manager
-            
-        if self.auto_execute:
-            # Lancer l'exécution automatiquement
-            if widget:
-                await widget.start_execution()
+        try:
+            # Appeler initialize_screen après le rafraîchissement du DOM
+            # call_after_refresh ne retourne pas un awaitable, donc pas de await
+            self.call_after_refresh(self.initialize_screen)
+        except Exception as e:
+            from ..utils.logging import get_logger
+            logger = get_logger('execution_screen')
+            logger.error(f"Erreur lors du montage de l'écran d'exécution: {str(e)}")
+            self.notify(f"Erreur lors de l'initialisation: {str(e)}", severity="error")
     
-    async def on_execution_widget_execution_completed(self, message: ExecutionWidget.ExecutionCompleted) -> None:
+    async def initialize_screen(self):
+        """Initialise l'écran après le montage complet"""
+        try:
+            # Configurer le gestionnaire de rapports si présent
+            widget = self.query_one(ExecutionWidget)
+            if widget and self.report_manager:
+                widget.report_manager = self.report_manager
+                
+            if self.auto_execute:
+                # Lancer l'exécution automatiquement
+                if widget:
+                    await widget.start_execution()
+        except Exception as e:
+            from ..utils.logging import get_logger
+            logger = get_logger('execution_screen')
+            logger.error(f"Erreur lors de l'initialisation de l'écran: {str(e)}")
+            self.notify(f"Erreur lors de l'initialisation: {str(e)}", severity="error")
+    
+    async def on_execution_completed(self) -> None:
         """Appelé quand l'exécution des plugins est terminée"""
         # Si un rapport a été généré, proposer de l'afficher
         widget = self.query_one(ExecutionWidget)
@@ -64,4 +82,12 @@ class ExecutionScreen(Screen):
 
     def compose(self) -> ComposeResult:
         """Création de l'interface"""
-        yield ExecutionWidget(self.plugins_config)
+        try:
+            yield ExecutionWidget(self.plugins_config)
+        except Exception as e:
+            from ..utils.logging import get_logger
+            logger = get_logger('execution_screen')
+            logger.error(f"Erreur lors de la composition de l'écran d'exécution: {str(e)}")
+            # Fallback to a basic message if widget creation fails
+            from textual.widgets import Static
+            yield Static(f"Erreur lors de la création de l'interface: {str(e)}\n\nVeuillez vérifier les logs pour plus de détails.")

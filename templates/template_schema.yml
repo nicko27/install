@@ -39,10 +39,10 @@ naming:
 
 # Organisation des dossiers
 structure:
-  templates/           # Dossier racine des templates
-    ├── add_printer/  # Templates pour le plugin add_printer
-    │   ├── default.yml
-    │   └── *.yml
-    └── scan_plugin/  # Templates pour le plugin scan_plugin
-        ├── default.yml
-        └── *.yml
+  description: "Organisation des dossiers de templates"
+  paths:
+    - "templates/"           # Dossier racine des templates
+    - "templates/add_printer/"  # Templates pour le plugin add_printer
+    - "templates/add_printer/default.yml"
+    - "templates/scan_plugin/"  # Templates pour le plugin scan_plugin
+    - "templates/scan_plugin/default.yml"

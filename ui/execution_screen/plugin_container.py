@@ -18,15 +18,41 @@ class PluginContainer(Container):
         """Initialise le conteneur avec l'ID et le nom du plugin
 
         Args:
-            plugin_id: L'ID complet du plugin (ex: bash_interactive_1)
+            plugin_id: L'ID complet du plugin (ex: bash_interactive_1) - doit être déjà sanitisé
             plugin_name: Le nom interne du plugin
             plugin_show_name: Le nom à afficher dans l'interface
             plugin_icon: L'icône associée au plugin
         """
-        super().__init__(id=f"plugin-{plugin_id}")
+        # Ensure the ID is valid for Textual widgets (only letters, numbers, underscores, hyphens)
+        import re
+        # Create a valid ID by replacing invalid characters with underscores
+        # and ensuring it doesn't start with a number
+        valid_id = re.sub(r'[^a-zA-Z0-9_-]', '_', plugin_id)
+        # If it starts with a number, prepend an underscore
+        if valid_id and valid_id[0].isdigit():
+            valid_id = f"_{valid_id}"
+            
+        try:
+            widget_id = f"plugin-{valid_id}"
+            logger.debug(f"Creating container with ID: {widget_id}")
+            super().__init__(id=widget_id)
+        except Exception as e:
+            # Fallback to a generic ID if there's still an issue
+            logger.error(f"Error creating container with ID '{widget_id}': {str(e)}")
+            # Use a UUID as fallback
+            import uuid
+            fallback_id = f"plugin-{uuid.uuid4().hex[:8]}"
+            logger.debug(f"Using fallback ID: {fallback_id}")
+            super().__init__(id=fallback_id)
+            
         self.plugin_id = plugin_id
         # Récupérer le nom du dossier pour les logs
-        self.folder_name = get_plugin_folder_name(plugin_id)
+        try:
+            self.folder_name = get_plugin_folder_name(plugin_id)
+        except Exception as e:
+            logger.error(f"Error getting folder name for {plugin_id}: {str(e)}")
+            self.folder_name = plugin_name
+            
         # Nom affiché dans l'interface
         self.plugin_name = plugin_name
         self.plugin_show_name = plugin_show_name
@@ -76,3 +102,16 @@ class PluginContainer(Container):
 
         # Mettre à jour le widget de statut
         self.query_one(".plugin-status").update(status_text)
+        
+    def set_output(self, output: str):
+        """Stocke la sortie du plugin pour référence ultérieure
+        
+        Args:
+            output: La sortie du plugin
+        """
+        try:
+            # Stocker la sortie comme attribut de l'objet
+            self.output = output
+            logger.debug(f"Sortie stockée pour le plugin {self.plugin_id}")
+        except Exception as e:
+            logger.error(f"Erreur lors du stockage de la sortie pour {self.plugin_id}: {str(e)}")

@@ -125,3 +125,7 @@ Screen {
     visibility: hidden;
     display: none;
 }
+
+.template-label{
+    padding-left:1;
+}

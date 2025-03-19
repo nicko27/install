@@ -20,8 +20,11 @@ class ConfigField(VerticalGroup):
         # Check if the field has an enabled_if dependency
         if 'enabled_if' in field_config:
             self.enabled_if = field_config['enabled_if']
+            # Store the original default value for later use
+            self._original_default = field_config.get('default')
         else:
             self.enabled_if = None
+            self._original_default = None
         self.variable_name = field_config.get('variable', field_id)
 
         # Handle default value (static, dynamic or dependent)
@@ -150,12 +153,35 @@ class ConfigField(VerticalGroup):
         if self.enabled_if:
             dep_field = self.fields_by_id.get(self.enabled_if['field'])
             logger.debug(f"Field {self.field_id}: enabled_if={self.enabled_if}, dep_field={dep_field and dep_field.field_id}, dep_value={dep_field and dep_field.value}")
-            if dep_field and dep_field.value != self.enabled_if['value']:
-                logger.debug(f"Field {self.field_id} should be initially disabled")
+            
+            # Check if the dependency field exists
+            if dep_field:
+                # Check if the dependency field's value matches the required value
+                if dep_field.value != self.enabled_if['value']:
+                    logger.debug(f"Field {self.field_id} should be initially disabled")
+                    self.disabled = True
+                    self.add_class('disabled')
+                else:
+                    # If the field should be enabled, make sure it's not disabled
+                    logger.debug(f"Field {self.field_id} should be initially enabled")
+                    self.disabled = False
+                    self.remove_class('disabled')
+            else:
+                # If the dependency field doesn't exist yet (e.g., remote execution checkbox not yet created)
+                # Use the default value from the field configuration
+                logger.debug(f"Dependency field {self.enabled_if['field']} not found for {self.field_id}, using default state")
+                
+                # Default to disabled if the enabled_if condition exists but the dependency field doesn't
+                # This is safer as the field will be enabled when the dependency is satisfied
                 self.disabled = True
                 self.add_class('disabled')
 
     def get_value(self):
+        # If the field is disabled due to an enabled_if condition, return None
+        # This ensures that disabled fields don't contribute to the configuration
+        if self.disabled and self.enabled_if:
+            logger.debug(f"Field {self.field_id} is disabled, returning None instead of {self.value}")
+            return None
         return self.value
 
     def on_select_changed(self, event: Select.Changed) -> None:

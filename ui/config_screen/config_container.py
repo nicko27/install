@@ -128,9 +128,22 @@ class ConfigContainer(VerticalGroup):
                                 dependent_field.disabled = True
                                 widget.add_class('disabled')
                                 widget.disabled = True
+                            else:
+                                # If the field is now enabled, make sure it's properly initialized
+                                logger.debug(f"Enabling widget for field {dependent_field.field_id}")
+                                
+                                # If the field has a value attribute, ensure it's properly set
+                                if hasattr(dependent_field, 'value') and dependent_field.value is None:
+                                    # Try to get the default value from the field configuration
+                                    if hasattr(dependent_field, 'field_config') and 'default' in dependent_field.field_config:
+                                        default_value = dependent_field.field_config.get('default')
+                                        logger.debug(f"Setting default value for field {dependent_field.field_id}: {default_value}")
+                                        dependent_field.value = default_value
+                                        
+                                        # Update the widget with the default value
+                                        if hasattr(widget, 'value'):
+                                            widget.value = default_value
                                 # Clear IP fields when disabled to prevent invalid config
                                 if isinstance(widget, Input) and isinstance(dependent_field, IPField):
                                     widget.value = ''
-                            else:
-                                logger.debug(f"Enabling widget for field {dependent_field.field_id}")
                 break

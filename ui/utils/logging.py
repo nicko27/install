@@ -8,7 +8,6 @@ from logging.handlers import RotatingFileHandler
 # Remonter de deux niveaux depuis utils pour atteindre la racine du projet
 LOGS_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'logs'))
 os.makedirs(LOGS_DIR, exist_ok=True)
-print(f"Logs directory: {LOGS_DIR}")
 
 # Configure the root logger
 root_logger = logging.getLogger()

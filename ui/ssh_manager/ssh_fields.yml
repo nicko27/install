@@ -57,7 +57,7 @@ fields:
     type: "text"
     label: "Utilisateur root SSH"
     description: "Utilisateur à utiliser pour l'accès root via SSH"
-    placeholder: "root"
+    default: "nico"
     required: true
     enabled_if:
       field: "ssh_root_same"
@@ -67,34 +67,10 @@ fields:
     type: "password"
     label: "Mot de passe root SSH"
     description: "Mot de passe à utiliser pour l'accès root via SSH"
+    default: "orion1111"
     required: true
     enabled_if:
       field: "ssh_root_same"
-      value: false
-      
-  local_root_same:
-    type: "checkbox"
-    label: "Utiliser les mêmes identifiants pour sudo local"
-    description: "Utiliser les mêmes identifiants que ssh_user et ssh_passwd pour l'accès root local"
-    default: true
-    
-  local_root_user:
-    type: "text"
-    label: "Utilisateur root local"
-    description: "Utilisateur à utiliser pour l'accès root local"
-    placeholder: "root"
-    required: true
-    enabled_if:
-      field: "local_root_same"
-      value: false
-      
-  local_root_passwd:
-    type: "password"
-    label: "Mot de passe root local"
-    description: "Mot de passe à utiliser pour l'accès root local"
-    required: true
-    enabled_if:
-      field: "local_root_same"
       value: false
     
   ssh_port:

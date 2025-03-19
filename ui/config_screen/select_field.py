@@ -16,6 +16,8 @@ class SelectField(ConfigField):
     def __init__(self, source_id: str, field_id: str, field_config: dict, fields_by_id: dict = None, is_global: bool = False):
         super().__init__(source_id, field_id, field_config, fields_by_id, is_global)
         self.add_class("field-type-select")  # Ajouter une classe spécifique pour le type de champ
+        # Initialize _value attribute for the property
+        self._value = self.field_config.get('default', None)
 
     def compose(self) -> ComposeResult:
         # Render label and any other common elements
@@ -34,7 +36,8 @@ class SelectField(ConfigField):
         available_values = [opt[1] for opt in self.options]
 
         # Check if current value is valid, otherwise set default
-        if not self.value or str(self.value) not in available_values:
+        if not self.value:
+            # No value set, use default
             if available_values:
                 self.value = available_values[0]
                 logger.info(f"Setting default value for {self.field_id}: {self.value}")
@@ -44,6 +47,27 @@ class SelectField(ConfigField):
                 placeholder_option = ("Placeholder", "placeholder")
                 self.options.append(placeholder_option)
                 self.value = "placeholder"
+        elif str(self.value) not in available_values:
+            # Try partial matching
+            match_found = False
+            for option_value in available_values:
+                if option_value.startswith(str(self.value)) or str(self.value).startswith(option_value.split('.')[0]):
+                    logger.info(f"Found partial match for {self.field_id}: {option_value} (from {self.value})")
+                    self._value = option_value  # Update stored value to match what's actually available
+                    match_found = True
+                    break
+                    
+            # If no match found, set default
+            if not match_found:
+                if available_values:
+                    logger.warning(f"No match found for {self.value} in {self.field_id}, using first available: {available_values[0]}")
+                    self.value = available_values[0]
+                else:
+                    logger.error(f"No valid values available for {self.field_id}")
+                    # Add a fallback option
+                    placeholder_option = ("Placeholder", "placeholder")
+                    self.options.append(placeholder_option)
+                    self.value = "placeholder"
 
         # Create a container for the select widget
         with VerticalGroup(classes="field-input-container select-container"):
@@ -247,6 +271,44 @@ class SelectField(ConfigField):
         # Fallback if no options defined
         return [("No options defined", "no_options_defined")]
 
+    # Add a property setter for value to ensure the select widget is updated
+    @property
+    def value(self):
+        # If we have a select widget, return its value
+        if hasattr(self, 'select'):
+            return self.select.value
+        # Otherwise return our stored value
+        return self._value if hasattr(self, '_value') else None
+        
+    @value.setter
+    def value(self, new_value):
+        # Store the value for later use
+        self._value = new_value
+        
+        # Update the select widget if it exists
+        if hasattr(self, 'select') and hasattr(self, 'options'):
+            # Check if the value is in the available options
+            available_values = [opt[1] for opt in self.options]
+            
+            # First try exact match
+            if new_value in available_values:
+                logger.debug(f"Setting select widget value for {self.field_id} to {new_value} (exact match)")
+                self.select.value = new_value
+                return
+                
+            # Try partial match (for cases like 'KM227' matching 'KM227.yml')
+            for option_value in available_values:
+                if option_value.startswith(new_value) or new_value.startswith(option_value.split('.')[0]):
+                    logger.debug(f"Setting select widget value for {self.field_id} to {option_value} (partial match from {new_value})")
+                    self.select.value = option_value
+                    self._value = option_value  # Update stored value to match what's actually set
+                    return
+                    
+            # No match found
+            logger.warning(f"Value {new_value} not in available options for {self.field_id}: {available_values}")
+        else:
+            logger.debug(f"Select widget not yet created for {self.field_id}, value will be set during compose")
+            
     def on_select_changed(self, event: Select.Changed) -> None:
         if event.select.id == f"select_{self.field_id}":
             self.value = event.value  # event.value contains the value (not the label)

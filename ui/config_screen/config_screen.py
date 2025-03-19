@@ -430,8 +430,28 @@ class PluginConfig(Screen):
     def toggle_field_state(self, field, enable: bool):
         """Toggle enabled state of a field and its widgets"""
         try:
+            # Check if the field has an enabled_if condition
+            if hasattr(field, 'enabled_if') and field.enabled_if:
+                # Get the dependency field
+                dep_field_id = field.enabled_if['field']
+                dep_field = self.fields_by_id.get(dep_field_id)
+                
+                if dep_field:
+                    # Check if the dependency field's value matches the required value
+                    dep_value = dep_field.get_value()
+                    required_value = field.enabled_if['value']
+                    
+                    logger.debug(f"Field {field.field_id} has enabled_if condition: {field.enabled_if}")
+                    logger.debug(f"Dependency field {dep_field_id} value: {dep_value}, required: {required_value}")
+                    
+                    # If the dependency condition is not met, force disable regardless of enable parameter
+                    if dep_value != required_value:
+                        logger.debug(f"Field {field.field_id} disabled due to enabled_if condition")
+                        enable = False
+            
+            # Set the disabled state on the field itself
             field.disabled = not enable
-
+            
             # Handle different widget types
             if hasattr(field, 'input'):
                 field.input.disabled = not enable

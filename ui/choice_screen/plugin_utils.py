@@ -10,6 +10,11 @@ yaml = YAML()
 def get_plugin_folder_name(plugin_name: str) -> str:
     """Retourne le nom du dossier d'un plugin à partir de son nom"""
     logger.debug(f"Getting folder name for plugin: {plugin_name}")
+    
+    # Vérifier si c'est une séquence
+    if plugin_name.startswith('__sequence__'):
+        logger.debug(f"  Plugin {plugin_name} is a sequence, returning '_'")
+        return '_'  # Dossier spécial pour les séquences
 
     # S'assurer que plugin_name a au moins deux parties séparées par des underscores
     parts = plugin_name.split('_')
@@ -18,7 +23,10 @@ def get_plugin_folder_name(plugin_name: str) -> str:
         return plugin_name
 
     # Extraire le nom de base du plugin (sans l'ID d'instance)
-    base_name = parts[0] + '_' + parts[1]
+    base_name = parts[0]
+    # Si le nom a plus de deux parties, utiliser les deux premières
+    if len(parts) >= 2:
+        base_name = parts[0] + '_' + parts[1]
     test_type = base_name + '_test'
 
     # Vérifier si la version test existe
@@ -34,10 +42,22 @@ def get_plugin_folder_name(plugin_name: str) -> str:
     if exists_test:
         logger.debug(f"  Returning test folder name: {test_type}")
         return test_type
-
-    # Sinon retourner le nom de base
-    logger.debug(f"  Returning base folder name: {base_name}")
-    return base_name
+    
+    if exists_base:
+        logger.debug(f"  Returning base folder name: {base_name}")
+        return base_name
+    
+    # Si aucun dossier n'existe, essayer d'extraire juste le nom du plugin sans suffixe
+    if '_' in plugin_name:
+        simple_name = plugin_name.split('_')[0]
+        simple_path = os.path.join('plugins', simple_name)
+        if os.path.exists(simple_path):
+            logger.debug(f"  Returning simple folder name: {simple_name}")
+            return simple_name
+    
+    # Dernier recours: retourner le nom tel quel
+    logger.warning(f"  No matching folder found for {plugin_name}, returning as is")
+    return plugin_name
 
 def load_plugin_info(plugin_name: str, default_info=None) -> dict:
     """Charge les informations d'un plugin depuis son fichier settings.yml"""

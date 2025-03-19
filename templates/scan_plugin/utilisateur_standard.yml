@@ -1,7 +1,0 @@
-name: Configuration Utilisateur Standard
-description: Configuration pour un utilisateur standard avec dossier personnel
-variables:
-  user: scan
-  password: scan_2024
-  confirm: true
-  scan_directory: /partage/utilisateurs/scan
