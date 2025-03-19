@@ -13,7 +13,7 @@ from typing import List, Tuple, Dict, Any, Optional
 from ruamel.yaml import YAML
 
 from ..utils.logging import get_logger
-from ..utils.messaging import Message, MessageType, parse_message
+from ..utils.messaging import Message, MessageType, create_info, create_warning, create_error, create_debug, create_success, parse_message
 from ..ssh_manager.ssh_config_loader import SSHConfigLoader
 from .logger_utils import LoggerUtils
 from .file_content_handler import FileContentHandler
@@ -32,6 +32,41 @@ class SSHExecutor:
             ssh_config: Configuration SSH (optionnelle)
         """
         self.ssh_config = ssh_config or {}
+        self.app = None
+        
+    def log_message(self, message, level="info"):
+        """Ajoute un message au log
+        
+        Args:
+            message: Le message à ajouter
+            level: Le niveau de log (info, warning, error, debug, success)
+        """
+        try:
+            # Utiliser les fonctions de création de message du module messaging
+            if level.lower() == "info":
+                message_obj = create_info(message)
+            elif level.lower() == "warning":
+                message_obj = create_warning(message)
+            elif level.lower() == "error":
+                message_obj = create_error(message)
+            elif level.lower() == "debug":
+                message_obj = create_debug(message)
+            elif level.lower() == "success":
+                message_obj = create_success(message)
+            else:
+                message_obj = create_info(message)
+            
+            # Créer une coroutine pour ajouter le message au log
+            async def add_log_async():
+                await LoggerUtils.display_message(self.app, message_obj)
+            
+            # Exécuter la coroutine dans la boucle d'événements
+            if self.app:
+                asyncio.create_task(add_log_async())
+            else:
+                logger.debug(f"Message non affiché (pas d'app): {message}")
+        except Exception as e:
+            logger.error(f"Erreur lors de l'ajout du message au log: {e}")
         
     async def execute_plugin(self, folder_name: str, config: dict) -> Tuple[bool, str]:
         """Exécute un plugin via SSH
@@ -94,17 +129,71 @@ class SSHExecutor:
                 stderr=asyncio.subprocess.PIPE
             )
             
-            # Récupérer la sortie
-            stdout, stderr = await process.communicate()
+            # Lire la sortie de manière asynchrone pour un traitement en temps réel
+            stdout_lines = []
+            stderr_lines = []
+            
+            # Fonction pour lire un flux de manière asynchrone
+            async def read_stream(stream, is_stderr=False):
+                logger.debug(f"Stream reader started for {'stderr' if is_stderr else 'stdout'}")
+                collected_lines = stderr_lines if is_stderr else stdout_lines
+                counter = 0
+                while True:
+                    line = await stream.readline()
+                    if not line:
+                        logger.debug(f"Stream reader ending after {counter} lines")
+                        break
+                    counter += 1
+                    line_decoded = line.decode().strip()
+                    logger.debug(f"RAW LINE RECEIVED: {line_decoded}")
+                    if line_decoded:
+                        collected_lines.append(line_decoded)
+                        
+                        # Traiter la ligne pour les mises à jour en temps réel
+                        if is_stderr:
+                            logger.warning(f"STDERR: {line_decoded}")
+                            # Ajouter les erreurs au log de l'application
+                            if hasattr(self, 'app') and self.app:
+                                # Utiliser la méthode log_message si disponible
+                                if hasattr(self, 'log_message'):
+                                    self.log_message(f"[STDERR] {line_decoded}", level="error")
+                        else:
+                            logger.debug(f"STDOUT: {line_decoded}")
+                            
+                            # Essayer de traiter la ligne comme un message standardisé
+                            try:
+                                # Utiliser la méthode add_log_async pour ajouter le message au log
+                                if hasattr(self, 'app') and self.app:
+                                    async def process_line_async():
+                                        message_obj = parse_message(line_decoded)
+                                        await LoggerUtils.display_message(self.app, message_obj)
+                                    
+                                    # Exécuter la coroutine dans la boucle d'événements
+                                    asyncio.create_task(process_line_async())
+                            except Exception as e:
+                                logger.error(f"Erreur lors du traitement de la ligne: {e}")
+            
+            # Lancer la lecture des flux stdout et stderr
+            await asyncio.gather(
+                read_stream(process.stdout),
+                read_stream(process.stderr, True)
+            )
+            
+            # Attendre la fin du processus
+            exit_code = await process.wait()
+            
+            # Combiner les lignes en texte
+            stdout_text = "\n".join(stdout_lines)
+            stderr_text = "\n".join(stderr_lines)
             
             # Vérifier le code de retour
-            if process.returncode != 0:
-                logger.error(f"Erreur lors de l'exécution SSH du plugin {folder_name}: {stderr.decode()}")
-                return False, stderr.decode()
+            if exit_code != 0:
+                logger.error(f"Erreur lors de l'exécution SSH du plugin {folder_name}: {stderr_text}")
+                return False, stderr_text
             
             # Succès
             logger.info(f"Plugin {folder_name} exécuté avec succès via SSH")
-            return True, stdout.decode()
+            return True, stdout_text
             
         except Exception as e:
             logger.error(f"Erreur lors de l'exécution SSH du plugin {folder_name}: {str(e)}")
@@ -259,10 +348,11 @@ class SSHExecutor:
             await LoggerUtils.display_message(app, debug_msg)
             return False
     
-    @staticmethod
-    async def execute_ssh(app, ip_address, username, password, plugin_dir, plugin_id, plugin_config, plugin_widget=None):
+    async def execute_ssh(self, app, ip_address, username, password, plugin_dir, plugin_id, plugin_config, plugin_widget=None):
         """Exécute un plugin via SSH sur une machine distante"""
         try:
+            # Sauvegarder l'application pour pouvoir l'utiliser dans execute_plugin
+            self.app = app
             # Vérifier si on doit utiliser l'exécution locale
             if SSHConfigLoader.get_instance().should_use_local_execution(ip_address):
                 info_msg = Message(
@@ -274,8 +364,10 @@ class SSHExecutor:
                 from .local_executor import LocalExecutor
                 # Créer une file d'attente pour les résultats
                 result_queue = asyncio.Queue()
+                # Créer une instance de LocalExecutor
+                local_executor = LocalExecutor()
                 # Exécuter le plugin localement
-                await LocalExecutor.run_local_plugin(
+                await local_executor.run_local_plugin(
                     app, plugin_id, app.plugins[plugin_id], 
                     plugin_config.get('name', plugin_id), plugin_config, 0, 1, result_queue
                 )
@@ -993,14 +1085,14 @@ class SSHExecutor:
             log_line = line.strip() if line else ""
             if ip_address and log_line:
                 # Si la ligne est au format standardisé, insérer l'IP après le préfixe
-                if log_line.startswith("[LOG]") or log_line.startswith("[PROGRESS]"):
-                    parts = log_line.split(" ", 2)
-                    if len(parts) >= 3:
-                        log_line = f"{parts[0]} [{ip_address}] {parts[1]} {parts[2]}"
+                if log_line.startswith("[LOG]"):
+                    # Garder le format [LOG] [TYPE] message intact
+                    match = re.match(r'^\[LOG\] \[(\w+)\] (.+)$', log_line)
+                    if match:
+                        log_type, content = match.groups()
+                        log_line = f"[LOG] [{log_type}] [{ip_address}] {content}"
                     else:
                         log_line = f"[{ip_address}] {log_line}"
-                else:
-                    log_line = f"[{ip_address}] {log_line}"
             
             # Traiter la ligne avec le système de gestion des messages
             if plugin_widget:

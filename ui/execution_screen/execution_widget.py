@@ -44,6 +44,7 @@ class ExecutionWidget(Container):
         self._executed_plugins = 0
         self.report_manager = None  # Gestionnaire de rapports
         self.sequence_name = None   # Nom de la séquence en cours
+        self._app_ref = None  # Référence à l'application, sera définie lors du montage
         logger.debug(f"ExecutionWidget initialized with {len(self.plugins_config)} plugins: {list(self.plugins_config.keys())}")
 
     async def execute_plugin(self, plugin_id: str, config: dict) -> dict:
@@ -61,7 +62,7 @@ class ExecutionWidget(Container):
                 logger.debug(f"Exécuteur SSH créé pour {plugin_id}")
             else:
                 logger.debug(f"Exécution locale du plugin {plugin_id}")
-                executor = LocalExecutor()
+                executor = LocalExecutor(self.app if self._app_ref is None else self._app_ref)
                 logger.debug(f"Exécuteur local créé pour {plugin_id}")
             
             # Vérifier que la méthode execute_plugin existe
@@ -134,6 +135,9 @@ class ExecutionWidget(Container):
                     # Exécuter le plugin
                     try:
                         logger.debug(f"Début de l'exécution du plugin {plugin_id} avec config: {config}")
+                        # Mettre à jour la progression globale pour indiquer le début de l'exécution du plugin
+                        self.update_global_progress(executed / total_plugins)
+                        
                         result = await self.execute_plugin(plugin_id, config)
                         logger.debug(f"Résultat brut de l'exécution du plugin {plugin_id}: {result}")
                         success = result.get('success', False)
@@ -276,12 +280,16 @@ class ExecutionWidget(Container):
 
     def update_global_progress(self, progress: float):
         """Mise à jour de la progression globale"""
+        logger.debug(f"update_global_progress appelé avec progress={progress}")
         try:
             # Try to find the progress bar
             try:
                 progress_bar = self.query_one("#global-progress")
                 if progress_bar:
+                    logger.debug(f"Mise à jour de la barre de progression globale: {progress * 100}%")
                     progress_bar.update(total=100.0, progress=progress * 100)
+                else:
+                    logger.debug("Barre de progression globale non trouvée par query")
             except Exception as query_error:
                 # If we can't find it by query, try to access it directly via DOM
                 logger.debug(f"Impossible de trouver la barre de progression par query: {str(query_error)}")
@@ -386,6 +394,11 @@ class ExecutionWidget(Container):
 
     async def on_mount(self) -> None:
         """Appelé au montage initial du widget"""
+        # Récupérer la référence à l'application
+        # Dans Textual, self.app est déjà disponible, on la stocke dans notre variable
+        self._app_ref = self.app
+        logger.debug(f"ExecutionWidget on_mount: app={self._app_ref}")
+        
         # Appeler initialize_ui après le rafraîchissement du DOM
         # call_after_refresh ne retourne pas un awaitable, donc pas de await
         self.call_after_refresh(self.initialize_ui)

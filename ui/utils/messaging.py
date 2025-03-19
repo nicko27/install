@@ -6,6 +6,7 @@ Définit un format standardisé pour toutes les communications entre plugins et 
 import re
 import json
 import logging
+import time
 from enum import Enum, auto
 from typing import Any, Dict, Optional, Tuple, Union
 
@@ -64,7 +65,8 @@ class Message:
         """
         if self.type == MessageType.PROGRESS:
             # Format spécial pour les messages de progression
-            return f"[PROGRESS] {int(self.progress * 100)} {self.step or 0} {self.total_steps or 1}"
+            plugin_part = f" {self.source}" if self.source else ""
+            return f"[PROGRESS] {int(self.progress * 100)} {self.step or 0} {self.total_steps or 1}{plugin_part}"
         else:
             # Format standard pour les autres types de messages
             return f"[LOG] [{self.type.name}] {self.content}"
@@ -81,16 +83,24 @@ class Message:
             Message: Objet Message créé à partir de la chaîne
         """
         # Vérifier le format de progression
-        progress_match = re.match(r'^\[PROGRESS\] (\d+) (\d+) (\d+)$', message)
+        # Format: [PROGRESS] percent step total_steps [plugin_name]
+        progress_match = re.match(r'^\[PROGRESS\] (\d+) (\d+) (\d+)(?:\s+(.+))?$', message)
         if progress_match:
-            percent, step, total = progress_match.groups()
-            return cls(
+            percent, step, total, plugin_name = progress_match.groups()
+            print(f"DEBUG: Message de progression détecté: percent={percent}, step={step}, total={total}, plugin_name={plugin_name}")
+            msg = cls(
                 type=MessageType.PROGRESS,
                 content=f"Progression: {percent}%",
                 progress=int(percent) / 100.0,
                 step=int(step),
-                total_steps=int(total)
+                total_steps=int(total),
+                source=plugin_name  # Utiliser source pour stocker le nom du plugin
             )
+            # Ajouter un attribut plugin_name pour la compatibilité avec le code existant
+            if plugin_name:
+                msg.plugin_name = plugin_name
+                print(f"DEBUG: Attribut plugin_name ajouté: {msg.plugin_name}")
+            return msg
         
         # Vérifier le format de log standard
         log_match = re.match(r'^\[LOG\] \[(\w+)\] (.+)$', message)
@@ -165,6 +175,19 @@ class MessageFormatter:
     """Utilitaire pour formater les messages pour différentes sorties"""
     
     @staticmethod
+    def get_message_colors():
+        """Retourne les couleurs standard pour les différents types de messages"""
+        return {
+            MessageType.INFO: "white",
+            MessageType.WARNING: "yellow",
+            MessageType.ERROR: "red",
+            MessageType.SUCCESS: "green",
+            MessageType.DEBUG: "gray70",
+            MessageType.UNKNOWN: "white",
+            MessageType.PROGRESS: "blue"
+        }
+    
+    @staticmethod
     def format_for_console(message: Message) -> str:
         """
         Formate un message pour la sortie console
@@ -176,6 +199,23 @@ class MessageFormatter:
             str: Message formaté pour la console
         """
         return message.to_string()
+        
+    @staticmethod
+    def format_for_log_file(message: Message) -> str:
+        """
+        Formate un message pour l'écriture dans un fichier de log
+        
+        Args:
+            message: Le message à formater
+            
+        Returns:
+            str: Message formaté pour le fichier de log
+        """
+        # Ajouter un préfixe pour les messages de succès pour les rendre plus visibles
+        if message.type == MessageType.SUCCESS:
+            return f"SUCCESS: {message.content}"
+        else:
+            return message.content
     
     @staticmethod
     def format_for_textual(message: Message) -> Tuple[str, str]:
@@ -190,7 +230,7 @@ class MessageFormatter:
         """
         # Styles pour chaque type de message
         styles = {
-            MessageType.INFO: "bright_cyan",
+            MessageType.INFO: "white",
             MessageType.WARNING: "bright_yellow",
             MessageType.ERROR: "bright_red",
             MessageType.SUCCESS: "bright_green",
@@ -200,7 +240,47 @@ class MessageFormatter:
         }
         
         return message.content, styles.get(message.type, "white")
+        
+    @staticmethod
+    def format_for_rich_textual(message: Message) -> str:
+        """
+        Formate un message pour l'affichage dans Textual avec des balises Rich
+        
+        Args:
+            message: Le message à formater
+            
+        Returns:
+            str: Message formaté avec des balises Rich pour Textual
+        """
+        # Obtenir les couleurs standard
+        colors = MessageFormatter.get_message_colors()
+        color = colors.get(message.type, "white")
+        
+        # Générer le message formaté avec des balises de couleur explicites
+        timestamp = time.strftime("%H:%M:%S")
+        level_str = f"{message.type.name:7}"
+        
+        # Échapper les caractères spéciaux pour le markup
+        safe_content = escape_markup(message.content)
+        
+        # Format lisible et coloré
+        return f"[cyan]{timestamp}[/cyan]  [{color}]{level_str}[/{color}]  [{color}]{safe_content}[/{color}]"
 
+
+# Fonctions utilitaires pour le formatage et l'échappement
+
+def escape_markup(text):
+    """Échapper les caractères spéciaux qui pourraient être interprétés comme du markup"""
+    if text is None:
+        return ""
+    
+    # Convertir en chaîne si ce n'est pas déjà le cas
+    if not isinstance(text, str):
+        text = str(text)
+        
+    # Échapper les caractères spéciaux Textual/Rich
+    escaped = text.replace("[", "\\[").replace("]", "\\]")
+    return escaped
 
 # Fonctions utilitaires pour les modules externes
 

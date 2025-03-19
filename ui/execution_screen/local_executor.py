@@ -131,13 +131,74 @@ class LocalExecutor:
             process = await asyncio.create_subprocess_exec(
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
+                stdin=asyncio.subprocess.PIPE if needs_root and not running_as_root else None
             )
             
-            # Récupérer la sortie
-            stdout, stderr = await process.communicate()
-            stdout_text = stdout.decode()
-            stderr_text = stderr.decode()
+            # Gérer l'authentification si nécessaire
+            if needs_root and not running_as_root and process.stdin:
+                # Récupérer le mot de passe depuis le gestionnaire d'identifiants root
+                password = root_credentials_manager.get_root_password()
+                if password:
+                    process.stdin.write(f"{password}\n".encode())
+                    await process.stdin.drain()
+                    logger.debug("Mot de passe sudo envoyé")
+                else:
+                    logger.warning("Aucun mot de passe sudo disponible, l'exécution pourrait échouer")
+            
+            # Lire la sortie de manière asynchrone pour un traitement en temps réel
+            stdout_lines = []
+            stderr_lines = []
+            
+            # Fonction pour lire un flux de manière asynchrone
+            async def read_stream(stream, is_stderr=False):
+                logger.debug(f"Stream reader started for {'stderr' if is_stderr else 'stdout'}")
+                collected_lines = stderr_lines if is_stderr else stdout_lines
+                counter = 0
+                while True:
+                    line = await stream.readline()
+                    if not line:
+                        logger.debug(f"Stream reader ending after {counter} lines")
+                        break
+                    counter += 1
+                    line_decoded = line.decode().strip()
+                    logger.debug(f"RAW LINE RECEIVED: {line_decoded}")
+                    if line_decoded:
+                        collected_lines.append(line_decoded)
+                        
+                        # Traiter la ligne pour les mises à jour en temps réel
+                        if is_stderr:
+                            logger.warning(f"STDERR: {line_decoded}")
+                            # Ajouter les erreurs au log de l'application
+                            self.log_message(f"[STDERR] {line_decoded}", level="error")
+                        else:
+                            logger.debug(f"STDOUT: {line_decoded}")
+                            
+                            # Essayer de traiter la ligne comme un message standardisé
+                            try:
+                                # Utiliser la méthode add_log_async pour ajouter le message au log
+                                async def process_line_async():
+                                    from ..utils.messaging import parse_message
+                                    message_obj = parse_message(line_decoded)
+                                    await LoggerUtils.display_message(self.app, message_obj)
+                                
+                                # Exécuter la coroutine dans la boucle d'événements
+                                asyncio.create_task(process_line_async())
+                            except Exception as e:
+                                logger.error(f"Erreur lors du traitement de la ligne: {e}")
+            
+            # Lancer la lecture des flux stdout et stderr
+            await asyncio.gather(
+                read_stream(process.stdout),
+                read_stream(process.stderr, True)
+            )
+            
+            # Attendre la fin du processus
+            exit_code = await process.wait()
+            
+            # Combiner les lignes en texte
+            stdout_text = "\n".join(stdout_lines)
+            stderr_text = "\n".join(stderr_lines)
             
             # Vérifier le code de retour
             if process.returncode != 0:
@@ -201,8 +262,7 @@ class LocalExecutor:
             logger.error(traceback.format_exc())
             return False, str(e)
 
-    @staticmethod
-    async def run_local_plugin(app, plugin_id, plugin_widget, plugin_show_name, config, executed, total_plugins, result_queue):
+    async def run_local_plugin(self, app, plugin_id, plugin_widget, plugin_show_name, config, executed, total_plugins, result_queue):
         """Exécute un plugin localement"""
         try:
             # Extraire le nom du plugin pour les logs
@@ -215,6 +275,9 @@ class LocalExecutor:
 
             # Informer l'utilisateur du démarrage
             await LoggerUtils.add_log(app, f"Démarrage de {plugin_show_name}", "info")
+            
+            # Sauvegarder l'application pour pouvoir l'utiliser dans execute_plugin
+            self.app = app
 
             # Construire le chemin du plugin
             plugin_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "plugins", folder_name)
@@ -358,23 +421,45 @@ class LocalExecutor:
 
             # Lire la sortie de manière asynchrone
             async def read_stream(stream, is_error=False):
+                logger.debug(f"Stream reader started for {'stderr' if is_error else 'stdout'}")
+                counter = 0
                 while True:
                     line = await stream.readline()
                     if not line:
+                        logger.debug(f"Stream reader ending after {counter} lines")
                         break
-                    line = line.decode().strip()
-                    if line:
-                        # Traiter la ligne avec le nouveau système de gestion des messages
-                        await LoggerUtils.process_output_line(app, line, plugin_widget, executed, total_plugins)
-
+                    counter += 1
+                    line_decoded = line.decode().strip()
+                    logger.debug(f"RAW LINE RECEIVED: {line_decoded}")
+                    if line_decoded:
+                        # Si c'est un message de débogage, l'ignorer
+                        if line_decoded.startswith("DEBUG:"):
+                            logger.debug(line_decoded)
+                            continue
+                        # Traiter la ligne avec LoggerUtils.process_output_line qui gère déjà le parsing des messages
+                        processed = await LoggerUtils.process_output_line(app, line_decoded, plugin_widget, executed, total_plugins)
+                        logger.debug(f"Ligne traitée: {processed}")
             # Lancer la lecture des flux stdout et stderr
-            await asyncio.gather(
-                read_stream(process.stdout),
-                read_stream(process.stderr, True)
-            )
-
-            # Attendre la fin du processus
-            exit_code = await process.wait()
+            # Utiliser asyncio.create_task pour permettre l'exécution parallèle et la mise à jour de la progression
+            stdout_task = asyncio.create_task(read_stream(process.stdout))
+            stderr_task = asyncio.create_task(read_stream(process.stderr, True))
+            
+            # Attendre la fin du processus tout en vérifiant périodiquement la progression
+            while process.returncode is None:
+                # Vérifier l'état du processus
+                try:
+                    exit_code = await asyncio.wait_for(process.wait(), timeout=0.1)
+                    break
+                except asyncio.TimeoutError:
+                    # Le processus est toujours en cours d'exécution
+                    pass
+                    
+            # Attendre que les tâches de lecture des flux soient terminées
+            await stdout_task
+            await stderr_task
+            
+            # Récupérer le code de sortie
+            exit_code = process.returncode
 
             # Traiter le résultat
             if exit_code == 0:

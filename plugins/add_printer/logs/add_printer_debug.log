@@ -1,0 +1,141 @@
+2025-03-19 14:43:04,386 - INFO - === Démarrage du fichier de log du plugin add_printer ===
+2025-03-19 14:43:04,386 - INFO - Fichier de log: /media/nico/Drive/pcUtils/plugins/add_printer/logs/add_printer_debug.log
+2025-03-19 14:43:04,386 - INFO - Date et heure: 2025-03-19 14:43:04
+2025-03-19 14:43:04,386 - INFO - Arguments: ['/media/nico/Drive/pcUtils/plugins/add_printer/exec.py', '{"plugin_name": "add_printer", "instance_id": 1, "name": "Ajout d\'imprimante", "show_name": "add_printer", "icon": "\\ud83d\\udda8", "config": {"printer_name": "BT", "printer_model": "EC4200.yml", "printer_ip": "192.168.1.220", "remote_execution": false}, "remote_execution": false, "printer_model_content": {"title": "Imprimante Epson C4200 Couleurs", "nom": "Epson-C4200", "ppdFile": "openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd", "couleurs": "1", "rectoverso": "1", "agraffes": "0", "a3": "0", "orecto": "-o Duplex=None", "orectoverso": "-o Duplex=DuplexNoTumble", "onb": "-o EPRendering=None", "ocouleurs": "-o EPRendering=Color", "oagraffes": "", "oa4": "-o PageSize=A4", "oa3": "", "ocommun": "", "mode": "m", "socket": "lpd://"}}']
+2025-03-19 14:43:04,386 - INFO - Initialisation du PluginLogger pour 'add_printer'
+2025-03-19 14:43:04,386 - INFO - Logger du plugin initialisé avec succès
+2025-03-19 14:43:04,386 - INFO - === Début de l'exécution du script principal ===
+2025-03-19 14:43:04,386 - INFO - SENT TO STDOUT: [LOG] [INFO] Démarrage du plugin add_printer
+2025-03-19 14:43:04,386 - INFO - Démarrage du plugin add_printer
+2025-03-19 14:43:04,386 - INFO - Tentative de parsing de l'argument JSON: {"plugin_name": "add_printer", "instance_id": 1, "name": "Ajout d'imprimante", "show_name": "add_printer", "icon": "\ud83d\udda8", "config": {"printer_name": "BT", "printer_model": "EC4200.yml", "printer_ip": "192.168.1.220", "remote_execution": false}, "remote_execution": false, "printer_model_content": {"title": "Imprimante Epson C4200 Couleurs", "nom": "Epson-C4200", "ppdFile": "openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd", "couleurs": "1", "rectoverso": "1", "agraffes": "0", "a3": "0", "orecto": "-o Duplex=None", "orectoverso": "-o Duplex=DuplexNoTumble", "onb": "-o EPRendering=None", "ocouleurs": "-o EPRendering=Color", "oagraffes": "", "oa4": "-o PageSize=A4", "oa3": "", "ocommun": "", "mode": "m", "socket": "lpd://"}}
+2025-03-19 14:43:04,386 - INFO - Configuration JSON chargée avec succès: 8 clés
+2025-03-19 14:43:04,386 - INFO - Début de l'exécution du plugin
+2025-03-19 14:43:04,387 - INFO - SENT TO STDOUT: [LOG] [DEBUG] Début de l'exécution du plugin add_printer
+2025-03-19 14:43:04,387 - DEBUG - Début de l'exécution du plugin add_printer
+2025-03-19 14:43:04,387 - INFO - Début de l'exécution du plugin avec config: {'plugin_name': 'add_printer', 'instance_id': 1, 'name': "Ajout d'imprimante", 'show_name': 'add_printer', 'icon': '🖨', 'config': {'printer_name': 'BT', 'printer_model': 'EC4200.yml', 'printer_ip': '192.168.1.220', 'remote_execution': False}, 'remote_execution': False, 'printer_model_content': {'title': 'Imprimante Epson C4200 Couleurs', 'nom': 'Epson-C4200', 'ppdFile': 'openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd', 'couleurs': '1', 'rectoverso': '1', 'agraffes': '0', 'a3': '0', 'orecto': '-o Duplex=None', 'orectoverso': '-o Duplex=DuplexNoTumble', 'onb': '-o EPRendering=None', 'ocouleurs': '-o EPRendering=Color', 'oagraffes': '', 'oa4': '-o PageSize=A4', 'oa3': '', 'ocommun': '', 'mode': 'm', 'socket': 'lpd://'}}
+2025-03-19 14:43:04,387 - INFO - SENT TO STDOUT: [LOG] [DEBUG] Paramètres extraits: printer_name=BT, printer_model=EC4200.yml, printer_ip=192.168.1.220
+2025-03-19 14:43:04,387 - DEBUG - Paramètres extraits: printer_name=BT, printer_model=EC4200.yml, printer_ip=192.168.1.220
+2025-03-19 14:43:04,387 - INFO - SENT TO STDOUT: [LOG] [DEBUG] Recherche des paramètres de modèle d'imprimante
+2025-03-19 14:43:04,387 - DEBUG - Recherche des paramètres de modèle d'imprimante
+2025-03-19 14:43:04,387 - INFO - SENT TO STDOUT: [LOG] [DEBUG] Contenu du modèle trouvé dans la configuration
+2025-03-19 14:43:04,387 - DEBUG - Contenu du modèle trouvé dans la configuration
+2025-03-19 14:43:04,387 - INFO - Utilisation du contenu de modèle fourni dans la configuration
+2025-03-19 14:43:04,387 - INFO - SENT TO STDOUT: [LOG] [INFO] Utilisation du dictionnaire de paramètres fourni pour le modèle EC4200.yml
+2025-03-19 14:43:04,387 - INFO - Utilisation du dictionnaire de paramètres fourni pour le modèle EC4200.yml
+2025-03-19 14:43:04,387 - INFO - Contenu du modèle est déjà un dictionnaire
+2025-03-19 14:43:04,387 - INFO - Extraction des paramètres du modèle d'imprimante
+2025-03-19 14:43:04,387 - INFO - Paramètres d'imprimante extraits: couleurs=1, a3=0, rectoverso=1, agraffes=0
+2025-03-19 14:43:04,387 - INFO - Socket final: lpd://192.168.1.220
+2025-03-19 14:43:04,387 - INFO - Nombre total d'étapes: 7
+2025-03-19 14:43:04,387 - INFO - Nombre total d'étapes défini à 7
+2025-03-19 14:43:04,387 - INFO - Progression à l'étape 1/7
+2025-03-19 14:43:04,387 - INFO - SENT TO STDOUT: [PROGRESS] 14 1 7
+2025-03-19 14:43:04,387 - DEBUG - Message de progression envoyé: 1/7
+2025-03-19 14:43:04,387 - INFO - SENT TO STDOUT: [LOG] [INFO] Installation de l'imprimante BT avec IP 192.168.1.220
+2025-03-19 14:43:04,387 - INFO - Installation de l'imprimante BT avec IP 192.168.1.220
+2025-03-19 14:43:04,387 - INFO - Progression à l'étape 2/7
+2025-03-19 14:43:04,387 - INFO - SENT TO STDOUT: [PROGRESS] 28 2 7
+2025-03-19 14:43:04,387 - DEBUG - Message de progression envoyé: 2/7
+2025-03-19 14:43:04,387 - INFO - SENT TO STDOUT: [LOG] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+2025-03-19 14:43:04,387 - INFO - Suppression de la config evince pour éviter bug avec nouvelle imprimante
+2025-03-19 14:43:04,387 - INFO - Liste des utilisateurs: ['nico', 'jack']
+2025-03-19 14:43:04,387 - INFO - Progression à l'étape 3/7
+2025-03-19 14:43:04,387 - INFO - SENT TO STDOUT: [PROGRESS] 42 3 7
+2025-03-19 14:43:04,387 - DEBUG - Message de progression envoyé: 3/7
+2025-03-19 14:43:04,387 - INFO - SENT TO STDOUT: [LOG] [INFO] Installation de Epson-C4200_BT_Recto_NB
+2025-03-19 14:43:04,387 - INFO - Installation de Epson-C4200_BT_Recto_NB
+2025-03-19 14:43:04,387 - INFO - Installation de l'imprimante: Epson-C4200_BT_Recto_NB
+2025-03-19 14:43:04,387 - INFO - Commande d'ajout d'imprimante: lpadmin -p Epson-C4200_BT_Recto_NB -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -v lpd://192.168.1.220 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None -E
+2025-03-19 14:43:04,387 - INFO - SENT TO STDOUT: [LOG] [INFO] Exécution de: lpadmin -p Epson-C4200_BT_Recto_NB -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -v lpd://192.168.1.220 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None -E
+2025-03-19 14:43:04,387 - INFO - Exécution de: lpadmin -p Epson-C4200_BT_Recto_NB -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -v lpd://192.168.1.220 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None -E
+2025-03-19 14:43:04,387 - INFO - Exécution de la commande: lpadmin -p Epson-C4200_BT_Recto_NB -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -v lpd://192.168.1.220 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=None -E
+2025-03-19 14:43:05,052 - INFO - Code de retour: 0
+2025-03-19 14:43:05,052 - DEBUG - STDERR: lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+
+2025-03-19 14:43:05,052 - INFO - SENT TO STDOUT: [LOG] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+2025-03-19 14:43:05,052 - WARNING - lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+2025-03-19 14:43:05,052 - INFO - Définition comme imprimante par défaut: lpadmin -d Epson-C4200_BT_Recto_NB
+2025-03-19 14:43:05,052 - INFO - SENT TO STDOUT: [LOG] [INFO] Exécution de: lpadmin -d Epson-C4200_BT_Recto_NB
+2025-03-19 14:43:05,052 - INFO - Exécution de: lpadmin -d Epson-C4200_BT_Recto_NB
+2025-03-19 14:43:05,052 - INFO - Exécution de la commande: lpadmin -d Epson-C4200_BT_Recto_NB
+2025-03-19 14:43:05,058 - INFO - Code de retour: 0
+2025-03-19 14:43:05,059 - INFO - Résultat de l'installation de Epson-C4200_BT_Recto_NB: True
+2025-03-19 14:43:05,059 - INFO - Progression à l'étape 4/7
+2025-03-19 14:43:05,059 - INFO - SENT TO STDOUT: [PROGRESS] 57 4 7
+2025-03-19 14:43:05,059 - DEBUG - Message de progression envoyé: 4/7
+2025-03-19 14:43:05,059 - INFO - SENT TO STDOUT: [LOG] [INFO] Installation de Epson-C4200_BT_Recto_Couleurs
+2025-03-19 14:43:05,059 - INFO - Installation de Epson-C4200_BT_Recto_Couleurs
+2025-03-19 14:43:05,059 - INFO - Installation de l'imprimante: Epson-C4200_BT_Recto_Couleurs
+2025-03-19 14:43:05,059 - INFO - Commande d'ajout d'imprimante: lpadmin -p Epson-C4200_BT_Recto_Couleurs -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -v lpd://192.168.1.220 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=Color -E
+2025-03-19 14:43:05,059 - INFO - SENT TO STDOUT: [LOG] [INFO] Exécution de: lpadmin -p Epson-C4200_BT_Recto_Couleurs -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -v lpd://192.168.1.220 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=Color -E
+2025-03-19 14:43:05,059 - INFO - Exécution de: lpadmin -p Epson-C4200_BT_Recto_Couleurs -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -v lpd://192.168.1.220 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=Color -E
+2025-03-19 14:43:05,059 - INFO - Exécution de la commande: lpadmin -p Epson-C4200_BT_Recto_Couleurs -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -v lpd://192.168.1.220 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=None -o PageSize=A4 -o EPRendering=Color -E
+2025-03-19 14:43:05,659 - INFO - Code de retour: 0
+2025-03-19 14:43:05,659 - DEBUG - STDERR: lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+
+2025-03-19 14:43:05,659 - INFO - SENT TO STDOUT: [LOG] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+2025-03-19 14:43:05,659 - WARNING - lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+2025-03-19 14:43:05,659 - INFO - Définition comme imprimante par défaut: lpadmin -d Epson-C4200_BT_Recto_Couleurs
+2025-03-19 14:43:05,659 - INFO - SENT TO STDOUT: [LOG] [INFO] Exécution de: lpadmin -d Epson-C4200_BT_Recto_Couleurs
+2025-03-19 14:43:05,659 - INFO - Exécution de: lpadmin -d Epson-C4200_BT_Recto_Couleurs
+2025-03-19 14:43:05,659 - INFO - Exécution de la commande: lpadmin -d Epson-C4200_BT_Recto_Couleurs
+2025-03-19 14:43:05,665 - INFO - Code de retour: 0
+2025-03-19 14:43:05,665 - INFO - Résultat de l'installation de Epson-C4200_BT_Recto_Couleurs: True
+2025-03-19 14:43:05,665 - INFO - Progression à l'étape 5/7
+2025-03-19 14:43:05,665 - INFO - SENT TO STDOUT: [PROGRESS] 71 5 7
+2025-03-19 14:43:05,665 - DEBUG - Message de progression envoyé: 5/7
+2025-03-19 14:43:05,665 - INFO - SENT TO STDOUT: [LOG] [INFO] Installation de Epson-C4200_BT_RectoVerso_Couleurs
+2025-03-19 14:43:05,665 - INFO - Installation de Epson-C4200_BT_RectoVerso_Couleurs
+2025-03-19 14:43:05,665 - INFO - Installation de l'imprimante: Epson-C4200_BT_RectoVerso_Couleurs
+2025-03-19 14:43:05,665 - INFO - Commande d'ajout d'imprimante: lpadmin -p Epson-C4200_BT_RectoVerso_Couleurs -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -v lpd://192.168.1.220 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=Color -E
+2025-03-19 14:43:05,665 - INFO - SENT TO STDOUT: [LOG] [INFO] Exécution de: lpadmin -p Epson-C4200_BT_RectoVerso_Couleurs -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -v lpd://192.168.1.220 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=Color -E
+2025-03-19 14:43:05,665 - INFO - Exécution de: lpadmin -p Epson-C4200_BT_RectoVerso_Couleurs -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -v lpd://192.168.1.220 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=Color -E
+2025-03-19 14:43:05,665 - INFO - Exécution de la commande: lpadmin -p Epson-C4200_BT_RectoVerso_Couleurs -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -v lpd://192.168.1.220 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=Color -E
+2025-03-19 14:43:06,325 - INFO - Code de retour: 0
+2025-03-19 14:43:06,325 - DEBUG - STDERR: lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+
+2025-03-19 14:43:06,325 - INFO - SENT TO STDOUT: [LOG] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+2025-03-19 14:43:06,325 - WARNING - lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+2025-03-19 14:43:06,325 - INFO - Définition comme imprimante par défaut: lpadmin -d Epson-C4200_BT_RectoVerso_Couleurs
+2025-03-19 14:43:06,325 - INFO - SENT TO STDOUT: [LOG] [INFO] Exécution de: lpadmin -d Epson-C4200_BT_RectoVerso_Couleurs
+2025-03-19 14:43:06,325 - INFO - Exécution de: lpadmin -d Epson-C4200_BT_RectoVerso_Couleurs
+2025-03-19 14:43:06,325 - INFO - Exécution de la commande: lpadmin -d Epson-C4200_BT_RectoVerso_Couleurs
+2025-03-19 14:43:06,330 - INFO - Code de retour: 0
+2025-03-19 14:43:06,330 - INFO - Résultat de l'installation de Epson-C4200_BT_RectoVerso_Couleurs: True
+2025-03-19 14:43:06,330 - INFO - Progression à l'étape 6/7
+2025-03-19 14:43:06,330 - INFO - SENT TO STDOUT: [PROGRESS] 85 6 7
+2025-03-19 14:43:06,330 - DEBUG - Message de progression envoyé: 6/7
+2025-03-19 14:43:06,330 - INFO - SENT TO STDOUT: [LOG] [INFO] Installation de Epson-C4200_BT_RectoVerso_NB
+2025-03-19 14:43:06,330 - INFO - Installation de Epson-C4200_BT_RectoVerso_NB
+2025-03-19 14:43:06,330 - INFO - Installation de l'imprimante: Epson-C4200_BT_RectoVerso_NB
+2025-03-19 14:43:06,330 - INFO - Commande d'ajout d'imprimante: lpadmin -p Epson-C4200_BT_RectoVerso_NB -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -v lpd://192.168.1.220 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=None -E
+2025-03-19 14:43:06,330 - INFO - SENT TO STDOUT: [LOG] [INFO] Exécution de: lpadmin -p Epson-C4200_BT_RectoVerso_NB -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -v lpd://192.168.1.220 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=None -E
+2025-03-19 14:43:06,330 - INFO - Exécution de: lpadmin -p Epson-C4200_BT_RectoVerso_NB -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -v lpd://192.168.1.220 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=None -E
+2025-03-19 14:43:06,330 - INFO - Exécution de la commande: lpadmin -p Epson-C4200_BT_RectoVerso_NB -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -v lpd://192.168.1.220 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=None -E
+2025-03-19 14:43:06,982 - INFO - Code de retour: 0
+2025-03-19 14:43:06,982 - DEBUG - STDERR: lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+
+2025-03-19 14:43:06,982 - INFO - SENT TO STDOUT: [LOG] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+2025-03-19 14:43:06,982 - WARNING - lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+2025-03-19 14:43:06,982 - INFO - Définition comme imprimante par défaut: lpadmin -d Epson-C4200_BT_RectoVerso_NB
+2025-03-19 14:43:06,982 - INFO - SENT TO STDOUT: [LOG] [INFO] Exécution de: lpadmin -d Epson-C4200_BT_RectoVerso_NB
+2025-03-19 14:43:06,982 - INFO - Exécution de: lpadmin -d Epson-C4200_BT_RectoVerso_NB
+2025-03-19 14:43:06,982 - INFO - Exécution de la commande: lpadmin -d Epson-C4200_BT_RectoVerso_NB
+2025-03-19 14:43:06,987 - INFO - Code de retour: 0
+2025-03-19 14:43:06,987 - INFO - Résultat de l'installation de Epson-C4200_BT_RectoVerso_NB: True
+2025-03-19 14:43:06,988 - INFO - SENT TO STDOUT: [LOG] [INFO] Redémarrage du service CUPS
+2025-03-19 14:43:06,988 - INFO - Redémarrage du service CUPS
+2025-03-19 14:43:06,988 - INFO - Tentative de redémarrage du service CUPS
+2025-03-19 14:43:06,988 - INFO - Exécution de la commande: systemctl restart cups
+2025-03-19 14:43:09,419 - INFO - Code de retour: 0
+2025-03-19 14:43:09,420 - INFO - SENT TO STDOUT: [LOG] [SUCCESS] Service CUPS redémarré avec succès
+2025-03-19 14:43:09,420 - INFO - SUCCESS: Service CUPS redémarré avec succès
+2025-03-19 14:43:09,420 - INFO - Service CUPS redémarré avec succès
+2025-03-19 14:43:09,420 - INFO - SENT TO STDOUT: [LOG] [SUCCESS] Ajout de l'imprimante effectué avec succès
+2025-03-19 14:43:09,422 - INFO - SUCCESS: Ajout de l'imprimante effectué avec succès
+2025-03-19 14:43:09,422 - INFO - SUCCÈS FINAL: Ajout de l'imprimante effectué avec succès
+2025-03-19 14:43:09,422 - INFO - Fin de l'exécution du plugin. Résultat: True, Message: Ajout de l'imprimante effectué avec succès
+2025-03-19 14:43:09,623 - INFO - SENT TO STDOUT: [LOG] [SUCCESS] Succès: Ajout de l'imprimante effectué avec succès
+2025-03-19 14:43:09,623 - INFO - SUCCESS: Succès: Ajout de l'imprimante effectué avec succès
+2025-03-19 14:43:09,624 - INFO - Terminaison avec succès. Message: Ajout de l'imprimante effectué avec succès
+2025-03-19 14:43:09,624 - INFO - === Fin de l'exécution du plugin add_printer ===
