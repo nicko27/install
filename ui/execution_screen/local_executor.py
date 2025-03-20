@@ -23,7 +23,7 @@ logger = get_logger('local_executor')
 class LocalExecutor:
     """Classe pour l'exécution locale des plugins"""
     
-    def __init__(self, app):
+    def __init__(self, app=None):
         self.app = app
         
     def log_message(self, message, level="info"):
@@ -174,16 +174,37 @@ class LocalExecutor:
                         else:
                             logger.debug(f"STDOUT: {line_decoded}")
                             
-                            # Essayer de traiter la ligne comme un message standardisé
+                            # Traiter directement la ligne pour les messages de progression
                             try:
-                                # Utiliser la méthode add_log_async pour ajouter le message au log
-                                async def process_line_async():
-                                    from ..utils.messaging import parse_message
-                                    message_obj = parse_message(line_decoded)
-                                    await LoggerUtils.display_message(self.app, message_obj)
-                                
-                                # Exécuter la coroutine dans la boucle d'événements
-                                asyncio.create_task(process_line_async())
+                                # Modifier la ligne pour y ajouter l'identifiant du plugin si c'est un message de progression
+                                if "[PROGRESS]" in line_decoded and self.app:
+                                    # Format attendu: [PROGRESS] percentage step total_steps plugin_name
+                                    # On veut: [PROGRESS] percentage step total_steps unique_instance_id
+                                    parts = line_decoded.split()
+                                    if len(parts) >= 5:  # Au moins 5 parties (tag, percent, step, total, name)
+                                        # Reconstruire la chaîne avec un identifiant unique pour cette instance
+                                        progress_tag = parts[0]
+                                        progress_percent = parts[1]
+                                        progress_step = parts[2]
+                                        progress_total = parts[3]
+                                        
+                                        # Utiliser un identifiant unique qui combine le dossier du plugin et l'instance
+                                        # Extraire l'ID du plugin depuis folder_name pour avoir une référence unique
+                                        # Format typique: add_printer_1, où 1 est l'ID d'instance
+                                        instance_suffix = ""
+                                        if "_" in folder_name:
+                                            parts = folder_name.split("_")
+                                            if parts[-1].isdigit():
+                                                instance_suffix = parts[-1]
+                                        
+                                        unique_instance_id = f"{folder_name}" if not instance_suffix else f"{folder_name}"
+                                        
+                                        # Remplacer complètement le nom du plugin par notre identifiant unique
+                                        modified_line = f"{progress_tag} {progress_percent} {progress_step} {progress_total} {unique_instance_id}"
+                                        line_decoded = modified_line
+                                # Appel direct à process_output_line
+                                if self.app:
+                                    await LoggerUtils.process_output_line(self.app, line_decoded)
                             except Exception as e:
                                 logger.error(f"Erreur lors du traitement de la ligne: {e}")
             
@@ -265,6 +286,9 @@ class LocalExecutor:
     async def run_local_plugin(self, app, plugin_id, plugin_widget, plugin_show_name, config, executed, total_plugins, result_queue):
         """Exécute un plugin localement"""
         try:
+            # Sauvegarder l'application pour pouvoir l'utiliser dans execute_plugin
+            self.app = app
+            
             # Extraire le nom du plugin pour les logs
             folder_name = plugin_widget.folder_name
             logger.info(f"Démarrage du plugin {folder_name} ({plugin_id})")
@@ -276,9 +300,6 @@ class LocalExecutor:
             # Informer l'utilisateur du démarrage
             await LoggerUtils.add_log(app, f"Démarrage de {plugin_show_name}", "info")
             
-            # Sauvegarder l'application pour pouvoir l'utiliser dans execute_plugin
-            self.app = app
-
             # Construire le chemin du plugin
             plugin_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "plugins", folder_name)
 
@@ -293,44 +314,44 @@ class LocalExecutor:
                 logger.info(f"Détecté comme plugin Python")
                 is_bash_plugin = False
 
+            # Vérifier les paramètres du plugin (settings.yml)
+            settings_path = os.path.join(plugin_dir, "settings.yml")
+            plugin_settings = {}
+            if os.path.exists(settings_path):
+                try:
+                    with open(settings_path, 'r', encoding='utf-8') as f:
+                        plugin_settings = YAML().load(f)
+                except Exception as e:
+                    logger.error(f"Erreur lors de la lecture des paramètres du plugin: {e}")
+            
             # Vérifier si le plugin nécessite des droits root
             needs_root = False
             if plugin_settings and isinstance(plugin_settings, dict):
                 needs_root = plugin_settings.get('local_root', False)
                 logger.info(f"Plugin {plugin_id} nécessite des droits root: {needs_root}")
             
+            # Traiter le contenu des fichiers de configuration
+            file_content = FileContentHandler.process_file_content(plugin_settings, config, plugin_dir)
+            
+            # Intégrer le contenu des fichiers dans la configuration
+            for param_name, content in file_content.items():
+                config[param_name] = content
+                logger.info(f"Contenu du fichier intégré dans la configuration sous {param_name}")
+            
+            # Afficher la structure de la configuration pour le débogage
+            logger.debug(f"Structure de la configuration après ajout des fichiers: {list(config.keys())}")
+            
             # Préparer la commande en fonction du type de plugin
             if is_bash_plugin:
                 base_cmd = ["bash", exec_path, config.get('name', 'test'), config.get('intensity', 'light')]
             else:
-                # Vérifier dans les paramètres de plugin (settings.yml)
-                plugin_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "plugins", folder_name)
-                settings_path = os.path.join(plugin_dir, "settings.yml")
-                plugin_settings = {}
-                if os.path.exists(settings_path):
-                    try:
-                        with open(settings_path, 'r', encoding='utf-8') as f:
-                            plugin_settings = YAML().load(f)
-                    except Exception as e:
-                        logger.error(f"Erreur lors de la lecture des paramètres du plugin: {e}")
-                
-                # Traiter le contenu des fichiers de configuration
-                file_content = FileContentHandler.process_file_content(plugin_settings, config, plugin_dir)
-                
-                # Intégrer le contenu des fichiers dans la configuration
-                for param_name, content in file_content.items():
-                    config[param_name] = content
-                    logger.info(f"Contenu du fichier intégré dans la configuration sous {param_name}")
-                
-                # Afficher la structure de la configuration pour le débogage
-                logger.debug(f"Structure de la configuration après ajout des fichiers: {list(config.keys())}")
-                
                 python_path = sys.executable if sys.executable.strip() else "/usr/bin/python3"
                 # Afficher la configuration complète avant de l'envoyer au plugin
                 logger.debug(f"Configuration complète envoyée au plugin: {list(config.keys())}")
                 if 'printer_model_content' in config:
                     logger.debug(f"printer_model_content trouvé dans la configuration, type: {type(config['printer_model_content'])}")
                 base_cmd = [python_path, exec_path, json.dumps(config)]
+                
             # Obtenir le gestionnaire d'identifiants root
             root_credentials_manager = RootCredentialsManager.get_instance()
             running_as_root = root_credentials_manager.is_running_as_root()
@@ -416,13 +437,14 @@ class LocalExecutor:
                     )
                     await LoggerUtils.display_message(app, warning_msg)
             
-            # Cas 2: Nous sommes root mais le plugin ne nécessite pas de droits root
-            # Dans ce cas, su ne demande pas de mot de passe car nous sommes déjà root
-
             # Lire la sortie de manière asynchrone
             async def read_stream(stream, is_error=False):
                 logger.debug(f"Stream reader started for {'stderr' if is_error else 'stdout'}")
                 counter = 0
+                # Stocker l'identifiant unique pour cette instance du plugin
+                instance_id = plugin_id
+                logger.debug(f"Plugin instance ID: {instance_id}")
+                
                 while True:
                     line = await stream.readline()
                     if not line:
@@ -434,11 +456,45 @@ class LocalExecutor:
                     if line_decoded:
                         # Si c'est un message de débogage, l'ignorer
                         if line_decoded.startswith("DEBUG:"):
-                            logger.debug(line_decoded)
+                            logger.debug(f"{instance_id}: {line_decoded}")
                             continue
-                        # Traiter la ligne avec LoggerUtils.process_output_line qui gère déjà le parsing des messages
-                        processed = await LoggerUtils.process_output_line(app, line_decoded, plugin_widget, executed, total_plugins)
-                        logger.debug(f"Ligne traitée: {processed}")
+                            
+                        # Traiter directement la ligne avec LoggerUtils.process_output_line
+                        if not is_error:
+                            # Ajouter l'ID du plugin à la ligne pour l'isoler des autres instances
+                            # Si la ligne contient déjà [PROGRESS], on insère l'ID après le type de message
+                            if "[PROGRESS]" in line_decoded:
+                                # Format attendu: [PROGRESS] percentage step total_steps plugin_name
+                                # On veut: [PROGRESS] percentage step total_steps plugin_id:plugin_name
+                                parts = line_decoded.split()
+                                if len(parts) >= 5:  # Au moins 5 parties (tag, percent, step, total, name)
+                                    # Reconstruire la chaîne avec l'ID du plugin ajouté au nom
+                                    progress_tag = parts[0]
+                                    progress_percent = parts[1]
+                                    progress_step = parts[2]
+                                    progress_total = parts[3]
+                                    plugin_name_parts = parts[4:]
+                                    plugin_name = " ".join(plugin_name_parts)
+                                    # Ajouter l'ID à la fin pour garantir que chaque instance est unique
+                                    modified_line = f"{progress_tag} {progress_percent} {progress_step} {progress_total} {plugin_id}:{plugin_name}"
+                                    line_decoded = modified_line
+                            
+                            processed = await LoggerUtils.process_output_line(
+                                app, 
+                                line_decoded, 
+                                plugin_widget=plugin_widget,
+                                executed=executed,
+                                total_plugins=total_plugins
+                            )
+                            logger.debug(f"Ligne traitée: {processed}")
+                        else:
+                            # Pour les erreurs, créer un message d'erreur et l'afficher
+                            error_msg = Message(
+                                type=MessageType.ERROR,
+                                content=line_decoded
+                            )
+                            await LoggerUtils.display_message(app, error_msg)
+                            
             # Lancer la lecture des flux stdout et stderr
             # Utiliser asyncio.create_task pour permettre l'exécution parallèle et la mise à jour de la progression
             stdout_task = asyncio.create_task(read_stream(process.stdout))

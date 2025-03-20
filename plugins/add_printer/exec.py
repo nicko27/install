@@ -88,7 +88,7 @@ class PluginLogger:
         # Format strict requis par le regex dans LoggerUtils.process_output_line
         # Inclure le nom du plugin pour permettre l'identification
         stdout_msg = f"[PROGRESS] {percent} {current_step} {total_steps} {self.plugin_name}"
-        print(f"DEBUG: Envoi du message de progression: {stdout_msg}", flush=True)
+        #print(f"DEBUG: Envoi du message de progression: {stdout_msg}", flush=True)
         print(stdout_msg, flush=True)
         
         # S'assurer que le message est envoyé immédiatement
@@ -548,8 +548,6 @@ def execute_plugin(config):
         return False, error_msg
 
 if __name__ == "__main__":
-    # Configurer pour unbuffered output
-    os.environ['PYTHONUNBUFFERED'] = '1'
     
     # Signaler le démarrage du plugin
     log.info("Démarrage du plugin add_printer")
