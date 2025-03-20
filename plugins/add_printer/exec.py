@@ -20,11 +20,16 @@ class PluginLogger:
     Utilise le format [LOG] [TYPE] message attendu par LoggerUtils.
     """
     
-    def __init__(self, plugin_name=None):
+    def __init__(self, plugin_name=None, instance_id=None):
         """Initialise le logger avec un nom de plugin optionnel"""
         self.plugin_name = plugin_name
+        self.instance_id = instance_id
         self.total_steps = 1
         self.current_step = 0
+
+    def set_instance_id(self, instance_id):
+        """Définit l'ID de l'instance du plugin"""
+        self.instance_id = instance_id
         
     def set_total_steps(self, total):
         """Définit le nombre total d'étapes pour calculer les pourcentages"""
@@ -87,7 +92,7 @@ class PluginLogger:
         
         # Format strict requis par le regex dans LoggerUtils.process_output_line
         # Inclure le nom du plugin pour permettre l'identification
-        stdout_msg = f"[PROGRESS] {percent} {current_step} {total_steps} {self.plugin_name}"
+        stdout_msg = f"[PROGRESS] {percent} {current_step} {total_steps} {self.plugin_name} {self.instance_id}"
         #print(f"DEBUG: Envoi du message de progression: {stdout_msg}", flush=True)
         print(stdout_msg, flush=True)
         
@@ -96,54 +101,6 @@ class PluginLogger:
 
 # Initialiser le logger du plugin
 log = PluginLogger("add_printer")
-
-def self_parse_yaml(yaml_content):
-    """
-    Parse YAML content without external dependencies.
-    This is a simple parser that handles basic YAML structures.
-    It doesn't support all YAML features but should work for our printer model files.
-    """
-    result = {}
-    
-    # Pour les fichiers de configuration d'imprimante, nous avons une structure simple
-    # avec des paires clé-valeur sur chaque ligne
-    for line in yaml_content.split('\n'):
-        # Ignorer les lignes vides et les commentaires
-        stripped_line = line.strip()
-        if not stripped_line or stripped_line.startswith('#'):
-            continue
-        
-        # Traiter les paires clé-valeur
-        if ':' in stripped_line:
-            key, value = stripped_line.split(':', 1)
-            key = key.strip()
-            value = value.strip()
-            
-            # Traiter les différents types de valeurs
-            if not value:  # Valeur vide
-                result[key] = ''
-            # Chaînes entre guillemets
-            elif (value.startswith('"') and value.endswith('"')) or \
-                 (value.startswith('\'') and value.endswith('\'')):
-                result[key] = value[1:-1]  # Enlever les guillemets
-            # Booléens
-            elif value.lower() in ['true', 'yes', 'on']:
-                result[key] = True
-            elif value.lower() in ['false', 'no', 'off']:
-                result[key] = False
-            # Null/None
-            elif value.lower() in ['null', 'none', '~']:
-                result[key] = None
-            # Nombres
-            elif re.match(r'^-?\d+(\.\d+)?$', value):
-                if '.' in value:
-                    result[key] = float(value)
-                else:
-                    result[key] = int(value)
-            else:
-                result[key] = value
-    
-    return result
 
 def run_command(cmd, input_data=None, no_output=False, print_command=False):
     """
@@ -283,9 +240,9 @@ def execute_plugin(config):
     try:
         # Log de débogage pour indiquer le début de l'exécution
         log.debug(f"Début de l'exécution du plugin add_printer")
-        
+        log.set_instance_id(config.get('instance_id'))
         # Récupérer la configuration
-        if 'config' in config and isinstance(config['config'], dict):
+        if 'config' in config and isinstance(config, dict):
             printer_conf = config['config']
             printer_name = printer_conf.get('printer_name')
             printer_model = printer_conf.get('printer_model')

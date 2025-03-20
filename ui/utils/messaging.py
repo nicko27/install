@@ -7,6 +7,7 @@ import re
 import json
 import logging
 import time
+import traceback
 from enum import Enum, auto
 from typing import Any, Dict, Optional, Tuple, Union
 
@@ -34,7 +35,8 @@ class Message:
         progress: float = None,
         step: int = None,
         total_steps: int = None,
-        data: Dict[str, Any] = None
+        data: Dict[str, Any] = None,
+        instance_id: int = None
     ):
         """
         Initialise un message standardisé
@@ -55,6 +57,7 @@ class Message:
         self.step = step
         self.total_steps = total_steps
         self.data = data or {}
+        self.instance_id = None
     
     def to_string(self) -> str:
         """
@@ -84,18 +87,24 @@ class Message:
         """
         # Vérifier le format de progression
         # Format: [PROGRESS] percent step total_steps [plugin_name]
-        progress_match = re.match(r'^\[PROGRESS\] (\d+) (\d+) (\d+)(?:\s+(.+))?$', message)
+        progress_match = re.match(r'^\[PROGRESS\] (\d+) (\d+) (\d+) (\S+) (\d+)$', message)
         if progress_match:
-            percent, step, total, plugin_name = progress_match.groups()
+            percent, step, total, plugin_name, instance_id = progress_match.groups()
             print(f"DEBUG: Message de progression détecté: percent={percent}, step={step}, total={total}, plugin_name={plugin_name}")
-            msg = cls(
-                type=MessageType.PROGRESS,
-                content=f"Progression: {percent}%",
-                progress=int(percent) / 100.0,
-                step=int(step),
-                total_steps=int(total),
-                source=plugin_name  # Utiliser source pour stocker le nom du plugin
-            )
+            try:
+                msg = cls(
+                    type=MessageType.PROGRESS,
+                    content=f"Progression: {percent}%",
+                    progress=int(percent) / 100.0,
+                    step=int(step),
+                    total_steps=int(total),
+                    source=plugin_name,  # Utiliser source pour stocker le nom du plugin
+                    instance_id=instance_id
+                    )
+            except Exception as e:
+                logger.error(traceback.format_exc())
+                logger.error(f"Failed to create progress message from string: {message}")
+                return None
             # Ajouter un attribut plugin_name pour la compatibilité avec le code existant
             if plugin_name:
                 msg.plugin_name = plugin_name

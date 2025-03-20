@@ -7,7 +7,7 @@ import time
 import threading
 import logging
 import re
-from typing import Optional
+from typing import Optional, Union
 from collections import deque
 from rich.text import Text
 from textual.widgets import Static
@@ -50,9 +50,98 @@ class LoggerUtils:
         return False
 
     @staticmethod
+    async def _update_progress_widget(app, message_obj: Message, plugin_widget=None, step_text=None):
+        """
+        Met à jour la progression d'un widget de plugin.
+        
+        Args:
+            app: Application contenant les éléments d'UI
+            message_obj: Message de progression
+            plugin_widget: Widget spécifique à mettre à jour (optionnel)
+            step_text: Texte à afficher pour l'étape (optionnel)
+        
+        Returns:
+            bool: True si un widget a été mis à jour, False sinon
+        """
+        # Si pas de progression, rien à faire
+        if not hasattr(message_obj, 'progress'):
+            return False
+            
+        progress = message_obj.progress
+        
+        # Génère le texte d'étape s'il n'est pas fourni
+        if step_text is None:
+            step_text = (f"Étape {message_obj.step}/{message_obj.total_steps}" 
+                         if hasattr(message_obj, 'total_steps') and hasattr(message_obj, 'step') and message_obj.total_steps > 1
+                         else f"{int(progress*100)}%")
+        
+        # Si nous avons un widget spécifique, l'utiliser
+        if plugin_widget:
+            plugin_widget.update_progress(progress, step_text)
+            return True
+            
+        # Sinon, chercher le widget correspondant dans l'application
+        if hasattr(message_obj, 'plugin_name'):
+            plugin_widgets = app.query("PluginContainer")
+            
+            # D'abord essayer avec instance_id si disponible
+            if hasattr(message_obj, 'instance_id'):
+                match_found = False
+                for plugin_id, widget in app.plugins.items() if hasattr(app, 'plugins') else []:
+                    # Vérifier si l'identifiant d'instance correspond à plugin_id
+                    if message_obj.instance_id in plugin_id:
+                        widget.update_progress(progress, step_text)
+                        match_found = True
+                        logger.debug(f"Widget trouvé par plugin_id contenant instance_id: {message_obj.instance_id}")
+                        return True
+                            
+                # Si aucun widget trouvé par instance_id, essayer par nom de plugin
+                if not match_found:
+                    for widget in plugin_widgets:
+                        if hasattr(widget, 'plugin_name') and widget.plugin_name == message_obj.plugin_name:
+                            widget.update_progress(progress, step_text)
+                            logger.debug(f"Widget trouvé par plugin_name: {message_obj.plugin_name}")
+                            return True
+            # Si pas d'instance_id, essayer juste avec le nom du plugin
+            else:
+                for widget in plugin_widgets:
+                    if hasattr(widget, 'plugin_name') and widget.plugin_name == message_obj.plugin_name:
+                        widget.update_progress(progress, step_text)
+                        logger.debug(f"Widget trouvé par plugin_name: {message_obj.plugin_name}")
+                        return True
+        
+        return False
+
+    @staticmethod
+    async def _update_global_progress(app, progress: float, executed: int, total_plugins: int):
+        """
+        Met à jour la progression globale de l'application.
+        
+        Args:
+            app: Application contenant la barre de progression globale
+            progress: Progression du plugin actuel (0.0 à 1.0)
+            executed: Nombre de plugins déjà exécutés
+            total_plugins: Nombre total de plugins à exécuter
+        """
+        # Calcul de la progression globale
+        global_progress = (executed + progress) / total_plugins
+        logger.debug(f"Mise à jour de la progression globale: executed={executed}, progress={progress}, total_plugins={total_plugins}, global_progress={global_progress}")
+        
+        # Vérifier si app a la méthode update_global_progress
+        if hasattr(app, 'update_global_progress'):
+            logger.debug(f"Appel de app.update_global_progress({global_progress})")
+            try:
+                app.update_global_progress(global_progress)
+            except Exception as e:
+                logger.error(f"Erreur lors de la mise à jour de la progression globale: {e}")
+        else:
+            logger.warning(f"app n'a pas de méthode update_global_progress: {type(app)}")
+
+    @staticmethod
     async def display_message(app, message_obj: Message):
         """
         Affiche un message dans la zone de logs.
+        Ne traite pas les messages de progression - utilisez process_output_line pour cela.
         
         Args:
             app: Application ou widget contenant les éléments d'UI
@@ -72,19 +161,9 @@ class LoggerUtils:
                     logger.info(f"Thread différent sans call_from_thread: {message_obj.content}")
                     return
             
-            # Traitement spécifique pour les messages PROGRESS
+            # Ignorer les messages de type PROGRESS, ils sont traités par process_output_line
             if message_obj.type == MessageType.PROGRESS:
-                # Mise à jour de la progression si un widget de plugin est disponible
-                plugin_widgets = app.query("PluginContainer")
-                if plugin_widgets and hasattr(message_obj, 'plugin_name'):
-                    for widget in plugin_widgets:
-                        if hasattr(widget, 'plugin_name') and widget.plugin_name == message_obj.plugin_name:
-                            progress = message_obj.progress
-                            step_text = (f"Étape {message_obj.step}/{message_obj.total_steps}" 
-                                         if message_obj.total_steps > 1 
-                                         else f"{int(progress*100)}%")
-                            widget.update_progress(progress, step_text)
-                            break
+                logger.debug("Message de type PROGRESS ignoré dans display_message")
                 return
                 
             # Utiliser le formateur de message du module messaging
@@ -139,14 +218,14 @@ class LoggerUtils:
                 pass
 
     @staticmethod
-    async def add_log(app, message, level='info'):
+    async def add_log(app, message: Union[str, Message], level: str = 'info'):
         """
         Méthode de compatibilité avec l'ancien système.
         Convertit un message au format texte en Message puis l'affiche.
         
         Args:
             app: Application contenant les éléments d'UI
-            message: Message à afficher
+            message: Message à afficher (str ou Message)
             level: Niveau de log (info, warning, error, success, debug)
         """
         try:
@@ -169,7 +248,7 @@ class LoggerUtils:
                     message_obj = create_info(message)
             
             # Afficher le message
-            await LoggerUtils.display_message(app, message_obj)
+            await LoggerUtils.process_output_line(app, message_obj.to_string())
             
         except Exception as e:
             logger.error(f"Erreur lors de l'ajout d'un log: {str(e)}")
@@ -184,10 +263,11 @@ class LoggerUtils:
     ):
         """
         Traite une ligne de sortie d'un plugin et la dirige vers le gestionnaire approprié.
+        Cette méthode est la principale pour le traitement des logs.
         
         Args:
             app: Application contenant les éléments d'UI
-            line: Ligne à traiter
+            line: Ligne à traiter ou objet Message
             plugin_widget: Widget du plugin qui a émis la ligne
             executed: Nombre de plugins déjà exécutés
             total_plugins: Nombre total de plugins à exécuter
@@ -196,68 +276,65 @@ class LoggerUtils:
             bool: True si la ligne a été traitée, False sinon
         """
         try:
-            if not line or not isinstance(line, str):
-                return False
-                
-            line = line.strip()
+            # Si la ligne est vide, rien à faire
             if not line:
                 return False
-            
-            logger.debug(f"Traitement de la ligne: {line}")
-
-            # Créer un message à partir de la ligne
-            try:
-                logger.debug(f"Parsing du message: {line}")
-                message_obj = parse_message(line)
-                logger.debug(f"Message parsé: type={message_obj.type.name}, progress={getattr(message_obj, 'progress', None)}, plugin_name={getattr(message_obj, 'plugin_name', None) if hasattr(message_obj, 'plugin_name') else 'Non défini'}")
                 
-                # Ajouter l'information sur le plugin pour les messages PROGRESS
-                if message_obj.type == MessageType.PROGRESS and plugin_widget and hasattr(plugin_widget, 'plugin_name'):
-                    message_obj.plugin_name = plugin_widget.plugin_name
-                    logger.debug(f"Ajout du nom du plugin depuis le widget: {message_obj.plugin_name}")
-            except Exception as e:
-                logger.debug(f"Impossible de parser le message: {e}")
+            # Traiter différemment selon le type de ligne
+            if isinstance(line, str):
+                line = line.strip()
+                if not line:
+                    return False
+                
+                logger.debug(f"Traitement de la ligne: {line}")
+
+                # Parser la ligne en Message
+                try:
+                    logger.debug(f"Parsing du message: {line}")
+                    message_obj = parse_message(line)
+                    plugin_name = message_obj.plugin_name if hasattr(message_obj, 'plugin_name') else None
+                    instance_id = message_obj.instance_id if hasattr(message_obj, 'instance_id') else None
+                    
+                    logger.debug(f"Message parsé: type={message_obj.type.name}, progress={getattr(message_obj, 'progress', None)}, plugin_name={getattr(message_obj, 'plugin_name', None) if hasattr(message_obj, 'plugin_name') else 'Non défini'}")
+                    
+                    # Ajouter l'information sur le plugin pour les messages PROGRESS
+                    if message_obj.type == MessageType.PROGRESS and plugin_widget and hasattr(plugin_widget, f"{plugin_name}_{instance_id}"):
+                        message_obj.plugin_name = plugin_widget.plugin_name
+                        logger.debug(f"Ajout du nom du plugin depuis le widget: {message_obj.plugin_name}")
+                except Exception as e:
+                    logger.debug(f"Impossible de parser le message: {e}")
+                    return False
+            elif isinstance(line, Message):
+                # La ligne est déjà un Message
+                message_obj = line
+            else:
+                # Type non supporté
+                logger.warning(f"Type de ligne non supporté: {type(line)}")
                 return False
 
             # Traitement spécifique en fonction du type de message
             if message_obj.type == MessageType.PROGRESS:
+                # Vérifier si le message contient un identifiant d'instance
+                plugin_name = message_obj.plugin_name if hasattr(message_obj, 'plugin_name') else None
+                instance_id = message_obj.instance_id if hasattr(message_obj, 'instance_id') else None
+                
+                # Vérifier si le widget de plugin correspondant existe
+                plugin_widget = app.plugins.get(f"{plugin_name}_{instance_id}") if hasattr(app, 'plugins') else None
+                
                 # Mise à jour de la progression du plugin
-                progress = message_obj.progress
                 step_text = (f"Étape {message_obj.step}/{message_obj.total_steps}" 
-                             if message_obj.total_steps > 1 
-                             else f"{int(progress*100)}%")
+                            if message_obj.total_steps > 1 
+                            else f"{int(message_obj.progress*100)}%")
                 
-                # Si nous avons un widget de plugin spécifique, mettre à jour sa progression
-                if plugin_widget:
-                    plugin_widget.update_progress(progress, step_text)
-                # Sinon, essayer de trouver le widget correspondant au nom du plugin
-                elif hasattr(message_obj, 'plugin_name'):
-                    plugin_widgets = app.query("PluginContainer")
-                    for widget in plugin_widgets:
-                        if hasattr(widget, 'plugin_name') and widget.plugin_name == message_obj.plugin_name:
-                            widget.update_progress(progress, step_text)
-                            break
+                # Mettre à jour le widget de progression
+                await LoggerUtils._update_progress_widget(app, message_obj, plugin_widget, step_text)
                 
-                # Mise à jour de la progression globale
-                # La progression globale est calculée comme la somme des progressions de chaque plugin divisée par le nombre total de plugins
-                # Les plugins déjà exécutés comptent pour 100% de progression
-                # Note: Cette mise à jour est complémentaire à celle effectuée dans ExecutionWidget.run_plugins
-                # qui met à jour la progression globale après l'exécution complète de chaque plugin
-                global_progress = (executed + progress) / total_plugins
-                logger.debug(f"Mise à jour de la progression globale: executed={executed}, progress={progress}, total_plugins={total_plugins}, global_progress={global_progress}")
+                # Mettre à jour la progression globale
+                await LoggerUtils._update_global_progress(app, message_obj.progress, executed, total_plugins)
                 
-                # Vérifier si app est une instance de ExecutionWidget ou s'il a la méthode update_global_progress
-                if hasattr(app, 'update_global_progress'):
-                    logger.debug(f"Appel de app.update_global_progress({global_progress})")
-                    try:
-                        app.update_global_progress(global_progress)
-                    except Exception as e:
-                        logger.error(f"Erreur lors de la mise à jour de la progression globale: {e}")
-                else:
-                    logger.warning(f"app n'a pas de méthode update_global_progress: {type(app)}")
                 return True
             
-            # Affichage des autres types de messages
+            # Pour les autres types de messages, utiliser display_message
             await LoggerUtils.display_message(app, message_obj)
             return True
                 
