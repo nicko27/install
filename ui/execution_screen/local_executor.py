@@ -47,7 +47,7 @@ class LocalExecutor:
         except Exception as e:
             logger.error(f"Erreur lors de l'ajout du message au log: {e}")
     
-    async def execute_plugin(self, plugin_id: str, folder_name: str, config: dict) -> Tuple[bool, str]:
+    async def execute_plugin(self, plugin_widget, folder_name: str, config: dict) -> Tuple[bool, str]:
         """Exécute un plugin localement
         
         Args:
@@ -177,7 +177,7 @@ class LocalExecutor:
                             # Traiter directement la ligne pour les messages de progression
                             try:
                                 if self.app:
-                                    await LoggerUtils.process_output_line(self.app, line_decoded)
+                                    await LoggerUtils.process_output_line(self.app, line_decoded, plugin_widget)
                             except Exception as e:
                                 logger.error(f"Erreur lors du traitement de la ligne: {e}")
             

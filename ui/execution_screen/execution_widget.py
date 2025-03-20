@@ -75,13 +75,8 @@ class ExecutionWidget(Container):
                 
             # Exécuter le plugin
             try:
-                logger.debug(f"Appel de la méthode execute_plugin pour {plugin_id} avec folder_name={folder_name}")
-                logger.debug(f"Type de l'exécuteur: {type(executor).__name__}")
-                logger.debug(f"Méthodes disponibles: {dir(executor)}")
-                success, output = await executor.execute_plugin(plugin_id,folder_name, config)
-                logger.debug(f"Résultat de l'exécution de {plugin_id}: {success}")
-                logger.debug(f"Sortie de l'exécution: {output[:200]}..." if len(str(output)) > 200 else f"Sortie de l'exécution: {output}")
-                
+                plugin_widget = self.plugins.get(plugin_id)
+                success, output = await executor.execute_plugin(plugin_widget,folder_name, config)
                 return {
                     'success': success,
                     'output': output

@@ -318,9 +318,6 @@ class LoggerUtils:
                 plugin_name = message_obj.plugin_name if hasattr(message_obj, 'plugin_name') else None
                 instance_id = message_obj.instance_id if hasattr(message_obj, 'instance_id') else None
                 
-                # Vérifier si le widget de plugin correspondant existe
-                plugin_widget = app.plugins.get(f"{plugin_name}_{instance_id}") if hasattr(app, 'plugins') else None
-                
                 # Mise à jour de la progression du plugin
                 step_text = (f"Étape {message_obj.step}/{message_obj.total_steps}" 
                             if message_obj.total_steps > 1 
