@@ -1,1272 +1,702 @@
 """
-Module pour l'exécution des plugins via SSH.
+Module pour l'exécution SSH des plugins.
 """
 
 import os
+import sys
 import json
-import time
 import asyncio
-import ipaddress
-import pexpect
-import socket
-from typing import List, Tuple, Dict, Any, Optional
+import logging
+import traceback
+import time
+from typing import Dict, Tuple, Optional, Any, List
 from ruamel.yaml import YAML
 
 from ..utils.logging import get_logger
-from ..utils.messaging import Message, MessageType, create_info, create_warning, create_error, create_debug, create_success, parse_message
-from ..ssh_manager.ssh_config_loader import SSHConfigLoader
+from ..utils.messaging import Message, MessageType, parse_message, create_info, create_error, create_success
+from ..choice_screen.plugin_utils import get_plugin_folder_name
 from .logger_utils import LoggerUtils
 from .file_content_handler import FileContentHandler
-from .local_executor import LocalExecutor
 from .root_credentials_manager import RootCredentialsManager
+from ..ssh_manager.ssh_config_loader import SSHConfigLoader
+from ..ssh_manager.ip_utils import get_target_ips
+
+import pexpect
 
 logger = get_logger('ssh_executor')
 
 class SSHExecutor:
     """Classe pour l'exécution des plugins via SSH"""
     
-    def __init__(self, ssh_config=None):
-        """Initialise l'exécuteur SSH avec une configuration
+    def __init__(self, app=None):
+        """
+        Initialise l'exécuteur SSH.
         
         Args:
-            ssh_config: Configuration SSH (optionnelle)
+            app (Optional[object]): L'application parente pour les logs et interactions
         """
-        self.ssh_config = ssh_config or {}
-        self.app = None
+        self.app = app
         
-    def log_message(self, message, level="info"):
-        """Ajoute un message au log
+    def log_message(self, message: str, level: str = "info"):
+        """
+        Ajoute un message au log de l'application.
         
         Args:
-            message: Le message à ajouter
-            level: Le niveau de log (info, warning, error, debug, success)
+            message (str): Le message à ajouter au log
+            level (str): Le niveau de log (info, debug, error, success)
         """
+        logger.debug(f"Ajout d'un message au log: {message} (niveau: {level})")
         try:
-            # Utiliser les fonctions de création de message du module messaging
-            if level.lower() == "info":
-                message_obj = create_info(message)
-            elif level.lower() == "warning":
-                message_obj = create_warning(message)
-            elif level.lower() == "error":
-                message_obj = create_error(message)
-            elif level.lower() == "debug":
-                message_obj = create_debug(message)
-            elif level.lower() == "success":
-                message_obj = create_success(message)
-            else:
-                message_obj = create_info(message)
-            
             # Créer une coroutine pour ajouter le message au log
             async def add_log_async():
-                await LoggerUtils.display_message(self.app, message_obj)
+                await LoggerUtils.add_log(self.app, message, level=level)
             
             # Exécuter la coroutine dans la boucle d'événements
             if self.app:
                 asyncio.create_task(add_log_async())
-            else:
-                logger.debug(f"Message non affiché (pas d'app): {message}")
         except Exception as e:
             logger.error(f"Erreur lors de l'ajout du message au log: {e}")
-        
-    async def execute_plugin(self, folder_name: str, config: dict) -> Tuple[bool, str]:
-        """Exécute un plugin via SSH
+    
+    async def execute_plugin(self, plugin_widget, folder_name, config_dict: dict) -> Tuple[bool, str]:
+        """
+        Exécute un plugin via SSH sur une ou plusieurs machines.
         
         Args:
-            folder_name: Le nom du dossier du plugin
-            config: La configuration du plugin
-            
+            plugin_widget: Widget du plugin pour les mises à jour de progression
+            folder_name: Nom du dossier du plugin
+            config_dict (dict): Dictionnaire de configuration complet du plugin
+        
         Returns:
-            Tuple contenant le succès (bool) et la sortie (str)
+            Tuple[bool, str]: Succès de l'exécution et message de sortie consolidé
         """
         try:
-            logger.info(f"Exécution SSH du plugin {folder_name}")
+            # Extraire les informations nécessaires du dictionnaire de configuration
+            config = config_dict.get('config', {})
+            plugin_name = config_dict.get('plugin_name', 'unknown_plugin')
             
             # Récupérer les informations SSH
-            ssh_ip = self.ssh_config.get('ip')
-            ssh_user = self.ssh_config.get('user', 'root')
-            ssh_password = self.ssh_config.get('password', '')
-            ssh_port = self.ssh_config.get('port', 22)
+            ssh_ips_str = config.get('ssh_ips', '')
+            ssh_user = config.get('ssh_user', 'root')
+            ssh_password = config.get('ssh_passwd', '')
+            ssh_port = config.get('ssh_port', '22')
             
-            if not ssh_ip:
+            # Vérifier si le plugin_widget a une IP cible spécifique
+            # (cas où le widget a été créé pour une IP spécifique)
+            if hasattr(plugin_widget, 'target_ip') and plugin_widget.target_ip:
+                ssh_ip = plugin_widget.target_ip
+                logger.debug(f"Utilisation de l'IP cible spécifique du widget: {ssh_ip}")
+                
+                # Exécuter sur cette IP spécifique
+                return await self._execute_on_single_host(
+                    ssh_ip, ssh_user, ssh_password, ssh_port,
+                    plugin_widget, folder_name, plugin_name, config
+                )
+            
+            # Sinon, utiliser l'IP ou les IPs de la configuration
+            if not ssh_ips_str:
                 return False, "Adresse IP SSH manquante"
             
-            # Construire le chemin du plugin sur la machine distante
-            remote_plugin_dir = f"/tmp/pcutils_plugins/{folder_name}"
+            # Obtenir la liste des IPs cibles en tenant compte des exceptions
+            ssh_exception_ips = config.get('ssh_exception_ips', '')
+            target_ips = get_target_ips(ssh_ips_str, ssh_exception_ips)
             
-            # Préparer la commande SSH
-            ssh_cmd = f"ssh -p {ssh_port} {ssh_user}@{ssh_ip}"
+            if not target_ips:
+                return False, "Aucune adresse IP valide après filtrage des exceptions"
+                
+            logger.info(f"Exécution du plugin {plugin_name} sur {len(target_ips)} machines: {', '.join(target_ips)}")
+            
+            # Exécuter le plugin sur chaque IP cible
+            results = []
+            all_success = True
+            
+            # Mettre à jour le widget avec le nombre total de machines
+            if plugin_widget:
+                plugin_widget.update_progress(0.0, f"Préparation pour {len(target_ips)} machines...")
+            
+            # Informer l'utilisateur du début de l'exécution
+            await LoggerUtils.add_log(self.app, f"Exécution du plugin {plugin_name} sur {len(target_ips)} machines", level="info")
+            
+            # Exécuter sur chaque machine
+            unreachable_ips = []
+            
+            for i, ssh_ip in enumerate(target_ips):
+                # Mettre à jour la progression
+                if plugin_widget:
+                    progress = (i / len(target_ips)) * 100
+                    plugin_widget.update_progress(progress, f"Machine {i+1}/{len(target_ips)}: {ssh_ip}")
+                
+                try:
+                    # Exécuter sur cette machine
+                    success, output = await self._execute_on_single_host(
+                        ssh_ip, ssh_user, ssh_password, ssh_port, 
+                        plugin_widget, folder_name, plugin_name, config
+                    )
+                    
+                    # Stocker le résultat
+                    results.append({
+                        'ip': ssh_ip,
+                        'success': success,
+                        'output': output
+                    })
+                    
+                    # Mettre à jour le statut global
+                    if not success:
+                        all_success = False
+                        # Détecter les machines injoignables
+                        if "injoignable" in output or "No route to host" in output or "Timeout" in output:
+                            unreachable_ips.append(ssh_ip)
+                            logger.warning(f"Machine injoignable: {ssh_ip}")
+                except Exception as e:
+                    # Gérer les erreurs inattendues lors de l'exécution
+                    error_msg = str(e)
+                    logger.error(f"Erreur lors de l'exécution sur {ssh_ip}: {error_msg}")
+                    await LoggerUtils.add_log(
+                        self.app,
+                        f"Erreur lors de l'exécution sur {ssh_ip}: {error_msg}",
+                        level="error",
+                        target_ip=ssh_ip
+                    )
+                    
+                    results.append({
+                        'ip': ssh_ip,
+                        'success': False,
+                        'output': f"Erreur: {error_msg}"
+                    })
+                    all_success = False
+            
+            # Ajouter un message spécifique pour les machines injoignables
+            if unreachable_ips:
+                unreachable_msg = f"Les machines suivantes sont injoignables: {', '.join(unreachable_ips)}"
+                logger.error(unreachable_msg)
+                await LoggerUtils.add_log(
+                    self.app, 
+                    unreachable_msg, 
+                    level="error"
+                )
+            
+            # Mettre à jour la progression finale
+            if plugin_widget:
+                if all_success:
+                    plugin_widget.update_progress(100.0, f"Terminé sur {len(target_ips)} machines")
+                else:
+                    if unreachable_ips:
+                        plugin_widget.update_progress(100.0, f"Terminé avec {len(unreachable_ips)} machines injoignables")
+                    else:
+                        plugin_widget.update_progress(100.0, f"Terminé avec erreurs sur certaines machines")
+            
+            # Consolider les résultats
+            consolidated_output = self._consolidate_results(results)
+            
+            return all_success, consolidated_output
+                
+        except Exception as e:
+            error_msg = str(e)
+            logger.error(f"Erreur globale lors de l'exécution du plugin {plugin_name}: {error_msg}")
+            logger.error(traceback.format_exc())
+            
+            # Ajouter un message d'erreur spécifique dans les logs
+            await LoggerUtils.add_log(
+                self.app, 
+                f"Erreur lors de l'exécution du plugin {plugin_name}: {error_msg}", 
+                level="error"
+            )
+            
+            return False, error_msg
+            
+    def _consolidate_results(self, results: List[Dict]) -> str:
+        """
+        Consolide les résultats d'exécution sur plusieurs machines.
+        
+        Args:
+            results: Liste des résultats par machine
+            
+        Returns:
+            str: Sortie consolidée
+        """
+        output = []
+        
+        # Compter les succès, échecs et machines injoignables
+        success_count = sum(1 for r in results if r['success'])
+        failure_count = len(results) - success_count
+        unreachable_count = sum(1 for r in results if not r['success'] and 
+                              ("injoignable" in r['output'] or "No route to host" in r['output'] or "Timeout" in r['output']))
+        error_count = failure_count - unreachable_count
+        
+        # Ajouter un résumé
+        if failure_count == 0:
+            output.append(f"✅ Exécution réussie sur toutes les machines ({success_count})")
+        else:
+            summary = f"⚠️ Exécution réussie sur {success_count}/{len(results)} machines"
+            if unreachable_count > 0:
+                summary += f" ({unreachable_count} injoignables, {error_count} erreurs d'exécution)"
+            output.append(summary)
+        
+        # Regrouper les résultats par statut
+        success_results = [r for r in results if r['success']]
+        unreachable_results = [r for r in results if not r['success'] and 
+                              ("injoignable" in r['output'] or "No route to host" in r['output'] or "Timeout" in r['output'])]
+        error_results = [r for r in results if not r['success'] and r not in unreachable_results]
+        
+        # Afficher d'abord les machines injoignables
+        if unreachable_results:
+            output.append(f"\n⚠️ MACHINES INJOIGNABLES ({len(unreachable_results)})")
+            output.append(f"{'=' * 40}")
+            for result in unreachable_results:
+                output.append(f"❌ {result['ip']} - {result['output']}")
+        
+        # Afficher ensuite les machines avec erreurs
+        if error_results:
+            output.append(f"\n❌ MACHINES AVEC ERREURS ({len(error_results)})")
+            output.append(f"{'=' * 40}")
+            for result in error_results:
+                ip = result['ip']
+                result_output = result['output']
+                
+                # Limiter la taille de la sortie pour chaque machine
+                if len(result_output) > 500:
+                    result_output = result_output[:250] + "\n...\n" + result_output[-250:]
+                    
+                output.append(f"\n❌ Machine: {ip}")
+                output.append(f"{'=' * 40}")
+                output.append(result_output)
+        
+        # Afficher enfin les machines avec succès
+        if success_results:
+            output.append(f"\n✅ MACHINES AVEC SUCCÈS ({len(success_results)})")
+            output.append(f"{'=' * 40}")
+            for result in success_results:
+                ip = result['ip']
+                result_output = result['output']
+                
+                # Limiter la taille de la sortie pour chaque machine
+                if len(result_output) > 500:
+                    result_output = result_output[:250] + "\n...\n" + result_output[-250:]
+                    
+                output.append(f"\n✅ Machine: {ip}")
+                output.append(f"{'=' * 40}")
+                output.append(result_output)
+            
+        return "\n".join(output)
+    
+    async def _execute_on_single_host(
+        self, ssh_ip: str, ssh_user: str, ssh_password: str, ssh_port: str,
+        plugin_widget, folder_name: str, plugin_name: str, config: dict
+    ) -> Tuple[bool, str]:
+        """
+        Exécute le plugin sur une seule machine distante.
+        
+        Args:
+            ssh_ip: Adresse IP de la machine cible
+            ssh_user: Nom d'utilisateur SSH
+            ssh_password: Mot de passe SSH
+            ssh_port: Port SSH
+            plugin_widget: Widget du plugin pour les mises à jour de progression
+            folder_name: Nom du dossier du plugin
+            plugin_name: Nom du plugin
+            config: Configuration du plugin
+            
+        Returns:
+            Tuple[bool, str]: Succès de l'exécution et message de sortie
+        """
+        try:
+            # Log de début d'exécution sur cette machine
+            logger.info(f"Exécution du plugin {plugin_name} sur {ssh_ip}")
+            await LoggerUtils.add_log(
+                self.app, 
+                f"Connexion à {ssh_ip} pour exécuter {plugin_name}...", 
+                level="info",
+                target_ip=ssh_ip
+            )
             
             # Construire le chemin du plugin
-            plugin_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "plugins", folder_name)
+            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+            plugin_dir = os.path.join(project_root, "plugins", folder_name)
             
-            # Vérifier si c'est un plugin bash
+            # Vérifier le type de plugin
             if os.path.exists(os.path.join(plugin_dir, "main.sh")):
                 logger.info(f"Détecté comme plugin bash")
                 is_bash_plugin = True
                 exec_path = "main.sh"
             else:
-                # Sinon c'est un plugin Python
-                exec_path = "exec.py"
                 logger.info(f"Détecté comme plugin Python")
                 is_bash_plugin = False
+                exec_path = "exec.py"
             
-            # Préparer la commande d'exécution
-            if is_bash_plugin:
-                remote_cmd = f"mkdir -p {remote_plugin_dir} && cd {remote_plugin_dir} && bash {exec_path} {config.get('name', 'test')} {config.get('intensity', 'light')}"
-            else:
-                # Sérialiser la configuration
-                config_json = json.dumps(config).replace('"', '\\"')
-                remote_cmd = f"mkdir -p {remote_plugin_dir} && cd {remote_plugin_dir} && python3 {exec_path} \"{config_json}\""
-            
-            # Combiner les commandes
-            full_cmd = f"{ssh_cmd} \"{remote_cmd}\""
-            
-            # Exécuter la commande
-            logger.info(f"Exécution de la commande SSH: {full_cmd}")
-            process = await asyncio.create_subprocess_shell(
-                full_cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
-            
-            # Lire la sortie de manière asynchrone pour un traitement en temps réel
-            stdout_lines = []
-            stderr_lines = []
-            
-            # Fonction pour lire un flux de manière asynchrone
-            async def read_stream(stream, is_stderr=False):
-                logger.debug(f"Stream reader started for {'stderr' if is_stderr else 'stdout'}")
-                collected_lines = stderr_lines if is_stderr else stdout_lines
-                counter = 0
-                while True:
-                    line = await stream.readline()
-                    if not line:
-                        logger.debug(f"Stream reader ending after {counter} lines")
-                        break
-                    counter += 1
-                    line_decoded = line.decode().strip()
-                    logger.debug(f"RAW LINE RECEIVED: {line_decoded}")
-                    if line_decoded:
-                        collected_lines.append(line_decoded)
-                        
-                        # Traiter la ligne pour les mises à jour en temps réel
-                        if is_stderr:
-                            logger.warning(f"STDERR: {line_decoded}")
-                            # Ajouter les erreurs au log de l'application
-                            if hasattr(self, 'app') and self.app:
-                                # Utiliser la méthode log_message si disponible
-                                if hasattr(self, 'log_message'):
-                                    self.log_message(f"[STDERR] {line_decoded}", level="error")
-                        else:
-                            logger.debug(f"STDOUT: {line_decoded}")
-                            
-                            # Essayer de traiter la ligne comme un message standardisé
-                            try:
-                                # Utiliser la méthode add_log_async pour ajouter le message au log
-                                if hasattr(self, 'app') and self.app:
-                                    async def process_line_async():
-                                        message_obj = parse_message(line_decoded)
-                                        await LoggerUtils.display_message(self.app, message_obj)
-                                    
-                                    # Exécuter la coroutine dans la boucle d'événements
-                                    asyncio.create_task(process_line_async())
-                            except Exception as e:
-                                logger.error(f"Erreur lors du traitement de la ligne: {e}")
-            
-            # Lancer la lecture des flux stdout et stderr
-            await asyncio.gather(
-                read_stream(process.stdout),
-                read_stream(process.stderr, True)
-            )
-            
-            # Attendre la fin du processus
-            exit_code = await process.wait()
-            
-            # Combiner les lignes en texte
-            stdout_text = "\n".join(stdout_lines)
-            stderr_text = "\n".join(stderr_lines)
-            
-            # Vérifier le code de retour
-            if exit_code != 0:
-                logger.error(f"Erreur lors de l'exécution SSH du plugin {folder_name}: {stderr_text}")
-                return False, stderr_text
-            
-            # Succès
-            logger.info(f"Plugin {folder_name} exécuté avec succès via SSH")
-            return True, stdout_text
-            
-        except Exception as e:
-            logger.error(f"Erreur lors de l'exécution SSH du plugin {folder_name}: {str(e)}")
-            import traceback
-            logger.error(traceback.format_exc())
-            return False, str(e)
-    
-    @staticmethod
-    def get_config() -> Dict[str, Any]:
-        """Récupère la configuration SSH"""
-        return SSHConfigLoader.get_instance().get_config()
-    
-    @staticmethod
-    async def resolve_ips(app, ssh_ips, ssh_exception_ips):
-        """Résout les IP avec wildcards et filtre les exclusions"""
-        valid_ips = []
-        excluded_ips = []
-        
-        # Traitement des IPs à exclure
-        exclusions = ssh_exception_ips.split(',') if ssh_exception_ips else []
-        exclusions = [e.strip() for e in exclusions if e.strip()]
-        
-        # Traitement des IPs candidates
-        ip_candidates = ssh_ips.split(',') if ssh_ips else []
-        ip_candidates = [ip.strip() for ip in ip_candidates if ip.strip()]
-        
-        for ip_pattern in ip_candidates:
-            # Si c'est un pattern avec wildcard
-            if '*' in ip_pattern:
-                base_ip = ip_pattern.replace('*', '')
-                # Pour chaque possibilité (1-254)
-                for i in range(1, 255):
-                    ip = base_ip + str(i)
-                    # Vérifier si cette IP est exclue
-                    if any(ip.startswith(excl.replace('*', '')) for excl in exclusions if '*' in excl) or ip in exclusions:
-                        excluded_ips.append(ip)
-                        continue
-                    # Tester la connectivité
-                    if await SSHExecutor.test_connectivity(app, ip):
-                        valid_ips.append(ip)
-            else:
-                # IP précise
-                if ip_pattern in exclusions:
-                    excluded_ips.append(ip_pattern)
-                    continue
-                # Tester la connectivité
-                if await SSHExecutor.test_connectivity(app, ip_pattern):
-                    valid_ips.append(ip_pattern)
-        
-        return valid_ips, excluded_ips
-    
-    @staticmethod
-    async def test_connectivity(app, ip_address):
-        """Teste si une IP répond au ping avec des diagnostics améliorés"""
-        try:
-            # Utiliser un timeout plus long et plusieurs tentatives pour améliorer la fiabilité
-            debug_msg = Message(
-                type=MessageType.DEBUG,
-                content=f"Test de connectivité pour {ip_address}..."
-            )
-            await LoggerUtils.display_message(app, debug_msg)
-            logger.debug(f"Début du test de connectivité pour {ip_address}")
-            
-            # Utiliser plus de paquets et un timeout plus long pour améliorer la fiabilité
-            process = await asyncio.create_subprocess_exec(
-                "ping", "-c", "3", "-W", "3", ip_address,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
-            stdout, stderr = await process.communicate()
-            exit_code = process.returncode
-            stdout_str = stdout.decode('utf-8', errors='replace') if stdout else ''
-            stderr_str = stderr.decode('utf-8', errors='replace') if stderr else ''
-            
-            # Journaliser le résultat pour le diagnostic
-            if exit_code == 0:
-                # Extraire les statistiques pour un meilleur diagnostic
-                stats_line = [line for line in stdout_str.split('\n') if 'packets transmitted' in line]
-                stats = stats_line[0] if stats_line else 'Statistiques non disponibles'
-                logger.debug(f"Ping réussi pour {ip_address}: {stats}")
-                debug_msg = Message(
-                    type=MessageType.DEBUG,
-                    content=f"Connectivité OK pour {ip_address}: {stats}"
-                )
-                await LoggerUtils.display_message(app, debug_msg)
-                
-                # Tester également la connectivité SSH sur le port 22
-                try:
-                    # Obtenir le port SSH depuis la configuration
-                    ssh_config_loader = SSHConfigLoader.get_instance()
-                    auth_config = ssh_config_loader.get_authentication_config()
-                    ssh_port = auth_config.get('ssh_port', '22')
-                    
-                    logger.debug(f"Test de la connectivité SSH (port {ssh_port}) pour {ip_address}")
-                    ssh_test_process = await asyncio.create_subprocess_exec(
-                        "nc", "-z", "-w", "3", ip_address, ssh_port,
-                        stdout=asyncio.subprocess.PIPE,
-                        stderr=asyncio.subprocess.PIPE
-                    )
-                    ssh_exit_code = await ssh_test_process.wait()
-                    
-                    if ssh_exit_code == 0:
-                        logger.debug(f"Port SSH ({ssh_port}) ouvert sur {ip_address}")
-                        debug_msg = Message(
-                            type=MessageType.DEBUG,
-                            content=f"Port SSH ({ssh_port}) ouvert sur {ip_address}"
-                        )
-                    else:
-                        logger.debug(f"Port SSH ({ssh_port}) fermé sur {ip_address} malgré ping réussi")
-                        debug_msg = Message(
-                            type=MessageType.WARNING,
-                            content=f"Port SSH ({ssh_port}) fermé sur {ip_address} malgré ping réussi"
-                        )
-                    
-                    await LoggerUtils.display_message(app, debug_msg)
-                    return ssh_exit_code == 0  # Retourner le résultat du test SSH plutôt que du ping
-                except Exception as ssh_e:
-                    logger.error(f"Erreur lors du test SSH pour {ip_address}: {str(ssh_e)}")
-                    # Continuer avec le résultat du ping si le test SSH échoue
-                    return True
-            else:
-                logger.debug(f"Ping échoué pour {ip_address} (code: {exit_code})")
-                debug_msg = Message(
-                    type=MessageType.DEBUG,
-                    content=f"Échec de connectivité pour {ip_address} (code: {exit_code})"
-                )
-                await LoggerUtils.display_message(app, debug_msg)
-                
-                if stdout_str:
-                    logger.debug(f"Sortie ping: {stdout_str}")
-                    debug_msg = Message(
-                        type=MessageType.DEBUG,
-                        content=f"Sortie ping: {stdout_str[:150]}..." if len(stdout_str) > 150 else f"Sortie ping: {stdout_str}"
-                    )
-                    await LoggerUtils.display_message(app, debug_msg)
-                    
-                if stderr_str:
-                    logger.debug(f"Erreur ping: {stderr_str}")
-                    debug_msg = Message(
-                        type=MessageType.DEBUG,
-                        content=f"Erreur ping: {stderr_str[:150]}..." if len(stderr_str) > 150 else f"Erreur ping: {stderr_str}"
-                    )
-                    await LoggerUtils.display_message(app, debug_msg)
-                
-                return False
-        except Exception as e:
-            logger.error(f"Erreur lors du test de connectivité pour {ip_address}: {str(e)}")
-            debug_msg = Message(
-                type=MessageType.ERROR,
-                content=f"Erreur lors du test de connectivité pour {ip_address}: {str(e)}"
-            )
-            await LoggerUtils.display_message(app, debug_msg)
-            return False
-    
-    async def execute_ssh(self, app, ip_address, username, password, plugin_dir, plugin_id, plugin_config, plugin_widget=None):
-        """Exécute un plugin via SSH sur une machine distante"""
-        try:
-            # Sauvegarder l'application pour pouvoir l'utiliser dans execute_plugin
-            self.app = app
-            # Vérifier si on doit utiliser l'exécution locale
-            if SSHConfigLoader.get_instance().should_use_local_execution(ip_address):
-                info_msg = Message(
-                    type=MessageType.INFO,
-                    content=f"Utilisation de l'exécution locale pour {ip_address}"
-                )
-                await LoggerUtils.display_message(app, info_msg)
-                
-                from .local_executor import LocalExecutor
-                # Créer une file d'attente pour les résultats
-                result_queue = asyncio.Queue()
-                # Créer une instance de LocalExecutor
-                local_executor = LocalExecutor()
-                # Exécuter le plugin localement
-                await local_executor.run_local_plugin(
-                    app, plugin_id, app.plugins[plugin_id], 
-                    plugin_config.get('name', plugin_id), plugin_config, 0, 1, result_queue
-                )
-                # Récupérer le résultat
-                success, message = await result_queue.get()
-                return success, message
-            
-            # Obtenir les paramètres de configuration
-            ssh_config_loader = SSHConfigLoader.get_instance()
-            connection_config = ssh_config_loader.get_connection_config()
-            auth_config = ssh_config_loader.get_authentication_config()
-            
-            # Récupérer les timeouts depuis la configuration
-            connect_timeout = connection_config.get('connect_timeout', 10)
-            transfer_timeout = connection_config.get('transfer_timeout', 60)
-            command_timeout = connection_config.get('command_timeout', 120)
-            
-            # Informer de la connexion SSH
-            info_msg = Message(
-                type=MessageType.INFO,
-                content=f"Connexion SSH à {ip_address}..."
-            )
-            await LoggerUtils.display_message(app, info_msg)
-            
-            # Journaliser les détails de la connexion pour le diagnostic
-            debug_msg = Message(
-                type=MessageType.DEBUG,
-                content=f"Tentative SSH vers {username}@{ip_address} (timeout: {connect_timeout}s)"
-            )
-            await LoggerUtils.display_message(app, debug_msg)
-            logger.debug(f"Tentative de connexion SSH: {username}@{ip_address}")
-            
-            # Obtenir le port SSH depuis la configuration
-            ssh_port = auth_config.get('ssh_port', '22')
-            logger.debug(f"Utilisation du port SSH: {ssh_port}")
-            
-            # Créer le processus SSH avec pexpect avec des options supplémentaires pour la stabilité
-            ssh_command = f"ssh -p {ssh_port} -o ConnectTimeout={connect_timeout} -o ServerAliveInterval=5 -o ServerAliveCountMax=3 {username}@{ip_address}"
-            logger.debug(f"Commande SSH complète: {ssh_command}")
-            ssh_process = pexpect.spawn(ssh_command, encoding='utf-8')
-            
-            # Activer la journalisation de pexpect pour le diagnostic
-            class SSHLogger:
-                def write(self, data):
-                    # Nettoyer les données pour une meilleure lisibilité
-                    clean_data = data.strip() if isinstance(data, str) else str(data)
-                    if clean_data:  # Ne pas logger les lignes vides
-                        logger.debug(f"SSH output: {clean_data}")
-                def flush(self):
-                    pass
-            
-            ssh_process.logfile_read = SSHLogger()
-            
-            # Gérer l'authentification
-            debug_msg = Message(
-                type=MessageType.DEBUG,
-                content=f"Attente du prompt de mot de passe pour {ip_address}..."
-            )
-            await LoggerUtils.display_message(app, debug_msg)
-            
-            i = ssh_process.expect(['password:', 'continue connecting', pexpect.TIMEOUT, pexpect.EOF], timeout=connect_timeout)
-            if i == 0:
-                debug_msg = Message(
-                    type=MessageType.DEBUG,
-                    content=f"Prompt de mot de passe détecté pour {ip_address}, envoi du mot de passe"
-                )
-                await LoggerUtils.display_message(app, debug_msg)
-                ssh_process.sendline(password)
-            elif i == 1:
-                # Auto-accepter la clé d'hôte si configuré
-                debug_msg = Message(
-                    type=MessageType.DEBUG,
-                    content=f"Nouvelle clé d'hôte détectée pour {ip_address}"
-                )
-                await LoggerUtils.display_message(app, debug_msg)
-                
-                if auth_config.get('auto_add_keys', True):
-                    debug_msg = Message(
-                        type=MessageType.DEBUG,
-                        content=f"Acceptation automatique de la clé pour {ip_address}"
-                    )
-                    await LoggerUtils.display_message(app, debug_msg)
-                    ssh_process.sendline('yes')
-                    
-                    j = ssh_process.expect(['password:', pexpect.TIMEOUT, pexpect.EOF], timeout=connect_timeout)
-                    if j == 0:
-                        debug_msg = Message(
-                            type=MessageType.DEBUG,
-                            content=f"Prompt de mot de passe après acceptation de la clé pour {ip_address}"
-                        )
-                        await LoggerUtils.display_message(app, debug_msg)
-                        ssh_process.sendline(password)
-                    else:
-                        error_msg = Message(
-                            type=MessageType.ERROR,
-                            content=f"Pas de prompt de mot de passe après acceptation de la clé pour {ip_address}"
-                        )
-                        await LoggerUtils.display_message(app, error_msg)
-                        return False, f"Erreur après acceptation de la clé pour {ip_address}"
-                else:
-                    return False, f"Nouvelle clé d'hôte détectée pour {ip_address}, mais l'acceptation automatique est désactivée"
-            elif i == 2:  # TIMEOUT
-                error_msg = Message(
-                    type=MessageType.ERROR,
-                    content=f"Timeout lors de la connexion à {ip_address} (après {connect_timeout}s)"
-                )
-                await LoggerUtils.display_message(app, error_msg)
-                return False, f"Timeout lors de la connexion à {ip_address} (après {connect_timeout}s)"
-            else:  # EOF
-                error_msg = Message(
-                    type=MessageType.ERROR,
-                    content=f"Connexion fermée prématurément pour {ip_address}"
-                )
-                await LoggerUtils.display_message(app, error_msg)
-                return False, f"Connexion fermée prématurément pour {ip_address}"
-            
-            # Vérifier l'authentification
-            debug_msg = Message(
-                type=MessageType.DEBUG,
-                content=f"Vérification de l'authentification pour {ip_address}..."
-            )
-            await LoggerUtils.display_message(app, debug_msg)
-            
-            i = ssh_process.expect(['$', '#', 'Permission denied', 'Authentication failed', pexpect.TIMEOUT, pexpect.EOF], timeout=connect_timeout)
-            if i == 0 or i == 1:  # Prompt shell détecté
-                success_msg = Message(
-                    type=MessageType.SUCCESS,
-                    content=f"Authentification réussie sur {ip_address}"
-                )
-                await LoggerUtils.display_message(app, success_msg)
-            elif i == 2 or i == 3:  # Erreur d'authentification explicite
-                error_msg = Message(
-                    type=MessageType.ERROR,
-                    content=f"Authentification refusée pour {username}@{ip_address} - mot de passe incorrect"
-                )
-                await LoggerUtils.display_message(app, error_msg)
-                return False, f"Authentification refusée pour {username}@{ip_address}"
-            elif i == 4:  # TIMEOUT
-                error_msg = Message(
-                    type=MessageType.ERROR,
-                    content=f"Timeout lors de l'authentification sur {ip_address}"
-                )
-                await LoggerUtils.display_message(app, error_msg)
-                return False, f"Timeout lors de l'authentification sur {ip_address}"
-            else:  # EOF
-                error_msg = Message(
-                    type=MessageType.ERROR,
-                    content=f"Connexion fermée pendant l'authentification sur {ip_address}"
-                )
-                await LoggerUtils.display_message(app, error_msg)
-                return False, f"Connexion fermée pendant l'authentification sur {ip_address}"
-            
-            # Connexion établie
-            success_msg = Message(
-                type=MessageType.SUCCESS,
-                content=f"Connexion établie avec {ip_address}"
-            )
-            await LoggerUtils.display_message(app, success_msg)
-            
-            # Obtenir les paramètres d'exécution
-            execution_config = ssh_config_loader.get_execution_config()
-            remote_temp_dir = execution_config.get('remote_temp_dir', '/tmp/pcutils')
-            cleanup_temp_files = execution_config.get('cleanup_temp_files', True)
-            
-            # Créer un répertoire temporaire
-            temp_dir = f"{remote_temp_dir}_{plugin_id}_{int(time.time())}"
-            debug_msg = Message(
-                type=MessageType.DEBUG,
-                content=f"Création du répertoire temporaire: {temp_dir} sur {ip_address}"
-            )
-            await LoggerUtils.display_message(app, debug_msg)
-            
-            ssh_process.sendline(f"mkdir -p {temp_dir}")
-            i = ssh_process.expect(['$', '#', pexpect.TIMEOUT, pexpect.EOF], timeout=connect_timeout)
-            if i >= 2:
-                error_msg = Message(
-                    type=MessageType.ERROR,
-                    content=f"Impossible de créer le répertoire temporaire sur {ip_address}"
-                )
-                await LoggerUtils.display_message(app, error_msg)
-                return False, f"Impossible de créer le répertoire temporaire sur {ip_address}"
-            
-            # Vérifier que le répertoire a bien été créé
-            ssh_process.sendline(f"ls -la {temp_dir}")
-            i = ssh_process.expect(['$', '#', 'No such file', pexpect.TIMEOUT, pexpect.EOF], timeout=connect_timeout)
-            if i == 2:
-                error_msg = Message(
-                    type=MessageType.ERROR,
-                    content=f"Le répertoire temporaire n'a pas été créé sur {ip_address}"
-                )
-                await LoggerUtils.display_message(app, error_msg)
-                return False, f"Le répertoire temporaire n'a pas été créé sur {ip_address}"
-            elif i >= 3:
-                error_msg = Message(
-                    type=MessageType.ERROR,
-                    content=f"Erreur lors de la vérification du répertoire temporaire sur {ip_address}"
-                )
-                await LoggerUtils.display_message(app, error_msg)
-                return False, f"Erreur lors de la vérification du répertoire temporaire sur {ip_address}"
-            
-            # Transférer les fichiers (utiliser un autre processus pexpect pour scp)
-            info_msg = Message(
-                type=MessageType.INFO,
-                content=f"Transfert des fichiers vers {ip_address}..."
-            )
-            await LoggerUtils.display_message(app, info_msg)
-            
-            # Vérifier que la connexion SSH est toujours active
-            if ssh_process.isalive():
-                logger.debug(f"Connexion SSH active avant transfert de fichiers vers {ip_address}")
-            else:
-                error_msg = Message(
-                    type=MessageType.ERROR,
-                    content=f"La connexion SSH a été perdue avant le transfert de fichiers vers {ip_address}"
-                )
-                await LoggerUtils.display_message(app, error_msg)
-                return False, f"La connexion SSH a été perdue avant le transfert de fichiers vers {ip_address}"
-            
-            # Vérifier que le répertoire source existe
-            debug_msg = Message(
-                type=MessageType.DEBUG,
-                content=f"Vérification du répertoire source: {plugin_dir}"
-            )
-            await LoggerUtils.display_message(app, debug_msg)
-            
-            if not os.path.exists(plugin_dir):
-                error_msg = Message(
-                    type=MessageType.ERROR,
-                    content=f"Répertoire source introuvable: {plugin_dir}"
-                )
-                await LoggerUtils.display_message(app, error_msg)
-                return False, f"Répertoire source introuvable: {plugin_dir}"
-            
-            # Journaliser le contenu du répertoire source pour le diagnostic
-            files = os.listdir(plugin_dir)
-            debug_msg = Message(
-                type=MessageType.DEBUG,
-                content=f"Fichiers à transférer: {', '.join(files)}"
-            )
-            await LoggerUtils.display_message(app, debug_msg)
-            
-            debug_msg = Message(
-                type=MessageType.DEBUG,
-                content=f"Préparation du transfert SCP vers {ip_address}"
-            )
-            await LoggerUtils.display_message(app, debug_msg)
-            
-            # Obtenir le port SSH depuis la configuration
-            ssh_port = auth_config.get('ssh_port', '22')
-            
-            # Activer la journalisation pour SCP avec des options supplémentaires pour la stabilité
-            # Vérifier que le répertoire source contient des fichiers
-            if not os.listdir(plugin_dir):
-                error_msg = Message(
-                    type=MessageType.ERROR,
-                    content=f"Répertoire source vide: {plugin_dir}"
-                )
-                await LoggerUtils.display_message(app, error_msg)
-                return False, f"Répertoire source vide: {plugin_dir}"
-                
-            # Utiliser le répertoire lui-même plutôt que le contenu avec * pour éviter les problèmes de glob
-            scp_command = f"scp -P {ssh_port} -o ConnectTimeout={connect_timeout} -o ServerAliveInterval=5 -o ServerAliveCountMax=3 -r {plugin_dir} {username}@{ip_address}:{temp_dir}/"
-            logger.debug(f"Commande SCP complète: {scp_command}")
-            scp_process = pexpect.spawn(scp_command, encoding='utf-8')
-            class SCPLogger:
-                def write(self, data):
-                    # Nettoyer les données pour une meilleure lisibilité
-                    clean_data = data.strip() if isinstance(data, str) else str(data)
-                    if clean_data:  # Ne pas logger les lignes vides
-                        logger.debug(f"SCP output: {clean_data}")
-                def flush(self):
-                    pass
-            
-            scp_process.logfile_read = SCPLogger()
-            
-            i = scp_process.expect(['password:', 'No such file', pexpect.TIMEOUT, pexpect.EOF], timeout=connect_timeout)
-            if i == 0:
-                debug_msg = Message(
-                    type=MessageType.DEBUG,
-                    content=f"Prompt de mot de passe SCP détecté pour {ip_address}"
-                )
-                await LoggerUtils.display_message(app, debug_msg)
-                scp_process.sendline(password)
-            elif i == 1:
-                error_msg = Message(
-                    type=MessageType.ERROR,
-                    content=f"Fichier ou répertoire introuvable lors du transfert vers {ip_address}"
-                )
-                await LoggerUtils.display_message(app, error_msg)
-                return False, f"Fichier ou répertoire introuvable lors du transfert vers {ip_address}"
-            elif i == 2:
-                error_msg = Message(
-                    type=MessageType.ERROR,
-                    content=f"Timeout lors du transfert SCP vers {ip_address}"
-                )
-                await LoggerUtils.display_message(app, error_msg)
-                return False, f"Timeout lors du transfert SCP vers {ip_address}"
-            
-            # Attendre la fin du transfert
-            debug_msg = Message(
-                type=MessageType.DEBUG,
-                content=f"Attente de la fin du transfert SCP vers {ip_address} (timeout: {transfer_timeout}s)"
-            )
-            await LoggerUtils.display_message(app, debug_msg)
-            
-            i = scp_process.expect(['100%', 'Permission denied', 'No such file', pexpect.TIMEOUT, pexpect.EOF], timeout=transfer_timeout)
-            if i == 0:
-                debug_msg = Message(
-                    type=MessageType.DEBUG,
-                    content=f"Transfert SCP terminé à 100% vers {ip_address}"
-                )
-                await LoggerUtils.display_message(app, debug_msg)
-            elif i == 1:
-                error_msg = Message(
-                    type=MessageType.ERROR,
-                    content=f"Permission refusée lors du transfert SCP vers {ip_address}"
-                )
-                await LoggerUtils.display_message(app, error_msg)
-                return False, f"Permission refusée lors du transfert SCP vers {ip_address}"
-            elif i == 2:
-                error_msg = Message(
-                    type=MessageType.ERROR,
-                    content=f"Fichier ou répertoire introuvable lors du transfert SCP vers {ip_address}"
-                )
-                await LoggerUtils.display_message(app, error_msg)
-                return False, f"Fichier ou répertoire introuvable lors du transfert SCP vers {ip_address}"
-            elif i == 3:
-                error_msg = Message(
-                    type=MessageType.ERROR,
-                    content=f"Timeout lors du transfert SCP vers {ip_address} (après {transfer_timeout}s)"
-                )
-                await LoggerUtils.display_message(app, error_msg)
-                return False, f"Timeout lors du transfert SCP vers {ip_address}"
-            
-            # Vérifier que les fichiers ont bien été transférés
-            ssh_process.sendline(f"ls -la {temp_dir}")
-            i = ssh_process.expect(['$', '#', pexpect.TIMEOUT, pexpect.EOF], timeout=connect_timeout)
-            if i >= 2:
-                error_msg = Message(
-                    type=MessageType.ERROR,
-                    content=f"Impossible de vérifier les fichiers transférés sur {ip_address}"
-                )
-                await LoggerUtils.display_message(app, error_msg)
-                return False, f"Impossible de vérifier les fichiers transférés sur {ip_address}"
-            
-            success_msg = Message(
-                type=MessageType.SUCCESS,
-                content=f"Transfert terminé vers {ip_address}"
-            )
-            await LoggerUtils.display_message(app, success_msg)
-            
-            # Identifier le type de plugin
-            is_bash_plugin = os.path.exists(os.path.join(plugin_dir, "main.sh"))
-            
-            # Vérifier que les fichiers nécessaires existent sur la machine locale
-            if is_bash_plugin:
-                bash_script = os.path.join(plugin_dir, "main.sh")
-                if not os.path.exists(bash_script):
-                    error_msg = Message(
-                        type=MessageType.ERROR,
-                        content=f"Script bash introuvable: {bash_script}"
-                    )
-                    await LoggerUtils.display_message(app, error_msg)
-                    return False, f"Script bash introuvable: {bash_script}"
-                
-                debug_msg = Message(
-                    type=MessageType.DEBUG,
-                    content=f"Utilisation du script bash: {bash_script}"
-                )
-                await LoggerUtils.display_message(app, debug_msg)
-            else:
-                python_script = os.path.join(plugin_dir, "exec.py")
-                if not os.path.exists(python_script):
-                    error_msg = Message(
-                        type=MessageType.ERROR,
-                        content=f"Script Python introuvable: {python_script}"
-                    )
-                    await LoggerUtils.display_message(app, error_msg)
-                    return False, f"Script Python introuvable: {python_script}"
-                
-                debug_msg = Message(
-                    type=MessageType.DEBUG,
-                    content=f"Utilisation du script Python: {python_script}"
-                )
-                await LoggerUtils.display_message(app, debug_msg)
-            
-            # Vérifier que les fichiers ont bien été transférés sur la machine distante
-            if is_bash_plugin:
-                ssh_process.sendline(f"ls -la {temp_dir}/main.sh")
-            else:
-                ssh_process.sendline(f"ls -la {temp_dir}/exec.py")
-            
-            i = ssh_process.expect(['$', '#', 'No such file', pexpect.TIMEOUT, pexpect.EOF], timeout=connect_timeout)
-            if i == 2:
-                script_type = "bash" if is_bash_plugin else "Python"
-                error_msg = Message(MessageType.ERROR, f"Script {script_type} non transféré sur {ip_address}")
-                await LoggerUtils.display_message(app, error_msg)
-                return False, f"Script {script_type} non transféré sur {ip_address}"
-            elif i >= 3:
-                error_msg = Message(MessageType.ERROR, f"Erreur lors de la vérification des fichiers sur {ip_address}")
-                await LoggerUtils.display_message(app, error_msg)
-                return False, f"Erreur lors de la vérification des fichiers sur {ip_address}"
-            
-            # Vérifier dans les paramètres de plugin (settings.yml)
+            # Charger les paramètres du plugin
             settings_path = os.path.join(plugin_dir, "settings.yml")
             plugin_settings = {}
             if os.path.exists(settings_path):
                 try:
                     with open(settings_path, 'r', encoding='utf-8') as f:
-                        plugin_settings = YAML().load(f)
-                        logger.info(f"Paramètres du plugin chargés depuis {settings_path}")
+                        yaml = YAML()
+                        plugin_settings = yaml.load(f)
+                    logger.debug(f"Paramètres du plugin chargés: {plugin_settings}")
                 except Exception as e:
                     logger.error(f"Erreur lors de la lecture des paramètres du plugin: {e}")
             
+            # Vérifier si le plugin nécessite des droits root
+            needs_root = plugin_settings.get('ssh_root', False)
+            logger.info(f"Plugin {folder_name} nécessite des droits root: {needs_root}")
+            
             # Traiter le contenu des fichiers de configuration
-            file_content = FileContentHandler.process_file_content(plugin_settings, plugin_config, plugin_dir)
+            file_content = FileContentHandler.process_file_content(plugin_settings, config, plugin_dir)
             
             # Intégrer le contenu des fichiers dans la configuration
             for param_name, content in file_content.items():
-                plugin_config[param_name] = content
+                config[param_name] = content
                 logger.info(f"Contenu du fichier intégré dans la configuration sous {param_name}")
             
-            # Afficher la structure de la configuration pour le débogage
-            logger.debug(f"Structure de la configuration après ajout des fichiers: {list(plugin_config.keys())}")
-            
-            # Vérifier si le plugin nécessite des droits root
-            needs_root = False
-            if plugin_settings and isinstance(plugin_settings, dict):
-                needs_root = plugin_settings.get('ssh_root', False)
-                logger.info(f"Plugin {plugin_id} nécessite des droits root: {needs_root}")
+            # Préparer le dossier distant
+            remote_temp_dir = f"/tmp/pcutils_plugins/{folder_name}_{int(time.time())}"  
+            logger.debug(f"Dossier distant: {remote_temp_dir}")
             
             # Préparer la commande d'exécution
             if is_bash_plugin:
-                base_cmd = f"cd {temp_dir} && bash main.sh '{plugin_config.get('name', 'test')}' '{plugin_config.get('intensity', 'light')}'"
+                base_cmd = f"bash {exec_path} '{config.get('name', 'test')}' '{config.get('intensity', 'light')}'"
             else:
-                # Pour un plugin Python, convertir la config en JSON
-                json_config = json.dumps(plugin_config).replace("'", "\\'") 
-                # Obtenir le nom du dossier du plugin pour accéder au fichier exec.py
-                plugin_folder = os.path.basename(plugin_dir)
-                # Vérifier si nous devons utiliser le sous-répertoire du plugin ou le répertoire temporaire directement
-                base_cmd = f"cd {temp_dir} && python3 {plugin_folder}/exec.py '{json_config}'"
+                # Sérialiser la configuration en JSON
+                config_json = json.dumps(config).replace('"', '\\"')
+                base_cmd = f"python3 {exec_path} \"{config_json}\""
             
             # Obtenir le gestionnaire d'identifiants root
             root_credentials_manager = RootCredentialsManager.get_instance()
-            running_as_root = root_credentials_manager.is_running_as_root()
             
-            # Déterminer comment exécuter la commande en fonction des besoins et de l'utilisateur actuel
-            cmd = base_cmd
+            # Préparer les identifiants root si nécessaire
+            if needs_root:
+                root_credentials = root_credentials_manager.prepare_ssh_root_credentials(ssh_ip, config)
+                logger.debug(f"Identifiants root préparés pour {ssh_ip}")
             
-            if needs_root and not running_as_root:
-                # Cas 1: Le plugin nécessite des droits root et nous ne sommes pas root
-                # Utiliser le gestionnaire d'identifiants root pour récupérer les identifiants
-                root_credentials = root_credentials_manager.prepare_ssh_root_credentials(ip_address, plugin_config)
+            # Vérifier d'abord si la machine est accessible
+            try:
+                # Utiliser ping pour vérifier si la machine est accessible
+                ping_process = pexpect.spawn(f"ping -c 1 -W 3 {ssh_ip}", encoding='utf-8', timeout=5)
+                i = ping_process.expect(['1 received', '0 received', pexpect.TIMEOUT, pexpect.EOF])
                 
-                # Récupérer l'utilisateur root
-                ssh_root_user = root_credentials.get('user', 'root')
-                
-                # Utiliser sudo pour exécuter la commande avec les droits root
-                cmd = f"sudo -S {base_cmd}"
-                debug_msg = Message(
-                    type=MessageType.DEBUG,
-                    content=f"Exécution en tant que root avec l'utilisateur {ssh_root_user}"
-                )
-                await LoggerUtils.display_message(app, debug_msg)
-                
-            elif not needs_root and running_as_root:
-                # Cas 2: Le plugin ne nécessite pas de droits root mais nous sommes déjà root
-                # Récupérer l'utilisateur original
-                sudo_user = root_credentials_manager.get_sudo_user()
-                
-                if sudo_user:
-                    # Utiliser su pour exécuter la commande en tant qu'utilisateur normal
-                    cmd = f"su {sudo_user} -c '{base_cmd}'"
-                    debug_msg = Message(
-                        type=MessageType.DEBUG,
-                        content=f"Exécution en tant qu'utilisateur {sudo_user} (déjà root)"
+                if i == 1 or i == 2:  # 0 packets received ou timeout
+                    error_msg = f"La machine {ssh_ip} est injoignable"
+                    logger.error(error_msg)
+                    await LoggerUtils.add_log(
+                        self.app,
+                        error_msg,
+                        level="error",
+                        target_ip=ssh_ip
                     )
-                    await LoggerUtils.display_message(app, debug_msg)
-            
-            elif needs_root and running_as_root:
-                # Cas 3: Le plugin nécessite des droits root et nous sommes déjà root
-                debug_msg = Message(
-                    type=MessageType.DEBUG,
-                    content=f"Exécution avec des droits root (déjà root)"
+                    return False, error_msg
+                
+                # Connexion et exécution via pexpect
+                # Établir la connexion SSH
+                ssh_process = pexpect.spawn(
+                    f"ssh -p {ssh_port} {ssh_user}@{ssh_ip}", 
+                    encoding='utf-8', 
+                    timeout=30
                 )
-                await LoggerUtils.display_message(app, debug_msg)
-                # Pas besoin de modifier la commande, nous sommes déjà root
-            
-            debug_msg = Message(
-                type=MessageType.DEBUG,
-                content=f"Commande d'exécution sur {ip_address}: {cmd}"
-            )
-            await LoggerUtils.display_message(app, debug_msg)
-            
-            info_msg = Message(
-                type=MessageType.INFO,
-                content=f"Exécution du plugin sur {ip_address}..."
-            )
-            await LoggerUtils.display_message(app, info_msg)
-            
-            # Exécuter la commande
-            ssh_process.sendline(cmd)
-            
-            # Gérer l'authentification si nécessaire
-            running_as_root = root_credentials_manager.is_running_as_root()
-            
-            # Cas 1: Nous ne sommes pas root mais le plugin nécessite des droits root
-            if needs_root and not running_as_root:
-                i = ssh_process.expect(['[sudo] password', pexpect.TIMEOUT, pexpect.EOF], timeout=5)
-                if i == 0:
-                    # Récupérer le mot de passe depuis le gestionnaire d'identifiants root
-                    root_credentials = root_credentials_manager.get_ssh_root_credentials(ip_address)
-                    
-                    if root_credentials and root_credentials.get('password'):
-                        sudo_passwd = root_credentials.get('password')
-                        ssh_process.sendline(sudo_passwd)
-                        debug_msg = Message(
-                            type=MessageType.DEBUG,
-                            content=f"Mot de passe sudo envoyé pour {ip_address}"
+                
+                # Gérer l'authentification
+                i = ssh_process.expect(['password:', 'continue connecting', 'Connection refused', 'No route to host', 'Permission denied', pexpect.TIMEOUT, pexpect.EOF])
+                
+                if i == 0:  # Demande de mot de passe
+                    ssh_process.sendline(ssh_password)
+                    # Vérifier si le mot de passe est accepté
+                    j = ssh_process.expect(['Permission denied', 'Last login', '$', '#', pexpect.TIMEOUT])
+                    if j == 0:  # Mot de passe incorrect
+                        error_msg = f"Authentification SSH refusée pour {ssh_user}@{ssh_ip} - Mot de passe incorrect"
+                        logger.error(error_msg)
+                        await LoggerUtils.add_log(
+                            self.app,
+                            error_msg,
+                            level="error",
+                            target_ip=ssh_ip
                         )
-                        await LoggerUtils.display_message(app, debug_msg)
-                    else:
-                        logger.warning(f"Aucun mot de passe sudo disponible pour {ip_address}, l'exécution pourrait échouer")
-                        warning_msg = Message(
-                            type=MessageType.WARNING,
-                            content=f"Aucun mot de passe sudo disponible pour {ip_address}"
+                        return False, error_msg
+                elif i == 1:  # Confirmation de l'hôte
+                    ssh_process.sendline('yes')
+                    ssh_process.expect('password:')
+                    ssh_process.sendline(ssh_password)
+                    # Vérifier si le mot de passe est accepté
+                    j = ssh_process.expect(['Permission denied', 'Last login', '$', '#', pexpect.TIMEOUT])
+                    if j == 0:  # Mot de passe incorrect
+                        error_msg = f"Authentification SSH refusée pour {ssh_user}@{ssh_ip} - Mot de passe incorrect"
+                        logger.error(error_msg)
+                        await LoggerUtils.add_log(
+                            self.app,
+                            error_msg,
+                            level="error",
+                            target_ip=ssh_ip
                         )
-                        await LoggerUtils.display_message(app, warning_msg)
-            
-            # Cas 2: Nous sommes root mais le plugin ne nécessite pas de droits root
-            # Dans ce cas, su ne demande pas de mot de passe car nous sommes déjà root
-            
-            # Vérifier les erreurs immédiates
-            if is_bash_plugin:
-                i = ssh_process.expect(['bash: command not found', 'No such file', 'Permission denied', '\n', pexpect.TIMEOUT, pexpect.EOF], timeout=5)
-                if i == 0:
-                    error_msg = Message(
-                        type=MessageType.ERROR,
-                        content=f"Bash n'est pas installé sur {ip_address}"
+                        return False, error_msg
+                elif i == 2:  # Connexion refusée
+                    error_msg = f"Connexion SSH refusée pour {ssh_ip} - Le service SSH n'est peut-être pas actif"
+                    logger.error(error_msg)
+                    await LoggerUtils.add_log(
+                        self.app,
+                        error_msg,
+                        level="error",
+                        target_ip=ssh_ip
                     )
-                    await LoggerUtils.display_message(app, error_msg)
-                    return False, f"Bash n'est pas installé sur {ip_address}"
-            else:
-                i = ssh_process.expect(['python3: command not found', 'No such file', 'Permission denied', '\n', pexpect.TIMEOUT, pexpect.EOF], timeout=5)
-                if i == 0:
-                    error_msg = Message(
-                        type=MessageType.ERROR,
-                        content=f"Python3 n'est pas installé sur {ip_address}"
+                    return False, error_msg
+                elif i == 3:  # Pas de route vers l'hôte
+                    error_msg = f"Impossible d'atteindre {ssh_ip} - Pas de route vers l'hôte"
+                    logger.error(error_msg)
+                    await LoggerUtils.add_log(
+                        self.app,
+                        error_msg,
+                        level="error",
+                        target_ip=ssh_ip
                     )
-                    await LoggerUtils.display_message(app, error_msg)
-                    return False, f"Python3 n'est pas installé sur {ip_address}"
-            
-            if i == 1:
-                error_msg = Message(
-                    type=MessageType.ERROR,
-                    content=f"Fichier introuvable lors de l'exécution sur {ip_address}"
+                    return False, error_msg
+                elif i == 4:  # Permission refusée
+                    error_msg = f"Authentification SSH refusée pour {ssh_user}@{ssh_ip}"
+                    logger.error(error_msg)
+                    await LoggerUtils.add_log(
+                        self.app,
+                        error_msg,
+                        level="error",
+                        target_ip=ssh_ip
+                    )
+                    return False, error_msg
+                elif i == 5 or i == 6:  # Timeout ou EOF
+                    error_msg = f"Timeout lors de la connexion SSH à {ssh_ip}"
+                    logger.error(error_msg)
+                    await LoggerUtils.add_log(
+                        self.app,
+                        error_msg,
+                        level="error",
+                        target_ip=ssh_ip
+                    )
+                    return False, error_msg
+                
+                # Créer le dossier distant et copier les fichiers
+                ssh_process.sendline(f"mkdir -p {remote_temp_dir}")
+                
+                # Transférer les fichiers via SCP
+                # Utiliser /* pour copier le contenu du dossier et non le dossier lui-même
+                scp_process = pexpect.spawn(
+                    f"scp -r {plugin_dir}/* {ssh_user}@{ssh_ip}:{remote_temp_dir}/", 
+                    encoding='utf-8', 
+                    timeout=30
                 )
-                await LoggerUtils.display_message(app, error_msg)
-                return False, f"Fichier introuvable lors de l'exécution sur {ip_address}"
-            elif i == 2:
-                error_msg = Message(
-                    type=MessageType.ERROR,
-                    content=f"Permission refusée lors de l'exécution sur {ip_address}"
-                )
-                await LoggerUtils.display_message(app, error_msg)
-                return False, f"Permission refusée lors de l'exécution sur {ip_address}"
-            
-            # Attendre et traiter la sortie ligne par ligne
-            debug_msg = Message(
-                type=MessageType.DEBUG,
-                content=f"Lecture de la sortie d'exécution sur {ip_address}..."
-            )
-            await LoggerUtils.display_message(app, debug_msg)
-            
-            output = ""
-            error_detected = False
-            execution_timeout = command_timeout
-            start_time = time.time()
-            
-            while True:
+                
+                # Gérer l'authentification SCP
+                i = scp_process.expect(['password:', 'continue connecting', 'No such file or directory', 'Permission denied', pexpect.TIMEOUT, pexpect.EOF])
+                
+                if i == 0:  # Demande de mot de passe
+                    scp_process.sendline(ssh_password)
+                    # Vérifier si le transfert réussit
+                    j = scp_process.expect(['Permission denied', 'No such file or directory', '100%', pexpect.TIMEOUT, pexpect.EOF])
+                    if j == 0:  # Mot de passe incorrect
+                        error_msg = f"Authentification SCP refusée pour {ssh_user}@{ssh_ip} - Mot de passe incorrect"
+                        logger.error(error_msg)
+                        await LoggerUtils.add_log(
+                            self.app,
+                            error_msg,
+                            level="error",
+                            target_ip=ssh_ip
+                        )
+                        return False, error_msg
+                    elif j == 1:  # Fichier ou répertoire introuvable
+                        error_msg = f"Erreur SCP: Fichier ou répertoire introuvable lors du transfert vers {ssh_ip}"
+                        logger.error(error_msg)
+                        await LoggerUtils.add_log(
+                            self.app,
+                            error_msg,
+                            level="error",
+                            target_ip=ssh_ip
+                        )
+                        return False, error_msg
+                elif i == 1:  # Confirmation de l'hôte
+                    scp_process.sendline('yes')
+                    scp_process.expect('password:')
+                    scp_process.sendline(ssh_password)
+                    # Vérifier si le transfert réussit
+                    j = scp_process.expect(['Permission denied', 'No such file or directory', '100%', pexpect.TIMEOUT, pexpect.EOF])
+                    if j == 0 or j == 1:  # Erreur de permission ou fichier introuvable
+                        error_msg = f"Erreur lors du transfert SCP vers {ssh_ip}"
+                        logger.error(error_msg)
+                        await LoggerUtils.add_log(
+                            self.app,
+                            error_msg,
+                            level="error",
+                            target_ip=ssh_ip
+                        )
+                        return False, error_msg
+                elif i == 2:  # Fichier ou répertoire introuvable
+                    error_msg = f"Erreur SCP: Fichier ou répertoire introuvable lors du transfert vers {ssh_ip}"
+                    logger.error(error_msg)
+                    await LoggerUtils.add_log(
+                        self.app,
+                        error_msg,
+                        level="error",
+                        target_ip=ssh_ip
+                    )
+                    return False, error_msg
+                elif i == 3:  # Permission refusée
+                    error_msg = f"Erreur SCP: Permission refusée lors du transfert vers {ssh_ip}"
+                    logger.error(error_msg)
+                    await LoggerUtils.add_log(
+                        self.app,
+                        error_msg,
+                        level="error",
+                        target_ip=ssh_ip
+                    )
+                    return False, error_msg
+                elif i == 4:  # Timeout
+                    error_msg = f"Timeout lors du transfert SCP vers {ssh_ip}"
+                    logger.error(error_msg)
+                    await LoggerUtils.add_log(
+                        self.app,
+                        error_msg,
+                        level="error",
+                        target_ip=ssh_ip
+                    )
+                    return False, error_msg
+                
+                # Attendre la fin du transfert
                 try:
-                    # Vérifier si on a dépassé le timeout global
-                    elapsed_time = time.time() - start_time
-                    if elapsed_time > execution_timeout:
-                        error_msg = Message(
-                            type=MessageType.ERROR,
-                            content=f"Timeout global d'exécution sur {ip_address} après {int(elapsed_time)}s"
-                        )
-                        await LoggerUtils.display_message(app, error_msg)
-                        error_detected = True
-                        break
-                    
-                    # Attendre la prochaine ligne avec un timeout court
-                    i = ssh_process.expect(['\n', 'Traceback', 'Error:', 'Exception', pexpect.TIMEOUT, pexpect.EOF], timeout=1)
-                    
-                    if i == 0:  # Nouvelle ligne
-                        line = ssh_process.before
-                        if line:
-                            # Traiter la ligne avec préfixe IP
-                            await SSHExecutor.process_ssh_output(app, line, ip_address, plugin_widget)
+                    scp_process.expect(pexpect.EOF, timeout=60)
+                except pexpect.TIMEOUT:
+                    error_msg = f"Timeout lors du transfert SCP vers {ssh_ip}"
+                    logger.error(error_msg)
+                    await LoggerUtils.add_log(
+                        self.app,
+                        error_msg,
+                        level="error",
+                        target_ip=ssh_ip
+                    )
+                    return False, error_msg
+                
+                # Vérifier que le fichier exec.py a bien été copié
+                ssh_process.sendline(f"ls -la {remote_temp_dir}")
+                ssh_process.expect(remote_temp_dir)
+                ls_output = ssh_process.before + ssh_process.after
+                logger.debug(f"Contenu du dossier distant: {ls_output}")
+                
+                # Vérifier que le fichier d'exécution existe
+                exec_file = "main.sh" if is_bash_plugin else "exec.py"
+                ssh_process.sendline(f"test -f {remote_temp_dir}/{exec_file} && echo 'FILE_EXISTS' || echo 'FILE_MISSING'")
+                i = ssh_process.expect(['FILE_EXISTS', 'FILE_MISSING', pexpect.TIMEOUT])
+                
+                if i == 1:  # Fichier manquant
+                    error_msg = f"Le fichier {exec_file} est manquant sur la machine distante {ssh_ip}"
+                    logger.error(error_msg)
+                    await LoggerUtils.add_log(
+                        self.app,
+                        error_msg,
+                        level="error",
+                        target_ip=ssh_ip
+                    )
+                    return False, error_msg
+                elif i == 2:  # Timeout
+                    error_msg = f"Timeout lors de la vérification du fichier {exec_file} sur {ssh_ip}"
+                    logger.error(error_msg)
+                    await LoggerUtils.add_log(
+                        self.app,
+                        error_msg,
+                        level="error",
+                        target_ip=ssh_ip
+                    )
+                    return False, error_msg
+                
+                # Changer de répertoire et exécuter la commande
+                if needs_root:
+                    # Utiliser sudo si nécessaire
+                    ssh_process.sendline(f"cd {remote_temp_dir} && sudo {base_cmd}")
+                    i = ssh_process.expect(['password for', pexpect.TIMEOUT])
+                    if i == 0:
+                        ssh_process.sendline(root_credentials.get('password', ''))
+                else:
+                    ssh_process.sendline(f"cd {remote_temp_dir} && {base_cmd}")
+                
+                # Capturer la sortie
+                output = ""
+                while True:
+                    try:
+                        i = ssh_process.expect([pexpect.TIMEOUT, pexpect.EOF, '\n'], timeout=5)
+                        if i == 0:
+                            break  # Timeout
+                        elif i == 1:
+                            break  # EOF
+                        else:
+                            line = ssh_process.before.strip()
                             output += line + "\n"
                             
-                            # Détecter les erreurs dans la sortie
-                            if "error" in line.lower() or "exception" in line.lower() or "traceback" in line.lower():
-                                debug_msg = Message(
-                                    type=MessageType.DEBUG,
-                                    content=f"Erreur détectée dans la sortie: {line}"
+                            # Traiter la ligne en temps réel
+                            try:
+                                await LoggerUtils.process_output_line(
+                                    self.app, 
+                                    line, 
+                                    plugin_widget,
+                                    target_ip=ssh_ip
                                 )
-                                await LoggerUtils.display_message(app, debug_msg)
-                    
-                    elif i in [1, 2, 3]:  # Erreur Python détectée
-                        error_type = "Traceback" if i == 1 else "Error" if i == 2 else "Exception"
-                        error_msg = Message(
-                            type=MessageType.ERROR,
-                            content=f"{error_type} détecté lors de l'exécution sur {ip_address}"
-                        )
-                        await LoggerUtils.display_message(app, error_msg)
-                        error_detected = True
-                        
-                        # Continuer à lire pour capturer le message d'erreur complet
-                        error_output = ""
-                        for _ in range(10):  # Lire jusqu'à 10 lignes supplémentaires pour capturer l'erreur
-                            j = ssh_process.expect(['\n', pexpect.TIMEOUT, pexpect.EOF], timeout=0.5)
-                            if j == 0:
-                                error_line = ssh_process.before
-                                if error_line:
-                                    error_output += error_line + "\n"
-                                    await SSHExecutor.process_ssh_output(app, error_line, ip_address, plugin_widget)
-                            else:
-                                break
-                        
-                        debug_msg = Message(
-                            type=MessageType.DEBUG,
-                            content=f"Détails de l'erreur: {error_output}"
-                        )
-                        await LoggerUtils.display_message(app, debug_msg)
-                    
-                    elif i == 4:  # Timeout court (continuer à attendre)
-                        continue
-                    
-                    elif i == 5:  # EOF (fin de la sortie)
-                        debug_msg = Message(
-                            type=MessageType.DEBUG,
-                            content=f"Fin de la sortie d'exécution sur {ip_address}"
-                        )
-                        await LoggerUtils.display_message(app, debug_msg)
+                            except Exception as log_error:
+                                logger.error(f"Erreur de traitement de log: {log_error}")
+                    except Exception as e:
+                        logger.warning(f"Erreur lors de la lecture de la sortie: {e}")
                         break
-                    
-                except Exception as e:
-                    logger.error(f"Erreur de lecture SSH: {str(e)}")
-                    error_msg = Message(
-                        type=MessageType.ERROR,
-                        content=f"Erreur de lecture SSH: {str(e)}"
-                    )
-                    await LoggerUtils.display_message(app, error_msg)
-                    error_detected = True
-                    break
-            
-            # Nettoyer les fichiers temporaires si configuré
-            debug_msg = Message(
-                type=MessageType.DEBUG,
-                content=f"Nettoyage des fichiers temporaires sur {ip_address}"
-            )
-            await LoggerUtils.display_message(app, debug_msg)
-            
-            if cleanup_temp_files:
-                ssh_process.sendline(f"rm -rf {temp_dir}")
-                ssh_process.expect(['$', '#', pexpect.TIMEOUT, pexpect.EOF], timeout=connect_timeout)
-            
-            # Fermer la connexion SSH proprement
-            ssh_process.sendline("exit")
-            
-            # Vérifier si l'exécution s'est bien passée
-            success_indicators = ["Exécution terminée avec succès", "Progression : 100%", "[SUCCESS]", "completed successfully"]
-            success = any(indicator in output for indicator in success_indicators) and not error_detected
-            
-            # Journaliser le résultat de l'exécution
-            logger.debug(f"Résultat de l'exécution sur {ip_address}: {'Succès' if success else 'Échec'}")
-            
-            # Journaliser la sortie complète
-            logger.debug(f"Sortie complète de l'exécution SSH sur {ip_address} ({len(output)} caractères)")
-            
-            # Journaliser la sortie complète si configuré ou en cas d'erreur
-            if ssh_config_loader.get_logging_config().get('log_full_output', False) or not success:
-                logger.debug(f"Sortie complète de l'exécution SSH sur {ip_address}:\n{output}")
-            
-            if success:
-                success_msg = Message(
-                    type=MessageType.SUCCESS,
-                    content=f"Exécution SSH terminée avec succès sur {ip_address}"
-                )
-                await LoggerUtils.display_message(app, success_msg)
-                return True, "Exécution SSH terminée avec succès"
-            else:
-                error_msg = Message(
-                    type=MessageType.ERROR,
-                    content=f"Erreur lors de l'exécution SSH sur {ip_address}"
-                )
-                await LoggerUtils.display_message(app, error_msg)
-                return False, "Erreur lors de l'exécution SSH"
                 
-        except Exception as e:
-            logger.error(f"Erreur SSH: {str(e)}")
-            return False, f"Erreur SSH: {str(e)}"
-    
-    @staticmethod
-    async def process_ssh_output(app, line, ip_address=None, plugin_widget=None):
-        """Traite la sortie SSH pour la mise à jour de l'UI"""
-        try:
-            # Ignorer les lignes vides
-            if not line or (isinstance(line, str) and line.isspace()):
-                return
-
-            # Ajouter l'adresse IP au début de la ligne si fournie
-            log_line = line.strip() if line else ""
-            if ip_address and log_line:
-                # Si la ligne est au format standardisé, insérer l'IP après le préfixe
-                if log_line.startswith("[LOG]"):
-                    # Garder le format [LOG] [TYPE] message intact
-                    match = re.match(r'^\[LOG\] \[(\w+)\] (.+)$', log_line)
-                    if match:
-                        log_type, content = match.groups()
-                        log_line = f"[LOG] [{log_type}] [{ip_address}] {content}"
-                    else:
-                        log_line = f"[{ip_address}] {log_line}"
-            
-            # Traiter la ligne avec le système de gestion des messages
-            if plugin_widget:
-                await LoggerUtils.process_output_line(app, log_line, plugin_widget, 0, 1)
-            else:
-                # Si pas de widget fourni, juste afficher le message
-                message_obj = parse_message(log_line)
-                await LoggerUtils.display_message(app, message_obj)
+                # Vérifier le code de retour
+                ssh_process.sendline("echo $?")
+                i = ssh_process.expect(['\d+', pexpect.TIMEOUT])
+                return_code = int(ssh_process.match.group(0)) if i == 0 else 1
                 
-        except Exception as e:
-            # En cas d'erreur lors du traitement, logger l'erreur directement
-            logger.error(f"Erreur lors du traitement de la sortie SSH: {str(e)}")
-            error_msg = Message(
-                type=MessageType.ERROR,
-                content=f"Erreur de traitement SSH: {str(e)}"
-            )
-            await LoggerUtils.display_message(app, error_msg)
-    
-    @staticmethod
-    async def run_ssh_plugin(app, plugin_id, plugin_widget, plugin_show_name, config, executed, total_plugins, result_queue):
-        """Exécute un plugin en mode SSH sur toutes les machines accessibles"""
-        try:
-            # Extraire le nom du plugin pour les logs
-            folder_name = plugin_widget.folder_name
-            logger.info(f"Démarrage du plugin {folder_name} ({plugin_id}) en mode SSH")
-            
-            # Initialiser la barre de progression
-            plugin_widget.set_status('running')
-            plugin_widget.update_progress(0.0, "Démarrage...")
-            
-            # Récupérer les paramètres SSH
-            ssh_ips = config.get("ssh_ips", "")
-            ssh_user = config.get("ssh_user", "")
-            ssh_passwd = config.get("ssh_passwd", "")
-            ssh_exception_ips = config.get("ssh_exception_ips", "")
-            ssh_sms_enabled = config.get("ssh_sms_enabled", False)
-            ssh_sms = config.get("ssh_sms", "")
-            
-            info_msg = Message(
-                type=MessageType.INFO,
-                content=f"Mode SSH activé pour {plugin_show_name}"
-            )
-            await LoggerUtils.display_message(app, info_msg)
-            
-            # Construire le chemin du plugin
-            plugin_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "plugins", folder_name)
-            
-            # Résoudre et filtrer les IPs
-            plugin_widget.update_progress(0.1, "Recherche des machines accessibles...")
-            valid_ips, excluded_ips = await SSHExecutor.resolve_ips(app, ssh_ips, ssh_exception_ips)
-            
-            if excluded_ips:
-                info_msg = Message(
-                    type=MessageType.INFO,
-                    content=f"IPs exclues: {', '.join(excluded_ips)}"
-                )
-                await LoggerUtils.display_message(app, info_msg)
-            
-            if not valid_ips:
-                error_msg = Message(
-                    type=MessageType.ERROR,
-                    content="Aucune machine accessible trouvée"
-                )
-                await LoggerUtils.display_message(app, error_msg)
-                plugin_widget.set_status('error', "Aucune machine accessible")
-                await result_queue.put((False, "Aucune machine accessible trouvée"))
-                return
-            
-            info_msg = Message(
-                type=MessageType.INFO,
-                content=f"Machines accessibles: {', '.join(valid_ips)}"
-            )
-            await LoggerUtils.display_message(app, info_msg)
-            
-            # Obtenir la configuration d'exécution
-            ssh_config_loader = SSHConfigLoader.get_instance()
-            execution_config = ssh_config_loader.get_execution_config()
-            parallel_execution = execution_config.get('parallel_execution', False)
-            max_parallel = execution_config.get('max_parallel', 5)
-            
-            # Exécution sur chaque IP valide
-            total_ips = len(valid_ips)
-            success_count = 0
-            
-            # Fonction pour exécuter un plugin sur une IP
-            async def execute_on_ip(ip, progress_start, progress_end):
-                nonlocal success_count
-                # Mettre à jour la progression
-                plugin_widget.update_progress(progress_start, f"Connexion à {ip}...")
+                # Nettoyer le dossier temporaire
+                ssh_process.sendline(f"rm -rf {remote_temp_dir}")
                 
-                # Préparer la configuration avec les données SSH pour ce plugin
-                plugin_config = config.copy()
+                # Fermer la connexion
+                ssh_process.sendline("exit")
+                ssh_process.expect(pexpect.EOF)
                 
-                # Récupérer les informations d'authentification root
-                ssh_root_same = config.get("ssh_root_same", True)
-                ssh_root_user = config.get("ssh_root_user", "root") if not ssh_root_same else ssh_user
-                ssh_root_passwd = config.get("ssh_root_passwd", "") if not ssh_root_same else ssh_passwd
+                # Déterminer le succès
+                success = return_code == 0
                 
-                plugin_config.update({
-                    "ssh_mode": True,
-                    "ssh_ips": ssh_ips,
-                    "ssh_current_ip": ip,
-                    "ssh_user": ssh_user,
-                    "ssh_passwd": ssh_passwd,
-                    "ssh_exception_ips": ssh_exception_ips,
-                    "ssh_sms_enabled": ssh_sms_enabled,
-                    "ssh_sms": ssh_sms if ssh_sms_enabled else "",
-                    "ssh_root_same": ssh_root_same,
-                    "ssh_root_user": ssh_root_user,
-                    "ssh_root_passwd": ssh_root_passwd
-                })
-                
-                # Exécuter sur cette IP
-                success, message = await SSHExecutor.execute_ssh(
-                    app, ip, ssh_user, ssh_passwd, plugin_dir, plugin_id, plugin_config, plugin_widget
-                )
-                
-                # Mettre à jour la progression
-                plugin_widget.update_progress(progress_end, f"Terminé sur {ip}")
-                
+                # Journaliser le résultat
                 if success:
-                    success_count += 1
-                    await LoggerUtils.display_message(app, Message(
-                        type=MessageType.SUCCESS,
-                        content=f"Exécution réussie sur {ip}"
-                    ))
+                    logger.info(f"Plugin {folder_name} exécuté avec succès sur {ssh_ip}")
+                    await LoggerUtils.add_log(
+                        self.app, 
+                        f"Plugin {folder_name} exécuté avec succès", 
+                        level="success",
+                        target_ip=ssh_ip
+                    )
+                    return True, output
                 else:
-                    await LoggerUtils.display_message(app, Message(
-                        type=MessageType.ERROR,
-                        content=f"Échec sur {ip}: {message}"
-                    ))
+                    logger.error(f"Échec de l'exécution du plugin {folder_name} sur {ssh_ip}")
+                    await LoggerUtils.add_log(
+                        self.app, 
+                        f"Échec de l'exécution du plugin {folder_name} (code retour: {return_code})", 
+                        level="error",
+                        target_ip=ssh_ip
+                    )
+                    return False, output
                 
-                return success, message
-            
-            # Exécution parallèle ou séquentielle selon la configuration
-            if parallel_execution and total_ips > 1:
-                info_msg = Message(
-                    type=MessageType.INFO,
-                    content=f"Exécution parallèle sur {min(total_ips, max_parallel)} machines"
-                )
-                await LoggerUtils.display_message(app, info_msg)
+            except Exception as ssh_error:
+                error_msg = str(ssh_error)
+                logger.error(f"Erreur SSH lors de l'exécution de {folder_name} sur {ssh_ip}: {error_msg}")
                 
-                # Créer des groupes d'IPs pour limiter la parallélisation
-                for i in range(0, total_ips, max_parallel):
-                    batch = valid_ips[i:i+max_parallel]
-                    batch_size = len(batch)
+                # Détection des erreurs spécifiques
+                if "No route to host" in error_msg or "Connection refused" in error_msg or "timed out" in error_msg:
+                    error_msg = f"Impossible de se connecter à l'hôte {ssh_ip}: hôte injoignable ou connexion refusée"
+                    await LoggerUtils.add_log(self.app, error_msg, level="error", target_ip=ssh_ip)
+                elif "No such file or directory" in error_msg:
+                    error_msg = f"Fichier ou répertoire introuvable sur {ssh_ip}: vérifiez que le plugin est correctement installé"
+                    await LoggerUtils.add_log(self.app, error_msg, level="error", target_ip=ssh_ip)
+                elif "Permission denied" in error_msg:
+                    error_msg = f"Accès refusé sur {ssh_ip}: vérifiez les droits d'accès"
+                    await LoggerUtils.add_log(self.app, error_msg, level="error", target_ip=ssh_ip)
+                else:
+                    await LoggerUtils.add_log(self.app, f"Erreur lors de l'exécution sur {ssh_ip}: {error_msg}", level="error", target_ip=ssh_ip)
                     
-                    # Créer les tâches pour ce groupe
-                    tasks = []
-                    for j, ip in enumerate(batch):
-                        progress_start = 0.1 + (0.9 * (i + j) / total_ips)
-                        progress_end = 0.1 + (0.9 * (i + j + 1) / total_ips)
-                        tasks.append(execute_on_ip(ip, progress_start, progress_end))
-                    
-                    # Exécuter les tâches en parallèle
-                    await asyncio.gather(*tasks)
-            else:
-                # Exécution séquentielle
-                for idx, ip in enumerate(valid_ips):
-                    progress_start = 0.1 + (0.9 * idx / total_ips)
-                    progress_end = 0.1 + (0.9 * (idx + 1) / total_ips)
-                    await execute_on_ip(ip, progress_start, progress_end)
-            
-            # Résultat final
-            if success_count > 0:
-                final_message = f"Exécution réussie sur {success_count}/{total_ips} machines"
-                plugin_widget.set_status('success', final_message)
-                await result_queue.put((True, final_message))
-            else:
-                final_message = "Échec sur toutes les machines"
-                plugin_widget.set_status('error', final_message)
-                await result_queue.put((False, final_message))
-                
+                return False, error_msg
+        
         except Exception as e:
-            error_msg = f"Erreur lors de l'exécution SSH: {str(e)}"
-            logger.error(error_msg)
-            await result_queue.put((False, error_msg))
+            error_msg = str(e)
+            logger.error(f"Erreur globale lors de l'exécution du plugin {plugin_name}: {error_msg}")
+            logger.error(traceback.format_exc())
+            
+            # Ajouter un message d'erreur spécifique dans les logs
+            await LoggerUtils.add_log(
+                self.app, 
+                f"Erreur lors de l'exécution du plugin {plugin_name}: {error_msg}", 
+                level="error"
+            )
+            
+            return False, error_msg

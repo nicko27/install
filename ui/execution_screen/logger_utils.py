@@ -218,7 +218,7 @@ class LoggerUtils:
                 pass
 
     @staticmethod
-    async def add_log(app, message: Union[str, Message], level: str = 'info'):
+    async def add_log(app, message: Union[str, Message], level: str = 'info', target_ip: str = None):
         """
         Méthode de compatibilité avec l'ancien système.
         Convertit un message au format texte en Message puis l'affiche.
@@ -227,6 +227,7 @@ class LoggerUtils:
             app: Application contenant les éléments d'UI
             message: Message à afficher (str ou Message)
             level: Niveau de log (info, warning, error, success, debug)
+            target_ip: Adresse IP cible pour les plugins SSH (optionnel)
         """
         try:
             # Convertir en Message
@@ -235,17 +236,17 @@ class LoggerUtils:
             else:
                 # Créer le message en fonction du niveau
                 if level.lower() == "info":
-                    message_obj = create_info(message)
+                    message_obj = create_info(message, target_ip=target_ip)
                 elif level.lower() == "warning":
-                    message_obj = create_warning(message)
+                    message_obj = create_warning(message, target_ip=target_ip)
                 elif level.lower() == "error":
-                    message_obj = create_error(message)
+                    message_obj = create_error(message, target_ip=target_ip)
                 elif level.lower() == "debug":
-                    message_obj = create_debug(message)
+                    message_obj = create_debug(message, target_ip=target_ip)
                 elif level.lower() == "success":
-                    message_obj = create_success(message)
+                    message_obj = create_success(message, target_ip=target_ip)
                 else:
-                    message_obj = create_info(message)
+                    message_obj = create_info(message, target_ip=target_ip)
             
             # Afficher le message
             await LoggerUtils.process_output_line(app, message_obj.to_string())
@@ -259,7 +260,8 @@ class LoggerUtils:
         line: str, 
         plugin_widget=None, 
         executed: int = 0, 
-        total_plugins: int = 1
+        total_plugins: int = 1,
+        target_ip: str = None
     ):
         """
         Traite une ligne de sortie d'un plugin et la dirige vers le gestionnaire approprié.
@@ -295,7 +297,11 @@ class LoggerUtils:
                     plugin_name = message_obj.plugin_name if hasattr(message_obj, 'plugin_name') else None
                     instance_id = message_obj.instance_id if hasattr(message_obj, 'instance_id') else None
                     
-                    logger.debug(f"Message parsé: type={message_obj.type.name}, progress={getattr(message_obj, 'progress', None)}, plugin_name={getattr(message_obj, 'plugin_name', None) if hasattr(message_obj, 'plugin_name') else 'Non défini'}")
+                    # Si une IP cible est fournie, l'ajouter au message
+                    if target_ip and not hasattr(message_obj, 'target_ip'):
+                        message_obj.target_ip = target_ip
+                    
+                    logger.debug(f"Message parsé: type={message_obj.type.name}, progress={getattr(message_obj, 'progress', None)}, plugin_name={getattr(message_obj, 'plugin_name', None) if hasattr(message_obj, 'plugin_name') else 'Non défini'}, target_ip={getattr(message_obj, 'target_ip', None)}")
                     
                     # Ajouter l'information sur le plugin pour les messages PROGRESS
                     if message_obj.type == MessageType.PROGRESS and plugin_widget and hasattr(plugin_widget, f"{plugin_name}_{instance_id}"):

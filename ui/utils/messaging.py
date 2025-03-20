@@ -36,7 +36,8 @@ class Message:
         step: int = None,
         total_steps: int = None,
         data: Dict[str, Any] = None,
-        instance_id: int = None
+        instance_id: int = None,
+        target_ip: str = None
     ):
         """
         Initialise un message standardisé
@@ -49,6 +50,8 @@ class Message:
             step: Étape actuelle si applicable
             total_steps: Nombre total d'étapes si applicable
             data: Données supplémentaires spécifiques au message
+            instance_id: ID d'instance du plugin si applicable
+            target_ip: Adresse IP cible pour les plugins SSH si applicable
         """
         self.type = type
         self.content = content
@@ -57,7 +60,8 @@ class Message:
         self.step = step
         self.total_steps = total_steps
         self.data = data or {}
-        self.instance_id = None
+        self.instance_id = instance_id
+        self.target_ip = target_ip
     
     def to_string(self) -> str:
         """
@@ -220,11 +224,16 @@ class MessageFormatter:
         Returns:
             str: Message formaté pour le fichier de log
         """
+        # Préparer le préfixe IP si disponible
+        ip_prefix = ""
+        if hasattr(message, 'target_ip') and message.target_ip:
+            ip_prefix = f"[{message.target_ip}] "
+            
         # Ajouter un préfixe pour les messages de succès pour les rendre plus visibles
         if message.type == MessageType.SUCCESS:
-            return f"SUCCESS: {message.content}"
+            return f"SUCCESS: {ip_prefix}{message.content}"
         else:
-            return message.content
+            return f"{ip_prefix}{message.content}"
     
     @staticmethod
     def format_for_textual(message: Message) -> Tuple[str, str]:
@@ -272,8 +281,13 @@ class MessageFormatter:
         # Échapper les caractères spéciaux pour le markup
         safe_content = escape_markup(message.content)
         
+        # Ajouter l'IP si elle est disponible
+        ip_info = ""
+        if hasattr(message, 'target_ip') and message.target_ip:
+            ip_info = f"[magenta]@{message.target_ip}[/magenta] "
+        
         # Format lisible et coloré
-        return f"[cyan]{timestamp}[/cyan]  [{color}]{level_str}[/{color}]  [{color}]{safe_content}[/{color}]"
+        return f"[cyan]{timestamp}[/cyan]  [{color}]{level_str}[/{color}]  {ip_info}[{color}]{safe_content}[/{color}]"
 
 
 # Fonctions utilitaires pour le formatage et l'échappement
@@ -293,27 +307,27 @@ def escape_markup(text):
 
 # Fonctions utilitaires pour les modules externes
 
-def create_info(content: str, source: str = None) -> Message:
+def create_info(content: str, source: str = None, target_ip: str = None) -> Message:
     """Crée un message d'information"""
-    return Message(MessageType.INFO, content, source)
+    return Message(MessageType.INFO, content, source, target_ip=target_ip)
 
-def create_warning(content: str, source: str = None) -> Message:
+def create_warning(content: str, source: str = None, target_ip: str = None) -> Message:
     """Crée un message d'avertissement"""
-    return Message(MessageType.WARNING, content, source)
+    return Message(MessageType.WARNING, content, source, target_ip=target_ip)
 
-def create_error(content: str, source: str = None) -> Message:
+def create_error(content: str, source: str = None, target_ip: str = None) -> Message:
     """Crée un message d'erreur"""
-    return Message(MessageType.ERROR, content, source)
+    return Message(MessageType.ERROR, content, source, target_ip=target_ip)
 
-def create_success(content: str, source: str = None) -> Message:
+def create_success(content: str, source: str = None, target_ip: str = None) -> Message:
     """Crée un message de succès"""
-    return Message(MessageType.SUCCESS, content, source)
+    return Message(MessageType.SUCCESS, content, source, target_ip=target_ip)
 
-def create_debug(content: str, source: str = None) -> Message:
+def create_debug(content: str, source: str = None, target_ip: str = None) -> Message:
     """Crée un message de débogage"""
-    return Message(MessageType.DEBUG, content, source)
+    return Message(MessageType.DEBUG, content, source, target_ip=target_ip)
 
-def create_progress(progress: float, step: int = None, total_steps: int = None, source: str = None) -> Message:
+def create_progress(progress: float, step: int = None, total_steps: int = None, source: str = None, target_ip: str = None) -> Message:
     """
     Crée un message de progression
     
@@ -322,6 +336,7 @@ def create_progress(progress: float, step: int = None, total_steps: int = None, 
         step: Étape actuelle (optionnel)
         total_steps: Nombre total d'étapes (optionnel)
         source: Source du message (optionnel)
+        target_ip: Adresse IP cible pour les plugins SSH (optionnel)
         
     Returns:
         Message: Message de progression
@@ -338,7 +353,8 @@ def create_progress(progress: float, step: int = None, total_steps: int = None, 
         source=source,
         progress=progress,
         step=step,
-        total_steps=total_steps
+        total_steps=total_steps,
+        target_ip=target_ip
     )
 
 def parse_message(text: str) -> Message:

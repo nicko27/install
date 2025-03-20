@@ -57,6 +57,7 @@ class PluginContainer(Container):
         self.plugin_name = plugin_name
         self.plugin_show_name = plugin_show_name
         self.plugin_icon = plugin_icon
+        self.target_ip = None  # IP cible pour les plugins SSH avec plusieurs IPs
         self.classes = "plugin-container waiting"
 
     def compose(self) -> ComposeResult:

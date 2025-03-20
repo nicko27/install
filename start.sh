@@ -21,14 +21,6 @@ fi
 # Créer le dossier logs s'il n'existe pas
 mkdir -p "$EXTRACT_DIR/logs"
 
-# Vérifier que le venv existe
-if [ ! -f "$EXTRACT_DIR/.venv/bin/activate" ]; then
-    echo "Error: Virtual environment not found in archive"
-    exit 1
-fi
-
-# Activer l'environnement virtuel embarqué
-source "$EXTRACT_DIR/.venv/bin/activate"
 
 # Lancer l'application
 if [ "$DEBUG" -eq 1 ]; then

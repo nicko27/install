@@ -26,21 +26,22 @@ class LocalExecutor:
     def __init__(self, app=None):
         self.app = app
         
-    def log_message(self, message, level="info"):
+    def log_message(self, message, level="info", target_ip=None):
         """Ajoute un message au log de l'application.
         
         Args:
             message (str): Le message à ajouter au log
             level (str): Le niveau de log (info, debug, error, success)
+            target_ip (str, optional): Adresse IP cible pour les plugins SSH
         """
-        logger.debug(f"Ajout d'un message au log: {message} (niveau: {level})")
+        logger.debug(f"Ajout d'un message au log: {message} (niveau: {level}, ip: {target_ip})")
         try:
             # Utiliser LoggerUtils pour ajouter le message au log
             import asyncio
             
             # Créer une coroutine pour ajouter le message au log
             async def add_log_async():
-                await LoggerUtils.add_log(self.app, message, level=level)
+                await LoggerUtils.add_log(self.app, message, level=level, target_ip=target_ip)
             
             # Exécuter la coroutine dans la boucle d'événements
             asyncio.create_task(add_log_async())
@@ -167,17 +168,27 @@ class LocalExecutor:
                         collected_lines.append(line_decoded)
                         
                         # Traiter la ligne pour les mises à jour en temps réel
+                        # Récupérer l'IP cible si elle existe dans le widget
+                        target_ip = getattr(plugin_widget, 'target_ip', None) if plugin_widget else None
+                        
                         if is_stderr:
                             logger.warning(f"STDERR: {line_decoded}")
                             # Ajouter les erreurs au log de l'application
-                            self.log_message(f"[STDERR] {line_decoded}", level="error")
+                            self.log_message(f"[STDERR] {line_decoded}", level="error", target_ip=target_ip)
                         else:
                             logger.debug(f"STDOUT: {line_decoded}")
                             
                             # Traiter directement la ligne pour les messages de progression
                             try:
                                 if self.app:
-                                    await LoggerUtils.process_output_line(self.app, line_decoded, plugin_widget)
+                                    # Récupérer l'IP cible si elle existe dans le widget
+                                    target_ip = getattr(plugin_widget, 'target_ip', None) if plugin_widget else None
+                                    await LoggerUtils.process_output_line(
+                                        self.app, 
+                                        line_decoded, 
+                                        plugin_widget,
+                                        target_ip=target_ip
+                                    )
                             except Exception as e:
                                 logger.error(f"Erreur lors du traitement de la ligne: {e}")
             
@@ -198,6 +209,16 @@ class LocalExecutor:
             if process.returncode != 0:
                 error_msg = stderr_text if stderr_text else "Erreur inconnue (code retour non-zéro)"
                 logger.error(f"Erreur lors de l'exécution du plugin {folder_name}: {error_msg}")
+                
+                # Récupérer l'IP cible si elle existe dans le widget
+                target_ip = getattr(plugin_widget, 'target_ip', None) if plugin_widget else None
+                # Ajouter un message d'erreur dans les logs de l'interface
+                self.log_message(
+                    f"Erreur lors de l'exécution du plugin {folder_name}: {error_msg}", 
+                    level="error",
+                    target_ip=target_ip
+                )
+                
                 return False, error_msg
             
             # Analyser la sortie pour détecter un format de retour spécifique
@@ -212,24 +233,30 @@ class LocalExecutor:
                         if line.strip().startswith("DEBUG:"):
                             debug_msg = line.strip()[6:].strip()
                             logger.debug(f"Message de débogage du plugin {folder_name}: {debug_msg}")
+                            # Récupérer l'IP cible si elle existe dans le widget
+                            target_ip = getattr(plugin_widget, 'target_ip', None) if plugin_widget else None
                             # Ajouter ce message au log pour qu'il soit visible dans l'UI
-                            self.log_message(f"[DEBUG] {debug_msg}", level="debug")
+                            self.log_message(f"[DEBUG] {debug_msg}", level="debug", target_ip=target_ip)
                 
                 # Traiter les lignes individuellement pour détecter les messages d'erreur
                 for line in stdout_text.splitlines():
                     if line.strip().startswith("ERROR:"):
                         error_msg = line.strip()
                         logger.error(f"Plugin {folder_name} a signalé une erreur: {error_msg}")
+                        # Récupérer l'IP cible si elle existe dans le widget
+                        target_ip = getattr(plugin_widget, 'target_ip', None) if plugin_widget else None
                         # Ajouter ce message au log pour qu'il soit visible dans l'UI
-                        self.log_message(f"[ERREUR] {error_msg[6:].strip()}", level="error")
+                        self.log_message(f"[ERREUR] {error_msg[6:].strip()}", level="error", target_ip=target_ip)
                         return False, error_msg
                 
                 # Si aucune ligne individuelle ne commence par ERROR:, vérifier le texte complet
                 if stdout_text.strip().startswith("ERROR:"):
                     error_msg = stdout_text.strip()
                     logger.error(f"Plugin {folder_name} a signalé une erreur: {error_msg}")
+                    # Récupérer l'IP cible si elle existe dans le widget
+                    target_ip = getattr(plugin_widget, 'target_ip', None) if plugin_widget else None
                     # Ajouter ce message au log pour qu'il soit visible dans l'UI
-                    self.log_message(f"[ERREUR] {error_msg[6:].strip()}", level="error")
+                    self.log_message(f"[ERREUR] {error_msg[6:].strip()}", level="error", target_ip=target_ip)
                     return False, error_msg
                 
                 # Vérifier si la sortie contient une indication de succès/échec au format JSON ou texte
@@ -246,15 +273,32 @@ class LocalExecutor:
                 success_msg = next((line.strip() for line in stdout_text.splitlines() if "SUCCESS:" in line), None)
                 if success_msg:
                     logger.info(f"Message de succès du plugin {folder_name}: {success_msg}")
+                    # Récupérer l'IP cible si elle existe dans le widget
+                    target_ip = getattr(plugin_widget, 'target_ip', None) if plugin_widget else None
                     # Ajouter ce message au log pour qu'il soit visible dans l'UI
-                    self.log_message(f"[SUCCÈS] {success_msg[8:].strip()}", level="success")
+                    self.log_message(f"[SUCCÈS] {success_msg[8:].strip()}", level="success", target_ip=target_ip)
             
             return True, stdout_text
             
         except Exception as e:
-            logger.error(f"Erreur lors de l'exécution du plugin {folder_name}: {str(e)}")
+            error_msg = str(e)
+            logger.error(f"Erreur lors de l'exécution du plugin {folder_name}: {error_msg}")
             logger.error(traceback.format_exc())
-            return False, str(e)
+            
+            # Récupérer l'IP cible si elle existe dans le widget
+            target_ip = getattr(plugin_widget, 'target_ip', None) if plugin_widget else None
+            
+            # Ajouter un message d'erreur dans les logs de l'interface
+            try:
+                self.log_message(
+                    f"Erreur lors de l'exécution du plugin {folder_name}: {error_msg}", 
+                    level="error",
+                    target_ip=target_ip
+                )
+            except Exception as log_error:
+                logger.error(f"Erreur lors de l'ajout du message d'erreur aux logs: {log_error}")
+                
+            return False, error_msg
 
     @staticmethod
     def update_global_progress(app, progress: float):
