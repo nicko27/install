@@ -1,194 +1,117 @@
 #!/usr/bin/env python3
-import os
-import sys
-import glob
-# Get the absolute path to the libs folder
-# Assuming main.py is at the same level as the libs folder
-libs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../libs')
-
-# Add all libs subdirectories to the search path
-for pkg_dir in glob.glob(os.path.join(libs_dir, '*')):
-    # Look for directories containing Python packages
-    # Typically where .dist-info or .py files are stored
-    for subdir in glob.glob(os.path.join(pkg_dir, '*')):
-        if os.path.isdir(subdir) and (
-            subdir.endswith('.dist-info') or
-            os.path.exists(os.path.join(subdir, '__init__.py')) or
-            subdir.endswith('.data')
-        ):
-            # Add the parent directory to the search path
-            parent_dir = os.path.dirname(subdir)
-            if parent_dir not in sys.path:
-                sys.path.insert(0, parent_dir)
-
-        # Also add the main package directory to the path
-        if pkg_dir not in sys.path:
-            sys.path.insert(0, pkg_dir)
-
-
+"""
+Plugin pour l'ajout d'imprimantes à un système Linux.
+Utilise CUPS via lpadmin pour configurer différentes options d'impression.
+"""
 import json
 import time
-import subprocess
-import logging
-import threading
-from datetime import datetime
-from ruamel.yaml import YAML
 import traceback
+# Configuration du chemin d'import pour trouver les modules communs
+import sys
+import os
 
-# Configuration du logging
-formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] %(message)s',
-                            datefmt='%Y-%m-%d %H:%M:%S')
+# Ajouter le répertoire parent au chemin de recherche Python
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-logger = logging.getLogger('delete_printer')
+# Import du module d'aide à l'import
+from loading_utils.import_helper import setup_import_paths
 
-# Handler pour la console
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
+# Configurer les chemins d'import
+setup_import_paths()
 
+# Maintenant on peut importer tous les éléments du module loading_utils
+from loading_utils import *
 
-def print_progress(step: int, total: int):
-    """Affiche la progression"""
-    progress = int((step * 100) / total)
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [INFO] Progression : {progress}% (étape {step}/{total})")
-    sys.stdout.flush()  # Forcer l'envoi immédiat des données
+# Initialiser le logger du plugin
+log = PluginLogger()
 
-def run_command(cmd, input_data=None, no_output=False,print_command=False):
-    """Exécute une commande en utilisant Popen avec affichage en temps réel"""
-    if print_command==True:
-        logger.info(" ".join(cmd))
-    process = subprocess.Popen(
-        cmd,
-        stdin=subprocess.PIPE if input_data else None,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        bufsize=1,  # Line buffered
-        universal_newlines=True
-    )
-
-    if input_data:
-        process.stdin.write(input_data)
-        process.stdin.close()
-
-    # Lire stdout et stderr en temps réel
-    stdout_lines = []
-    stderr_lines = []
-
-    while True:
-        stdout_line = process.stdout.readline()
-        stderr_line = process.stderr.readline()
-
-        if stdout_line:
-            if no_output==False:
-                logger.info(stdout_line.rstrip())
-            stdout_lines.append(stdout_line)
-
-        if stderr_line:
-            if no_output==False:
-                logger.error(stderr_line.rstrip())
-            stderr_lines.append(stderr_line)
-
-        if process.poll() is not None:
-            for line in process.stdout:
-                if no_output==False:
-                    logger.info(line.rstrip())
-                stdout_lines.append(line)
-            for line in process.stderr:
-                if no_output==False:
-                    logger.error(line.rstrip())
-                stderr_lines.append(line)
-            break
-
-    stdout = ''.join(stdout_lines)
-    stderr = ''.join(stderr_lines)
-    return process.returncode == 0, stdout, stderr
-
-
-def delete_printer(printer_name):
-    cmd=["lpadmin", "-x", printer_name]
-    logger.info(f"Commande lpadmin: {cmd}")
-    returnValue,stdout,stderr = run_command(cmd)
-    return returnValue
+# Initialiser les gestionnaires de commandes
+printer_manager = PrinterCommands(log)
+service_manager = ServiceCommands(log)
 
 def execute_plugin(config):
-    """Point d'entrée pour l'exécution du plugin"""
+    """
+    Point d'entrée principal pour l'exécution du plugin.
+
+    Args:
+        config: Configuration du plugin (dictionnaire)
+
+    Returns:
+        Tuple (success, message)
+    """
     try:
-        printer_all =config.get('printer_all')
-        printer_ip = config.get('printer_ip')
+        # Log de débogage pour indiquer le début de l'exécution
+        log.set_instance_id(config.get('instance_id'))
+        log.set_total_steps(2)
 
-        current_step =0
-        total_step=1
+        # Récupérer la configuration
+        printer_config = config['config']
+        printer_all =printer_config.get('printer_all')
+        printer_ip = printer_config.get('printer_ip')
 
-        logger.info("Listage des imprimantes à supprimer")
-        current_step+=1
-        if printer_all:
-            # Get the list of printers and count them
-            returnValue, stdout, stderr = run_command(["lpstat", "-p"], no_output=True)
-            printers_list = [line.split()[1] for line in stdout.splitlines()]
-            nb_impr = len(printers_list)  # Count the number of printers
-            total_step += nb_impr  # Add this count to total_step
+        if printer_all != None and printer_all != False:
+            returnValue = printer_manager.remove_all_network_printers()
         else:
-            # Get the count of printers matching the given printer_ip
-            returnValue, stdout, stderr = run_command(["lpstat", "-t"], no_output=True)
-            printers_list = [line.split()[2] for line in stdout.splitlines() if printer_ip in line]
-            nb_impr = len(printers_list)  # Count the matching printers
-            total_step += nb_impr  # Set the total step count
+            returnValue = printer_manager.remove_printer_by_ip(printer_ip)
+        log.next_step()
+        # Redémarrer le service CUPS si l'installation a réussi
+        if returnValue:
+            log.info("Redémarrage du service CUPS")
+            try:
+                # Utiliser ServiceCommands pour redémarrer CUPS
+                cups_restart_success = service_manager.restart("cups")
 
-        # Log the number of printers to delete
-        logger.info(f"{nb_impr} imprimante(s) à supprimer")
-
-        # Update progress
-        print_progress(current_step, total_step)
-        returnValue=True
-        print(printers_list)
-        for printer_name in printers_list:
-            if returnValue==True:
-                returnValue,stdout,stderr=run_command(["lpadmin","-x",printer_name])
-                print(returnValue)
-                msg=f"Suppression de {printer_name}"
-                if returnValue==True:
-                    logger.info(msg)
+                if cups_restart_success:
+                    log.success("Service CUPS redémarré avec succès")
                 else:
-                    logger.error(msg)
-            current_step+=1
-            print_progress(current_step, total_step)
-
-
-        if (returnValue==True):
-            return True, "Suppression(s) d'imprimante(s) effectué(s) avec succès"
+                    log.error(f"Erreur lors du redémarrage du service CUPS")
+                    return False, "Erreur lors du redémarrage de CUPS"
+            except Exception as e:
+                log.error(f"Erreur lors du redémarrage de CUPS: {e}")
+                return False, f"Erreur lors du redémarrage de CUPS: {e}"
+        log.next_step()
+        # Résultat final
+        if returnValue:
+            success_msg = "Suppression(s) effectué(es) avec succès"
+            log.success(success_msg)
+            return True, success_msg
         else:
-            return False, "Erreur lors de la suppression d'imprimante(s)"
-
-    except subprocess.CalledProcessError as e:
-        error_msg = f"Erreur lors de l'exécution de la commande: {e}"
-        logger.error(error_msg)
-        return False, error_msg
+            error_msg = "Erreur lors de la suppression"
+            log.error(error_msg)
+            return False, error_msg
 
     except Exception as e:
         error_msg = f"Erreur inattendue: {str(e)}"
-        logger.exception(error_msg)
+        log.error(error_msg)
+        log.debug(traceback.format_exc())
         return False, error_msg
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: exec.py <config_json>")
-        sys.exit(1)
-
     try:
+        # Charger la configuration
         config = json.loads(sys.argv[1])
+        log.set_instance_id(config.get("instance_id",0))
+        log.set_plugin_name(config.get("plugin_name","test"))
+        log.init_logs()
+
+        # Exécuter le plugin
         success, message = execute_plugin(config)
 
+        # Attendre un court instant pour s'assurer que tous les logs sont traités
+        time.sleep(0.2)
+
+        # Afficher le résultat final
         if success:
-            print(f"Succès: {message}")
+            log.success(f"Succès: {message}")
             sys.exit(0)
         else:
-            print(f"Erreur: {message}")
+            log.error(f"Échec: {message}")
             sys.exit(1)
 
-    except json.JSONDecodeError:
-        print("Erreur: Configuration JSON invalide")
+    except json.JSONDecodeError as je:
+        log.error("Erreur: Configuration JSON invalide")
         sys.exit(1)
     except Exception as e:
-        print(f"Erreur inattendue: {e}")
+        log.error(f"Erreur inattendue: {e}")
+        log.debug(traceback.format_exc())
         sys.exit(1)

@@ -4,6 +4,7 @@ version: 1.0
 category: Système
 multiple: true
 icon: 🖨
+remote_execution: false
 config_fields:
   printer_all:
     type: checkbox
@@ -13,13 +14,15 @@ config_fields:
 
   printer_ip:
     type: ip
-    label: Adresse IP de l'imprimante à supprimer
+    label: Adresse IP
+    description: Adresse IP de l'imprimante
     required: true
     not_empty: true
-    enabled_if:
-      field: printer_all
-      value: false
-    placeholder: "Ex: 192.168.1.100"
     dynamic_default:
       script: get_ip.py
       function: get_local_ip
+      value_key: ip
+      path: "@[scripts]"
+    enabled_if:
+      field: "printer_all"
+      value: false

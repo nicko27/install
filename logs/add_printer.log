@@ -1,0 +1,452 @@
+[2025-03-21 10:20:47,812] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-21 10:20:47,813] [ERROR] Erreur inattendue: 'NoneType' object has no attribute 'get'
+[2025-03-21 10:20:47,813] [DEBUG] Traceback (most recent call last):
+  File "/media/nicolas.voirin/Drive/pcUtils/plugins/add_printer/exec.py", line 283, in execute_plugin
+    couleurs = int(model_content.get('couleurs', 0))
+AttributeError: 'NoneType' object has no attribute 'get'
+
+[2025-03-21 10:20:48,013] [ERROR] Échec: Erreur inattendue: 'NoneType' object has no attribute 'get'
+[2025-03-21 10:22:02,580] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-21 10:22:02,581] [ERROR] Erreur inattendue: 'NoneType' object has no attribute 'get'
+[2025-03-21 10:22:02,581] [DEBUG] Traceback (most recent call last):
+  File "/media/nicolas.voirin/Drive/pcUtils/plugins/add_printer/exec.py", line 283, in execute_plugin
+    couleurs = int(model_content.get('couleurs', 0))
+AttributeError: 'NoneType' object has no attribute 'get'
+
+[2025-03-21 10:22:02,781] [ERROR] Échec: Erreur inattendue: 'NoneType' object has no attribute 'get'
+[2025-03-21 10:22:30,993] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-21 10:22:30,993] [INFO] [PROGRESS] 25 1 4 add_printer 1
+[2025-03-21 10:22:30,993] [INFO] Installation de l'imprimante BT avec IP 128.81.4.184
+[2025-03-21 10:22:30,993] [INFO] [PROGRESS] 50 2 4 add_printer 1
+[2025-03-21 10:22:30,993] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-21 10:22:30,993] [INFO] [PROGRESS] 75 3 4 add_printer 1
+[2025-03-21 10:22:30,993] [INFO] Installation de _BT_Recto_NB
+[2025-03-21 10:22:30,993] [INFO] Exécution de: lpadmin -p _BT_Recto_NB -v 128.81.4.184 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false     -E
+[2025-03-21 10:22:31,010] [ERROR] lpadmin : Bad device-uri "128.81.4.184".
+[2025-03-21 10:22:31,010] [ERROR] Erreur lors de l'ajout de l'imprimante
+[2025-03-21 10:22:31,211] [ERROR] Échec: Erreur lors de l'ajout de l'imprimante
+[2025-03-21 10:23:37,680] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-21 10:23:37,680] [INFO] [PROGRESS] 25 1 4 add_printer 1
+[2025-03-21 10:23:37,680] [INFO] Installation de l'imprimante BT avec IP 128.81.4.184
+[2025-03-21 10:23:37,680] [INFO] [PROGRESS] 50 2 4 add_printer 1
+[2025-03-21 10:23:37,680] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-21 10:23:37,680] [INFO] [PROGRESS] 75 3 4 add_printer 1
+[2025-03-21 10:23:37,680] [INFO] Installation de _BT_Recto_NB
+[2025-03-21 10:23:37,680] [INFO] Exécution de: lpadmin -p _BT_Recto_NB -v 128.81.4.184 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false     -E
+[2025-03-21 10:23:37,687] [ERROR] lpadmin : Bad device-uri "128.81.4.184".
+[2025-03-21 10:23:37,687] [ERROR] Erreur lors de l'ajout de l'imprimante
+[2025-03-21 10:23:37,887] [ERROR] Échec: Erreur lors de l'ajout de l'imprimante
+[2025-03-21 10:24:36,435] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-21 10:24:36,435] [INFO] {'printer_name': 'BT', 'printer_model': 'KM227.yml', 'printer_ip': '128.81.4.184', 'printer_a3': None, 'remote_execution': False}
+[2025-03-21 10:24:36,435] [ERROR] Erreur inattendue: 'NoneType' object has no attribute 'get'
+[2025-03-21 10:24:36,435] [DEBUG] Traceback (most recent call last):
+  File "/media/nicolas.voirin/Drive/pcUtils/plugins/add_printer/exec.py", line 278, in execute_plugin
+    couleurs = int(model_content.get('couleurs', 0))
+AttributeError: 'NoneType' object has no attribute 'get'
+
+[2025-03-21 10:24:36,636] [ERROR] Échec: Erreur inattendue: 'NoneType' object has no attribute 'get'
+[2025-03-21 10:25:35,339] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-21 10:25:35,339] [INFO] {'printer_name': 'BT', 'printer_model': 'KM227.yml', 'printer_ip': '128.81.4.184', 'printer_a3': None, 'remote_execution': False}
+[2025-03-21 10:25:35,339] [INFO] [PROGRESS] 20 1 5 add_printer 1
+[2025-03-21 10:25:35,339] [INFO] Installation de l'imprimante BT avec IP 128.81.4.184
+[2025-03-21 10:25:35,339] [INFO] [PROGRESS] 40 2 5 add_printer 1
+[2025-03-21 10:25:35,339] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-21 10:25:35,339] [INFO] [PROGRESS] 60 3 5 add_printer 1
+[2025-03-21 10:25:35,339] [INFO] Installation de KMC227_BT_Recto_NB
+[2025-03-21 10:25:35,339] [INFO] Exécution de: lpadmin -p KMC227_BT_Recto_NB -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -v ipp://128.81.4.184 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale -E
+[2025-03-21 10:25:35,425] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 10:25:35,425] [INFO] Exécution de: lpadmin -d KMC227_BT_Recto_NB
+[2025-03-21 10:25:35,434] [INFO] [PROGRESS] 80 4 5 add_printer 1
+[2025-03-21 10:25:35,435] [INFO] Installation de KMC227_BT_RectoVerso_NB
+[2025-03-21 10:25:35,435] [INFO] Exécution de: lpadmin -p KMC227_BT_RectoVerso_NB -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -v ipp://128.81.4.184 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale -E
+[2025-03-21 10:25:35,491] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 10:25:35,491] [INFO] Exécution de: lpadmin -d KMC227_BT_RectoVerso_NB
+[2025-03-21 10:25:35,496] [INFO] Redémarrage du service CUPS
+[2025-03-21 10:25:58,640] [ERROR] Failed to restart cups.service: Access denied
+[2025-03-21 10:25:58,640] [ERROR] See system logs and 'systemctl status cups.service' for details.
+[2025-03-21 10:25:58,640] [ERROR] Erreur lors du redémarrage du service CUPS
+[2025-03-21 10:25:58,840] [ERROR] Échec: Erreur lors du redémarrage de CUPS
+[2025-03-21 10:26:30,062] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-21 10:26:30,063] [INFO] {'printer_name': 'BT', 'printer_model': 'KM227C.yml', 'printer_ip': '128.81.4.184', 'printer_a3': None, 'remote_execution': False}
+[2025-03-21 10:26:30,063] [INFO] [PROGRESS] 14 1 7 add_printer 1
+[2025-03-21 10:26:30,063] [INFO] Installation de l'imprimante BT avec IP 128.81.4.184
+[2025-03-21 10:26:30,063] [INFO] [PROGRESS] 28 2 7 add_printer 1
+[2025-03-21 10:26:30,063] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-21 10:26:30,063] [INFO] [PROGRESS] 42 3 7 add_printer 1
+[2025-03-21 10:26:30,063] [INFO] Installation de KMC227_BT_Recto_NB
+[2025-03-21 10:26:30,063] [INFO] Exécution de: lpadmin -p KMC227_BT_Recto_NB -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -v ipp://128.81.4.184 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale -E
+[2025-03-21 10:26:30,119] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 10:26:30,119] [INFO] Exécution de: lpadmin -d KMC227_BT_Recto_NB
+[2025-03-21 10:26:30,124] [INFO] [PROGRESS] 57 4 7 add_printer 1
+[2025-03-21 10:26:30,124] [INFO] Installation de KMC227_BT_Recto_Couleurs
+[2025-03-21 10:26:30,124] [INFO] Exécution de: lpadmin -p KMC227_BT_Recto_Couleurs -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -v ipp://128.81.4.184 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Color -E
+[2025-03-21 10:26:30,174] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 10:26:30,174] [INFO] Exécution de: lpadmin -d KMC227_BT_Recto_Couleurs
+[2025-03-21 10:26:30,180] [INFO] [PROGRESS] 71 5 7 add_printer 1
+[2025-03-21 10:26:30,180] [INFO] Installation de KMC227_BT_RectoVerso_Couleurs
+[2025-03-21 10:26:30,180] [INFO] Exécution de: lpadmin -p KMC227_BT_RectoVerso_Couleurs -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -v ipp://128.81.4.184 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Color -E
+[2025-03-21 10:26:30,231] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 10:26:30,231] [INFO] Exécution de: lpadmin -d KMC227_BT_RectoVerso_Couleurs
+[2025-03-21 10:26:30,236] [INFO] [PROGRESS] 85 6 7 add_printer 1
+[2025-03-21 10:26:30,236] [INFO] Installation de KMC227_BT_RectoVerso_NB
+[2025-03-21 10:26:30,236] [INFO] Exécution de: lpadmin -p KMC227_BT_RectoVerso_NB -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -v ipp://128.81.4.184 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale -E
+[2025-03-21 10:26:30,285] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 10:26:30,285] [INFO] Exécution de: lpadmin -d KMC227_BT_RectoVerso_NB
+[2025-03-21 10:26:30,290] [INFO] Redémarrage du service CUPS
+[2025-03-21 10:26:30,436] [INFO] [SUCCESS] Service CUPS redémarré avec succès
+[2025-03-21 10:26:30,437] [INFO] [SUCCESS] Ajout de l'imprimante effectué avec succès
+[2025-03-21 10:26:30,637] [INFO] [SUCCESS] Succès: Ajout de l'imprimante effectué avec succès
+[2025-03-21 10:29:07,756] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-21 10:29:07,757] [INFO] {'printer_ip': '128.81.4.184', 'printer_name': 'SOLC', 'printer_model': 'KM227.yml', 'printer_a3': None, 'remote_execution': False}
+[2025-03-21 10:29:07,757] [INFO] [PROGRESS] 20 1 5 add_printer 1
+[2025-03-21 10:29:07,757] [INFO] Installation de l'imprimante SOLC avec IP 128.81.4.184
+[2025-03-21 10:29:07,757] [INFO] [PROGRESS] 40 2 5 add_printer 1
+[2025-03-21 10:29:07,757] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-21 10:29:07,757] [INFO] [PROGRESS] 60 3 5 add_printer 1
+[2025-03-21 10:29:07,757] [INFO] Installation de KMC227_SOLC_Recto_NB
+[2025-03-21 10:29:07,757] [INFO] Exécution de: lpadmin -p KMC227_SOLC_Recto_NB -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -v ipp://128.81.4.184 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale -E
+[2025-03-21 10:29:07,814] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 10:29:07,814] [INFO] Exécution de: lpadmin -d KMC227_SOLC_Recto_NB
+[2025-03-21 10:29:07,819] [INFO] [PROGRESS] 80 4 5 add_printer 1
+[2025-03-21 10:29:07,819] [INFO] Installation de KMC227_SOLC_RectoVerso_NB
+[2025-03-21 10:29:07,819] [INFO] Exécution de: lpadmin -p KMC227_SOLC_RectoVerso_NB -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -v ipp://128.81.4.184 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale -E
+[2025-03-21 10:29:07,886] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 10:29:07,886] [INFO] Exécution de: lpadmin -d KMC227_SOLC_RectoVerso_NB
+[2025-03-21 10:29:07,891] [INFO] Redémarrage du service CUPS
+[2025-03-21 10:29:08,033] [INFO] [SUCCESS] Service CUPS redémarré avec succès
+[2025-03-21 10:29:08,033] [INFO] [SUCCESS] Ajout de l'imprimante effectué avec succès
+[2025-03-21 10:29:08,233] [INFO] [SUCCESS] Succès: Ajout de l'imprimante effectué avec succès
+[2025-03-21 10:31:33,139] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-21 10:31:33,139] [INFO] {'printer_ip': '128.81.4.184', 'printer_name': 'BT', 'printer_model': 'KM227.yml', 'printer_a3': None, 'remote_execution': False}
+[2025-03-21 10:31:33,139] [INFO] [PROGRESS] 20 1 5 add_printer 1
+[2025-03-21 10:31:33,139] [INFO] Installation de l'imprimante BT avec IP 128.81.4.184
+[2025-03-21 10:31:33,139] [INFO] [PROGRESS] 40 2 5 add_printer 1
+[2025-03-21 10:31:33,139] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-21 10:31:33,139] [INFO] [PROGRESS] 60 3 5 add_printer 1
+[2025-03-21 10:31:33,139] [INFO] Installation de KMC227_BT_Recto_NB
+[2025-03-21 10:31:33,139] [INFO] Exécution de: lpadmin -p KMC227_BT_Recto_NB -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -v ipp://128.81.4.184 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale -E
+[2025-03-21 10:31:33,195] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 10:31:33,195] [INFO] Exécution de: lpadmin -d KMC227_BT_Recto_NB
+[2025-03-21 10:31:33,201] [INFO] [PROGRESS] 80 4 5 add_printer 1
+[2025-03-21 10:31:33,201] [INFO] Installation de KMC227_BT_RectoVerso_NB
+[2025-03-21 10:31:33,202] [INFO] Exécution de: lpadmin -p KMC227_BT_RectoVerso_NB -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -v ipp://128.81.4.184 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale -E
+[2025-03-21 10:31:33,251] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 10:31:33,251] [INFO] Exécution de: lpadmin -d KMC227_BT_RectoVerso_NB
+[2025-03-21 10:31:33,255] [INFO] Redémarrage du service CUPS
+[2025-03-21 10:31:33,385] [INFO] [SUCCESS] Service CUPS redémarré avec succès
+[2025-03-21 10:31:33,385] [INFO] [SUCCESS] Ajout de l'imprimante effectué avec succès
+[2025-03-21 10:31:33,586] [INFO] [SUCCESS] Succès: Ajout de l'imprimante effectué avec succès
+[2025-03-21 11:02:19,089] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-21 11:02:19,089] [INFO] {'printer_name': 'BT', 'printer_model': 'KM227.yml', 'printer_ip': '192.168.1.220', 'printer_a3': None, 'remote_execution': False}
+[2025-03-21 11:02:19,089] [INFO] [PROGRESS] 20 1 5 add_printer 1
+[2025-03-21 11:02:19,089] [INFO] Installation de l'imprimante BT avec IP 192.168.1.220
+[2025-03-21 11:02:19,089] [INFO] [PROGRESS] 40 2 5 add_printer 1
+[2025-03-21 11:02:19,089] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-21 11:02:19,089] [INFO] [PROGRESS] 60 3 5 add_printer 1
+[2025-03-21 11:02:19,089] [INFO] Installation de KMC227_BT_Recto_NB
+[2025-03-21 11:02:19,089] [INFO] Exécution de: lpadmin -p KMC227_BT_Recto_NB -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -v ipp://192.168.1.220 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale -E
+[2025-03-21 11:02:19,096] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 11:02:19,096] [ERROR] lpadmin: Unable to open PPD "/usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd": Unable to open PPD file on line 0.
+[2025-03-21 11:02:19,096] [ERROR] Erreur lors de l'ajout de l'imprimante
+[2025-03-21 11:02:19,297] [ERROR] Échec: Erreur lors de l'ajout de l'imprimante
+[2025-03-21 11:05:51,666] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-21 11:05:51,667] [INFO] {'printer_name': 'BT', 'printer_model': 'KM227.yml', 'printer_ip': '128.81.4.184', 'printer_a3': None, 'remote_execution': False}
+[2025-03-21 11:05:51,667] [INFO] [PROGRESS] 20 1 5 add_printer 1
+[2025-03-21 11:05:51,667] [INFO] Installation de l'imprimante BT avec IP 128.81.4.184
+[2025-03-21 11:05:51,667] [INFO] [PROGRESS] 40 2 5 add_printer 1
+[2025-03-21 11:05:51,667] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-21 11:05:51,667] [INFO] [PROGRESS] 60 3 5 add_printer 1
+[2025-03-21 11:05:51,667] [INFO] Installation de KMC227_BT_Recto_NB
+[2025-03-21 11:05:51,667] [INFO] Exécution de: lpadmin -p KMC227_BT_Recto_NB -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -v ipp://128.81.4.184 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale -E
+[2025-03-21 11:05:51,728] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 11:05:51,728] [INFO] Exécution de: lpadmin -d KMC227_BT_Recto_NB
+[2025-03-21 11:05:51,734] [INFO] [PROGRESS] 80 4 5 add_printer 1
+[2025-03-21 11:05:51,734] [INFO] Installation de KMC227_BT_RectoVerso_NB
+[2025-03-21 11:05:51,734] [INFO] Exécution de: lpadmin -p KMC227_BT_RectoVerso_NB -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -v ipp://128.81.4.184 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale -E
+[2025-03-21 11:05:51,794] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 11:05:51,794] [INFO] Exécution de: lpadmin -d KMC227_BT_RectoVerso_NB
+[2025-03-21 11:05:51,799] [INFO] Redémarrage du service CUPS
+[2025-03-21 11:05:53,781] [ERROR] Failed to restart cups.service: Access denied
+[2025-03-21 11:05:53,781] [ERROR] See system logs and 'systemctl status cups.service' for details.
+[2025-03-21 11:05:53,781] [ERROR] Erreur lors du redémarrage du service CUPS
+[2025-03-21 11:05:53,981] [ERROR] Échec: Erreur lors du redémarrage de CUPS
+[2025-03-21 11:13:03,535] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-21 11:13:03,535] [INFO] {'printer_name': 'BT', 'printer_model': 'KM227.yml', 'printer_ip': '128.81.4.184', 'printer_a3': None, 'remote_execution': False}
+[2025-03-21 11:13:03,535] [INFO] [PROGRESS] 20 1 5 add_printer 1
+[2025-03-21 11:13:03,535] [INFO] Installation de l'imprimante BT avec IP 128.81.4.184
+[2025-03-21 11:13:03,535] [INFO] [PROGRESS] 40 2 5 add_printer 1
+[2025-03-21 11:13:03,535] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-21 11:13:03,535] [INFO] [PROGRESS] 60 3 5 add_printer 1
+[2025-03-21 11:13:03,535] [INFO] Installation de KMC227_BT_Recto_NB
+[2025-03-21 11:13:03,535] [INFO] Exécution de: lpadmin -p KMC227_BT_Recto_NB -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -v ipp://128.81.4.184 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale -E
+[2025-03-21 11:13:03,629] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 11:13:03,629] [INFO] Exécution de: lpadmin -d KMC227_BT_Recto_NB
+[2025-03-21 11:13:03,634] [INFO] [PROGRESS] 80 4 5 add_printer 1
+[2025-03-21 11:13:03,634] [INFO] Installation de KMC227_BT_RectoVerso_NB
+[2025-03-21 11:13:03,634] [INFO] Exécution de: lpadmin -p KMC227_BT_RectoVerso_NB -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -v ipp://128.81.4.184 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale -E
+[2025-03-21 11:13:03,702] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 11:13:03,702] [INFO] Exécution de: lpadmin -d KMC227_BT_RectoVerso_NB
+[2025-03-21 11:13:03,707] [INFO] Redémarrage du service CUPS
+[2025-03-21 11:13:06,774] [ERROR] Failed to restart cups.service: Access denied
+[2025-03-21 11:13:06,774] [ERROR] See system logs and 'systemctl status cups.service' for details.
+[2025-03-21 11:13:06,774] [ERROR] Erreur lors du redémarrage du service CUPS
+[2025-03-21 11:13:06,974] [ERROR] Échec: Erreur lors du redémarrage de CUPS
+[2025-03-21 11:13:24,792] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-21 11:13:24,792] [INFO] {'printer_name': 'BT', 'printer_model': 'KM227.yml', 'printer_ip': '128.81.4.184', 'printer_a3': None, 'remote_execution': False}
+[2025-03-21 11:13:24,792] [INFO] [PROGRESS] 20 1 5 add_printer 1
+[2025-03-21 11:13:24,792] [INFO] Installation de l'imprimante BT avec IP 128.81.4.184
+[2025-03-21 11:13:24,792] [INFO] [PROGRESS] 40 2 5 add_printer 1
+[2025-03-21 11:13:24,792] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-21 11:13:24,792] [INFO] [PROGRESS] 60 3 5 add_printer 1
+[2025-03-21 11:13:24,792] [INFO] Installation de KMC227_BT_Recto_NB
+[2025-03-21 11:13:24,792] [INFO] Exécution de: lpadmin -p KMC227_BT_Recto_NB -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -v ipp://128.81.4.184 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale -E
+[2025-03-21 11:13:24,888] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 11:13:24,888] [INFO] Exécution de: lpadmin -d KMC227_BT_Recto_NB
+[2025-03-21 11:13:24,893] [INFO] [PROGRESS] 80 4 5 add_printer 1
+[2025-03-21 11:13:24,893] [INFO] Installation de KMC227_BT_RectoVerso_NB
+[2025-03-21 11:13:24,893] [INFO] Exécution de: lpadmin -p KMC227_BT_RectoVerso_NB -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -v ipp://128.81.4.184 -u allow:all -o -o cupsIPPSuplies=true -o printer-is-shared=false  -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale -E
+[2025-03-21 11:13:24,946] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 11:13:24,946] [INFO] Exécution de: lpadmin -d KMC227_BT_RectoVerso_NB
+[2025-03-21 11:13:24,952] [INFO] Redémarrage du service CUPS
+[2025-03-21 11:30:24,700] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-21 11:30:24,700] [INFO] {'printer_name': 'BT', 'printer_model': 'KM227.yml', 'printer_ip': '128.81.4.184', 'printer_a3': None, 'remote_execution': False}
+[2025-03-21 11:30:24,700] [INFO] [PROGRESS] 20 1 5 add_printer 1
+[2025-03-21 11:30:24,700] [INFO] Installation de l'imprimante BT avec IP 128.81.4.184
+[2025-03-21 11:30:24,700] [INFO] [PROGRESS] 40 2 5 add_printer 1
+[2025-03-21 11:30:24,700] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-21 11:30:24,700] [INFO] [PROGRESS] 60 3 5 add_printer 1
+[2025-03-21 11:30:24,700] [INFO] Installation de KMC227_BT_Recto_NB
+[2025-03-21 11:30:24,701] [INFO] Ajout de l'imprimante KMC227_BT_Recto_NB avec PPD /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd
+[2025-03-21 11:30:24,701] [INFO] Exécution de: lpadmin -p KMC227_BT_Recto_NB -v ipp://128.81.4.184 -u allow:all -E -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -o cupsIPPSuplies=true -o printer-is-shared=false
+[2025-03-21 11:30:24,760] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 11:30:24,760] [INFO] [SUCCESS] Imprimante KMC227_BT_Recto_NB ajoutée avec succès
+[2025-03-21 11:30:24,760] [INFO] Définition de KMC227_BT_Recto_NB comme imprimante par défaut
+[2025-03-21 11:30:24,765] [INFO] [SUCCESS] Imprimante KMC227_BT_Recto_NB définie comme imprimante par défaut
+[2025-03-21 11:30:24,765] [INFO] [PROGRESS] 80 4 5 add_printer 1
+[2025-03-21 11:30:24,765] [INFO] Installation de KMC227_BT_RectoVerso_NB
+[2025-03-21 11:30:24,765] [INFO] Ajout de l'imprimante KMC227_BT_RectoVerso_NB avec PPD /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd
+[2025-03-21 11:30:24,765] [INFO] Exécution de: lpadmin -p KMC227_BT_RectoVerso_NB -v ipp://128.81.4.184 -u allow:all -E -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -o cupsIPPSuplies=true -o printer-is-shared=false
+[2025-03-21 11:30:24,821] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 11:30:24,821] [INFO] [SUCCESS] Imprimante KMC227_BT_RectoVerso_NB ajoutée avec succès
+[2025-03-21 11:30:24,821] [INFO] Redémarrage du service CUPS
+[2025-03-21 11:30:24,821] [INFO] Redémarrage du service cups
+[2025-03-21 11:30:36,731] [ERROR] sudo: 3 saisies de mots de passe incorrectes
+[2025-03-21 11:30:36,731] [ERROR] Échec du redémarrage du service cups
+[2025-03-21 11:30:36,731] [ERROR] Erreur lors du redémarrage du service CUPS
+[2025-03-21 11:30:36,932] [ERROR] Échec: Erreur lors du redémarrage de CUPS
+[2025-03-21 11:31:04,212] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-21 11:31:04,212] [INFO] {'printer_name': 'BT', 'printer_model': 'KM227.yml', 'printer_ip': '128.81.4.184', 'printer_a3': None, 'remote_execution': False}
+[2025-03-21 11:31:04,212] [INFO] [PROGRESS] 20 1 5 add_printer 1
+[2025-03-21 11:31:04,212] [INFO] Installation de l'imprimante BT avec IP 128.81.4.184
+[2025-03-21 11:31:04,212] [INFO] [PROGRESS] 40 2 5 add_printer 1
+[2025-03-21 11:31:04,212] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-21 11:31:04,212] [INFO] [PROGRESS] 60 3 5 add_printer 1
+[2025-03-21 11:31:04,212] [INFO] Installation de KMC227_BT_Recto_NB
+[2025-03-21 11:31:04,212] [INFO] Ajout de l'imprimante KMC227_BT_Recto_NB avec PPD /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd
+[2025-03-21 11:31:04,212] [INFO] Exécution de: lpadmin -p KMC227_BT_Recto_NB -v ipp://128.81.4.184 -u allow:all -E -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -o cupsIPPSuplies=true -o printer-is-shared=false
+[2025-03-21 11:31:04,270] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 11:31:04,271] [INFO] [SUCCESS] Imprimante KMC227_BT_Recto_NB ajoutée avec succès
+[2025-03-21 11:31:04,271] [INFO] Définition de KMC227_BT_Recto_NB comme imprimante par défaut
+[2025-03-21 11:31:04,277] [INFO] [SUCCESS] Imprimante KMC227_BT_Recto_NB définie comme imprimante par défaut
+[2025-03-21 11:31:04,277] [INFO] [PROGRESS] 80 4 5 add_printer 1
+[2025-03-21 11:31:04,277] [INFO] Installation de KMC227_BT_RectoVerso_NB
+[2025-03-21 11:31:04,277] [INFO] Ajout de l'imprimante KMC227_BT_RectoVerso_NB avec PPD /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd
+[2025-03-21 11:31:04,277] [INFO] Exécution de: lpadmin -p KMC227_BT_RectoVerso_NB -v ipp://128.81.4.184 -u allow:all -E -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -o cupsIPPSuplies=true -o printer-is-shared=false
+[2025-03-21 11:31:04,334] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 11:31:04,334] [INFO] [SUCCESS] Imprimante KMC227_BT_RectoVerso_NB ajoutée avec succès
+[2025-03-21 11:31:04,334] [INFO] Redémarrage du service CUPS
+[2025-03-21 11:31:04,334] [INFO] Redémarrage du service cups
+[2025-03-21 11:31:04,493] [INFO] [SUCCESS] Service cups redémarré avec succès
+[2025-03-21 11:31:04,493] [INFO] [SUCCESS] Service CUPS redémarré avec succès
+[2025-03-21 11:31:04,493] [INFO] [SUCCESS] Ajout de l'imprimante effectué avec succès
+[2025-03-21 11:31:04,693] [INFO] [SUCCESS] Succès: Ajout de l'imprimante effectué avec succès
+[2025-03-21 11:49:10,308] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-21 11:49:10,308] [INFO] {'printer_name': 'BT', 'printer_model': 'KM227.yml', 'printer_ip': '128.81.4.184', 'printer_a3': None, 'remote_execution': False}
+[2025-03-21 11:49:10,308] [INFO] [PROGRESS] 20 1 5 add_printer 1
+[2025-03-21 11:49:10,308] [INFO] Installation de l'imprimante BT avec IP 128.81.4.184
+[2025-03-21 11:49:10,308] [INFO] [PROGRESS] 40 2 5 add_printer 1
+[2025-03-21 11:49:10,308] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-21 11:49:10,308] [INFO] [PROGRESS] 60 3 5 add_printer 1
+[2025-03-21 11:49:10,308] [INFO] Installation de KMC227_BT_Recto_NB
+[2025-03-21 11:49:10,308] [INFO] Ajout de l'imprimante KMC227_BT_Recto_NB (ipp://128.81.4.184) avec PPD /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd
+[2025-03-21 11:49:10,308] [INFO] Exécution de: lpadmin -p KMC227_BT_Recto_NB -v ipp://128.81.4.184 -u allow:all -E -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale -o printer-is-shared=false
+[2025-03-21 11:49:10,367] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 11:49:10,367] [INFO] [SUCCESS] Imprimante KMC227_BT_Recto_NB ajoutée avec succès
+[2025-03-21 11:49:10,367] [INFO] [PROGRESS] 80 4 5 add_printer 1
+[2025-03-21 11:49:10,368] [INFO] Installation de KMC227_BT_RectoVerso_NB
+[2025-03-21 11:49:10,368] [INFO] Ajout de l'imprimante KMC227_BT_RectoVerso_NB (ipp://128.81.4.184) avec PPD /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd
+[2025-03-21 11:49:10,368] [INFO] Exécution de: lpadmin -p KMC227_BT_RectoVerso_NB -v ipp://128.81.4.184 -u allow:all -E -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale -o printer-is-shared=false
+[2025-03-21 11:49:10,419] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 11:49:10,419] [INFO] [SUCCESS] Imprimante KMC227_BT_RectoVerso_NB ajoutée avec succès
+[2025-03-21 11:49:10,420] [INFO] Redémarrage du service CUPS
+[2025-03-21 11:49:10,420] [INFO] Redémarrage du service cups
+[2025-03-21 11:49:10,555] [INFO] [SUCCESS] Service cups redémarré avec succès
+[2025-03-21 11:49:10,555] [INFO] [SUCCESS] Service CUPS redémarré avec succès
+[2025-03-21 11:49:10,555] [INFO] [SUCCESS] Ajout de l'imprimante effectué avec succès
+[2025-03-21 11:49:10,756] [INFO] [SUCCESS] Succès: Ajout de l'imprimante effectué avec succès
+[2025-03-21 11:55:29,753] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-21 11:55:29,753] [INFO] {'printer_ip': '128.81.4.184', 'printer_name': 'BT', 'printer_model': 'KM227C.yml', 'printer_a3': None, 'remote_execution': False}
+[2025-03-21 11:55:29,753] [INFO] [PROGRESS] 14 1 7 add_printer 2
+[2025-03-21 11:55:29,753] [INFO] Installation de l'imprimante BT avec IP 128.81.4.184
+[2025-03-21 11:55:29,753] [INFO] [PROGRESS] 28 2 7 add_printer 2
+[2025-03-21 11:55:29,753] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-21 11:55:29,753] [INFO] [PROGRESS] 42 3 7 add_printer 2
+[2025-03-21 11:55:29,753] [INFO] Installation de KMC227_BT_Recto_NB
+[2025-03-21 11:55:29,753] [INFO] Ajout de l'imprimante KMC227_BT_Recto_NB (ipp://128.81.4.184) avec PPD /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd
+[2025-03-21 11:55:29,754] [INFO] Exécution de: lpadmin -p KMC227_BT_Recto_NB -v ipp://128.81.4.184 -u allow:all -E -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale -o printer-is-shared=false
+[2025-03-21 11:55:29,829] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 11:55:29,829] [INFO] [SUCCESS] Imprimante KMC227_BT_Recto_NB ajoutée avec succès
+[2025-03-21 11:55:29,829] [INFO] [PROGRESS] 57 4 7 add_printer 2
+[2025-03-21 11:55:29,829] [INFO] Installation de KMC227_BT_Recto_Couleurs
+[2025-03-21 11:55:29,829] [INFO] [PROGRESS] 71 5 7 add_printer 2
+[2025-03-21 11:55:29,829] [INFO] Installation de KMC227_BT_RectoVerso_Couleurs
+[2025-03-21 11:55:29,829] [ERROR] Erreur inattendue: PrinterCommands.add_printer() got an unexpected keyword argument 'ppd_file'
+[2025-03-21 11:55:29,829] [DEBUG] Traceback (most recent call last):
+  File "/media/nicolas.voirin/Drive/pcUtils/plugins/add_printer/exec.py", line 155, in execute_plugin
+    returnValue = printer_manager.add_printer(name, ip, ppd_file=driver_param, options=options)
+TypeError: PrinterCommands.add_printer() got an unexpected keyword argument 'ppd_file'
+
+[2025-03-21 11:55:30,030] [ERROR] Échec: Erreur inattendue: PrinterCommands.add_printer() got an unexpected keyword argument 'ppd_file'
+[2025-03-21 11:58:59,511] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-21 11:58:59,511] [INFO] {'printer_name': 'BT', 'printer_model': 'KM227C.yml', 'printer_ip': '128.81.4.184', 'printer_a3': None, 'remote_execution': False}
+[2025-03-21 11:58:59,511] [INFO] [PROGRESS] 14 1 7 add_printer 1
+[2025-03-21 11:58:59,511] [INFO] Installation de l'imprimante BT avec IP 128.81.4.184
+[2025-03-21 11:58:59,511] [INFO] [PROGRESS] 28 2 7 add_printer 1
+[2025-03-21 11:58:59,511] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-21 11:58:59,511] [INFO] [PROGRESS] 42 3 7 add_printer 1
+[2025-03-21 11:58:59,511] [INFO] Installation de KMC227_BT_Recto_NB
+[2025-03-21 11:58:59,511] [INFO] Ajout de l'imprimante KMC227_BT_Recto_NB (ipp://128.81.4.184) avec PPD /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd
+[2025-03-21 11:58:59,511] [INFO] Exécution de: lpadmin -p KMC227_BT_Recto_NB -v ipp://128.81.4.184 -u allow:all -E -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale -o printer-is-shared=false
+[2025-03-21 11:58:59,574] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 11:58:59,574] [INFO] [SUCCESS] Imprimante KMC227_BT_Recto_NB ajoutée avec succès
+[2025-03-21 11:58:59,574] [INFO] [PROGRESS] 57 4 7 add_printer 1
+[2025-03-21 11:58:59,574] [INFO] Installation de KMC227_BT_Recto_Couleurs
+[2025-03-21 11:58:59,574] [INFO] [PROGRESS] 71 5 7 add_printer 1
+[2025-03-21 11:58:59,574] [INFO] Installation de KMC227_BT_RectoVerso_Couleurs
+[2025-03-21 11:58:59,574] [ERROR] Erreur inattendue: PrinterCommands.add_printer() got an unexpected keyword argument 'ppd_file'
+[2025-03-21 11:58:59,574] [DEBUG] Traceback (most recent call last):
+  File "/media/nicolas.voirin/Drive/pcUtils/plugins/add_printer/exec.py", line 155, in execute_plugin
+    returnValue = printer_manager.add_printer(name, ip, ppd_file=driver_param, options=options)
+TypeError: PrinterCommands.add_printer() got an unexpected keyword argument 'ppd_file'
+
+[2025-03-21 11:58:59,775] [ERROR] Échec: Erreur inattendue: PrinterCommands.add_printer() got an unexpected keyword argument 'ppd_file'
+[2025-03-21 11:59:49,429] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-21 11:59:49,429] [INFO] {'printer_name': 'BT', 'printer_model': 'KM227C.yml', 'printer_ip': '128.81.4.184', 'printer_a3': None, 'remote_execution': False}
+[2025-03-21 11:59:49,429] [INFO] [PROGRESS] 14 1 7 add_printer 1
+[2025-03-21 11:59:49,429] [INFO] Installation de l'imprimante BT avec IP 128.81.4.184
+[2025-03-21 11:59:49,429] [INFO] [PROGRESS] 28 2 7 add_printer 1
+[2025-03-21 11:59:49,429] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-21 11:59:49,429] [INFO] [PROGRESS] 42 3 7 add_printer 1
+[2025-03-21 11:59:49,430] [INFO] Installation de KMC227_BT_Recto_NB
+[2025-03-21 11:59:49,430] [INFO] Ajout de l'imprimante KMC227_BT_Recto_NB (ipp://128.81.4.184) avec PPD /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd
+[2025-03-21 11:59:49,430] [INFO] Exécution de: lpadmin -p KMC227_BT_Recto_NB -v ipp://128.81.4.184 -u allow:all -E -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale -o printer-is-shared=false
+[2025-03-21 11:59:49,515] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 11:59:49,515] [INFO] [SUCCESS] Imprimante KMC227_BT_Recto_NB ajoutée avec succès
+[2025-03-21 11:59:49,515] [INFO] [PROGRESS] 57 4 7 add_printer 1
+[2025-03-21 11:59:49,515] [INFO] Installation de KMC227_BT_Recto_Couleurs
+[2025-03-21 11:59:49,515] [INFO] [PROGRESS] 71 5 7 add_printer 1
+[2025-03-21 11:59:49,515] [INFO] Installation de KMC227_BT_RectoVerso_Couleurs
+[2025-03-21 11:59:49,515] [INFO] Ajout de l'imprimante KMC227_BT_RectoVerso_Couleurs (ipp://128.81.4.184) avec PPD /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd
+[2025-03-21 11:59:49,515] [INFO] Exécution de: lpadmin -p KMC227_BT_RectoVerso_Couleurs -v ipp://128.81.4.184 -u allow:all -E -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Color -o printer-is-shared=false
+[2025-03-21 11:59:49,579] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 11:59:49,579] [INFO] [SUCCESS] Imprimante KMC227_BT_RectoVerso_Couleurs ajoutée avec succès
+[2025-03-21 11:59:49,579] [INFO] [PROGRESS] 85 6 7 add_printer 1
+[2025-03-21 11:59:49,579] [INFO] Installation de KMC227_BT_RectoVerso_NB
+[2025-03-21 11:59:49,579] [INFO] Ajout de l'imprimante KMC227_BT_RectoVerso_NB (ipp://128.81.4.184) avec PPD /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd
+[2025-03-21 11:59:49,579] [INFO] Exécution de: lpadmin -p KMC227_BT_RectoVerso_NB -v ipp://128.81.4.184 -u allow:all -E -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale -o printer-is-shared=false
+[2025-03-21 11:59:49,636] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 11:59:49,636] [INFO] [SUCCESS] Imprimante KMC227_BT_RectoVerso_NB ajoutée avec succès
+[2025-03-21 11:59:49,636] [INFO] Redémarrage du service CUPS
+[2025-03-21 11:59:49,636] [INFO] Redémarrage du service cups
+[2025-03-21 11:59:49,850] [INFO] [SUCCESS] Service cups redémarré avec succès
+[2025-03-21 11:59:49,850] [INFO] [SUCCESS] Service CUPS redémarré avec succès
+[2025-03-21 11:59:49,850] [INFO] [SUCCESS] Ajout de l'imprimante effectué avec succès
+[2025-03-21 11:59:50,050] [INFO] [SUCCESS] Succès: Ajout de l'imprimante effectué avec succès
+[2025-03-21 14:41:06,052] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-21 14:41:06,052] [INFO] {'printer_name': 'SOLC', 'printer_model': 'KM227C.yml', 'printer_ip': '128.81.4.184', 'printer_a3': None, 'remote_execution': False}
+[2025-03-21 14:41:06,052] [INFO] [PROGRESS] 14 1 7 add_printer 1
+[2025-03-21 14:41:06,052] [INFO] Installation de l'imprimante SOLC avec IP 128.81.4.184
+[2025-03-21 14:41:06,052] [INFO] [PROGRESS] 28 2 7 add_printer 1
+[2025-03-21 14:41:06,052] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-21 14:41:06,052] [INFO] [PROGRESS] 42 3 7 add_printer 1
+[2025-03-21 14:41:06,052] [INFO] Installation de KMC227_SOLC_Recto_NB
+[2025-03-21 14:41:06,052] [INFO] Ajout de l'imprimante KMC227_SOLC_Recto_NB (ipp://128.81.4.184) avec PPD /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd
+[2025-03-21 14:41:06,052] [INFO] Exécution de: lpadmin -p KMC227_SOLC_Recto_NB -v ipp://128.81.4.184 -u allow:all -E -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale -o printer-is-shared=false
+[2025-03-21 14:41:06,134] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 14:41:06,134] [INFO] [SUCCESS] Imprimante KMC227_SOLC_Recto_NB ajoutée avec succès
+[2025-03-21 14:41:06,134] [INFO] [PROGRESS] 57 4 7 add_printer 1
+[2025-03-21 14:41:06,134] [INFO] Installation de KMC227_SOLC_Recto_Couleurs
+[2025-03-21 14:41:06,135] [INFO] [PROGRESS] 71 5 7 add_printer 1
+[2025-03-21 14:41:06,135] [INFO] Installation de KMC227_SOLC_RectoVerso_Couleurs
+[2025-03-21 14:41:06,135] [INFO] Ajout de l'imprimante KMC227_SOLC_RectoVerso_Couleurs (ipp://128.81.4.184) avec PPD /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd
+[2025-03-21 14:41:06,135] [INFO] Exécution de: lpadmin -p KMC227_SOLC_RectoVerso_Couleurs -v ipp://128.81.4.184 -u allow:all -E -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Color -o printer-is-shared=false
+[2025-03-21 14:41:06,189] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 14:41:06,189] [INFO] [SUCCESS] Imprimante KMC227_SOLC_RectoVerso_Couleurs ajoutée avec succès
+[2025-03-21 14:41:06,189] [INFO] [PROGRESS] 85 6 7 add_printer 1
+[2025-03-21 14:41:06,189] [INFO] Installation de KMC227_SOLC_RectoVerso_NB
+[2025-03-21 14:41:06,189] [INFO] Ajout de l'imprimante KMC227_SOLC_RectoVerso_NB (ipp://128.81.4.184) avec PPD /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd
+[2025-03-21 14:41:06,189] [INFO] Exécution de: lpadmin -p KMC227_SOLC_RectoVerso_NB -v ipp://128.81.4.184 -u allow:all -E -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale -o printer-is-shared=false
+[2025-03-21 14:41:06,242] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 14:41:06,242] [INFO] [SUCCESS] Imprimante KMC227_SOLC_RectoVerso_NB ajoutée avec succès
+[2025-03-21 14:41:06,243] [INFO] Redémarrage du service CUPS
+[2025-03-21 14:41:06,243] [INFO] Redémarrage du service cups
+[2025-03-21 14:41:06,326] [INFO] [SUCCESS] Service cups redémarré avec succès
+[2025-03-21 14:41:06,326] [INFO] [SUCCESS] Service CUPS redémarré avec succès
+[2025-03-21 14:41:06,326] [INFO] [SUCCESS] Ajout de l'imprimante effectué avec succès
+[2025-03-21 14:41:06,527] [INFO] [SUCCESS] Succès: Ajout de l'imprimante effectué avec succès
+[2025-03-21 16:36:36,413] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-21 16:36:36,413] [INFO] {'printer_ip': '128.81.4.184', 'printer_name': 'BT', 'printer_model': 'KM227.yml', 'printer_a3': None, 'remote_execution': False}
+[2025-03-21 16:36:36,413] [INFO] [PROGRESS] 20 1 5 add_printer 1
+[2025-03-21 16:36:36,413] [INFO] Installation de l'imprimante BT avec IP 128.81.4.184
+[2025-03-21 16:36:36,413] [INFO] [PROGRESS] 40 2 5 add_printer 1
+[2025-03-21 16:36:36,413] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-21 16:36:36,413] [INFO] [PROGRESS] 60 3 5 add_printer 1
+[2025-03-21 16:36:36,413] [INFO] Installation de KMC227_BT_Recto_NB
+[2025-03-21 16:36:36,413] [INFO] Ajout de l'imprimante KMC227_BT_Recto_NB (ipp://128.81.4.184) avec PPD /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd
+[2025-03-21 16:36:36,413] [INFO] Exécution de: lpadmin -p KMC227_BT_Recto_NB -v ipp://128.81.4.184 -u allow:all -E -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale -o printer-is-shared=false
+[2025-03-21 16:36:36,504] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 16:36:36,505] [INFO] [SUCCESS] Imprimante KMC227_BT_Recto_NB ajoutée avec succès
+[2025-03-21 16:36:36,505] [INFO] [PROGRESS] 80 4 5 add_printer 1
+[2025-03-21 16:36:36,505] [INFO] Installation de KMC227_BT_RectoVerso_NB
+[2025-03-21 16:36:36,505] [INFO] Ajout de l'imprimante KMC227_BT_RectoVerso_NB (ipp://128.81.4.184) avec PPD /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd
+[2025-03-21 16:36:36,505] [INFO] Exécution de: lpadmin -p KMC227_BT_RectoVerso_NB -v ipp://128.81.4.184 -u allow:all -E -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale -o printer-is-shared=false
+[2025-03-21 16:36:36,557] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 16:36:36,557] [INFO] [SUCCESS] Imprimante KMC227_BT_RectoVerso_NB ajoutée avec succès
+[2025-03-21 16:36:36,557] [INFO] Redémarrage du service CUPS
+[2025-03-21 16:36:36,557] [INFO] Redémarrage du service cups
+[2025-03-21 16:36:36,640] [INFO] [SUCCESS] Service cups redémarré avec succès
+[2025-03-21 16:36:36,640] [INFO] [SUCCESS] Service CUPS redémarré avec succès
+[2025-03-21 16:36:36,640] [INFO] [SUCCESS] Ajout de l'imprimante effectué avec succès
+[2025-03-21 16:36:36,841] [INFO] [SUCCESS] Succès: Ajout de l'imprimante effectué avec succès
+[2025-03-21 16:41:24,726] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-21 16:41:24,727] [INFO] {'printer_ip': '128.81.4.184', 'printer_name': 'SOLC', 'printer_model': 'KM227C.yml', 'printer_a3': None, 'remote_execution': False}
+[2025-03-21 16:41:24,727] [INFO] [PROGRESS] 14 1 7 add_printer 1
+[2025-03-21 16:41:24,727] [INFO] Installation de l'imprimante SOLC avec IP 128.81.4.184
+[2025-03-21 16:41:24,727] [INFO] [PROGRESS] 28 2 7 add_printer 1
+[2025-03-21 16:41:24,727] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-21 16:41:24,727] [INFO] [PROGRESS] 42 3 7 add_printer 1
+[2025-03-21 16:41:24,727] [INFO] Installation de KMC227_SOLC_Recto_NB
+[2025-03-21 16:41:24,727] [INFO] Ajout de l'imprimante KMC227_SOLC_Recto_NB (ipp://128.81.4.184) avec PPD /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd
+[2025-03-21 16:41:24,727] [INFO] Exécution de: lpadmin -p KMC227_SOLC_Recto_NB -v ipp://128.81.4.184 -u allow:all -E -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -o KMDuplex=1Sided -o PageSize=A4 -o SelectColor=Grayscale -o printer-is-shared=false
+[2025-03-21 16:41:24,786] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 16:41:24,786] [INFO] [SUCCESS] Imprimante KMC227_SOLC_Recto_NB ajoutée avec succès
+[2025-03-21 16:41:24,786] [INFO] [PROGRESS] 57 4 7 add_printer 1
+[2025-03-21 16:41:24,786] [INFO] Installation de KMC227_SOLC_Recto_Couleurs
+[2025-03-21 16:41:24,786] [INFO] [PROGRESS] 71 5 7 add_printer 1
+[2025-03-21 16:41:24,786] [INFO] Installation de KMC227_SOLC_RectoVerso_Couleurs
+[2025-03-21 16:41:24,786] [INFO] Ajout de l'imprimante KMC227_SOLC_RectoVerso_Couleurs (ipp://128.81.4.184) avec PPD /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd
+[2025-03-21 16:41:24,786] [INFO] Exécution de: lpadmin -p KMC227_SOLC_RectoVerso_Couleurs -v ipp://128.81.4.184 -u allow:all -E -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Color -o printer-is-shared=false
+[2025-03-21 16:41:24,841] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 16:41:24,841] [INFO] [SUCCESS] Imprimante KMC227_SOLC_RectoVerso_Couleurs ajoutée avec succès
+[2025-03-21 16:41:24,841] [INFO] [PROGRESS] 85 6 7 add_printer 1
+[2025-03-21 16:41:24,841] [INFO] Installation de KMC227_SOLC_RectoVerso_NB
+[2025-03-21 16:41:24,841] [INFO] Ajout de l'imprimante KMC227_SOLC_RectoVerso_NB (ipp://128.81.4.184) avec PPD /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd
+[2025-03-21 16:41:24,841] [INFO] Exécution de: lpadmin -p KMC227_SOLC_RectoVerso_NB -v ipp://128.81.4.184 -u allow:all -E -P /usr/share/ppd/Gendarmerie-SOLIMP4/Konica_227.ppd -o KMDuplex=2Sided -o PageSize=A4 -o SelectColor=Grayscale -o printer-is-shared=false
+[2025-03-21 16:41:24,896] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-21 16:41:24,896] [INFO] [SUCCESS] Imprimante KMC227_SOLC_RectoVerso_NB ajoutée avec succès
+[2025-03-21 16:41:24,896] [INFO] Redémarrage du service CUPS
+[2025-03-21 16:41:24,896] [INFO] Redémarrage du service cups
+[2025-03-21 16:41:24,977] [INFO] [SUCCESS] Service cups redémarré avec succès
+[2025-03-21 16:41:24,977] [INFO] [SUCCESS] Service CUPS redémarré avec succès
+[2025-03-21 16:41:24,977] [INFO] [SUCCESS] Ajout de l'imprimante effectué avec succès
+[2025-03-21 16:41:25,177] [INFO] [SUCCESS] Succès: Ajout de l'imprimante effectué avec succès

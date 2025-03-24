@@ -1,7 +1,0 @@
-name: Configuration Imprimante + Scan
-description: Séquence pour configurer une imprimante de service avec paramètres standards et son scanner
-
-plugins:
-  - name: add_printer
-  - name: scan_plugin
-

@@ -1,6 +1,7 @@
 #!/bin/bash
 # Traiter les paramètres
 EXTRACT_DIR="."
+DEBUG=0
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --extract_dir=*)
@@ -26,8 +27,5 @@ mkdir -p "$EXTRACT_DIR/logs"
 if [ "$DEBUG" -eq 1 ]; then
     textual run "$EXTRACT_DIR/main.py" --dev
 else
-    python "$EXTRACT_DIR/main.py"
+    python3 "$EXTRACT_DIR/main.py"
 fi
-
-# Désactiver l'environnement virtuel
-deactivate

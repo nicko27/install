@@ -4,6 +4,4 @@ version: 1.0
 category: Logiciel
 multiple: false
 icon: 🛠️
-remote_execution: true
-ssh_root: true
-local_root: true
+remote_execution: false

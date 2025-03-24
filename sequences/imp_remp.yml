@@ -1,0 +1,7 @@
+name: Séquence remplacement imprimante(s)
+description: Séquence pour supprimer une ou des imprimantes puis en installer une
+
+plugins:
+  - name: delete_printer
+
+  - name: add_printer

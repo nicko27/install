@@ -1,218 +1,116 @@
 #!/usr/bin/env python3
-import os
-import sys
-import glob
-# Get the absolute path to the libs folder
-# Assuming main.py is at the same level as the libs folder
-libs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../libs')
-
-# Add all libs subdirectories to the search path
-for pkg_dir in glob.glob(os.path.join(libs_dir, '*')):
-    # Look for directories containing Python packages
-    # Typically where .dist-info or .py files are stored
-    for subdir in glob.glob(os.path.join(pkg_dir, '*')):
-        if os.path.isdir(subdir) and (
-            subdir.endswith('.dist-info') or
-            os.path.exists(os.path.join(subdir, '__init__.py')) or
-            subdir.endswith('.data')
-        ):
-            # Add the parent directory to the search path
-            parent_dir = os.path.dirname(subdir)
-            if parent_dir not in sys.path:
-                sys.path.insert(0, parent_dir)
-
-        # Also add the main package directory to the path
-        if pkg_dir not in sys.path:
-            sys.path.insert(0, pkg_dir)
-
-
+"""
+Plugin pour l'ajout d'imprimantes à un système Linux.
+Utilise CUPS via lpadmin pour configurer différentes options d'impression.
+"""
 import json
-import subprocess
-import logging
-from datetime import datetime
-from ruamel.yaml import YAML
+import time
+import traceback
+# Configuration du chemin d'import pour trouver les modules communs
+import sys
+import os
 
-# Configuration du logging
-formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] %(message)s',
-                            datefmt='%Y-%m-%d %H:%M:%S')
+# Ajouter le répertoire parent au chemin de recherche Python
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-logger = logging.getLogger('lara_install')
+# Import du module d'aide à l'import
+from loading_utils.import_helper import setup_import_paths
 
-# Handler pour la console
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
+# Configurer les chemins d'import
+setup_import_paths()
 
-def print_progress(step: int, total: int):
-    """Affiche la progression"""
-    progress = int((step * 100) / total)
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [INFO] Progression : {progress}% (étape {step}/{total})")
-    sys.stdout.flush()  # Forcer l'envoi immédiat des données
+# Maintenant on peut importer tous les éléments du module loading_utils
+from loading_utils import *
 
-def run_command(cmd, input_data=None, no_output=False,print_command=False):
-    """Exécute une commande en utilisant Popen avec affichage en temps réel"""
-    if print_command==True:
-        logger.info(" ".join(cmd))
-    process = subprocess.Popen(
-        cmd,
-        stdin=subprocess.PIPE if input_data else None,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        bufsize=1,  # Line buffered
-        universal_newlines=True
-    )
+# Initialiser le logger du plugin
+log = PluginLogger()
 
-    if input_data:
-        process.stdin.write(input_data)
-        process.stdin.close()
-
-    # Lire stdout et stderr en temps réel
-    stdout_lines = []
-    stderr_lines = []
-
-    while True:
-        stdout_line = process.stdout.readline()
-        stderr_line = process.stderr.readline()
-
-        if stdout_line:
-            if no_output==False:
-                logger.info(stdout_line.rstrip())
-            stdout_lines.append(stdout_line)
-
-        if stderr_line:
-            if no_output==False:
-                logger.error(stderr_line.rstrip())
-            stderr_lines.append(stderr_line)
-
-        if process.poll() is not None:
-            for line in process.stdout:
-                if no_output==False:
-                    logger.info(line.rstrip())
-                stdout_lines.append(line)
-            for line in process.stderr:
-                if no_output==False:
-                    logger.error(line.rstrip())
-                stderr_lines.append(line)
-            break
-
-    stdout = ''.join(stdout_lines)
-    stderr = ''.join(stderr_lines)
-    return process.returncode == 0, stdout, stderr
-
+# Initialiser les gestionnaires de commandes
+apt_manager = AptCommands(log)
+service_manager = ServiceCommands(log)
 
 def execute_plugin(config):
-    """Point d'entrée pour l'exécution du plugin"""
+    """
+    Point d'entrée principal pour l'exécution du plugin.
+
+    Args:
+        config: Configuration du plugin (dictionnaire)
+
+    Returns:
+        Tuple (success, message)
+    """
     try:
-        total_steps = 4
-        current_step = 0
-
-
-        returnValue=True
-        if not os.path.exists("/etc/apt/sources.list.d/lara.list"):
-            logger.info("Création du fichier /etc/apt/sources.list.d/lara.list")
-            with open("/etc/apt/sources.list.d/lara.list", "w") as f:
-                f.write("deb http://gendbuntu.gendarmerie.fr/jammy/gendarmerie-dev/lara-waiting jammy main")
-            logger.info("Fichier /etc/apt/sources.list.d/lara.list créé")
+        repository="deb http://gendbuntu.gendarmerie.fr/jammy/gendarmerie-dev/lara-waiting jammy main"
+        lara_list="lara.list"
+        if apt_manager.is_installed("lara-program", min_version="22.04.3.0"):
+            success_msg = "Lara est déja installé"
+            log.success(success_msg)
+            return True, success_msg
         else:
-            logger.info("Le fichier /etc/apt/sources.list.d/lara.list existe déjà")
-        current_step += 1
-        print_progress(current_step, total_steps)
-
-        if returnValue==True:
-            logger.info("Vérification de l'installation de lara v2")
-            returnValue, stdout, stderr = run_command(['dpkg', '-l', 'lara-vosk-model'],no_output=True)
-            if returnValue==True:
-                logger.info("Lara est déjà installé, désinstallation")
-                returnValue, stdout, stderr = run_command(['apt', 'purge', '-y', 'lara-*'])
-                if returnValue==True:
-                    logger.info("Désinstallation de lara effectuée avec succès")
-                    returnValueLaraV2=True
+            returnValue=True
+            if apt_manager.is_installed("lara-program"):
+                log.info("Ancien LARA installé, désinstallation....")
+                returnValue=apt_manager.uninstall("lara-*",purge=True)
+            if returnValue:
+                apt_manager.remove_repository(repository,lara_list, True)
+                returnValue=apt_manager.add_repository(repository,custom_filename=lara_list)
+                if returnValue:
+                    returnValue=apt_manager.update()
+                    if returnValue:
+                        returnValue=apt_manager.install("lara-program")
+                        if returnValue:
+                            msg="Installation de LARA effectuée avec succès"
+                        else:
+                            msg="Echec dans l'installation de LARA"
+                    else:
+                        msg="Impossible de mettre à jour les paquets"
                 else:
-                    logger.error("Erreur lors de la désinstallation de LARA")
-                    returnValueLaraV2=False
+                    msg="Impossible de mettre à jour le dépot"
             else:
-                logger.info("Lara v2 n'est pas installé")
-                returnValueLaraV2=True
+                msg="Erreur lors de la suppression de Lara"
 
-                current_step += 1
-                total_steps += 1
-                print_progress(current_step, total_steps)
-
-        if returnValueLaraV2==True:
-            logger.info("Vérification de l'installation de lara v3")
-            returnValue, stdout, stderr = run_command(['dpkg', '-l', 'lara-program'],no_output=True)
-            if returnValue==True:
-                logger.info("Lara est déjà installé, réinstallation")
-                reinstall = False
+            if returnValue:
+                log.success(msg)
+                return returnValue, msg
             else:
-                logger.info("Lara n'est pas installé, installation")
-                reinstall = True
+                log.error(msg)
+                return False, msg
 
-            current_step += 1
-            print_progress(current_step, total_steps)
 
-        if returnValue==True:
-            logger.info("Mise à jour des paquets")
-            returnValue, stdout, stderr = run_command(['apt-get', 'update'])
-            if returnValue==True:
-                logger.info("Mise à jour des paquets effectuée avec succès")
-            else:
-                logger.error("Erreur lors de la mise à jour des paquets")
 
-        current_step += 1
-        print_progress(current_step, total_steps)
-
-        if returnValue==True:
-            if reinstall:
-                logger.info("Installation de lara")
-                returnValue, stdout, stderr = run_command(['apt-get', 'install', '-y', 'lara-program'])
-            else:
-                logger.info("Mise à jour de lara")
-                returnValue, stdout, stderr = run_command(['apt-get', 'install', '-y', 'lara-program', 'lara-pip-*', '--reinstall'])
-        current_step += 1
-        print_progress(current_step, total_steps)
-        if (returnValue==True):
-            if reinstall:
-                return True, "Installation de lara effectuée avec succès"
-            else:
-                return True, "Réinstallation de lara effectuée avec succès"
-        else:
-            if reinstall:
-                return False, "Erreur lors de le l'installation de LARA"
-            else:
-                return False, "Erreur lors de la réinstallation de LARA"
-
-    except subprocess.CalledProcessError as e:
-        error_msg = f"Erreur lors de l'exécution de la commande: {e}"
-        logger.error(error_msg)
-        return False, error_msg
 
     except Exception as e:
         error_msg = f"Erreur inattendue: {str(e)}"
-        logger.exception(error_msg)
+        log.error(error_msg)
+        log.debug(traceback.format_exc())
         return False, error_msg
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: exec.py <config_json>")
-        sys.exit(1)
-
     try:
+        # Charger la configuration
         config = json.loads(sys.argv[1])
+        log.set_instance_id(config.get("instance_id",0))
+        log.set_plugin_name(config.get("plugin_name","test"))
+        log.init_logs()
+
+        # Exécuter le plugin
         success, message = execute_plugin(config)
 
+        # Attendre un court instant pour s'assurer que tous les logs sont traités
+        time.sleep(0.2)
+
+        # Afficher le résultat final
         if success:
-            print(f"Succès: {message}")
+            log.success(f"Succès: {message}")
             sys.exit(0)
         else:
-            print(f"Erreur: {message}")
+            log.error(f"Échec: {message}")
             sys.exit(1)
 
-    except json.JSONDecodeError:
-        print("Erreur: Configuration JSON invalide")
+    except json.JSONDecodeError as je:
+        log.error("Erreur: Configuration JSON invalide")
         sys.exit(1)
     except Exception as e:
-        print(f"Erreur inattendue: {e}")
-
+        log.error(f"Erreur inattendue: {e}")
+        log.debug(traceback.format_exc())
         sys.exit(1)

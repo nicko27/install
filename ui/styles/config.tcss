@@ -22,7 +22,7 @@ Screen {
     overflow-y: auto;
     overflow-x: hidden;
     margin-bottom: 2;
-    height:83%;
+    height:80%;
 }
 
 .config-container{
