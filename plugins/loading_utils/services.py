@@ -11,20 +11,25 @@ class ServiceCommands(Commands):
     """
     Classe pour gérer les services systemd.
     Hérite de la classe Commands pour la gestion des commandes système.
+    
+    Les méthodes acceptent un paramètre optionnel root_credentials qui permet de spécifier
+    les informations d'identification pour sudo. Format: {'user': 'username', 'password': 'password'}
     """
 
-    def start(self, service_name):
+    def start(self, service_name, root_credentials=None):
         """
         Démarre un service systemd.
 
         Args:
             service_name: Nom du service à démarrer
+            root_credentials: Dictionnaire contenant les informations d'identification root (optionnel)
+                             Format: {'user': 'root_username', 'password': 'root_password'}
 
         Returns:
             bool: True si le démarrage a réussi, False sinon
         """
         self.log_info(f"Démarrage du service {service_name}")
-        success, _, _ = self.run_as_root(['systemctl', 'start', service_name])
+        success, _, _ = self.run_as_root(['systemctl', 'start', service_name], root_credentials=root_credentials)
 
         if success:
             self.log_success(f"Service {service_name} démarré avec succès")
@@ -33,18 +38,20 @@ class ServiceCommands(Commands):
 
         return success
 
-    def stop(self, service_name):
+    def stop(self, service_name, root_credentials=None):
         """
         Arrête un service systemd.
 
         Args:
             service_name: Nom du service à arrêter
+            root_credentials: Dictionnaire contenant les informations d'identification root (optionnel)
+                             Format: {'user': 'root_username', 'password': 'root_password'}
 
         Returns:
             bool: True si l'arrêt a réussi, False sinon
         """
         self.log_info(f"Arrêt du service {service_name}")
-        success, _, _ = self.run_as_root(['systemctl', 'stop', service_name])
+        success, _, _ = self.run_as_root(['systemctl', 'stop', service_name], root_credentials=root_credentials)
 
         if success:
             self.log_success(f"Service {service_name} arrêté avec succès")
@@ -53,18 +60,20 @@ class ServiceCommands(Commands):
 
         return success
 
-    def restart(self, service_name):
+    def restart(self, service_name, root_credentials=None):
         """
         Redémarre un service systemd.
 
         Args:
             service_name: Nom du service à redémarrer
+            root_credentials: Dictionnaire contenant les informations d'identification root (optionnel)
+                             Format: {'user': 'root_username', 'password': 'root_password'}
 
         Returns:
             bool: True si le redémarrage a réussi, False sinon
         """
         self.log_info(f"Redémarrage du service {service_name}")
-        success, _, _ = self.run_as_root(['systemctl', 'restart', service_name])
+        success, _, _ = self.run_as_root(['systemctl', 'restart', service_name], root_credentials=root_credentials)
 
         if success:
             self.log_success(f"Service {service_name} redémarré avec succès")
@@ -73,25 +82,27 @@ class ServiceCommands(Commands):
 
         return success
 
-    def reload(self, service_name):
+    def reload(self, service_name, root_credentials=None):
         """
         Recharge la configuration d'un service systemd sans l'arrêter.
 
         Args:
             service_name: Nom du service à recharger
+            root_credentials: Dictionnaire contenant les informations d'identification root (optionnel)
+                             Format: {'user': 'root_username', 'password': 'root_password'}
 
         Returns:
             bool: True si le rechargement a réussi, False sinon
         """
         self.log_info(f"Rechargement de la configuration du service {service_name}")
-        success, _, _ = self.run_as_root(['systemctl', 'reload', service_name])
+        success, _, _ = self.run_as_root(['systemctl', 'reload', service_name], root_credentials=root_credentials)
 
         if success:
             self.log_success(f"Configuration du service {service_name} rechargée avec succès")
         else:
             # Certains services ne supportent pas reload, tenter reload-or-restart
             self.log_warning(f"Échec du rechargement simple, tentative de reload-or-restart pour {service_name}")
-            success, _, _ = self.run_as_root(['systemctl', 'reload-or-restart', service_name])
+            success, _, _ = self.run_as_root(['systemctl', 'reload-or-restart', service_name], root_credentials=root_credentials)
 
             if success:
                 self.log_success(f"Service {service_name} rechargé ou redémarré avec succès")

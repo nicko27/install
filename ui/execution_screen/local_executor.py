@@ -91,12 +91,6 @@ class LocalExecutor:
                     logger.error(f"Erreur lors de la lecture des paramètres du plugin: {e}")
                     logger.error(traceback.format_exc())
 
-            # Vérifier si le plugin nécessite des droits root
-            needs_root = False
-            if plugin_settings and isinstance(plugin_settings, dict):
-                needs_root = plugin_settings.get('local_root', False)
-                logger.info(f"Plugin {folder_name} nécessite des droits root: {needs_root}")
-
             # Traiter le contenu des fichiers de configuration
             file_content = FileContentHandler.process_file_content(plugin_settings, config, plugin_dir)
 
@@ -112,40 +106,13 @@ class LocalExecutor:
                 python_path = sys.executable if sys.executable.strip() else "/usr/bin/python3"
                 base_cmd = [python_path, exec_path, json.dumps(config)]
 
-            # Obtenir le gestionnaire d'identifiants root
-            root_credentials_manager = RootCredentialsManager.get_instance()
-            running_as_root = root_credentials_manager.is_running_as_root()
-
-            # Déterminer comment exécuter la commande en fonction des besoins et de l'utilisateur actuel
-            cmd = base_cmd
-
-            if needs_root and not running_as_root:
-                # Cas 1: Le plugin nécessite des droits root et nous ne sommes pas root
-                password = root_credentials_manager.get_root_password()
-                if password:
-                    cmd = ["sudo", "-S"] + base_cmd
-                else:
-                    return False, "Mot de passe root requis mais non fourni"
-
             # Exécuter la commande
-            logger.info(f"Exécution de la commande: {' '.join(cmd)}")
+            logger.info(f"Exécution de la commande: {' '.join(base_cmd)}")
             process = await asyncio.create_subprocess_exec(
-                *cmd,
+                *base_cmd,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-                stdin=asyncio.subprocess.PIPE if needs_root and not running_as_root else None
+                stderr=asyncio.subprocess.PIPE
             )
-
-            # Gérer l'authentification si nécessaire
-            if needs_root and not running_as_root and process.stdin:
-                # Récupérer le mot de passe depuis le gestionnaire d'identifiants root
-                password = root_credentials_manager.get_root_password()
-                if password:
-                    process.stdin.write(f"{password}\n".encode())
-                    await process.stdin.drain()
-                    logger.debug("Mot de passe sudo envoyé")
-                else:
-                    logger.warning("Aucun mot de passe sudo disponible, l'exécution pourrait échouer")
 
             # Lire la sortie de manière asynchrone pour un traitement en temps réel
             stdout_lines = []
@@ -265,6 +232,23 @@ class LocalExecutor:
                     logger.error(f"Plugin {folder_name} a signalé un échec dans sa sortie JSON: {error_msg}")
                     return False, error_msg
 
+            # Vérifier si la sortie contient des erreurs qui n'ont pas été détectées précédemment
+            has_error_in_output = any([
+                "[ERROR]" in stdout_text,
+                "Error:" in stdout_text and not "No Error:" in stdout_text,
+                "Exception:" in stdout_text,
+                "Traceback (most recent call last)" in stdout_text
+            ])
+            
+            if has_error_in_output:
+                error_msg = "Des erreurs ont été détectées dans la sortie du plugin"
+                logger.error(f"Plugin {folder_name} a généré des erreurs dans sa sortie: {error_msg}")
+                # Récupérer l'IP cible si elle existe dans le widget
+                target_ip = getattr(plugin_widget, 'target_ip', None) if plugin_widget else None
+                # Ajouter ce message au log pour qu'il soit visible dans l'UI
+                self.log_message(f"[ERREUR] {error_msg}", level="error", target_ip=target_ip)
+                return False, stdout_text
+            
             # Succès
             logger.info(f"Plugin {folder_name} exécuté avec succès")
 

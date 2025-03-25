@@ -4,7 +4,7 @@ version: 1.0
 category: Installation
 multiple: false
 icon: 📠
-
+sudo: true
 config_fields:
   user:
     type: text

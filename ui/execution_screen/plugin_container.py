@@ -58,6 +58,8 @@ class PluginContainer(Container):
         self.plugin_show_name = plugin_show_name
         self.plugin_icon = plugin_icon
         self.target_ip = None  # IP cible pour les plugins SSH avec plusieurs IPs
+        self.status = "waiting"  # Statut initial du plugin (waiting, running, success, error)
+        self.output = ""  # Initialiser l'attribut output
         self.classes = "plugin-container waiting"
 
     def compose(self) -> ComposeResult:
@@ -87,6 +89,9 @@ class PluginContainer(Container):
 
     def set_status(self, status: str, message: str = None):
         """Mise à jour du statut du plugin"""
+        # Stocker le statut comme attribut
+        self.status = status
+        
         # Mettre à jour les classes CSS
         self.classes = f"plugin-container {status}"
 

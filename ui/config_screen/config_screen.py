@@ -40,6 +40,8 @@ class PluginConfig(Screen):
             self.ssh_container = None
             self.sequence_file = sequence_file
             self.sequence_data = None
+            # Attribut pour indiquer si nous revenons de l'écran d'exécution
+            self.returning_from_execution = False
 
             # Charger la séquence si spécifiée
             if sequence_file and os.path.exists(sequence_file):
@@ -220,6 +222,47 @@ class PluginConfig(Screen):
                     
                     # Disable SSH fields by default
                     self.toggle_ssh_config(False)
+            
+            # Si nous revenons de l'écran d'exécution, restaurer les valeurs des champs
+            if self.returning_from_execution and self.current_config:
+                logger.debug(f"Restauration de la configuration préservée: {self.current_config}")
+                
+                # Parcourir tous les champs pour restaurer leurs valeurs
+                for field_id, field in self.fields_by_id.items():
+                    # Déterminer le plugin_id associé à ce champ
+                    parts = field_id.split('.')
+                    if len(parts) >= 2:
+                        plugin_name = parts[0]
+                        param_name = parts[1]
+                        
+                        # Trouver l'instance_id correspondante
+                        for plugin_id, config in self.current_config.items():
+                            if plugin_id.startswith(plugin_name + '_'):
+                                # Récupérer la valeur du paramètre
+                                if param_name in config:
+                                    value = config[param_name]
+                                    logger.debug(f"Restauration de {field_id} avec la valeur {value}")
+                                    
+                                    # Mettre à jour la valeur du champ
+                                    if hasattr(field, 'value') and hasattr(field, 'set_value'):
+                                        field.set_value(value)
+                
+                # Restaurer également l'état d'activation des plugins distants
+                for plugin_id, config in self.current_config.items():
+                    plugin_name = plugin_id.split('_')[0]
+                    if 'ssh_enabled' in config and plugin_name in self.plugins_remote_enabled:
+                        ssh_enabled = config['ssh_enabled']
+                        logger.debug(f"Restauration de l'état SSH pour {plugin_name}: {ssh_enabled}")
+                        
+                        # Mettre à jour la case à cocher
+                        checkbox_id = f"{plugin_name}_remote"
+                        checkbox = self.query_one(f"#{checkbox_id}", CheckboxField)
+                        if checkbox:
+                            checkbox.value = ssh_enabled
+                            
+                            # Activer/désactiver les champs SSH en fonction de l'état
+                            if ssh_enabled:
+                                self.toggle_ssh_config(True)
 
             logger.debug("PluginConfig.on_mount() completed")
         except Exception as e:
@@ -457,6 +500,24 @@ class PluginConfig(Screen):
                 field.input.disabled = not enable
                 if enable:
                     field.input.remove_class('disabled')
+                    
+                    # If we're enabling a field, restore its value
+                    if hasattr(field, 'field_config'):
+                        # Case 1: Field has a dynamic default
+                        if 'dynamic_default' in field.field_config and hasattr(field, '_get_dynamic_default'):
+                            logger.debug(f"Restoring dynamic default value for field {field.field_id}")
+                            dynamic_value = field._get_dynamic_default()
+                            if dynamic_value:
+                                field.value = dynamic_value
+                                field.input.value = str(dynamic_value)
+                                logger.debug(f"Restored dynamic value: {dynamic_value}")
+                        # Case 2: Field has a static default
+                        elif 'default' in field.field_config and field.field_config['default'] is not None:
+                            default_value = field.field_config['default']
+                            logger.debug(f"Restoring static default value for field {field.field_id}: {default_value}")
+                            field.value = default_value
+                            field.input.value = str(default_value)
+                            logger.debug(f"Restored static default value: {default_value}")
                 else:
                     field.input.add_class('disabled')
             elif hasattr(field, 'checkbox'):
@@ -469,6 +530,24 @@ class PluginConfig(Screen):
                 field.select.disabled = not enable
                 if enable:
                     field.select.remove_class('disabled')
+                    
+                    # If we're enabling a field, restore its value
+                    if hasattr(field, 'field_config'):
+                        # Case 1: Field has a dynamic default
+                        if 'dynamic_default' in field.field_config and hasattr(field, '_get_dynamic_default'):
+                            logger.debug(f"Restoring dynamic default value for field {field.field_id}")
+                            dynamic_value = field._get_dynamic_default()
+                            if dynamic_value:
+                                field.value = dynamic_value
+                                field.select.value = str(dynamic_value)
+                                logger.debug(f"Restored dynamic value: {dynamic_value}")
+                        # Case 2: Field has a static default
+                        elif 'default' in field.field_config and field.field_config['default'] is not None:
+                            default_value = field.field_config['default']
+                            logger.debug(f"Restoring static default value for field {field.field_id}: {default_value}")
+                            field.value = default_value
+                            field.select.value = str(default_value)
+                            logger.debug(f"Restored static default value: {default_value}")
                 else:
                     field.select.add_class('disabled')
         except Exception as e:

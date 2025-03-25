@@ -7,6 +7,8 @@ Fournit une classe PluginLogger qui utilise le format [LOG] [TYPE] message atten
 import os
 import sys
 import logging
+import time
+import tempfile
 
 class PluginLogger:
     """
@@ -14,29 +16,103 @@ class PluginLogger:
     Utilise le format [LOG] [TYPE] message attendu par LoggerUtils.
     """
 
-    def __init__(self, plugin_name=None, instance_id=None):
-        """Initialise le logger avec un nom de plugin optionnel"""
+    def __init__(self, plugin_name=None, instance_id=None, ssh_mode=False):
+        """
+        Initialise le logger avec un nom de plugin optionnel
+        
+        Args:
+            plugin_name: Nom du plugin
+            instance_id: ID de l'instance du plugin
+            ssh_mode: Si True, utilise le mode SSH avec logs dans /tmp/pcUtils/logs/
+        """
         self.plugin_name = plugin_name
         self.instance_id = instance_id
         self.total_steps = 1
         self.current_step = 0
+        self.ssh_mode = ssh_mode
         self.init_logs()
 
     def init_logs(self):
         if self.plugin_name != None and self.instance_id != None:
+            # Déterminer le répertoire des logs selon le mode ou l'environnement
+            # Vérifier si la variable d'environnement PCUTILS_LOG_DIR est définie
+            env_log_dir = os.environ.get('PCUTILS_LOG_DIR')
+            
+            if env_log_dir:
+                # Utiliser le répertoire spécifié par l'environnement
+                log_dir = env_log_dir
+                print(f"Utilisation du répertoire de logs défini par l'environnement: {log_dir}", flush=True)
+            elif self.ssh_mode:
+                # Fallback pour le mode SSH
+                log_dir = "/tmp/pcUtils_logs"
+            else:
+                # Mode local par défaut
+                log_dir = "logs"
+
             # Créer le répertoire des logs s'il n'existe pas
-            log_dir = "logs"
-            if not os.path.exists(log_dir):
-                os.makedirs(log_dir)
+            try:
+                if not os.path.exists(log_dir):
+                    os.makedirs(log_dir, exist_ok=True)
+                    # Essayer de définir les permissions pour que tout le monde puisse écrire
+                    try:
+                        os.chmod(log_dir, 0o777)  # Permissions complètes pour tous les utilisateurs
+                    except Exception as perm_error:
+                        print(f"Avertissement: Impossible de modifier les permissions du répertoire {log_dir}: {perm_error}", flush=True)
+                    print(f"Répertoire de logs créé: {log_dir}", flush=True)
+                # Vérifier si le répertoire est accessible en écriture
+                if not os.access(log_dir, os.W_OK):
+                    print(f"Avertissement: Le répertoire {log_dir} n'est pas accessible en écriture", flush=True)
+                    raise PermissionError(f"Le répertoire {log_dir} n'est pas accessible en écriture")
+            except Exception as e:
+                # En cas d'erreur, utiliser /tmp comme fallback
+                print(f"Erreur lors de la création/accès du répertoire de logs {log_dir}: {e}", flush=True)
+                # Essayer d'abord un répertoire dans /tmp/pcUtils_logs
+                try:
+                    fallback_dir = os.path.join(tempfile.gettempdir(), 'pcUtils_logs')
+                    os.makedirs(fallback_dir, exist_ok=True)
+                    try:
+                        os.chmod(fallback_dir, 0o777)
+                    except Exception:
+                        pass  # Ignorer les erreurs de chmod sur le répertoire temporaire
+                    log_dir = fallback_dir
+                    print(f"Utilisation du répertoire de fallback: {log_dir}", flush=True)
+                except Exception as e2:
+                    # En dernier recours, utiliser un répertoire temporaire unique
+                    print(f"Erreur lors de la création du répertoire de fallback: {e2}", flush=True)
+                    log_dir = tempfile.mkdtemp(prefix="pcUtils_logs_")
+                    print(f"Utilisation du répertoire temporaire unique: {log_dir}", flush=True)
 
             # Configuration du logger
-            log_file = f"logs/{self.plugin_name}.log"
+            if self.ssh_mode:
+                # En mode SSH, on utilise un fichier unique avec timestamp
+                timestamp = time.strftime("%Y%m%d_%H%M%S")
+                log_file = f"{log_dir}/plugin_{timestamp}.log"
+            else:
+                # En mode local, on utilise un fichier par plugin
+                log_file = f"{log_dir}/{self.plugin_name}.log"
+                
+            # Vérifier si le fichier de log existe et est accessible en écriture
+            # Si le fichier existe déjà mais n'est pas accessible en écriture, utiliser un nom de fichier alternatif
+            if os.path.exists(log_file) and not os.access(log_file, os.W_OK):
+                print(f"Avertissement: Le fichier {log_file} existe mais n'est pas accessible en écriture", flush=True)
+                timestamp = time.strftime("%Y%m%d_%H%M%S")
+                log_file = f"{log_dir}/{self.plugin_name}_{timestamp}.log"
+                print(f"Utilisation d'un fichier alternatif: {log_file}", flush=True)
+
             self.logger = logging.getLogger(self.plugin_name)
             self.logger.setLevel(logging.DEBUG)
 
-            # Création d'un handler pour le fichier
-            file_handler = logging.FileHandler(log_file)
-            file_handler.setLevel(logging.DEBUG)
+            # Création d'un handler pour le fichier avec gestion d'erreur
+            try:
+                file_handler = logging.FileHandler(log_file)
+                file_handler.setLevel(logging.DEBUG)
+            except Exception as e:
+                print(f"Erreur lors de la création du handler de fichier pour {log_file}: {e}", flush=True)
+                # Fallback sur un fichier dans le répertoire temporaire
+                temp_log_file = os.path.join(tempfile.gettempdir(), f"pcUtils_{self.plugin_name}_{time.strftime('%Y%m%d_%H%M%S')}.log")
+                print(f"Utilisation d'un fichier de log temporaire: {temp_log_file}", flush=True)
+                file_handler = logging.FileHandler(temp_log_file)
+                file_handler.setLevel(logging.DEBUG)
 
             # Création d'un formatter
             formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] %(message)s')
@@ -45,6 +121,9 @@ class PluginLogger:
             # Ajouter le handler au logger
             self.logger.addHandler(file_handler)
 
+            # En mode SSH, on affiche aussi le chemin du fichier de log
+            if self.ssh_mode:
+                print(f"LOG_FILE:{log_file}", flush=True)
 
     def set_plugin_name(self, plugin_name):
         self.plugin_name = plugin_name

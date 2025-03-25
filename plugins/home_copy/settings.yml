@@ -5,6 +5,7 @@ category: Système
 multiple: false
 remote_execution: true
 icon: 🏠
+sudo: true
 config_fields:
   home_src_dir:
     type: directory

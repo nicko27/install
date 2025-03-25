@@ -42,7 +42,14 @@ def execute_plugin(config):
     try:
         # Log de débogage pour indiquer le début de l'exécution
         log.debug(f"Début de l'exécution du plugin add_printer")
-        log.set_instance_id(config.get('instance_id'))
+        
+        # Vérifier si nous sommes en mode SSH depuis la configuration
+        is_ssh = config.get('ssh_mode', False)
+        log.set_plugin_name(config.get('plugin_name', 'add_printer'))
+        log.set_instance_id(config.get('instance_id', 0))
+        if is_ssh:
+            log.ssh_mode = True
+            log.init_logs()
 
         # Récupérer la configuration
         printer_conf = config['config']
@@ -52,7 +59,28 @@ def execute_plugin(config):
         a3 = printer_conf.get('printer_a3')
         log.info(str(printer_conf))
 
+        # Récupérer les informations du modèle d'imprimante
         model_content = config.get('printer_model_content')
+        
+        # Si le modèle n'est pas déjà dans la configuration, essayer de le récupérer
+        if model_content is None:
+            # Récupérer le répertoire des modèles d'imprimantes
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            printer_models_dir = os.path.join(script_dir, "printer_models")
+            
+            # Essayer de récupérer le modèle depuis les fichiers
+            try:
+                from get_printer_models import get_printer_model
+                model_content = get_printer_model(printer_model, printer_models_dir)
+                
+                if model_content is None:
+                    log.error(f"Modèle d'imprimante non trouvé: {printer_model}")
+                    return False, f"Modèle d'imprimante non trouvé: {printer_model}"
+            except Exception as e:
+                log.error(f"Erreur lors de la récupération du modèle d'imprimante: {e}")
+                return False, f"Erreur lors de la récupération du modèle d'imprimante: {e}"
+        
+        # Récupérer les options du modèle
         couleurs = int(model_content.get('couleurs', 0))
         rectoverso = int(model_content.get('rectoverso', 0))
         ppdFile = model_content.get('ppdFile', '')
@@ -116,13 +144,15 @@ def execute_plugin(config):
 
         log.next_step()
         log.info("Suppression de la config evince pour éviter bug avec nouvelle imprimante")
-        userList = os.listdir("/home")
+        # Utiliser le module os importé globalement
+        import os as os_module  # Réimporter explicitement pour éviter les problèmes de portée
+        userList = os_module.listdir("/home")
 
         for user in userList:
             evince_path = f"/home/{user}/.evince"
-            if os.path.exists(evince_path):
+            if os_module.path.exists(evince_path):
                 try:
-                    os.rmdir(evince_path)
+                    os_module.rmdir(evince_path)
                     log.info(f"Répertoire {evince_path} supprimé")
                 except Exception as e:
                     log.warning(f"Impossible de supprimer {evince_path}: {e}")
@@ -223,7 +253,8 @@ def execute_plugin(config):
         if returnValue:
             log.info("Redémarrage du service CUPS")
             try:
-                # Utiliser ServiceCommands pour redémarrer CUPS
+                # Redémarrer CUPS directement car nous sommes déjà en sudo
+                log.info("Redémarrage du service cups")
                 cups_restart_success = service_manager.restart("cups")
 
                 if cups_restart_success:
@@ -254,10 +285,48 @@ def execute_plugin(config):
 if __name__ == "__main__":
     try:
         # Charger la configuration
-        config = json.loads(sys.argv[1])
-        log.set_instance_id(config.get("instance_id",0))
-        log.set_plugin_name(config.get("plugin_name","test"))
+        import argparse
+        parser = argparse.ArgumentParser()
+        parser.add_argument('-c', '--config', help='Fichier de configuration JSON')
+        parser.add_argument('json_config', nargs='?', help='Configuration JSON en ligne de commande')
+        args, unknown = parser.parse_known_args()
+        
+        if args.config:
+            # Lire la configuration depuis le fichier (mode SSH)
+            with open(args.config, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+        elif args.json_config:
+            # Charger la configuration depuis l'argument positionnelle (mode local)
+            config = json.loads(args.json_config)
+        elif len(sys.argv) > 1 and sys.argv[1].startswith('{'): 
+            # Fallback: essayer de parser le premier argument comme JSON
+            config = json.loads(sys.argv[1])
+        else:
+            raise ValueError("Aucune configuration fournie. Utilisez -c/--config ou passez un JSON en argument.")
+        
+        # Initialiser le logger
+        log.set_instance_id(config.get("instance_id", 0))
+        log.set_plugin_name(config.get("plugin_name", "add_printer"))
         log.init_logs()
+        
+        # Vérifier si la configuration est correcte
+        if 'config' not in config:
+            # Pour la compatibilité avec l'exécution locale, créer la structure attendue
+            # si elle n'existe pas déjà
+            plugin_config = {}
+            for key, value in config.items():
+                if key not in ["plugin_name", "instance_id", "ssh_mode"]:
+                    plugin_config[key] = value
+            
+            # Reconstruire la configuration avec la structure attendue
+            config = {
+                "plugin_name": config.get("plugin_name", "add_printer"),
+                "instance_id": config.get("instance_id", 0),
+                "ssh_mode": config.get("ssh_mode", False),
+                "config": plugin_config
+            }
+            
+            log.debug(f"Configuration restructurée pour compatibilité: {json.dumps(config, indent=2)}")
 
         # Exécuter le plugin
         success, message = execute_plugin(config)

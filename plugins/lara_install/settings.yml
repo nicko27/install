@@ -5,3 +5,4 @@ category: Logiciel
 multiple: false
 icon: 🛠️
 remote_execution: false
+sudo: true

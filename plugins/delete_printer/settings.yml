@@ -4,7 +4,8 @@ version: 1.0
 category: Système
 multiple: true
 icon: 🖨
-remote_execution: false
+remote_execution: true
+sudo: true
 config_fields:
   printer_all:
     type: checkbox

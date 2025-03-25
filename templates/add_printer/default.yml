@@ -2,4 +2,4 @@ name: Configuration par défaut
 description: Configuration standard pour une imprimante réseau
 variables:
   printer_name: BT
-  printer_model: KM227
+  printer_model: EC4200

@@ -150,6 +150,7 @@ class RootCredentialsManager:
         ssh_config = SSHConfigLoader.get_instance().get_authentication_config()
         
         # Déterminer si nous utilisons les mêmes identifiants que l'utilisateur SSH
+        # Par défaut, on utilise les mêmes identifiants (ssh_root_same=true)
         ssh_root_same = ssh_config.get('ssh_root_same', True)
         
         if ssh_root_same:
@@ -171,3 +172,34 @@ class RootCredentialsManager:
         self.set_ssh_root_credentials(ip_address, credentials)
         
         return credentials
+        
+    def get_root_password(self, ip_address: str = None) -> str:
+        """Récupère le mot de passe root pour une adresse IP donnée ou pour l'accès local
+        
+        Args:
+            ip_address (str, optional): Adresse IP pour laquelle récupérer le mot de passe root.
+                                       Si None, récupère le mot de passe root local.
+        
+        Returns:
+            str: Le mot de passe root
+        """
+        if ip_address:
+            # Récupérer les identifiants SSH pour cette IP
+            credentials = self.get_ssh_root_credentials(ip_address)
+            if not credentials:
+                # Si pas en cache, les préparer
+                ssh_config = SSHConfigLoader.get_instance().get_authentication_config()
+                credentials = self.prepare_ssh_root_credentials(ip_address, ssh_config)
+            
+            logger.debug(f"Récupération du mot de passe root pour {ip_address}")
+            return credentials.get('password', '')
+        else:
+            # Récupérer les identifiants locaux
+            credentials = self.get_local_root_credentials()
+            if not credentials:
+                # Si pas en cache, les préparer
+                ssh_config = SSHConfigLoader.get_instance().get_authentication_config()
+                credentials = self.prepare_local_root_credentials(ssh_config)
+            
+            logger.debug("Récupération du mot de passe root local")
+            return credentials.get('password', '')

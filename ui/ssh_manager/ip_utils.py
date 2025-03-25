@@ -89,44 +89,34 @@ def expand_ip_pattern(pattern: str) -> List[str]:
     
     return result
 
-def get_target_ips(ip_list: str, exception_list: Optional[str] = None) -> List[str]:
+def get_target_ips(config: dict) -> List[str]:
     """
-    Obtient la liste des adresses IP cibles en tenant compte des exceptions.
+    Récupère la liste des IPs cibles à partir de la configuration.
     
     Args:
-        ip_list: Liste d'adresses IP séparées par des virgules (peut contenir des *)
-        exception_list: Liste d'adresses IP à exclure (peut contenir des *)
+        config (dict): Configuration du plugin
         
     Returns:
-        List[str]: Liste des adresses IP cibles
+        List[str]: Liste des IPs cibles
     """
-    if not ip_list:
-        return []
+    target_ips = []
     
-    # Développer toutes les adresses IP
-    all_ips = set()
-    for ip_pattern in ip_list.split(','):
-        ip_pattern = ip_pattern.strip()
-        if not ip_pattern:
-            continue
-            
-        # Développer le motif
-        expanded_ips = expand_ip_pattern(ip_pattern)
-        all_ips.update(expanded_ips)
+    # Vérifier d'abord ssh_ips
+    if 'ssh_ips' in config:
+        ip_value = config['ssh_ips']
+        if isinstance(ip_value, str):
+            target_ips = [ip.strip() for ip in ip_value.split(',')]
+        elif isinstance(ip_value, list):
+            target_ips = ip_value
+    # Sinon vérifier target_ip
+    elif 'target_ip' in config:
+        ip_value = config['target_ip']
+        if isinstance(ip_value, str):
+            target_ips = [ip.strip() for ip in ip_value.split(',')]
+        elif isinstance(ip_value, list):
+            target_ips = ip_value
     
-    # Si pas d'exceptions, retourner toutes les IPs
-    if not exception_list:
-        return list(all_ips)
+    # Filtrer les IPs vides et None
+    target_ips = [ip for ip in target_ips if ip and ip.strip()]
     
-    # Traiter les exceptions
-    exception_patterns = [pattern.strip() for pattern in exception_list.split(',') if pattern.strip()]
-    
-    # Filtrer les IPs qui correspondent à au moins un motif d'exception
-    result_ips = set()
-    for ip in all_ips:
-        # Vérifier si l'IP correspond à une exception
-        is_exception = any(is_ip_match(ip, pattern) for pattern in exception_patterns)
-        if not is_exception:
-            result_ips.add(ip)
-    
-    return list(result_ips)
+    return target_ips

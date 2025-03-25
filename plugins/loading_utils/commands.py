@@ -252,7 +252,7 @@ class Commands:
             self.log_error(error_msg)
             return False, "", str(e)
 
-    def run_as_root(self, cmd, input_data=None, no_output=False, print_command=False):
+    def run_as_root(self, cmd, input_data=None, no_output=False, print_command=False, root_credentials=None):
         """
         Exécute une commande avec les privilèges sudo.
 
@@ -261,11 +261,45 @@ class Commands:
             input_data: Données à envoyer sur stdin (optionnel)
             no_output: Si True, n'affiche pas la sortie
             print_command: Si True, affiche la commande complète
+            root_credentials: Dictionnaire contenant les informations d'identification root (optionnel)
+                              Format: {'user': 'root_username', 'password': 'root_password'}
 
         Returns:
             Tuple (success, stdout, stderr)
         """
-        sudo_cmd = ["sudo"] + cmd
+        # Utiliser l'option -S pour permettre à sudo de lire le mot de passe depuis stdin
+        # quand il est exécuté sans terminal
+        sudo_cmd = ["sudo", "-S"] + cmd
+        
+        # Vérifier si nous avons des informations d'identification root
+        if root_credentials and isinstance(root_credentials, dict) and 'password' in root_credentials:
+            sudo_password = root_credentials.get('password', '')
+            sudo_user = root_credentials.get('user', 'root')
+            
+            if sudo_password:
+                # Construire une commande qui utilise echo pour passer le mot de passe à sudo
+                if sudo_user and sudo_user != 'root':
+                    # Si un utilisateur spécifique est fourni, utiliser sudo -u
+                    echo_cmd = ["bash", "-c", f"echo '{sudo_password}' | sudo -S -u {sudo_user} {' '.join(cmd)}"] 
+                else:
+                    # Sinon, utiliser sudo standard
+                    echo_cmd = ["bash", "-c", f"echo '{sudo_password}' | sudo -S {' '.join(cmd)}"] 
+                return self.run(echo_cmd, None, no_output, print_command)
+        
+        # Si nous sommes en mode d'exécution SSH, nous devons gérer le mot de passe différemment
+        # car nous n'avons pas de terminal interactif
+        import os
+        if os.environ.get("SSH_EXECUTION") == "1":
+            # Dans ce cas, nous utilisons echo pour passer le mot de passe à sudo
+            # Récupérer le mot de passe depuis l'environnement ou utiliser une valeur par défaut
+            sudo_password = os.environ.get("SUDO_PASSWORD", "")
+            if sudo_password:
+                # Construire une commande qui utilise echo pour passer le mot de passe à sudo
+                echo_cmd = ["bash", "-c", f"echo '{sudo_password}' | sudo -S {' '.join(cmd)}"] 
+                return self.run(echo_cmd, None, no_output, print_command)
+        
+        # Si nous ne sommes pas en mode SSH ou si nous n'avons pas de mot de passe,
+        # exécuter normalement avec sudo
         return self.run(sudo_cmd, input_data, no_output, print_command)
 
     def run_and_parse_json(self, cmd, print_command=False):

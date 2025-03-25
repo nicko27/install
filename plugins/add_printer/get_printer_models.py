@@ -33,6 +33,51 @@ def parse_model_file(file_path):
         return False, error_msg
 
 
+def get_printer_model(model_name, models_dir=None):
+    """Récupère les informations d'un modèle d'imprimante spécifique.
+    
+    Args:
+        model_name (str): Nom du modèle d'imprimante à récupérer
+        models_dir (str, optional): Répertoire contenant les modèles d'imprimantes.
+            Si None, utilise le répertoire par défaut "printer_models".
+    
+    Returns:
+        dict: Dictionnaire contenant les informations du modèle, ou None si le modèle n'existe pas
+    """
+    try:
+        # Déterminer le répertoire des modèles
+        if models_dir is None:
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            models_dir = os.path.join(script_dir, "printer_models")
+        
+        # Vérifier si le répertoire existe
+        if not os.path.exists(models_dir):
+            print(f"Le répertoire des modèles n'existe pas: {models_dir}")
+            return None
+        
+        # Construire le chemin du fichier modèle
+        model_file = f"{model_name}.yml"
+        model_path = os.path.join(models_dir, model_file)
+        
+        # Vérifier si le fichier existe
+        if not os.path.exists(model_path):
+            print(f"Le fichier modèle n'existe pas: {model_path}")
+            return None
+        
+        # Parser le fichier modèle
+        success, config = parse_model_file(model_path)
+        if not success:
+            print(f"Erreur lors du parsing du fichier modèle: {config}")
+            return None
+        
+        return config
+        
+    except Exception as e:
+        print(f"Erreur lors de la récupération du modèle d'imprimante: {str(e)}")
+        print(traceback.format_exc())
+        return None
+
+
 def get_printer_models():
     """Récupère la liste des modèles d'imprimantes depuis le répertoire des modèles
     

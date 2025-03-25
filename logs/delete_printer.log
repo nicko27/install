@@ -313,3 +313,111 @@ AttributeError: 'PrinterCommands' object has no attribute 'remove_all_network_pr
 [2025-03-21 16:41:24,406] [INFO] [SUCCESS] Service CUPS redémarré avec succès
 [2025-03-21 16:41:24,406] [INFO] [SUCCESS] Suppression(s) effectué(es) avec succès
 [2025-03-21 16:41:24,606] [INFO] [SUCCESS] Succès: Suppression(s) effectué(es) avec succès
+[2025-03-25 09:37:52,026] [INFO] Recherche des imprimantes associées à l'IP None
+[2025-03-25 09:37:52,114] [DEBUG] Sortie complète de lpstat -t:
+[2025-03-25 09:37:52,114] [DEBUG]   scheduler is running
+[2025-03-25 09:37:52,114] [DEBUG]   system default destination: Epson-C4200_BT_RectoVerso_NB
+[2025-03-25 09:37:52,114] [DEBUG]   matériel pour Epson-C4200_BT_Recto_Couleurs : lpd://192.168.1.220
+[2025-03-25 09:37:52,114] [DEBUG]   matériel pour Epson-C4200_BT_Recto_NB : lpd://192.168.1.220
+[2025-03-25 09:37:52,114] [DEBUG]   matériel pour Epson-C4200_BT_RectoVerso_Couleurs : lpd://192.168.1.220
+[2025-03-25 09:37:52,114] [DEBUG]   matériel pour Epson-C4200_BT_RectoVerso_NB : lpd://192.168.1.220
+[2025-03-25 09:37:52,114] [DEBUG]   matériel pour Epson-C4200_None_Recto_Couleurs : lpd://None
+[2025-03-25 09:37:52,114] [DEBUG]   matériel pour Epson-C4200_None_Recto_NB : lpd://None
+[2025-03-25 09:37:52,114] [DEBUG]   matériel pour Epson-C4200_None_RectoVerso_Couleurs : lpd://None
+[2025-03-25 09:37:52,114] [DEBUG]   matériel pour Epson-C4200_None_RectoVerso_NB : lpd://None
+[2025-03-25 09:37:52,114] [DEBUG]   matériel pour Epson-C4200_TestPrinter_Recto_Couleurs : lpd://192.168.1.100
+[2025-03-25 09:37:52,114] [DEBUG]   matériel pour Epson-C4200_TestPrinter_Recto_NB : lpd://192.168.1.100
+[2025-03-25 09:37:52,115] [DEBUG]   matériel pour Epson-C4200_TestPrinter_RectoVerso_Couleurs : lpd://192.168.1.100
+[2025-03-25 09:37:52,115] [DEBUG]   matériel pour Epson-C4200_TestPrinter_RectoVerso_NB : lpd://192.168.1.100
+[2025-03-25 09:37:52,115] [DEBUG]   Epson-C4200_BT_Recto_Couleurs accepte des requêtes depuis lun. 03 mars 2025 15:21:11
+[2025-03-25 09:37:52,115] [DEBUG]   Epson-C4200_BT_Recto_NB accepte des requêtes depuis lun. 03 mars 2025 15:21:10
+[2025-03-25 09:37:52,115] [DEBUG]   Epson-C4200_BT_RectoVerso_Couleurs accepte des requêtes depuis lun. 03 mars 2025 15:21:11
+[2025-03-25 09:37:52,115] [DEBUG]   Epson-C4200_BT_RectoVerso_NB accepte des requêtes depuis lun. 03 mars 2025 15:21:12
+[2025-03-25 09:37:52,115] [DEBUG]   Epson-C4200_None_Recto_Couleurs accepte des requêtes depuis mer. 19 mars 2025 10:07:36
+[2025-03-25 09:37:52,115] [DEBUG]   Epson-C4200_None_Recto_NB accepte des requêtes depuis mer. 19 mars 2025 10:07:35
+[2025-03-25 09:37:52,115] [DEBUG]   Epson-C4200_None_RectoVerso_Couleurs accepte des requêtes depuis mer. 19 mars 2025 10:07:37
+[2025-03-25 09:37:52,115] [DEBUG]   Epson-C4200_None_RectoVerso_NB accepte des requêtes depuis mer. 19 mars 2025 10:07:37
+[2025-03-25 09:37:52,115] [DEBUG]   Epson-C4200_TestPrinter_Recto_Couleurs accepte des requêtes depuis ven. 07 mars 2025 10:17:03
+[2025-03-25 09:37:52,115] [DEBUG]   Epson-C4200_TestPrinter_Recto_NB accepte des requêtes depuis ven. 07 mars 2025 10:17:02
+[2025-03-25 09:37:52,115] [DEBUG]   Epson-C4200_TestPrinter_RectoVerso_Couleurs accepte des requêtes depuis ven. 07 mars 2025 10:17:04
+[2025-03-25 09:37:52,115] [DEBUG]   Epson-C4200_TestPrinter_RectoVerso_NB accepte des requêtes depuis ven. 07 mars 2025 10:17:04
+[2025-03-25 09:37:52,115] [DEBUG]   printer Epson-C4200_BT_Recto_Couleurs is idle.  enabled since lun. 03 mars 2025 15:21:11
+[2025-03-25 09:37:52,115] [DEBUG]   printer Epson-C4200_BT_Recto_NB is idle.  enabled since lun. 03 mars 2025 15:21:10
+[2025-03-25 09:37:52,115] [DEBUG]   printer Epson-C4200_BT_RectoVerso_Couleurs is idle.  enabled since lun. 03 mars 2025 15:21:11
+[2025-03-25 09:37:52,115] [DEBUG]   printer Epson-C4200_BT_RectoVerso_NB is idle.  enabled since lun. 03 mars 2025 15:21:12
+[2025-03-25 09:37:52,115] [DEBUG]   printer Epson-C4200_None_Recto_Couleurs is idle.  enabled since mer. 19 mars 2025 10:07:36
+[2025-03-25 09:37:52,115] [DEBUG]   printer Epson-C4200_None_Recto_NB is idle.  enabled since mer. 19 mars 2025 10:07:35
+[2025-03-25 09:37:52,115] [DEBUG]   printer Epson-C4200_None_RectoVerso_Couleurs is idle.  enabled since mer. 19 mars 2025 10:07:37
+[2025-03-25 09:37:52,115] [DEBUG]   printer Epson-C4200_None_RectoVerso_NB is idle.  enabled since mer. 19 mars 2025 10:07:37
+[2025-03-25 09:37:52,116] [DEBUG]   printer Epson-C4200_TestPrinter_Recto_Couleurs is idle.  enabled since ven. 07 mars 2025 10:17:03
+[2025-03-25 09:37:52,116] [DEBUG]   printer Epson-C4200_TestPrinter_Recto_NB is idle.  enabled since ven. 07 mars 2025 10:17:02
+[2025-03-25 09:37:52,116] [DEBUG]   printer Epson-C4200_TestPrinter_RectoVerso_Couleurs is idle.  enabled since ven. 07 mars 2025 10:17:04
+[2025-03-25 09:37:52,116] [DEBUG]   printer Epson-C4200_TestPrinter_RectoVerso_NB is idle.  enabled since ven. 07 mars 2025 10:17:04
+[2025-03-25 09:37:52,116] [ERROR] Erreur inattendue: 'in <string>' requires string as left operand, not NoneType
+[2025-03-25 09:37:52,116] [DEBUG] Traceback (most recent call last):
+  File "/media/nico/Drive/pcUtils_internet/plugins/delete_printer/exec.py", line 55, in execute_plugin
+    returnValue = printer_manager.remove_printer_by_ip(printer_ip)
+  File "/media/nico/Drive/pcUtils_internet/plugins/loading_utils/printers.py", line 276, in remove_printer_by_ip
+    if ip_address in line:
+TypeError: 'in <string>' requires string as left operand, not NoneType
+
+[2025-03-25 09:37:52,316] [ERROR] Échec: Erreur inattendue: 'in <string>' requires string as left operand, not NoneType
+[2025-03-25 10:09:36,673] [INFO] Recherche de toutes les imprimantes réseau
+[2025-03-25 10:09:36,901] [INFO] Suppression de 12 imprimante(s) réseau: Epson-C4200_BT_Recto_Couleurs, Epson-C4200_BT_Recto_NB, Epson-C4200_BT_RectoVerso_Couleurs, Epson-C4200_BT_RectoVerso_NB, Epson-C4200_None_Recto_Couleurs, Epson-C4200_None_Recto_NB, Epson-C4200_None_RectoVerso_Couleurs, Epson-C4200_None_RectoVerso_NB, Epson-C4200_TestPrinter_Recto_Couleurs, Epson-C4200_TestPrinter_Recto_NB, Epson-C4200_TestPrinter_RectoVerso_Couleurs, Epson-C4200_TestPrinter_RectoVerso_NB
+[2025-03-25 10:09:36,901] [DEBUG]   - Epson-C4200_BT_Recto_Couleurs: lpd://192.168.1.220
+[2025-03-25 10:09:36,901] [DEBUG]   - Epson-C4200_BT_Recto_NB: lpd://192.168.1.220
+[2025-03-25 10:09:36,901] [DEBUG]   - Epson-C4200_BT_RectoVerso_Couleurs: lpd://192.168.1.220
+[2025-03-25 10:09:36,901] [DEBUG]   - Epson-C4200_BT_RectoVerso_NB: lpd://192.168.1.220
+[2025-03-25 10:09:36,901] [DEBUG]   - Epson-C4200_None_Recto_Couleurs: lpd://None
+[2025-03-25 10:09:36,901] [DEBUG]   - Epson-C4200_None_Recto_NB: lpd://None
+[2025-03-25 10:09:36,901] [DEBUG]   - Epson-C4200_None_RectoVerso_Couleurs: lpd://None
+[2025-03-25 10:09:36,901] [DEBUG]   - Epson-C4200_None_RectoVerso_NB: lpd://None
+[2025-03-25 10:09:36,901] [DEBUG]   - Epson-C4200_TestPrinter_Recto_Couleurs: lpd://192.168.1.100
+[2025-03-25 10:09:36,901] [DEBUG]   - Epson-C4200_TestPrinter_Recto_NB: lpd://192.168.1.100
+[2025-03-25 10:09:36,901] [DEBUG]   - Epson-C4200_TestPrinter_RectoVerso_Couleurs: lpd://192.168.1.100
+[2025-03-25 10:09:36,901] [DEBUG]   - Epson-C4200_TestPrinter_RectoVerso_NB: lpd://192.168.1.100
+[2025-03-25 10:09:36,901] [WARNING] ATTENTION: Vous êtes sur le point de supprimer 12 imprimantes réseau!
+[2025-03-25 10:09:36,901] [INFO] Suppression de l'imprimante réseau: Epson-C4200_BT_Recto_Couleurs
+[2025-03-25 10:09:36,902] [INFO] Suppression de l'imprimante Epson-C4200_BT_Recto_Couleurs
+[2025-03-25 10:09:36,928] [INFO] [SUCCESS] Imprimante Epson-C4200_BT_Recto_Couleurs supprimée avec succès
+[2025-03-25 10:09:36,928] [INFO] Suppression de l'imprimante réseau: Epson-C4200_BT_Recto_NB
+[2025-03-25 10:09:36,928] [INFO] Suppression de l'imprimante Epson-C4200_BT_Recto_NB
+[2025-03-25 10:09:36,942] [INFO] [SUCCESS] Imprimante Epson-C4200_BT_Recto_NB supprimée avec succès
+[2025-03-25 10:09:36,942] [INFO] Suppression de l'imprimante réseau: Epson-C4200_BT_RectoVerso_Couleurs
+[2025-03-25 10:09:36,942] [INFO] Suppression de l'imprimante Epson-C4200_BT_RectoVerso_Couleurs
+[2025-03-25 10:09:36,949] [INFO] [SUCCESS] Imprimante Epson-C4200_BT_RectoVerso_Couleurs supprimée avec succès
+[2025-03-25 10:09:36,949] [INFO] Suppression de l'imprimante réseau: Epson-C4200_BT_RectoVerso_NB
+[2025-03-25 10:09:36,949] [INFO] Suppression de l'imprimante Epson-C4200_BT_RectoVerso_NB
+[2025-03-25 10:09:36,956] [INFO] [SUCCESS] Imprimante Epson-C4200_BT_RectoVerso_NB supprimée avec succès
+[2025-03-25 10:09:36,956] [INFO] Suppression de l'imprimante réseau: Epson-C4200_None_Recto_Couleurs
+[2025-03-25 10:09:36,956] [INFO] Suppression de l'imprimante Epson-C4200_None_Recto_Couleurs
+[2025-03-25 10:09:36,961] [INFO] [SUCCESS] Imprimante Epson-C4200_None_Recto_Couleurs supprimée avec succès
+[2025-03-25 10:09:36,962] [INFO] Suppression de l'imprimante réseau: Epson-C4200_None_Recto_NB
+[2025-03-25 10:09:36,962] [INFO] Suppression de l'imprimante Epson-C4200_None_Recto_NB
+[2025-03-25 10:09:36,967] [INFO] [SUCCESS] Imprimante Epson-C4200_None_Recto_NB supprimée avec succès
+[2025-03-25 10:09:36,967] [INFO] Suppression de l'imprimante réseau: Epson-C4200_None_RectoVerso_Couleurs
+[2025-03-25 10:09:36,967] [INFO] Suppression de l'imprimante Epson-C4200_None_RectoVerso_Couleurs
+[2025-03-25 10:09:36,973] [INFO] [SUCCESS] Imprimante Epson-C4200_None_RectoVerso_Couleurs supprimée avec succès
+[2025-03-25 10:09:36,974] [INFO] Suppression de l'imprimante réseau: Epson-C4200_None_RectoVerso_NB
+[2025-03-25 10:09:36,974] [INFO] Suppression de l'imprimante Epson-C4200_None_RectoVerso_NB
+[2025-03-25 10:09:36,979] [INFO] [SUCCESS] Imprimante Epson-C4200_None_RectoVerso_NB supprimée avec succès
+[2025-03-25 10:09:36,979] [INFO] Suppression de l'imprimante réseau: Epson-C4200_TestPrinter_Recto_Couleurs
+[2025-03-25 10:09:36,979] [INFO] Suppression de l'imprimante Epson-C4200_TestPrinter_Recto_Couleurs
+[2025-03-25 10:09:36,985] [INFO] [SUCCESS] Imprimante Epson-C4200_TestPrinter_Recto_Couleurs supprimée avec succès
+[2025-03-25 10:09:36,985] [INFO] Suppression de l'imprimante réseau: Epson-C4200_TestPrinter_Recto_NB
+[2025-03-25 10:09:36,985] [INFO] Suppression de l'imprimante Epson-C4200_TestPrinter_Recto_NB
+[2025-03-25 10:09:36,991] [INFO] [SUCCESS] Imprimante Epson-C4200_TestPrinter_Recto_NB supprimée avec succès
+[2025-03-25 10:09:36,991] [INFO] Suppression de l'imprimante réseau: Epson-C4200_TestPrinter_RectoVerso_Couleurs
+[2025-03-25 10:09:36,991] [INFO] Suppression de l'imprimante Epson-C4200_TestPrinter_RectoVerso_Couleurs
+[2025-03-25 10:09:36,997] [INFO] [SUCCESS] Imprimante Epson-C4200_TestPrinter_RectoVerso_Couleurs supprimée avec succès
+[2025-03-25 10:09:36,997] [INFO] Suppression de l'imprimante réseau: Epson-C4200_TestPrinter_RectoVerso_NB
+[2025-03-25 10:09:36,997] [INFO] Suppression de l'imprimante Epson-C4200_TestPrinter_RectoVerso_NB
+[2025-03-25 10:09:37,002] [INFO] [SUCCESS] Imprimante Epson-C4200_TestPrinter_RectoVerso_NB supprimée avec succès
+[2025-03-25 10:09:37,003] [INFO] [SUCCESS] Toutes les imprimantes réseau (12) ont été supprimées avec succès
+[2025-03-25 10:09:37,003] [INFO] [PROGRESS] 50 1 2 delete_printer 1
+[2025-03-25 10:09:37,003] [INFO] Redémarrage du service CUPS
+[2025-03-25 10:09:37,003] [INFO] Redémarrage du service cups
+[2025-03-25 10:10:27,677] [ERROR] sudo: 3 saisies de mots de passe incorrectes
+[2025-03-25 10:10:27,678] [ERROR] Échec du redémarrage du service cups
+[2025-03-25 10:10:27,678] [ERROR] Erreur lors du redémarrage du service CUPS
+[2025-03-25 10:10:27,878] [ERROR] Échec: Erreur lors du redémarrage de CUPS

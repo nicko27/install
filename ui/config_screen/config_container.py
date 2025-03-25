@@ -98,52 +98,89 @@ class ConfigContainer(VerticalGroup):
             if isinstance(field, CheckboxField) and checkbox_id == f"checkbox_{field.source_id}_{field.field_id}":
                 logger.debug(f"Found matching checkbox field: {field.field_id}")
                 field.value = event.value
+                
+                # Mettre à jour les champs qui dépendent de cette case à cocher
+                self.update_dependent_fields(field)
 
-                # Update dependent fields
-                for dependent_field in self.fields_by_id.values():
-                    if dependent_field.enabled_if and dependent_field.enabled_if['field'] == field.field_id:
-                        logger.debug(f"Found dependent field: {dependent_field.field_id} with enabled_if={dependent_field.enabled_if}")
-
-                        # Handle any widget type that can be disabled
-                        for widget_type in [Input, Select, Button]:
-                            try:
-                                widget = dependent_field.query_one(widget_type)
-                                logger.debug(f"Found widget of type {widget_type.__name__} for field {dependent_field.field_id}")
-                            except Exception:
-                                continue
-
-                            # If we got here, we found the widget
-                            should_disable = field.value != dependent_field.enabled_if['value']
-                            logger.debug(f"Field {dependent_field.field_id}: should_disable={should_disable} (checkbox value={field.value}, enabled_if value={dependent_field.enabled_if['value']})")
-
-                            # Always remove existing classes first
-                            dependent_field.remove_class('disabled')
-                            dependent_field.disabled = False
-                            widget.remove_class('disabled')
-                            widget.disabled = False
-
-                            if should_disable:
-                                logger.debug(f"Disabling widget for field {dependent_field.field_id}")
-                                dependent_field.add_class('disabled')
-                                dependent_field.disabled = True
-                                widget.add_class('disabled')
-                                widget.disabled = True
-                            else:
-                                # If the field is now enabled, make sure it's properly initialized
-                                logger.debug(f"Enabling widget for field {dependent_field.field_id}")
-                                
-                                # If the field has a value attribute, ensure it's properly set
-                                if hasattr(dependent_field, 'value') and dependent_field.value is None:
-                                    # Try to get the default value from the field configuration
-                                    if hasattr(dependent_field, 'field_config') and 'default' in dependent_field.field_config:
-                                        default_value = dependent_field.field_config.get('default')
-                                        logger.debug(f"Setting default value for field {dependent_field.field_id}: {default_value}")
-                                        dependent_field.value = default_value
-                                        
-                                        # Update the widget with the default value
-                                        if hasattr(widget, 'value'):
-                                            widget.value = default_value
-                                # Clear IP fields when disabled to prevent invalid config
-                                if isinstance(widget, Input) and isinstance(dependent_field, IPField):
-                                    widget.value = ''
+                # La méthode update_dependent_fields sera appelée pour mettre à jour les champs dépendants
                 break
+    
+    def update_dependent_fields(self, field):
+        """Met à jour les champs qui dépendent d'un champ spécifique"""
+        logger.debug(f"Mise à jour des champs dépendants de {field.field_id}")
+        
+        # Parcourir tous les champs pour trouver ceux qui dépendent de ce champ
+        for dependent_field in self.fields_by_id.values():
+            # Vérifier si le champ a une condition enabled_if qui dépend du champ actuel
+            if dependent_field.enabled_if and dependent_field.enabled_if['field'] == field.field_id:
+                logger.debug(f"Champ dépendant trouvé: {dependent_field.field_id} avec enabled_if={dependent_field.enabled_if}")
+                
+                # Déterminer si le champ doit être activé ou désactivé
+                should_enable = field.value == dependent_field.enabled_if['value']
+                logger.debug(f"Champ {dependent_field.field_id}: should_enable={should_enable} (valeur checkbox={field.value}, valeur enabled_if={dependent_field.enabled_if['value']})")
+                
+                # Sauvegarder la valeur actuelle avant de désactiver le champ
+                if hasattr(dependent_field, 'value'):
+                    # Stocker la valeur actuelle dans un attribut temporaire
+                    if not hasattr(dependent_field, '_saved_value') or dependent_field._saved_value is None:
+                        dependent_field._saved_value = dependent_field.value
+                        logger.debug(f"Valeur sauvegardée pour {dependent_field.field_id}: {dependent_field._saved_value}")
+                
+                # Trouver le widget à activer/désactiver
+                for widget_type in [Input, Select, Button, Checkbox]:
+                    try:
+                        widget = dependent_field.query_one(widget_type)
+                        logger.debug(f"Widget de type {widget_type.__name__} trouvé pour le champ {dependent_field.field_id}")
+                        
+                        # Toujours supprimer les classes existantes d'abord
+                        dependent_field.remove_class('disabled')
+                        dependent_field.disabled = False
+                        widget.remove_class('disabled')
+                        widget.disabled = False
+                        
+                        if not should_enable:
+                            # Désactiver le champ mais sauvegarder sa valeur d'abord
+                            logger.debug(f"Désactivation du widget pour le champ {dependent_field.field_id}")
+                            
+                            # Sauvegarder la valeur actuelle si elle n'est pas déjà sauvegardée
+                            if hasattr(dependent_field, 'value') and not hasattr(dependent_field, '_saved_value'):
+                                dependent_field._saved_value = dependent_field.value
+                                logger.debug(f"Valeur sauvegardée lors de la désactivation pour {dependent_field.field_id}: {dependent_field._saved_value}")
+                            
+                            # Désactiver le champ
+                            dependent_field.add_class('disabled')
+                            dependent_field.disabled = True
+                            widget.add_class('disabled')
+                            widget.disabled = True
+                        else:
+                            # Activer le champ et restaurer sa valeur si nécessaire
+                            logger.debug(f"Activation du widget pour le champ {dependent_field.field_id}")
+                            
+                            # Restaurer la valeur sauvegardée si elle existe
+                            if hasattr(dependent_field, '_saved_value') and dependent_field._saved_value is not None:
+                                logger.debug(f"Restauration de la valeur pour {dependent_field.field_id}: {dependent_field._saved_value}")
+                                dependent_field.value = dependent_field._saved_value
+                                
+                                # Mettre à jour le widget avec la valeur restaurée
+                                if hasattr(widget, 'value'):
+                                    widget.value = dependent_field._saved_value
+                                    
+                                # Supprimer l'attribut _saved_value pour permettre de nouvelles modifications
+                                delattr(dependent_field, '_saved_value')
+                            # Sinon, utiliser la valeur par défaut
+                            elif hasattr(dependent_field, 'value') and dependent_field.value is None:
+                                # Essayer d'obtenir la valeur par défaut de la configuration du champ
+                                if hasattr(dependent_field, 'field_config') and 'default' in dependent_field.field_config:
+                                    default_value = dependent_field.field_config.get('default')
+                                    logger.debug(f"Définition de la valeur par défaut pour le champ {dependent_field.field_id}: {default_value}")
+                                    dependent_field.value = default_value
+                                    
+                                    # Mettre à jour le widget avec la valeur par défaut
+                                    if hasattr(widget, 'value'):
+                                        widget.value = default_value
+                        
+                        # Mettre à jour récursivement les champs qui dépendent de ce champ dépendant
+                        self.update_dependent_fields(dependent_field)
+                        break  # Sortir de la boucle des types de widgets une fois le widget trouvé
+                    except Exception:
+                        continue  # Continuer avec le prochain type de widget si celui-ci n'est pas trouvé
