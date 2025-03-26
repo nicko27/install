@@ -112,12 +112,23 @@ class ConfigContainer(VerticalGroup):
         # Parcourir tous les champs pour trouver ceux qui dépendent de ce champ
         for dependent_field in self.fields_by_id.values():
             # Vérifier si le champ a une condition enabled_if qui dépend du champ actuel
-            if dependent_field.enabled_if and dependent_field.enabled_if['field'] == field.field_id:
+            if hasattr(dependent_field, 'enabled_if') and dependent_field.enabled_if and dependent_field.enabled_if.get('field') == field.field_id:
                 logger.debug(f"Champ dépendant trouvé: {dependent_field.field_id} avec enabled_if={dependent_field.enabled_if}")
                 
+                # Récupérer les valeurs pour la comparaison
+                field_value = field.value
+                required_value = dependent_field.enabled_if.get('value')
+                
+                # Convertir les valeurs en booléens si nécessaire pour la comparaison
+                if isinstance(required_value, bool) and not isinstance(field_value, bool):
+                    if isinstance(field_value, str):
+                        field_value = field_value.lower() in ('true', 't', 'yes', 'y', '1')
+                    else:
+                        field_value = bool(field_value)
+                
                 # Déterminer si le champ doit être activé ou désactivé
-                should_enable = field.value == dependent_field.enabled_if['value']
-                logger.debug(f"Champ {dependent_field.field_id}: should_enable={should_enable} (valeur checkbox={field.value}, valeur enabled_if={dependent_field.enabled_if['value']})")
+                should_enable = field_value == required_value
+                logger.debug(f"Champ {dependent_field.field_id}: should_enable={should_enable} (valeur={field_value}, valeur requise={required_value})")
                 
                 # Sauvegarder la valeur actuelle avant de désactiver le champ
                 if hasattr(dependent_field, 'value'):
@@ -179,8 +190,8 @@ class ConfigContainer(VerticalGroup):
                                     if hasattr(widget, 'value'):
                                         widget.value = default_value
                         
-                        # Mettre à jour récursivement les champs qui dépendent de ce champ dépendant
+                        # Mettre à jour les champs qui dépendent de ce champ
                         self.update_dependent_fields(dependent_field)
-                        break  # Sortir de la boucle des types de widgets une fois le widget trouvé
-                    except Exception:
-                        continue  # Continuer avec le prochain type de widget si celui-ci n'est pas trouvé
+                        break
+                    except Exception as e:
+                        continue

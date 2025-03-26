@@ -45,8 +45,9 @@ def execute_plugin(config):
         
         # Vérifier si nous sommes en mode SSH depuis la configuration
         is_ssh = config.get('ssh_mode', False)
-        log.set_plugin_name(config.get('plugin_name', 'add_printer'))
-        log.set_instance_id(config.get('instance_id', 0))
+        # Mettre à jour le logger avec les informations de configuration
+        log.plugin_name = config.get('plugin_name', 'add_printer')
+        log.instance_id = config.get('instance_id', 0)
         if is_ssh:
             log.ssh_mode = True
             log.init_logs()
@@ -56,9 +57,8 @@ def execute_plugin(config):
         printer_name = printer_conf.get('printer_name')
         printer_model = printer_conf.get('printer_model')
         printer_ip = printer_conf.get('printer_ip')
-        print(printer_ip)
         a3 = printer_conf.get('printer_a3')
-        log.info(str(printer_conf))
+        log.info(f"Configuration de l'imprimante: {json.dumps(printer_conf, ensure_ascii=False)}")
 
         # Récupérer les informations du modèle d'imprimante
         model_content = config.get('printer_model_content')
@@ -287,9 +287,11 @@ if __name__ == "__main__":
             raise ValueError("Aucune configuration fournie. Utilisez -c/--config ou passez un JSON en argument.")
         
         # Initialiser le logger
-        log.set_instance_id(config.get("instance_id", 0))
-        log.set_plugin_name(config.get("plugin_name", "add_printer"))
-        log.init_logs()
+        log.plugin_name = config.get("plugin_name", "add_printer")
+        log.instance_id = config.get("instance_id", 0)
+        if config.get("ssh_mode", False):
+            log.ssh_mode = True
+            log.init_logs()
         
         # Vérifier si la configuration est correcte
         if 'config' not in config:

@@ -7,11 +7,14 @@ import time
 import threading
 import logging
 import re
+import json
 from typing import Optional, Union
 from collections import deque
 from rich.text import Text
 from textual.widgets import Static
 from textual.containers import ScrollableContainer
+from datetime import datetime
+import traceback
 
 from ..utils.logging import get_logger
 from ..utils.messaging import (Message, MessageType, parse_message, MessageFormatter, escape_markup,
@@ -165,29 +168,42 @@ class LoggerUtils:
             if message_obj.type == MessageType.PROGRESS:
                 logger.debug("Message de type PROGRESS ignoré dans display_message")
                 return
+            
+            # Vérifier si app est valide
+            if app is None:
+                logger.error("Erreur: app est None dans display_message")
+                return
+                
+            # Vérifier si message_obj contient un target_ip (important pour le debug SSH)
+            has_target_ip = message_obj.target_ip is not None
+            if has_target_ip:
+                logger.debug(f"Message avec target_ip: {message_obj.target_ip}")
                 
             # Utiliser le formateur de message du module messaging
             formatted_message = MessageFormatter.format_for_rich_textual(message_obj)
             
             # Mise à jour des logs dans l'interface
-            logs = app.query_one("#logs-text", Static)
-            if logs:
-                current_text = logs.renderable or ""
-                if current_text:
-                    current_text += "\n"
-                logs.update(current_text + formatted_message)
+            try:
+                logs = app.query_one("#logs-text", Static)
+                if logs:
+                    current_text = logs.renderable or ""
+                    if current_text:
+                        current_text += "\n"
+                    logs.update(current_text + formatted_message)
+                    
+                    # Forcer le défilement vers le bas
+                    logs_container = app.query_one("#logs-container", ScrollableContainer)
+                    if logs_container:
+                        logs_container.scroll_end(animate=False)
                 
-                # Forcer le défilement vers le bas
+                # S'assurer que logs-container est visible
                 logs_container = app.query_one("#logs-container", ScrollableContainer)
-                if logs_container:
-                    logs_container.scroll_end(animate=False)
-            
-            # S'assurer que logs-container est visible
-            logs_container = app.query_one("#logs-container", ScrollableContainer)
-            if logs_container and "hidden" in logs_container.classes:
-                logs_container.remove_class("hidden")
-                if hasattr(app, 'show_logs'):
-                    app.show_logs = True
+                if logs_container and "hidden" in logs_container.classes:
+                    logs_container.remove_class("hidden")
+                    if hasattr(app, 'show_logs'):
+                        app.show_logs = True
+            except Exception as e:
+                logger.error(f"Erreur lors de la mise à jour de l'interface: {str(e)}")
             
             # Journalisation dans le fichier
             log_methods = {
@@ -208,6 +224,8 @@ class LoggerUtils:
             
         except Exception as e:
             logger.error(f"Erreur lors de l'affichage d'un message: {str(e)}")
+            logger.error(f"Message: {str(message_obj.__dict__)}")
+            logger.error(traceback.format_exc())
             try:
                 # Tenter une approche plus simple en cas d'erreur
                 logs = app.query_one("#logs-text")
@@ -218,136 +236,117 @@ class LoggerUtils:
                 pass
 
     @staticmethod
-    async def add_log(app, message: Union[str, Message], level: str = 'info', target_ip: str = None):
-        """
-        Méthode de compatibilité avec l'ancien système.
-        Convertit un message au format texte en Message puis l'affiche.
-        
-        Args:
-            app: Application contenant les éléments d'UI
-            message: Message à afficher (str ou Message)
-            level: Niveau de log (info, warning, error, success, debug)
-            target_ip: Adresse IP cible pour les plugins SSH (optionnel)
-        """
+    async def add_log(app, message: str, level: str = "info", target_ip: Optional[str] = None):
+        """Ajoute un message au log de l'application"""
         try:
-            # Convertir en Message
-            if isinstance(message, Message):
-                message_obj = message
-            else:
-                # Créer le message en fonction du niveau
-                if level.lower() == "info":
-                    message_obj = create_info(message, target_ip=target_ip)
-                elif level.lower() == "warning":
-                    message_obj = create_warning(message, target_ip=target_ip)
-                elif level.lower() == "error":
-                    message_obj = create_error(message, target_ip=target_ip)
-                elif level.lower() == "debug":
-                    message_obj = create_debug(message, target_ip=target_ip)
-                elif level.lower() == "success":
-                    message_obj = create_success(message, target_ip=target_ip)
-                else:
-                    message_obj = create_info(message, target_ip=target_ip)
+            # Créer le message au format JSON pour l'interface
+            log_entry = {
+                "timestamp": datetime.now().isoformat(),
+                "level": level,
+                "message": message
+            }
             
-            # Afficher le message
-            await LoggerUtils.process_output_line(app, message_obj.to_string())
+            if target_ip:
+                log_entry["target_ip"] = target_ip
+                
+            # Convertir en JSON
+            log_json = json.dumps(log_entry)
             
+            # Traiter avec process_output_line pour assurer un traitement cohérent
+            await LoggerUtils.process_output_line(app, log_json, None, target_ip)
+                
+            # Envoyer également à la méthode add_log_message de l'application si disponible
+            if hasattr(app, "add_log_message"):
+                await app.add_log_message(log_json)
+                
+            # Logger pour le débogage
+            logger.debug(f"Log ajouté: {log_entry}")
         except Exception as e:
-            logger.error(f"Erreur lors de l'ajout d'un log: {str(e)}")
+            logger.error(f"Erreur lors de l'ajout du log: {e}")
+            logger.error(traceback.format_exc())
 
     @staticmethod
-    async def process_output_line(
-        app, 
-        line: str, 
-        plugin_widget=None, 
-        executed: int = 0, 
-        total_plugins: int = 1,
-        target_ip: str = None
-    ):
-        """
-        Traite une ligne de sortie d'un plugin et la dirige vers le gestionnaire approprié.
-        Cette méthode est la principale pour le traitement des logs.
-        
-        Args:
-            app: Application contenant les éléments d'UI
-            line: Ligne à traiter ou objet Message
-            plugin_widget: Widget du plugin qui a émis la ligne
-            executed: Nombre de plugins déjà exécutés
-            total_plugins: Nombre total de plugins à exécuter
-            
-        Returns:
-            bool: True si la ligne a été traitée, False sinon
-        """
+    async def process_output_line(app, line: str, plugin_widget, target_ip: Optional[str] = None):
+        """Traite une ligne de sortie au format JSONL"""
         try:
-            # Si la ligne est vide, rien à faire
-            if not line:
-                return False
+            # Tenter de parser la ligne comme JSON
+            log_entry = json.loads(line)
+            
+            # Vérifier s'il s'agit d'un message imbriqué (message de ssh_wrapper contenant un message de plugin)
+            if log_entry.get('plugin_name') == 'ssh_wrapper' and isinstance(log_entry.get('message'), str):
+                if log_entry['message'].startswith('{') and log_entry['message'].endswith('}'):
+                    try:
+                        # Extraire le message interne
+                        inner_message = json.loads(log_entry['message'])
+                        # Si c'est un message JSON valide, le traiter récursivement avec le même target_ip
+                        await LoggerUtils.process_output_line(app, log_entry['message'], plugin_widget, target_ip)
+                        return  # Ne pas continuer le traitement après avoir traité le message imbriqué
+                    except (json.JSONDecodeError, Exception) as e:
+                        # Si l'extraction échoue, continuer avec le traitement normal
+                        logger.debug(f"Échec de l'extraction du message imbriqué: {e}")
+            
+            # Si c'est un message de progression
+            if log_entry.get("level") == "progress":
+                progress_data = log_entry.get("message", {}).get("data", {})
+                percentage = progress_data.get("percentage", 0) / 100.0
+                current_step = progress_data.get("current_step", 0)
+                total_steps = progress_data.get("total_steps", 0)
                 
-            # Traiter différemment selon le type de ligne
-            if isinstance(line, str):
-                line = line.strip()
-                if not line:
-                    return False
-
-                if "[LOG] [ERROR] [sudo]" in line:
-                    logger.debug(f"Ignoré la ligne de demande sudo: {line}")
-                    return False
-                
-                logger.debug(f"Traitement de la ligne: {line}")
-
-                # Parser la ligne en Message
-                try:
-                    logger.debug(f"Parsing du message: {line}")
-                    message_obj = parse_message(line)
-                    plugin_name = message_obj.plugin_name if hasattr(message_obj, 'plugin_name') else None
-                    instance_id = message_obj.instance_id if hasattr(message_obj, 'instance_id') else None
-                    
-                    # Si une IP cible est fournie, l'ajouter au message
-                    if target_ip and not hasattr(message_obj, 'target_ip'):
-                        message_obj.target_ip = target_ip
-                    
-                    logger.debug(f"Message parsé: type={message_obj.type.name}, progress={getattr(message_obj, 'progress', None)}, plugin_name={getattr(message_obj, 'plugin_name', None) if hasattr(message_obj, 'plugin_name') else 'Non défini'}, target_ip={getattr(message_obj, 'target_ip', None)}")
-                    
-                    # Ajouter l'information sur le plugin pour les messages PROGRESS
-                    if message_obj.type == MessageType.PROGRESS and plugin_widget and hasattr(plugin_widget, f"{plugin_name}_{instance_id}"):
-                        message_obj.plugin_name = plugin_widget.plugin_name
-                        logger.debug(f"Ajout du nom du plugin depuis le widget: {message_obj.plugin_name}")
-                except Exception as e:
-                    logger.debug(f"Impossible de parser le message: {e}")
-                    return False
-            elif isinstance(line, Message):
-                # La ligne est déjà un Message
-                message_obj = line
-            else:
-                # Type non supporté
-                logger.warning(f"Type de ligne non supporté: {type(line)}")
-                return False
-
-            # Traitement spécifique en fonction du type de message
-            if message_obj.type == MessageType.PROGRESS:
-                # Vérifier si le message contient un identifiant d'instance
-                plugin_name = message_obj.plugin_name if hasattr(message_obj, 'plugin_name') else None
-                instance_id = message_obj.instance_id if hasattr(message_obj, 'instance_id') else None
-                
-                # Mise à jour de la progression du plugin
-                step_text = (f"Étape {message_obj.step}/{message_obj.total_steps}" 
-                            if message_obj.total_steps > 1 
-                            else f"{int(message_obj.progress*100)}%")
+                # Créer un objet Message avec les informations de progression
+                message_obj = Message(
+                    type=MessageType.PROGRESS,
+                    content=f"Progression: {percentage*100}%",
+                    source=log_entry.get("plugin_name"),
+                    progress=percentage,
+                    step=current_step,
+                    total_steps=total_steps,
+                    instance_id=log_entry.get("instance_id"),
+                    target_ip=target_ip
+                )
                 
                 # Mettre à jour le widget de progression
-                await LoggerUtils._update_progress_widget(app, message_obj, plugin_widget, step_text)
+                if plugin_widget:
+                    plugin_widget.update_progress(percentage, f"Étape {current_step}/{total_steps}")
+                else:
+                    await LoggerUtils._update_progress_widget(app, message_obj)
                 
-                # Mettre à jour la progression globale
-                await LoggerUtils._update_global_progress(app, message_obj.progress, executed, total_plugins)
+                # Afficher le message de progression dans les logs
+                await LoggerUtils.display_message(app, message_obj)
+            else:
+                # Pour les autres types de messages
+                level = log_entry.get("level", "info")
+                # Convertir le niveau en MessageType
+                message_type = {
+                    "info": MessageType.INFO,
+                    "warning": MessageType.WARNING,
+                    "error": MessageType.ERROR,
+                    "success": MessageType.SUCCESS,
+                    "debug": MessageType.DEBUG
+                }.get(level, MessageType.INFO)
                 
-                return True
-            
-            # Pour les autres types de messages, utiliser display_message
-            await LoggerUtils.display_message(app, message_obj)
-            return True
+                message_obj = Message(
+                    type=message_type,
+                    content=log_entry.get("message", ""),
+                    source=log_entry.get("plugin_name"),
+                    instance_id=log_entry.get("instance_id"),
+                    target_ip=target_ip
+                )
+                await LoggerUtils.display_message(app, message_obj)
                 
+        except json.JSONDecodeError:
+            # Si ce n'est pas du JSON, logger un avertissement
+            logger.warning(f"Ligne non-JSON reçue: {line}")
+            # En mode SSH, on veut quand même afficher les lignes non-JSON
+            if target_ip:
+                message_obj = Message(
+                    type=MessageType.INFO,
+                    content=line,
+                    target_ip=target_ip
+                )
+                await LoggerUtils.display_message(app, message_obj)
         except Exception as e:
-            logger.error(f"Erreur lors du traitement d'une ligne: {str(e)}")
-            return False
+            logger.error(f"Erreur lors du traitement de la ligne: {e}")
+            logger.error(traceback.format_exc())
 
     @staticmethod
     async def clear_logs(app):

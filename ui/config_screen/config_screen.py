@@ -5,6 +5,7 @@ from textual.widgets import Header, Footer, Button, Label
 import os
 import traceback
 from ruamel.yaml import YAML
+import asyncio
 
 from ..utils.logging import get_logger
 from ..choice_screen.plugin_utils import get_plugin_folder_name
@@ -36,6 +37,7 @@ class PluginConfig(Screen):
             self.current_config = {}
             self.fields_by_plugin = {}
             self.fields_by_id = {}
+            self.containers_by_id = {}  # Dictionnaire des containers par ID
             self.plugins_remote_enabled = {}
             self.ssh_container = None
             self.sequence_file = sequence_file
@@ -179,83 +181,76 @@ class PluginConfig(Screen):
     async def on_mount(self) -> None:
         """Called when screen is mounted - used to add remote execution checkboxes and SSH fields"""
         try:
-            logger.debug("PluginConfig.on_mount() started")
-
-            # Now that the interface is mounted, we can add SSH fields
-            # Remote execution checkboxes are already added in compose() method
-
-            # Maintenant que tout est monté, on peut ajouter les champs SSH
-            if self.ssh_container:
-                logger.debug("Adding SSH fields to container")
-
-                # Get SSH fields from config manager
-                ssh_fields = self.config_manager.get_fields('ssh', is_global=True)
-                logger.debug(f"SSH fields: {ssh_fields}")
-
-                if ssh_fields:
-                    # Get SSH container metadata
-                    ssh_config = self.config_manager.global_configs.get('ssh', {})
-                    ssh_name = ssh_config.get('name', 'Configuration SSH')
-                    ssh_icon = ssh_config.get('icon', '🔒')
-                    ssh_description = ssh_config.get('description', '')
-
-                    # Prepare field configurations
-                    ssh_config_fields = []
-                    for field_id, field_config in ssh_fields.items():
-                        field_config_copy = field_config.copy()
-                        field_config_copy['id'] = field_id
-                        ssh_config_fields.append(field_config_copy)
-
-                    # Create SSH configuration container with fields
-                    ssh_content = GlobalConfigContainer(
-                        config_id='ssh',
-                        name=ssh_name,
-                        icon=ssh_icon,
-                        description=ssh_description,
-                        fields_by_id=self.fields_by_id,
-                        config_fields=ssh_config_fields,
-                    )
-
-                    # Mount SSH content inside SSH container
-                    await self.ssh_container.mount(ssh_content)
-                    logger.debug("SSH fields mounted successfully")
-                    
-                    # Disable SSH fields by default
-                    self.toggle_ssh_config(False)
+            # Create containers and plugins input
+            self.call_after_refresh(self.create_config_fields)
             
             # Si nous revenons de l'écran d'exécution, restaurer les valeurs des champs
             if self.returning_from_execution and self.current_config:
                 logger.debug(f"Restauration de la configuration préservée: {self.current_config}")
                 
-                # Parcourir tous les champs pour restaurer leurs valeurs
-                for field_id, field in self.fields_by_id.items():
-                    # Déterminer le plugin_id associé à ce champ
-                    parts = field_id.split('.')
-                    if len(parts) >= 2:
-                        plugin_name = parts[0]
-                        param_name = parts[1]
+                # Appeler la méthode de restauration après un court délai pour s'assurer que tous les widgets sont montés
+                await asyncio.sleep(0.1)  # court délai pour laisser le DOM se stabiliser
+                self.call_after_refresh(self.restore_saved_configuration)
+                
+            logger.debug("PluginConfig.on_mount() completed")
+        except Exception as e:
+            logger.error(f"Error in PluginConfig.on_mount(): {e}")
+            logger.error(traceback.format_exc())
+
+    def restore_saved_configuration(self):
+        """Restaure la configuration sauvegardée lors du retour de l'écran d'exécution"""
+        try:
+            if not self.current_config:
+                logger.debug("Pas de configuration à restaurer")
+                return
+                
+            logger.debug(f"Début de la restauration de la configuration: {len(self.current_config)} plugins")
+            
+            # Parcourir tous les plugins dans la configuration
+            for plugin_id, plugin_config in self.current_config.items():
+                logger.debug(f"Restauration de la configuration pour {plugin_id}")
+                
+                # Extraire le nom du plugin et la configuration
+                plugin_name = plugin_id.split('_')[0]
+                config = plugin_config.get('config', {})
+                
+                # Parcourir tous les paramètres de la configuration du plugin
+                for param_name, value in config.items():
+                    field_id = f"{plugin_name}.{param_name}"
+                    
+                    # Vérifier si ce champ existe dans notre dictionnaire de champs
+                    if field_id in self.fields_by_id:
+                        field = self.fields_by_id[field_id]
+                        logger.debug(f"Restauration du champ {field_id} avec la valeur {value}")
                         
-                        # Trouver l'instance_id correspondante
-                        for plugin_id, config in self.current_config.items():
-                            if plugin_id.startswith(plugin_name + '_'):
-                                # Récupérer la valeur du paramètre
-                                if param_name in config:
-                                    value = config[param_name]
-                                    logger.debug(f"Restauration de {field_id} avec la valeur {value}")
-                                    
-                                    # Mettre à jour la valeur du champ
-                                    if hasattr(field, 'value') and hasattr(field, 'set_value'):
-                                        field.set_value(value)
+                        # Mettre à jour la valeur du champ
+                        if hasattr(field, 'set_value'):
+                            field.set_value(value)
+                        elif hasattr(field, 'value'):
+                            field.value = value
+                            
+                            # Si le champ est un widget avec une valeur, mettre à jour également
+                            try:
+                                for widget_type in [Input, Select, Checkbox]:
+                                    try:
+                                        widget = field.query_one(widget_type)
+                                        if hasattr(widget, 'value'):
+                                            widget.value = value
+                                            logger.debug(f"Valeur du widget mise à jour pour {field_id}")
+                                        break
+                                    except Exception:
+                                        continue
+                            except Exception as e:
+                                logger.debug(f"Erreur lors de la mise à jour du widget pour {field_id}: {e}")
                 
                 # Restaurer également l'état d'activation des plugins distants
-                for plugin_id, config in self.current_config.items():
-                    plugin_name = plugin_id.split('_')[0]
-                    if 'ssh_enabled' in config and plugin_name in self.plugins_remote_enabled:
-                        ssh_enabled = config['ssh_enabled']
-                        logger.debug(f"Restauration de l'état SSH pour {plugin_name}: {ssh_enabled}")
-                        
-                        # Mettre à jour la case à cocher
-                        checkbox_id = f"{plugin_name}_remote"
+                if 'remote_execution' in plugin_config and plugin_name in self.plugins_remote_enabled:
+                    ssh_enabled = plugin_config.get('remote_execution', False)
+                    logger.debug(f"Restauration de l'état SSH pour {plugin_name}: {ssh_enabled}")
+                    
+                    # Mettre à jour la case à cocher
+                    checkbox_id = f"{plugin_name}_remote"
+                    try:
                         checkbox = self.query_one(f"#{checkbox_id}", CheckboxField)
                         if checkbox:
                             checkbox.value = ssh_enabled
@@ -263,11 +258,39 @@ class PluginConfig(Screen):
                             # Activer/désactiver les champs SSH en fonction de l'état
                             if ssh_enabled:
                                 self.toggle_ssh_config(True)
-
-            logger.debug("PluginConfig.on_mount() completed")
+                    except Exception as e:
+                        logger.error(f"Erreur lors de la restauration de l'état SSH pour {plugin_name}: {e}")
+            
+            # Mettre à jour les dépendances entre champs après restauration
+            self.update_all_dependencies()
+            
+            logger.debug("Restauration de la configuration terminée")
         except Exception as e:
-            logger.error(f"Error in PluginConfig.on_mount(): {e}")
+            logger.error(f"Erreur lors de la restauration de la configuration: {e}")
             logger.error(traceback.format_exc())
+            
+    def update_all_dependencies(self):
+        """Met à jour toutes les dépendances entre champs"""
+        try:
+            logger.debug("Mise à jour de toutes les dépendances entre champs")
+            
+            # Parcourir tous les champs
+            for field_id, field in self.fields_by_id.items():
+                # Mettre à jour les champs qui dépendent de ce champ
+                if hasattr(field, 'value'):
+                    # Trouver le container parent du champ
+                    container = None
+                    for container_id, c in self.containers_by_id.items():
+                        if field_id in c.fields_by_id:
+                            container = c
+                            break
+                    
+                    # Si le container est trouvé, mettre à jour les dépendances
+                    if container and hasattr(container, 'update_dependent_fields'):
+                        container.update_dependent_fields(field)
+                        logger.debug(f"Mise à jour des dépendances pour {field_id}")
+        except Exception as e:
+            logger.error(f"Erreur lors de la mise à jour des dépendances: {e}")
 
     def get_remote_execution_plugins(self) -> list:
         """Return list of plugins that support remote execution"""
@@ -663,3 +686,33 @@ class PluginConfig(Screen):
         """Handle escape key"""
         logger.debug("Quit action triggered")
         self.app.pop_screen()
+
+    def create_config_fields(self):
+        """Crée les champs de configuration après le montage de l'interface"""
+        try:
+            logger.debug("Création des champs de configuration")
+            
+            # Réinitialiser le dictionnaire des containers
+            self.containers_by_id = {}
+            
+            # Récupérer tous les containers de configuration
+            config_containers = self.query(".config-container")
+            logger.debug(f"Nombre de containers trouvés: {len(config_containers)}")
+            
+            # Indexer les containers par ID
+            for container in config_containers:
+                if hasattr(container, 'id'):
+                    self.containers_by_id[container.id] = container
+                    logger.debug(f"Container ajouté: {container.id}")
+                    
+                    # Si le container est un ConfigContainer, ajouter ses champs à fields_by_id
+                    if hasattr(container, 'fields_by_id'):
+                        for field_id, field in container.fields_by_id.items():
+                            self.fields_by_id[field_id] = field
+                            logger.debug(f"Champ ajouté: {field_id}")
+            
+            logger.debug(f"Nombre total de containers indexés: {len(self.containers_by_id)}")
+            logger.debug(f"Nombre total de champs indexés: {len(self.fields_by_id)}")
+        except Exception as e:
+            logger.error(f"Erreur lors de la création des champs de configuration: {e}")
+            logger.error(traceback.format_exc())

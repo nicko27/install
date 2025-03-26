@@ -281,9 +281,9 @@ class MessageFormatter:
         # Échapper les caractères spéciaux pour le markup
         safe_content = escape_markup(message.content)
         
-        # Ajouter l'IP si elle est disponible
+        # Ajouter l'IP si elle est disponible (attribut direct, pas via hasattr)
         ip_info = ""
-        if hasattr(message, 'target_ip') and message.target_ip:
+        if message.target_ip:
             ip_info = f"[magenta]@{message.target_ip}[/magenta] "
         
         # Format lisible et coloré

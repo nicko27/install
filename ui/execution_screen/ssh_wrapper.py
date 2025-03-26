@@ -9,6 +9,7 @@ import sys
 import json
 import tempfile
 import traceback
+from datetime import datetime
 
 
 # Ajouter le répertoire parent au chemin de recherche pour trouver les modules
@@ -164,13 +165,30 @@ def main():
         
         # Dans la section où vous vérifiez le résultat et affichez la sortie
         if success:
-            if stdout:
-                # Assurez-vous que la sortie standard est affichée sans préfixe "[LOG] [ERROR]"
-                print(stdout, flush=True)
-            log.info("Exécution terminée avec succès")
+            if stdout and not stdout.strip().startswith('{') and not stdout.strip().startswith('['):
+                # Seulement traiter la sortie si ce n'est pas déjà des logs JSON
+                # Ceci évite de dupliquer les logs qui ont déjà été affichés ligne par ligne
+                try:
+                    # Si c'est déjà du JSON, le passer tel quel
+                    json.loads(stdout)
+                    print(stdout, flush=True)
+                except json.JSONDecodeError:
+                    # Si ce n'est pas du JSON, le convertir
+                    output_entry = {
+                        "timestamp": datetime.now().isoformat(),
+                        "level": "info",
+                        "message": stdout
+                    }
+                    print(json.dumps(output_entry), flush=True)
+            log.success("Exécution terminée avec succès")
             sys.exit(0)
         else:
-            log.error(f"Erreur lors de l'exécution: {stderr}")
+            error_entry = {
+                "timestamp": datetime.now().isoformat(),
+                "level": "error",
+                "message": f"Erreur lors de l'exécution: {stderr}"
+            }
+            print(json.dumps(error_entry), flush=True)
             sys.exit(1)
         
     except Exception as e:

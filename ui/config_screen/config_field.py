@@ -156,8 +156,21 @@ class ConfigField(VerticalGroup):
             
             # Check if the dependency field exists
             if dep_field:
+                # Récupérer les valeurs pour la comparaison
+                field_value = dep_field.value 
+                required_value = self.enabled_if.get('value')
+                
+                # Convertir les valeurs en booléens si nécessaire pour la comparaison
+                if isinstance(required_value, bool) and not isinstance(field_value, bool):
+                    if isinstance(field_value, str):
+                        field_value = field_value.lower() in ('true', 't', 'yes', 'y', '1')
+                    else:
+                        field_value = bool(field_value)
+                
+                logger.debug(f"Comparaison pour {self.field_id}: {field_value} == {required_value}")
+                
                 # Check if the dependency field's value matches the required value
-                if dep_field.value != self.enabled_if['value']:
+                if field_value != required_value:
                     logger.debug(f"Field {self.field_id} should be initially disabled")
                     self.disabled = True
                     self.add_class('disabled')
@@ -177,12 +190,13 @@ class ConfigField(VerticalGroup):
                 self.add_class('disabled')
 
     def get_value(self):
-        # If the field is disabled due to an enabled_if condition, return None
-        # This ensures that disabled fields don't contribute to the configuration
-        if self.disabled and self.enabled_if:
-            logger.debug(f"Field {self.field_id} is disabled, returning None instead of {self.value}")
-            return None
+        """Get the current value of the field"""
         return self.value
+
+    def set_value(self, value):
+        """Set the value of the field"""
+        self.value = value
+        return True
 
     def on_select_changed(self, event: Select.Changed) -> None:
         """Handle select change"""

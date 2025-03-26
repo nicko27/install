@@ -132,31 +132,34 @@ class LocalExecutor:
                     logger.debug(f"RAW LINE RECEIVED: {line_decoded}")
                     if line_decoded:
                         collected_lines.append(line_decoded)
-
-                        # Traiter la ligne pour les mises à jour en temps réel
-                        # Récupérer l'IP cible si elle existe dans le widget
-                        target_ip = getattr(plugin_widget, 'target_ip', None) if plugin_widget else None
-
-                        if is_stderr:
-                            logger.warning(f"{line_decoded}")
-                            # Ajouter les erreurs au log de l'application
-                            self.log_message(f"{line_decoded}", level="error", target_ip=target_ip)
-                        else:
-                            logger.debug(f"STDOUT: {line_decoded}")
-
-                            # Traiter directement la ligne pour les messages de progression
-                            try:
+                        
+                        try:
+                            # Essayer de parser la ligne comme JSON
+                            log_entry = json.loads(line_decoded)
+                            target_ip = getattr(plugin_widget, 'target_ip', None) if plugin_widget else None
+                            
+                            if is_stderr:
+                                self.log_message(log_entry.get('message', line_decoded), level="error", target_ip=target_ip)
+                            else:
                                 if self.app:
-                                    # Récupérer l'IP cible si elle existe dans le widget
-                                    target_ip = getattr(plugin_widget, 'target_ip', None) if plugin_widget else None
+                                    await LoggerUtils.process_output_line(
+                                        self.app,
+                                        line_decoded,  # Passer la ligne JSON complète
+                                        plugin_widget,
+                                        target_ip=target_ip
+                                    )
+                        except json.JSONDecodeError:
+                            # Fallback pour les lignes non-JSON
+                            if is_stderr:
+                                self.log_message(line_decoded, level="error", target_ip=target_ip)
+                            else:
+                                if self.app:
                                     await LoggerUtils.process_output_line(
                                         self.app,
                                         line_decoded,
                                         plugin_widget,
                                         target_ip=target_ip
                                     )
-                            except Exception as e:
-                                logger.error(f"Erreur lors du traitement de la ligne: {e}")
 
             # Lancer la lecture des flux stdout et stderr
             await asyncio.gather(

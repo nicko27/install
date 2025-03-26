@@ -74,6 +74,8 @@ class SSHExecutor:
         self.temp_dir = None
         self.ssh = None
         self.sftp = None
+        self.app = None
+        self.plugin_widget = None
         self.root_credentials_manager = RootCredentialsManager.get_instance()
         
     def _get_excluded_files(self, plugin_settings: Dict) -> List[str]:
@@ -417,6 +419,11 @@ class SSHExecutor:
                 async def read_stream(stream, is_stderr=False):
                     app = self.app if hasattr(self, 'app') else None
                     target_ip = host  # Utiliser l'adresse IP de l'hôte
+                    pw = None  # Variable pour stocker le plugin_widget
+                    
+                    # Récupérer le plugin_widget depuis self ou le créer si nécessaire
+                    if hasattr(self, 'plugin_widget'):
+                        pw = self.plugin_widget
                     
                     while True:
                         line = await loop.run_in_executor(None, stream.readline)
@@ -424,30 +431,101 @@ class SSHExecutor:
                             break
                             
                         if not isinstance(line, bytes):
-                            line_text=line.strip()
+                            line_text = line.strip()
                         else:
                             line_text = line.decode('utf-8', errors='replace').strip()
                         if not line_text:
                             continue
-                            
-                        # Collecter les sorties
-                        if is_stderr:
-                            collected_errors.append(line_text)
-                        else:
-                            collected_output.append(line_text)
                         
-                        # Si nous avons accès à l'application et aux utilitaires de log, traiter la ligne
+                        logger.debug(f"Ligne reçue de {host}: {line_text}")
+                            
                         try:
-                            if app and hasattr(LoggerUtils, 'process_output_line'):
-                                # Envoyer à l'app pour affichage en temps réel
-                                await LoggerUtils.process_output_line(
-                                    app, 
-                                    line_text, 
-                                    plugin_widget,  # Utiliser le plugin_widget passé en paramètre
+                            # Vérifier pour détecter les dumps de logs de fin d'exécution (grand bloc JSON)
+                            if len(line_text) > 1000 and "message" in line_text and "timestamp" in line_text:
+                                # C'est probablement un dump des logs, on l'ignore pour éviter la duplication
+                                logger.debug(f"Log dump détecté et ignoré, longueur: {len(line_text)}")
+                                continue
+                                
+                            # Essayer de parser la ligne comme JSON
+                            json_line = False
+                            if line_text.startswith('{') and line_text.endswith('}'):
+                                try:
+                                    log_entry = json.loads(line_text)
+                                    json_line = True
+                                    
+                                    # Vérifier s'il s'agit d'un message imbriqué (message de ssh_wrapper contenant un message de plugin)
+                                    if 'message' in log_entry and isinstance(log_entry['message'], str):
+                                        if log_entry['message'].startswith('{') and log_entry['message'].endswith('}'):
+                                            try:
+                                                # Extraire le message interne
+                                                inner_message = json.loads(log_entry['message'])
+                                                # Si c'est un message JSON valide, le traiter récursivement avec le même target_ip
+                                                await LoggerUtils.process_output_line(
+                                                    app, 
+                                                    log_entry['message'],  # Utiliser le JSON interne
+                                                    pw,
+                                                    target_ip=target_ip
+                                                )
+                                                continue  # Passer à la ligne suivante après avoir traité le message imbriqué
+                                            except json.JSONDecodeError:
+                                                # Si l'extraction échoue, continuer avec le traitement normal
+                                                pass
+                                    
+                                    # Détecter et ajuster le niveau de message pour "Exécution terminée avec succès"
+                                    if 'message' in log_entry and log_entry.get('message') == "Exécution terminée avec succès":
+                                        log_entry['level'] = 'success'  # Forcer le niveau à success
+                                    
+                                    # Collecter les sorties
+                                    if is_stderr:
+                                        collected_errors.append(log_entry.get('message', line_text))
+                                    else:
+                                        collected_output.append(log_entry.get('message', line_text))
+                                    
+                                    # Si nous avons accès à l'application et aux utilitaires de log, traiter la ligne
+                                    if app and hasattr(LoggerUtils, 'process_output_line'):
+                                        await LoggerUtils.process_output_line(
+                                            app, 
+                                            json.dumps(log_entry) if log_entry.get('message') == "Exécution terminée avec succès" else line_text,  # Passer la ligne JSON complète
+                                            pw,
+                                            target_ip=target_ip
+                                        )
+                                except json.JSONDecodeError:
+                                    json_line = False
+                            
+                            # Fallback pour les lignes non-JSON
+                            if not json_line:
+                                if is_stderr:
+                                    collected_errors.append(line_text)
+                                else:
+                                    collected_output.append(line_text)
+                                
+                                if app and hasattr(LoggerUtils, 'process_output_line'):
+                                    # Créer un JSON pour les lignes non-JSON pour assurer un traitement uniforme
+                                    log_level = "error" if is_stderr else "info"
+                                    json_wrapper = json.dumps({
+                                        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S.%f"),
+                                        "level": log_level,
+                                        "message": line_text,
+                                        "plugin_name": self.plugin_name,
+                                        "instance_id": self.instance_id
+                                    })
+                                    await LoggerUtils.process_output_line(
+                                        app, 
+                                        json_wrapper,
+                                        pw,
+                                        target_ip=target_ip
+                                    )
+                        except Exception as e:
+                            logger.error(f"Erreur lors du traitement de la ligne de {host}: {e}")
+                            logger.error(traceback.format_exc())
+                            # Tenter un affichage de secours
+                            if app and hasattr(LoggerUtils, 'add_log'):
+                                await LoggerUtils.add_log(
+                                    app,
+                                    f"Erreur de traitement: {line_text}",
+                                    "error" if is_stderr else "info",
                                     target_ip=target_ip
                                 )
-                        except Exception as e:
-                            logger.error(f"Erreur lors du traitement en temps réel: {e}")
                 
                 # Créer des tâches pour lire les flux stdout et stderr
                 stdout_task = asyncio.create_task(read_stream(stdout))
@@ -486,6 +564,11 @@ class SSHExecutor:
     async def execute_plugin(self, plugin_widget, folder_name: str, config: dict) -> Tuple[bool, str]:
         """Exécute un plugin sur les machines distantes via SSH"""
         try:
+            # Stocker l'application et le widget pour les affichages de logs
+            if hasattr(plugin_widget, 'app'):
+                self.app = plugin_widget.app
+            self.plugin_widget = plugin_widget
+            
             # Récupérer la configuration SSH
             ssh_config = SSHConfigLoader.get_instance().get_authentication_config()
             plugin_config = config.get('config', {})
@@ -543,12 +626,46 @@ class SSHExecutor:
                 success, output = await self._execute_on_single_host(
                     ip, host_ssh_config
                 )
-                results.append((success, output))
+                results.append((ip, success, output))
             
             # Consolider les résultats
-            all_success = all(success for success, _ in results)
-            all_outputs = [output for _, output in results]
+            all_success = all(success for _, success, _ in results)
             
+            # Générer un résumé des exécutions par IP
+            summary_lines = []
+            for ip, success, _ in results:
+                status = "Succès" if success else "Échec"
+                summary_lines.append(f"{ip}: {self.plugin_name} - {status}")
+            
+            # Ajouter une ligne de résumé global
+            if all_success:
+                summary_message = f"Exécution terminée avec succès sur toutes les machines ({len(results)}/{len(results)})"
+            else:
+                success_count = sum(1 for _, success, _ in results if success)
+                summary_message = f"Exécution terminée avec {success_count}/{len(results)} succès"
+            
+            # Ajouter le résumé au journal
+            if self.app:
+                try:
+                    # Envoyer le résumé global
+                    await LoggerUtils.add_log(
+                        self.app,
+                        summary_message,
+                        "success" if all_success else "warning"
+                    )
+                    
+                    # Envoyer le résumé détaillé pour chaque IP
+                    for line in summary_lines:
+                        await LoggerUtils.add_log(
+                            self.app,
+                            line,
+                            "success"
+                        )
+                except Exception as e:
+                    logger.error(f"Erreur lors de l'ajout des logs de résumé: {e}")
+            
+            # Retourner le résultat global et les sorties
+            all_outputs = [output for _, _, output in results]
             if all_success:
                 return True, "\n".join(all_outputs)
             else:
