@@ -17,26 +17,18 @@ from ..utils.logging import get_logger
 from .logger_utils import LoggerUtils
 from .file_content_handler import FileContentHandler
 from .root_credentials_manager import RootCredentialsManager
+from .file_content_handler import FileContentHandler
 from ..ssh_manager.ssh_config_loader import SSHConfigLoader
 from ..ssh_manager.ip_utils import get_target_ips
 
 import paramiko
 
+logger = get_logger('ssh_executor')
+
 # Configuration du logging
 # Créer le répertoire des logs
 LOGS_DIR = '/tmp/pcUtils/logs'
-os.makedirs(LOGS_DIR, exist_ok=True)
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(os.path.join(LOGS_DIR, 'ssh_executor.log')),
-        logging.StreamHandler()
-    ]
-)
-
-logger = logging.getLogger(__name__)
 
 # Constantes
 DEFAULT_SSH_PORT = 22
@@ -82,27 +74,13 @@ class SSHExecutor:
         self.temp_dir = None
         self.ssh = None
         self.sftp = None
-        
-        # Utiliser le répertoire des logs défini globalement
-        log_dir = LOGS_DIR
-        
-        # Configurer le logging
-        self.log_file = f"{log_dir}/plugin_{self.plugin_name}_{self.instance_id}_{int(time.time())}.log"
-        file_handler = logging.FileHandler(self.log_file)
-        file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-        logger.addHandler(file_handler)
-        
-        logger.info(f"Initialisation de l'exécuteur SSH pour le plugin {self.plugin_name}")
-        logger.info(f"Configuration: {json.dumps(self.plugin_config, indent=2)}")
-        logger.info(f"Mode débogage SSH: {self.ssh_debug}")
-        
         self.root_credentials_manager = RootCredentialsManager.get_instance()
         
     def _get_excluded_files(self, plugin_settings: Dict) -> List[str]:
         """Récupère la liste des fichiers à exclure"""
         excluded = []
         if isinstance(plugin_settings, dict):
-            for section in ['exceptions', 'excluded_files']:
+            for section in ['exceptions', 'excluded_files', 'ssh_pattern_exceptions']:
                 value = plugin_settings.get(section, [])
                 if isinstance(value, str):
                     excluded.append(value)
@@ -170,12 +148,40 @@ class SSHExecutor:
             logger.debug(f"Le dossier distant {remote_dir} existe peut-être déjà: {e}")
             return True
 
-    def _copy_directory_contents(self, sftp, local_path, remote_path):
-        """Copie le contenu d'un répertoire"""
+    def _copy_directory_contents(self, sftp, local_path, remote_path, plugin_settings=None):
+        """Copie le contenu d'un répertoire en tenant compte des exclusions
+        
+        Args:
+            sftp: Session SFTP
+            local_path: Chemin local à copier
+            remote_path: Chemin distant cible
+            plugin_settings: Paramètres du plugin (pour les exclusions)
+            
+        Returns:
+            bool: True si la copie a réussi, False sinon
+        """
         try:
+            # Récupérer la liste des fichiers à exclure
+            excluded_files = []
+            if plugin_settings:
+                excluded_files = self._get_excluded_files(plugin_settings)
+            
+            # Toujours exclure settings.yml
+            if 'settings.yml' not in excluded_files:
+                excluded_files.append('settings.yml')
+                
+            logger.debug(f"Fichiers exclus: {excluded_files}")
+            
+            # Parcourir les fichiers/dossiers du répertoire
             for item in os.listdir(local_path):
                 local_item = os.path.join(local_path, item)
                 remote_item = os.path.join(remote_path, item)
+                
+                # Vérifier si le fichier est à exclure
+                if item in excluded_files or any(self._match_pattern(item, pattern) for pattern in excluded_files):
+                    logger.debug(f"Exclusion de {local_item} selon les règles d'exclusion")
+                    continue
+                    
                 try:
                     if os.path.isfile(local_item):
                         sftp.put(local_item, remote_item)
@@ -183,7 +189,7 @@ class SSHExecutor:
                     elif os.path.isdir(local_item):
                         if not self._ensure_remote_dir(sftp, remote_item):
                             return False
-                        if not self._copy_directory_contents(sftp, local_item, remote_item):
+                        if not self._copy_directory_contents(sftp, local_item, remote_item, plugin_settings):
                             return False
                 except Exception as e:
                     logger.error(f"Erreur lors de la copie de {local_item}: {e}")
@@ -192,6 +198,19 @@ class SSHExecutor:
         except Exception as e:
             logger.error(f"Erreur lors de la copie du répertoire {local_path}: {e}")
             return False
+
+    def _match_pattern(self, filename, pattern):
+        """Vérifie si un nom de fichier correspond à un motif d'exclusion
+        
+        Args:
+            filename: Nom du fichier à vérifier
+            pattern: Motif d'exclusion (peut contenir *)
+            
+        Returns:
+            bool: True si le fichier correspond au motif
+        """
+        import fnmatch
+        return fnmatch.fnmatch(filename, pattern)
 
     def _create_and_send_config_file(self, sftp, config_data, temp_dir, filename):
         """Crée et envoie un fichier de configuration"""
@@ -284,7 +303,7 @@ class SSHExecutor:
                 
                 # Copier le module loading_utils qui est partagé entre les plugins
                 loading_utils_dir = os.path.join(plugins_base_dir, 'loading_utils')
-                remote_loading_utils_dir = os.path.join(temp_dir, '..', 'loading_utils')
+                remote_loading_utils_dir = os.path.join(temp_dir, 'loading_utils')
                 
                 # Créer le répertoire loading_utils sur la machine distante
                 try:
@@ -302,6 +321,49 @@ class SSHExecutor:
                 except Exception as e:
                     logger.error(f"Erreur lors de la copie du module loading_utils: {e}")
                     raise
+
+                # Construire le chemin du plugin pour obtenir ses paramètres
+                plugins_base_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'plugins')
+                plugin_dir = os.path.join(plugins_base_dir, self.plugin_name)
+
+                # Charger les paramètres du plugin depuis settings.yml
+                settings_path = os.path.join(plugin_dir, "settings.yml")
+                plugin_settings = {}
+                if os.path.exists(settings_path):
+                    try:
+                        with open(settings_path, 'r', encoding='utf-8') as f:
+                            plugin_settings = YAML().load(f)
+                        logger.debug(f"Paramètres du plugin chargés: {plugin_settings}")
+                    except Exception as e:
+                        logger.error(f"Erreur lors de la lecture des paramètres du plugin: {e}")
+                        logger.error(traceback.format_exc())
+
+                file_content = FileContentHandler.process_file_content(plugin_settings, self.plugin_config, plugin_dir)
+                # Intégrer le contenu des fichiers dans la configuration
+                plugin_config_with_files = self.plugin_config.copy()
+
+                for param_name, content in file_content.items():
+                    plugin_config_with_files[param_name] = content
+                    logger.info(f"Contenu du fichier intégré dans la configuration sous {param_name}")
+
+                # Créer le fichier de configuration localement
+                local_plugin_config = f"/tmp/{TEMP_FILE_PREFIX}plugin_config_{int(time.time())}.json"
+                try:
+                    with open(local_plugin_config, 'w') as f:
+                        json.dump(plugin_config_with_files, f, indent=2)
+                    
+                    # Envoyer la configuration
+                    remote_plugin_config = os.path.join(temp_dir, 'config.json')
+                    await loop.run_in_executor(
+                        None,
+                        lambda: sftp.put(local_plugin_config, remote_plugin_config)
+                    )
+                finally:
+                    # Nettoyer le fichier temporaire local
+                    if os.path.exists(local_plugin_config):
+                        os.remove(local_plugin_config)
+
+
                 
                 # Copier le script wrapper
                 wrapper_path = os.path.join(os.path.dirname(__file__), 'ssh_wrapper.py')
@@ -314,9 +376,8 @@ class SSHExecutor:
                 # Créer la configuration du wrapper
                 wrapper_config = {
                     'plugin_path': os.path.join(temp_dir, 'exec.py'),
-                    'plugin_config': self.plugin_config,
-                    'needs_sudo': self.plugin_config.get('needs_sudo', False),
-                    'root_password': self.root_credentials_manager.get_root_password(host)
+                    'plugin_config': plugin_config_with_files,
+                    'needs_sudo': plugin_settings.get('needs_sudo', False),
                 }
                 
                 # Créer le fichier de configuration localement
@@ -336,73 +397,78 @@ class SSHExecutor:
                     if os.path.exists(local_wrapper_config):
                         os.remove(local_wrapper_config)
                 
-                # Créer config.json pour exec.py
-                plugin_full_config = {
-                    'plugin_name': self.plugin_name,
-                    'instance_id': self.instance_id,
-                    'config': self.plugin_config
-                }
-                
-                # Créer le fichier de configuration localement
-                local_plugin_config = f"/tmp/{TEMP_FILE_PREFIX}plugin_config_{int(time.time())}.json"
-                try:
-                    with open(local_plugin_config, 'w') as f:
-                        json.dump(plugin_full_config, f, indent=2)
-                    
-                    # Envoyer la configuration
-                    remote_plugin_config = os.path.join(temp_dir, 'config.json')
-                    await loop.run_in_executor(
-                        None,
-                        lambda: sftp.put(local_plugin_config, remote_plugin_config)
-                    )
-                finally:
-                    # Nettoyer le fichier temporaire local
-                    if os.path.exists(local_plugin_config):
-                        os.remove(local_plugin_config)
-                
+
                 # Rendre le script wrapper exécutable
                 await loop.run_in_executor(
                     None,
                     lambda: ssh.exec_command(f"chmod +x {remote_wrapper}")
                 )
                 
-                # Exécuter le wrapper
                 cmd = f"python3 {remote_wrapper} {remote_wrapper_config}"
                 stdin, stdout, stderr = await loop.run_in_executor(
                     None,
-                    lambda: ssh.exec_command(cmd, timeout=300)
+                    lambda: ssh.exec_command(cmd, timeout=300, get_pty=True)  # Ajout de get_pty=True
                 )
+                # Récupérer les sorties en temps réel
+                collected_output = []
+                collected_errors = []
                 
-                # Récupérer la sortie
-                output = await loop.run_in_executor(
-                    None,
-                    lambda: stdout.read().decode()
-                )
+                # Fonction pour lire un flux de manière asynchrone
+                async def read_stream(stream, is_stderr=False):
+                    app = self.app if hasattr(self, 'app') else None
+                    target_ip = host  # Utiliser l'adresse IP de l'hôte
+                    
+                    while True:
+                        line = await loop.run_in_executor(None, stream.readline)
+                        if not line:
+                            break
+                            
+                        if not isinstance(line, bytes):
+                            line_text=line.strip()
+                        else:
+                            line_text = line.decode('utf-8', errors='replace').strip()
+                        if not line_text:
+                            continue
+                            
+                        # Collecter les sorties
+                        if is_stderr:
+                            collected_errors.append(line_text)
+                        else:
+                            collected_output.append(line_text)
+                        
+                        # Si nous avons accès à l'application et aux utilitaires de log, traiter la ligne
+                        try:
+                            if app and hasattr(LoggerUtils, 'process_output_line'):
+                                # Envoyer à l'app pour affichage en temps réel
+                                await LoggerUtils.process_output_line(
+                                    app, 
+                                    line_text, 
+                                    plugin_widget,  # Utiliser le plugin_widget passé en paramètre
+                                    target_ip=target_ip
+                                )
+                        except Exception as e:
+                            logger.error(f"Erreur lors du traitement en temps réel: {e}")
                 
-                error = await loop.run_in_executor(
-                    None,
-                    lambda: stderr.read().decode()
-                )
+                # Créer des tâches pour lire les flux stdout et stderr
+                stdout_task = asyncio.create_task(read_stream(stdout))
+                stderr_task = asyncio.create_task(read_stream(stderr, True))
                 
+                # Attendre que les tâches soient terminées
+                await asyncio.gather(stdout_task, stderr_task)
+                
+                # Attendre la fin du processus pour obtenir le code de retour
                 exit_status = await loop.run_in_executor(
                     None,
                     lambda: stderr.channel.recv_exit_status()
                 )
                 
                 if exit_status != 0:
-                    return False, f"Erreur lors de l'exécution: {error}"
+                    error_message = "\n".join(collected_errors) if collected_errors else "Erreur inconnue"
+                    return False, f"Erreur lors de l'exécution: {error_message}"
+
+                output_text = "\n".join(collected_output)
+                return True, output_text
                 
-                # Gérer le mode débogage SSH
-                if not self.ssh_debug:
-                    try:
-                        await loop.run_in_executor(
-                            None,
-                            lambda: ssh.exec_command(f"rm -rf {temp_dir}")
-                        )
-                    except Exception as e:
-                        logger.warning(f"Erreur lors du nettoyage du répertoire temporaire: {e}")
-                
-                return True, output
                 
             finally:
                 # Fermer les connexions de manière asynchrone

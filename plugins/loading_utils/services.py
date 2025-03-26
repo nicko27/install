@@ -16,7 +16,7 @@ class ServiceCommands(Commands):
     les informations d'identification pour sudo. Format: {'user': 'username', 'password': 'password'}
     """
 
-    def start(self, service_name, root_credentials=None):
+    def start(self, service_name):
         """
         Démarre un service systemd.
 
@@ -29,7 +29,7 @@ class ServiceCommands(Commands):
             bool: True si le démarrage a réussi, False sinon
         """
         self.log_info(f"Démarrage du service {service_name}")
-        success, _, _ = self.run_as_root(['systemctl', 'start', service_name], root_credentials=root_credentials)
+        success, _, _ = self.run(['systemctl', 'start', service_name])
 
         if success:
             self.log_success(f"Service {service_name} démarré avec succès")
@@ -38,7 +38,7 @@ class ServiceCommands(Commands):
 
         return success
 
-    def stop(self, service_name, root_credentials=None):
+    def stop(self, service_name):
         """
         Arrête un service systemd.
 
@@ -51,7 +51,7 @@ class ServiceCommands(Commands):
             bool: True si l'arrêt a réussi, False sinon
         """
         self.log_info(f"Arrêt du service {service_name}")
-        success, _, _ = self.run_as_root(['systemctl', 'stop', service_name], root_credentials=root_credentials)
+        success, _, _ = self.run(['systemctl', 'stop', service_name])
 
         if success:
             self.log_success(f"Service {service_name} arrêté avec succès")
@@ -60,7 +60,7 @@ class ServiceCommands(Commands):
 
         return success
 
-    def restart(self, service_name, root_credentials=None):
+    def restart(self, service_name):
         """
         Redémarre un service systemd.
 
@@ -73,7 +73,7 @@ class ServiceCommands(Commands):
             bool: True si le redémarrage a réussi, False sinon
         """
         self.log_info(f"Redémarrage du service {service_name}")
-        success, _, _ = self.run_as_root(['systemctl', 'restart', service_name], root_credentials=root_credentials)
+        success, _, _ = self.run(['systemctl', 'restart', service_name])
 
         if success:
             self.log_success(f"Service {service_name} redémarré avec succès")
@@ -82,7 +82,7 @@ class ServiceCommands(Commands):
 
         return success
 
-    def reload(self, service_name, root_credentials=None):
+    def reload(self, service_name):
         """
         Recharge la configuration d'un service systemd sans l'arrêter.
 
@@ -95,14 +95,14 @@ class ServiceCommands(Commands):
             bool: True si le rechargement a réussi, False sinon
         """
         self.log_info(f"Rechargement de la configuration du service {service_name}")
-        success, _, _ = self.run_as_root(['systemctl', 'reload', service_name], root_credentials=root_credentials)
+        success, _, _ = self.run(['systemctl', 'reload', service_name])
 
         if success:
             self.log_success(f"Configuration du service {service_name} rechargée avec succès")
         else:
             # Certains services ne supportent pas reload, tenter reload-or-restart
             self.log_warning(f"Échec du rechargement simple, tentative de reload-or-restart pour {service_name}")
-            success, _, _ = self.run_as_root(['systemctl', 'reload-or-restart', service_name], root_credentials=root_credentials)
+            success, _, _ = self.run(['systemctl', 'reload-or-restart', service_name])
 
             if success:
                 self.log_success(f"Service {service_name} rechargé ou redémarré avec succès")
@@ -122,7 +122,7 @@ class ServiceCommands(Commands):
             bool: True si l'activation a réussi, False sinon
         """
         self.log_info(f"Activation du service {service_name} au démarrage")
-        success, _, _ = self.run_as_root(['systemctl', 'enable', service_name])
+        success, _, _ = self.run(['systemctl', 'enable', service_name])
 
         if success:
             self.log_success(f"Service {service_name} activé au démarrage")
@@ -142,7 +142,7 @@ class ServiceCommands(Commands):
             bool: True si la désactivation a réussi, False sinon
         """
         self.log_info(f"Désactivation du service {service_name} au démarrage")
-        success, _, _ = self.run_as_root(['systemctl', 'disable', service_name])
+        success, _, _ = self.run(['systemctl', 'disable', service_name])
 
         if success:
             self.log_success(f"Service {service_name} désactivé au démarrage")

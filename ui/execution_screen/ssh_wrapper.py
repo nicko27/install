@@ -7,12 +7,17 @@ Ce script est exécuté sur la machine distante et gère l'exécution du plugin 
 import os
 import sys
 import json
-import logging
-import subprocess
 import tempfile
-from typing import Dict, Optional, Tuple
+import traceback
 
-# Créer un répertoire de logs temporaire avec les bonnes permissions
+
+# Ajouter le répertoire parent au chemin de recherche pour trouver les modules
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+if parent_dir not in sys.path:
+    sys.path.append(parent_dir)
+
+# Configurer le répertoire de logs
 def ensure_log_dir():
     # Utiliser un répertoire temporaire accessible en écriture
     log_dir = os.path.join(tempfile.gettempdir(), 'pcUtils_logs')
@@ -29,157 +34,153 @@ def ensure_log_dir():
     os.environ['PCUTILS_LOG_DIR'] = log_dir
     return log_dir
 
-# Configurer le répertoire de logs
 log_dir = ensure_log_dir()
-log_file = os.path.join(log_dir, 'ssh_wrapper.log')
-
-# Définir la variable d'environnement pour que les plugins puissent l'utiliser
 os.environ['PCUTILS_LOG_DIR'] = log_dir
 print(f"Variable d'environnement PCUTILS_LOG_DIR définie à: {log_dir}", flush=True)
 
-# Configuration du logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(log_file),
-        logging.StreamHandler()
-    ]
-)
-
-logger = logging.getLogger(__name__)
-
-def execute_command(cmd: str, sudo: bool = False, password: Optional[str] = None) -> Tuple[bool, str, str]:
-    """Exécute une commande avec ou sans sudo"""
-    try:
-        # Vérifier si la commande contient des variables d'environnement
-        env_vars = {}
-        cmd_parts = cmd.split()
-        cmd_to_execute = []
-        
-        # Extraire les variables d'environnement (format VAR=VALUE)
-        for part in cmd_parts:
-            if '=' in part and not part.startswith('-'):
-                var_name, var_value = part.split('=', 1)
-                env_vars[var_name] = var_value
-            else:
-                cmd_to_execute.append(part)
-        
-        # Obtenir l'environnement actuel et le mettre à jour avec nos variables
-        env = os.environ.copy()
-        env.update(env_vars)
-        
-        logger.debug(f"Exécution de la commande: {' '.join(cmd_to_execute)}")
-        logger.debug(f"Variables d'environnement: {env_vars}")
-        
-        if sudo and password:
-            # Utiliser sudo avec le mot de passe fourni
-            process = subprocess.Popen(
-                ['sudo', '-S'] + cmd_to_execute,
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                env=env
-            )
-            stdout, stderr = process.communicate(input=f"{password}\n")
-        else:
-            # Exécuter la commande normalement
-            process = subprocess.Popen(
-                cmd_to_execute,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                env=env
-            )
-            stdout, stderr = process.communicate()
-        
-        success = process.returncode == 0
-        return success, stdout, stderr
-    except Exception as e:
-        logger.error(f"Erreur lors de l'exécution de la commande: {e}")
-        return False, "", str(e)
+# Importer les modules après avoir configuré les chemins
+try:
+    # Configurer les chemins d'import pour les modules du plugin
+    from loading_utils.import_helper import setup_import_paths
+    setup_import_paths()
+    
+    # Importer les classes nécessaires
+    from loading_utils.pluginlogger import PluginLogger
+    from loading_utils.commands import Commands
+    
+    # Initialiser le logger pour le wrapper
+    log = PluginLogger(plugin_name="ssh_wrapper", instance_id=0, ssh_mode=True)
+    log.init_logs()
+    
+except ImportError as e:
+    print(f"[LOG] [ERROR] Impossible d'importer les modules nécessaires: {e}")
+    print(f"[LOG] [ERROR] {traceback.format_exc()}")
+    sys.exit(1)
 
 def main():
     """Fonction principale"""
     try:
         # Vérifier les arguments
         if len(sys.argv) != 2:
-            logger.error("Usage: python3 ssh_wrapper.py <config_file>")
+            log.error("Usage: python3 ssh_wrapper.py <wrapper_config_file>")
             sys.exit(1)
         
-        config_file = sys.argv[1]
+        wrapper_config_file = sys.argv[1]
         
-        # Vérifier que le fichier de configuration existe
-        if not os.path.exists(config_file):
-            logger.error(f"Le fichier de configuration n'existe pas: {config_file}")
+        # Vérifier que le fichier de configuration wrapper existe
+        if not os.path.exists(wrapper_config_file):
+            log.error(f"Le fichier de configuration wrapper n'existe pas: {wrapper_config_file}")
             sys.exit(1)
-        
-        # S'assurer que le répertoire de logs existe et est accessible
-        logger.debug(f"Répertoire de logs utilisé: {log_dir}")
             
-        # Ajouter le répertoire parent au chemin Python pour trouver loading_utils
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        parent_dir = os.path.dirname(current_dir)  # Remonter au répertoire parent
-        if parent_dir not in sys.path:
-            logger.debug(f"Ajout du répertoire parent au chemin Python: {parent_dir}")
-            sys.path.append(parent_dir)
-        else:
-            logger.debug(f"Le répertoire parent est déjà dans le chemin Python: {parent_dir}")
+        # Créer l'instance de commandes
+        cmd = Commands(logger=log)
         
-        # Lire la configuration
+        # Lire la configuration du wrapper
         try:
-            with open(config_file, 'r', encoding='utf-8') as f:
-                config = json.load(f)
+            with open(wrapper_config_file, 'r', encoding='utf-8') as f:
+                wrapper_config = json.load(f)
         except json.JSONDecodeError as e:
-            logger.error(f"Erreur lors de la lecture du fichier de configuration: {e}")
+            log.error(f"Erreur lors de la lecture du fichier de configuration wrapper: {e}")
             sys.exit(1)
         
-        if not config:
-            logger.error("Le fichier de configuration est vide")
+        if not wrapper_config:
+            log.error("Le fichier de configuration wrapper est vide")
             sys.exit(1)
         
-        # Récupérer les paramètres de configuration
-        plugin_path = config.get('plugin_path')
-        plugin_config = config.get('plugin_config', {})
-        needs_sudo = config.get('needs_sudo', False)
-        root_password = config.get('root_password')
+        # Récupérer les paramètres de configuration du wrapper
+        plugin_path = wrapper_config.get('plugin_path')
+        plugin_config = wrapper_config.get('plugin_config', {})
+        needs_sudo = wrapper_config.get('needs_sudo', False)
+        root_password = wrapper_config.get('root_password')
+        
+        # Récupérer les identifiants SSH depuis la configuration du plugin si disponible
+        ssh_config = plugin_config.get('config', {})
+        ssh_user = ssh_config.get('ssh_user')
+        ssh_passwd = ssh_config.get('ssh_passwd')
+        ssh_root_same = ssh_config.get('ssh_root_same', True)
+        ssh_root_passwd = ssh_config.get('ssh_root_passwd')
+        
+        # Si le mot de passe root n'est pas fourni mais que ssh_root_same est True, utiliser ssh_passwd
+        if not root_password and needs_sudo:
+            if ssh_root_same and ssh_passwd:
+                log.info("Utilisation du mot de passe SSH comme mot de passe root (ssh_root_same=true)")
+                root_password = ssh_passwd
+            elif ssh_root_passwd:
+                log.info("Utilisation du mot de passe root spécifique depuis la configuration SSH")
+                root_password = ssh_root_passwd
+            
+            if root_password:
+                log.info("Mot de passe root récupéré depuis la configuration")
+            else:
+                log.warning("Aucun mot de passe root trouvé, sudo pourrait échouer")
         
         if not plugin_path:
-            logger.error("Chemin du plugin non spécifié dans la configuration")
+            log.error("Chemin du plugin non spécifié dans la configuration")
             sys.exit(1)
         
         if not os.path.exists(plugin_path):
-            logger.error(f"Le script du plugin n'existe pas: {plugin_path}")
+            log.error(f"Le script du plugin n'existe pas: {plugin_path}")
             sys.exit(1)
         
-        # Préparer la commande avec le chemin Python correct pour trouver loading_utils
-        plugin_dir = os.path.dirname(plugin_path)
-        parent_dir = os.path.dirname(plugin_dir)  # Remonter au répertoire parent où se trouve loading_utils
+        # Indiquer que nous sommes en mode SSH pour le plugin
+        os.environ['SSH_EXECUTION'] = '1'
+        if root_password:
+            os.environ['SUDO_PASSWORD'] = root_password
         
-        # Construire la commande avec PYTHONPATH pour s'assurer que loading_utils est trouvé
-        # La variable PCUTILS_LOG_DIR est déjà définie dans l'environnement
-        pythonpath = f"PYTHONPATH={parent_dir}"
-        cmd = f"{pythonpath} python3 {plugin_path} -c {config_file}"
+        # Identifier le type de plugin (bash ou python)
+        is_bash_plugin = plugin_path.endswith('main.sh')
         
-        # Exécuter la commande
-        success, stdout, stderr = execute_command(cmd, needs_sudo, root_password)
+        if is_bash_plugin:
+            # Pour un plugin Bash, passer les paramètres de ligne de commande
+            plugin_name = plugin_config.get('plugin_name', os.path.basename(os.path.dirname(plugin_path)))
+            intensity = plugin_config.get('intensity', 'light')
+            run_cmd = ['bash', plugin_path, plugin_name, intensity]
+            
+            log.info(f"Exécution du plugin Bash {plugin_path} avec paramètres: {plugin_name} {intensity}")
+        else:
+            # Pour un plugin Python, utiliser config.json qui doit déjà être créé par ssh_executor
+            config_path = os.path.join(current_dir, 'config.json')
+            
+            if not os.path.exists(config_path):
+                log.error(f"Le fichier de configuration du plugin n'existe pas: {config_path}")
+                sys.exit(1)
+                
+            run_cmd = ['python3', plugin_path, '-c', config_path]
+            log.info(f"Exécution du plugin Python {plugin_path} avec config: {config_path}")
         
-        if not success:
-            logger.error(f"Erreur lors de l'exécution de la commande: {stderr}")
+        # Exécuter la commande avec ou sans sudo
+        if needs_sudo:
+            log.info(f"Exécution avec privilèges sudo (mot de passe disponible: {'Oui' if root_password else 'Non'})")
+            root_creds = {'password': root_password} if root_password else None
+            if root_creds:
+                log.debug("Utilisation du mot de passe root pour sudo")
+                success, stdout, stderr = cmd.run_as_root(run_cmd, root_credentials=root_creds)
+            else:
+                log.warning("Tentative d'exécution sudo sans mot de passe (peut fonctionner si sudo est configuré sans mot de passe)")
+                success, stdout, stderr = cmd.run_as_root(run_cmd)
+        else:
+            log.info("Exécution sans privilèges sudo")
+            success, stdout, stderr = cmd.run(run_cmd)
+        
+        # Dans la section où vous vérifiez le résultat et affichez la sortie
+        if success:
+            if stdout:
+                # Assurez-vous que la sortie standard est affichée sans préfixe "[LOG] [ERROR]"
+                print(stdout, flush=True)
+            log.info("Exécution terminée avec succès")
+            sys.exit(0)
+        else:
+            log.error(f"Erreur lors de l'exécution: {stderr}")
             sys.exit(1)
-        
-        # Afficher la sortie
-        if stdout:
-            print(stdout)
-        if stderr:
-            logger.warning(f"STDERR: {stderr}")
-        
-        sys.exit(0)
         
     except Exception as e:
-        logger.error(f"Erreur inattendue: {e}")
+        if 'log' in locals():
+            log.error(f"Erreur inattendue: {e}")
+            log.error(traceback.format_exc())
+        else:
+            print(f"[LOG] [ERROR] Erreur inattendue dans ssh_wrapper: {e}", flush=True)
+            print(f"[LOG] [ERROR] {traceback.format_exc()}", flush=True)
         sys.exit(1)
 
 if __name__ == "__main__":
-    main() 
+    main()

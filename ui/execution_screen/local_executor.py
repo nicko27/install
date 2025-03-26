@@ -16,7 +16,6 @@ from ..utils.messaging import Message, MessageType, parse_message
 from ..choice_screen.plugin_utils import get_plugin_folder_name
 from .logger_utils import LoggerUtils
 from .file_content_handler import FileContentHandler
-from .root_credentials_manager import RootCredentialsManager
 
 logger = get_logger('local_executor')
 

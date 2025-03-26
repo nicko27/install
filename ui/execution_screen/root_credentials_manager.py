@@ -138,35 +138,34 @@ class RootCredentialsManager:
         
         return credentials
     
-    def prepare_ssh_root_credentials(self, ip_address: str, config: Dict[str, Any]) -> Dict[str, Any]:
-        """Prépare les identifiants root SSH pour une adresse IP donnée"""
-        # Si nous avons déjà des identifiants en cache pour cette IP, les retourner
+    # Dans la méthode prepare_ssh_root_credentials de RootCredentialsManager
+    def prepare_ssh_root_credentials(self, ip_address, config):
+        # Récupérer les identifiants en cache
         cached_credentials = self.get_ssh_root_credentials(ip_address)
         if cached_credentials:
-            logger.debug(f"Utilisation des identifiants root SSH en cache pour {ip_address}")
             return cached_credentials
-        
+            
         # Récupérer la configuration SSH
         ssh_config = SSHConfigLoader.get_instance().get_authentication_config()
         
-        # Déterminer si nous utilisons les mêmes identifiants que l'utilisateur SSH
-        # Par défaut, on utilise les mêmes identifiants (ssh_root_same=true)
-        ssh_root_same = ssh_config.get('ssh_root_same', True)
+        # Déterminer si on utilise les mêmes identifiants
+        # Vérifier dans les deux endroits possibles (config et ssh_config)
+        ssh_root_same = config.get('ssh_root_same', ssh_config.get('ssh_root_same', True))
         
         if ssh_root_same:
-            # Utiliser les identifiants de l'utilisateur SSH
+            # Utiliser les identifiants SSH de l'utilisateur
             credentials = {
                 'user': config.get('ssh_user', ''),
                 'password': config.get('ssh_passwd', '')
             }
-            logger.debug(f"Utilisation des identifiants utilisateur SSH pour l'accès root sur {ip_address}")
+            logger.debug(f"Utilisation des identifiants utilisateur SSH pour l'accès root")
         else:
             # Utiliser des identifiants spécifiques
             credentials = {
-                'user': ssh_config.get('ssh_root_user', 'root'),
-                'password': ssh_config.get('ssh_root_passwd', '')
+                'user': config.get('ssh_root_user', ssh_config.get('ssh_root_user', 'root')),
+                'password': config.get('ssh_root_passwd', ssh_config.get('ssh_root_passwd', ''))
             }
-            logger.debug(f"Utilisation d'identifiants spécifiques pour l'accès root sur {ip_address}")
+            logger.debug(f"Utilisation d'identifiants root spécifiques")
         
         # Mettre en cache les identifiants
         self.set_ssh_root_credentials(ip_address, credentials)

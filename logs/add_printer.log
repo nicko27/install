@@ -539,3 +539,170 @@ TypeError: PrinterCommands.add_printer() got an unexpected keyword argument 'ppd
 [2025-03-25 16:31:47,814] [INFO] [SUCCESS] Service CUPS redémarré avec succès
 [2025-03-25 16:31:47,814] [INFO] [SUCCESS] Ajout de l'imprimante effectué avec succès
 [2025-03-25 16:31:48,014] [INFO] [SUCCESS] Succès: Ajout de l'imprimante effectué avec succès
+[2025-03-25 16:57:54,748] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-25 16:57:54,751] [INFO] {'printer_name': 'BT', 'printer_model': 'EC4200.yml', 'printer_ip': '192.168.1.220', 'printer_a3': None, 'remote_execution': False}
+[2025-03-25 16:57:54,752] [INFO] [PROGRESS] 14 1 7 add_printer 1
+[2025-03-25 16:57:54,753] [INFO] Installation de l'imprimante BT avec IP 192.168.1.220
+[2025-03-25 16:57:54,754] [INFO] [PROGRESS] 28 2 7 add_printer 1
+[2025-03-25 16:57:54,755] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-25 16:57:54,756] [INFO] [PROGRESS] 42 3 7 add_printer 1
+[2025-03-25 16:57:54,757] [INFO] Installation de Epson-C4200_BT_Recto_NB
+[2025-03-25 16:57:54,758] [INFO] Ajout de l'imprimante Epson-C4200_BT_Recto_NB (lpd://192.168.1.220) avec pilote openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd
+[2025-03-25 16:57:54,759] [INFO] Exécution de: lpadmin -p Epson-C4200_BT_Recto_NB -v lpd://192.168.1.220 -u allow:all -E -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -o Duplex=None -o PageSize=A4 -o EPRendering=None -o printer-is-shared=false
+[2025-03-25 16:57:55,390] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-25 16:57:55,391] [INFO] [SUCCESS] Imprimante Epson-C4200_BT_Recto_NB ajoutée avec succès
+[2025-03-25 16:57:55,392] [INFO] [PROGRESS] 57 4 7 add_printer 1
+[2025-03-25 16:57:55,392] [INFO] Installation de Epson-C4200_BT_Recto_Couleurs
+[2025-03-25 16:57:55,392] [INFO] [PROGRESS] 71 5 7 add_printer 1
+[2025-03-25 16:57:55,393] [INFO] Installation de Epson-C4200_BT_RectoVerso_Couleurs
+[2025-03-25 16:57:55,394] [INFO] [PROGRESS] 85 6 7 add_printer 1
+[2025-03-25 16:57:55,395] [INFO] Installation de Epson-C4200_BT_RectoVerso_NB
+[2025-03-25 16:57:55,396] [INFO] Ajout de l'imprimante Epson-C4200_BT_RectoVerso_NB (lpd://192.168.1.220) avec pilote openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd
+[2025-03-25 16:57:55,397] [INFO] Exécution de: lpadmin -p Epson-C4200_BT_RectoVerso_NB -v lpd://192.168.1.220 -u allow:all -E -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=None -o printer-is-shared=false
+[2025-03-25 16:57:56,039] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-25 16:57:56,040] [INFO] [SUCCESS] Imprimante Epson-C4200_BT_RectoVerso_NB ajoutée avec succès
+[2025-03-25 16:57:56,040] [INFO] Redémarrage du service CUPS
+[2025-03-25 16:57:56,041] [INFO] Redémarrage du service cups
+[2025-03-25 16:57:56,041] [INFO] Redémarrage du service cups
+[2025-03-25 17:12:58,716] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-25 17:12:58,717] [INFO] {'printer_name': 'BT', 'printer_model': 'EC4200.yml', 'printer_ip': '192.168.1.220', 'printer_a3': None, 'remote_execution': False}
+[2025-03-25 17:12:58,718] [INFO] [PROGRESS] 14 1 7 add_printer 1
+[2025-03-25 17:12:58,719] [INFO] Installation de l'imprimante BT avec IP 192.168.1.220
+[2025-03-25 17:12:58,719] [INFO] [PROGRESS] 28 2 7 add_printer 1
+[2025-03-25 17:12:58,720] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-25 17:12:58,720] [INFO] [PROGRESS] 42 3 7 add_printer 1
+[2025-03-25 17:12:58,721] [INFO] Installation de Epson-C4200_BT_Recto_NB
+[2025-03-25 17:12:58,722] [INFO] Ajout de l'imprimante Epson-C4200_BT_Recto_NB (lpd://192.168.1.220) avec pilote openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd
+[2025-03-25 17:12:58,722] [INFO] Exécution de: lpadmin -p Epson-C4200_BT_Recto_NB -v lpd://192.168.1.220 -u allow:all -E -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -o Duplex=None -o PageSize=A4 -o EPRendering=None -o printer-is-shared=false
+[2025-03-25 17:12:59,385] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-25 17:12:59,386] [INFO] [SUCCESS] Imprimante Epson-C4200_BT_Recto_NB ajoutée avec succès
+[2025-03-25 17:12:59,386] [INFO] [PROGRESS] 57 4 7 add_printer 1
+[2025-03-25 17:12:59,387] [INFO] Installation de Epson-C4200_BT_Recto_Couleurs
+[2025-03-25 17:12:59,387] [INFO] [PROGRESS] 71 5 7 add_printer 1
+[2025-03-25 17:12:59,388] [INFO] Installation de Epson-C4200_BT_RectoVerso_Couleurs
+[2025-03-25 17:12:59,388] [INFO] [PROGRESS] 85 6 7 add_printer 1
+[2025-03-25 17:12:59,389] [INFO] Installation de Epson-C4200_BT_RectoVerso_NB
+[2025-03-25 17:12:59,389] [INFO] Ajout de l'imprimante Epson-C4200_BT_RectoVerso_NB (lpd://192.168.1.220) avec pilote openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd
+[2025-03-25 17:12:59,390] [INFO] Exécution de: lpadmin -p Epson-C4200_BT_RectoVerso_NB -v lpd://192.168.1.220 -u allow:all -E -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=None -o printer-is-shared=false
+[2025-03-25 17:13:00,051] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-25 17:13:00,051] [INFO] [SUCCESS] Imprimante Epson-C4200_BT_RectoVerso_NB ajoutée avec succès
+[2025-03-25 17:13:00,052] [INFO] Redémarrage du service CUPS
+[2025-03-25 17:13:00,053] [INFO] Redémarrage du service cups
+[2025-03-25 17:13:00,054] [INFO] Redémarrage du service cups
+[2025-03-26 09:04:39,352] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-26 09:04:39,352] [INFO] {'printer_name': 'BT', 'printer_model': 'EC4200.yml', 'printer_ip': '192.168.1.220', 'printer_a3': None, 'remote_execution': False}
+[2025-03-26 09:04:39,352] [INFO] [PROGRESS] 14 1 7 add_printer 1
+[2025-03-26 09:04:39,352] [INFO] Installation de l'imprimante BT avec IP 192.168.1.220
+[2025-03-26 09:04:39,352] [INFO] [PROGRESS] 28 2 7 add_printer 1
+[2025-03-26 09:04:39,352] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-26 09:04:39,352] [INFO] [PROGRESS] 42 3 7 add_printer 1
+[2025-03-26 09:04:39,352] [INFO] Installation de Epson-C4200_BT_Recto_NB
+[2025-03-26 09:04:39,352] [INFO] Ajout de l'imprimante Epson-C4200_BT_Recto_NB (lpd://192.168.1.220) avec pilote openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd
+[2025-03-26 09:04:39,352] [INFO] Exécution de: lpadmin -p Epson-C4200_BT_Recto_NB -v lpd://192.168.1.220 -u allow:all -E -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -o Duplex=None -o PageSize=A4 -o EPRendering=None -o printer-is-shared=false
+[2025-03-26 09:04:40,092] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-26 09:04:40,092] [INFO] [SUCCESS] Imprimante Epson-C4200_BT_Recto_NB ajoutée avec succès
+[2025-03-26 09:04:40,092] [INFO] [PROGRESS] 57 4 7 add_printer 1
+[2025-03-26 09:04:40,092] [INFO] Installation de Epson-C4200_BT_Recto_Couleurs
+[2025-03-26 09:04:40,092] [INFO] [PROGRESS] 71 5 7 add_printer 1
+[2025-03-26 09:04:40,093] [INFO] Installation de Epson-C4200_BT_RectoVerso_Couleurs
+[2025-03-26 09:04:40,093] [INFO] [PROGRESS] 85 6 7 add_printer 1
+[2025-03-26 09:04:40,093] [INFO] Installation de Epson-C4200_BT_RectoVerso_NB
+[2025-03-26 09:04:40,093] [INFO] Ajout de l'imprimante Epson-C4200_BT_RectoVerso_NB (lpd://192.168.1.220) avec pilote openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd
+[2025-03-26 09:04:40,093] [INFO] Exécution de: lpadmin -p Epson-C4200_BT_RectoVerso_NB -v lpd://192.168.1.220 -u allow:all -E -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=None -o printer-is-shared=false
+[2025-03-26 09:04:40,875] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-26 09:04:40,876] [INFO] [SUCCESS] Imprimante Epson-C4200_BT_RectoVerso_NB ajoutée avec succès
+[2025-03-26 09:04:40,876] [INFO] Redémarrage du service CUPS
+[2025-03-26 09:04:40,876] [INFO] Redémarrage du service cups
+[2025-03-26 09:04:40,876] [INFO] Redémarrage du service cups
+[2025-03-26 09:04:40,976] [INFO] [SUCCESS] Service cups redémarré avec succès
+[2025-03-26 09:04:40,976] [INFO] [SUCCESS] Service CUPS redémarré avec succès
+[2025-03-26 09:04:40,976] [INFO] [SUCCESS] Ajout de l'imprimante effectué avec succès
+[2025-03-26 09:04:41,177] [INFO] [SUCCESS] Succès: Ajout de l'imprimante effectué avec succès
+[2025-03-26 09:19:08,142] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-26 09:19:08,142] [INFO] {'printer_name': 'BT', 'printer_model': 'EC4200.yml', 'printer_ip': '192.168.1.220', 'printer_a3': None, 'remote_execution': False}
+[2025-03-26 09:19:08,142] [INFO] [PROGRESS] 14 1 7 add_printer 1
+[2025-03-26 09:19:08,143] [INFO] Installation de l'imprimante BT avec IP 192.168.1.220
+[2025-03-26 09:19:08,143] [INFO] [PROGRESS] 28 2 7 add_printer 1
+[2025-03-26 09:19:08,143] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-26 09:19:08,143] [INFO] [PROGRESS] 42 3 7 add_printer 1
+[2025-03-26 09:19:08,143] [INFO] Installation de Epson-C4200_BT_Recto_NB
+[2025-03-26 09:19:08,143] [INFO] Ajout de l'imprimante Epson-C4200_BT_Recto_NB (lpd://192.168.1.220) avec pilote openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd
+[2025-03-26 09:19:08,143] [INFO] Exécution de: lpadmin -p Epson-C4200_BT_Recto_NB -v lpd://192.168.1.220 -u allow:all -E -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -o Duplex=None -o PageSize=A4 -o EPRendering=None -o printer-is-shared=false
+[2025-03-26 09:19:08,754] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-26 09:19:08,755] [INFO] [SUCCESS] Imprimante Epson-C4200_BT_Recto_NB ajoutée avec succès
+[2025-03-26 09:19:08,755] [INFO] [PROGRESS] 57 4 7 add_printer 1
+[2025-03-26 09:19:08,755] [INFO] Installation de Epson-C4200_BT_Recto_Couleurs
+[2025-03-26 09:19:08,755] [INFO] [PROGRESS] 71 5 7 add_printer 1
+[2025-03-26 09:19:08,755] [INFO] Installation de Epson-C4200_BT_RectoVerso_Couleurs
+[2025-03-26 09:19:08,755] [INFO] [PROGRESS] 85 6 7 add_printer 1
+[2025-03-26 09:19:08,755] [INFO] Installation de Epson-C4200_BT_RectoVerso_NB
+[2025-03-26 09:19:08,755] [INFO] Ajout de l'imprimante Epson-C4200_BT_RectoVerso_NB (lpd://192.168.1.220) avec pilote openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd
+[2025-03-26 09:19:08,755] [INFO] Exécution de: lpadmin -p Epson-C4200_BT_RectoVerso_NB -v lpd://192.168.1.220 -u allow:all -E -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=None -o printer-is-shared=false
+[2025-03-26 09:19:09,381] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-26 09:19:09,381] [INFO] [SUCCESS] Imprimante Epson-C4200_BT_RectoVerso_NB ajoutée avec succès
+[2025-03-26 09:19:09,381] [INFO] Redémarrage du service CUPS
+[2025-03-26 09:19:09,381] [INFO] Redémarrage du service cups
+[2025-03-26 09:19:09,382] [INFO] Redémarrage du service cups
+[2025-03-26 09:19:09,446] [INFO] [SUCCESS] Service cups redémarré avec succès
+[2025-03-26 09:19:09,446] [INFO] [SUCCESS] Service CUPS redémarré avec succès
+[2025-03-26 09:19:09,447] [INFO] [SUCCESS] Ajout de l'imprimante effectué avec succès
+[2025-03-26 09:19:09,647] [INFO] [SUCCESS] Succès: Ajout de l'imprimante effectué avec succès
+[2025-03-26 09:59:42,756] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-26 09:59:42,757] [INFO] {'printer_name': 'BT', 'printer_model': 'EC4200.yml', 'printer_ip': '192.168.1.220', 'printer_a3': None, 'remote_execution': False}
+[2025-03-26 09:59:42,757] [INFO] [PROGRESS] 14 1 7 add_printer 1
+[2025-03-26 09:59:42,758] [INFO] Installation de l'imprimante BT avec IP 192.168.1.220
+[2025-03-26 09:59:42,758] [INFO] [PROGRESS] 28 2 7 add_printer 1
+[2025-03-26 09:59:42,758] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-26 09:59:42,759] [INFO] [PROGRESS] 42 3 7 add_printer 1
+[2025-03-26 09:59:42,759] [INFO] Installation de Epson-C4200_BT_Recto_NB
+[2025-03-26 09:59:42,759] [INFO] Ajout de l'imprimante Epson-C4200_BT_Recto_NB (lpd://192.168.1.220) avec pilote openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd
+[2025-03-26 09:59:42,760] [INFO] Exécution de: lpadmin -p Epson-C4200_BT_Recto_NB -v lpd://192.168.1.220 -u allow:all -E -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -o Duplex=None -o PageSize=A4 -o EPRendering=None -o printer-is-shared=false
+[2025-03-26 09:59:43,464] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-26 09:59:43,465] [INFO] [SUCCESS] Imprimante Epson-C4200_BT_Recto_NB ajoutée avec succès
+[2025-03-26 09:59:43,465] [INFO] [PROGRESS] 57 4 7 add_printer 1
+[2025-03-26 09:59:43,466] [INFO] Installation de Epson-C4200_BT_Recto_Couleurs
+[2025-03-26 09:59:43,466] [INFO] [PROGRESS] 71 5 7 add_printer 1
+[2025-03-26 09:59:43,467] [INFO] Installation de Epson-C4200_BT_RectoVerso_Couleurs
+[2025-03-26 09:59:43,467] [INFO] [PROGRESS] 85 6 7 add_printer 1
+[2025-03-26 09:59:43,468] [INFO] Installation de Epson-C4200_BT_RectoVerso_NB
+[2025-03-26 09:59:43,468] [INFO] Ajout de l'imprimante Epson-C4200_BT_RectoVerso_NB (lpd://192.168.1.220) avec pilote openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd
+[2025-03-26 09:59:43,469] [INFO] Exécution de: lpadmin -p Epson-C4200_BT_RectoVerso_NB -v lpd://192.168.1.220 -u allow:all -E -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=None -o printer-is-shared=false
+[2025-03-26 09:59:44,124] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-26 09:59:44,124] [INFO] [SUCCESS] Imprimante Epson-C4200_BT_RectoVerso_NB ajoutée avec succès
+[2025-03-26 09:59:44,125] [INFO] Redémarrage du service CUPS
+[2025-03-26 09:59:44,125] [INFO] Redémarrage du service cups
+[2025-03-26 09:59:44,126] [INFO] Redémarrage du service cups
+[2025-03-26 09:59:44,129] [ERROR] sudo: The "no new privileges" flag is set, which prevents sudo from running as root.
+[2025-03-26 09:59:44,129] [ERROR] sudo: If sudo is running in a container, you may need to adjust the container configuration to disable the flag.
+[2025-03-26 09:59:44,130] [ERROR] Échec du redémarrage du service cups
+[2025-03-26 09:59:44,131] [ERROR] Erreur lors du redémarrage du service CUPS
+[2025-03-26 09:59:44,332] [ERROR] Échec: Erreur lors du redémarrage de CUPS
+[2025-03-26 14:19:52,028] [DEBUG] Début de l'exécution du plugin add_printer
+[2025-03-26 14:19:52,028] [INFO] {'printer_name': 'BT', 'printer_model': 'EC4200.yml', 'printer_ip': '192.168.1.220', 'printer_a3': None, 'remote_execution': False}
+[2025-03-26 14:19:52,028] [INFO] [PROGRESS] 14 1 7 add_printer 1
+[2025-03-26 14:19:52,029] [INFO] Installation de l'imprimante BT avec IP 192.168.1.220
+[2025-03-26 14:19:52,029] [INFO] [PROGRESS] 28 2 7 add_printer 1
+[2025-03-26 14:19:52,029] [INFO] Suppression de la config evince pour éviter bug avec nouvelle imprimante
+[2025-03-26 14:19:52,029] [INFO] [PROGRESS] 42 3 7 add_printer 1
+[2025-03-26 14:19:52,029] [INFO] Installation de Epson-C4200_BT_Recto_NB
+[2025-03-26 14:19:52,029] [INFO] Ajout de l'imprimante Epson-C4200_BT_Recto_NB (lpd://192.168.1.220) avec pilote openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd
+[2025-03-26 14:19:52,029] [INFO] Exécution de: lpadmin -p Epson-C4200_BT_Recto_NB -v lpd://192.168.1.220 -u allow:all -E -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -o Duplex=None -o PageSize=A4 -o EPRendering=None -o printer-is-shared=false
+[2025-03-26 14:19:52,730] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-26 14:19:52,730] [INFO] [SUCCESS] Imprimante Epson-C4200_BT_Recto_NB ajoutée avec succès
+[2025-03-26 14:19:52,730] [INFO] [PROGRESS] 57 4 7 add_printer 1
+[2025-03-26 14:19:52,730] [INFO] Installation de Epson-C4200_BT_Recto_Couleurs
+[2025-03-26 14:19:52,730] [INFO] [PROGRESS] 71 5 7 add_printer 1
+[2025-03-26 14:19:52,730] [INFO] Installation de Epson-C4200_BT_RectoVerso_Couleurs
+[2025-03-26 14:19:52,730] [INFO] [PROGRESS] 85 6 7 add_printer 1
+[2025-03-26 14:19:52,730] [INFO] Installation de Epson-C4200_BT_RectoVerso_NB
+[2025-03-26 14:19:52,730] [INFO] Ajout de l'imprimante Epson-C4200_BT_RectoVerso_NB (lpd://192.168.1.220) avec pilote openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd
+[2025-03-26 14:19:52,730] [INFO] Exécution de: lpadmin -p Epson-C4200_BT_RectoVerso_NB -v lpd://192.168.1.220 -u allow:all -E -m openprinting-ppds:0/ppd/openprinting/Epson/epalc420.ppd -o Duplex=DuplexNoTumble -o PageSize=A4 -o EPRendering=None -o printer-is-shared=false
+[2025-03-26 14:19:53,399] [WARNING] lpadmin: Printer drivers are deprecated and will stop working in a future version of CUPS.
+[2025-03-26 14:19:53,399] [INFO] [SUCCESS] Imprimante Epson-C4200_BT_RectoVerso_NB ajoutée avec succès
+[2025-03-26 14:19:53,399] [INFO] Redémarrage du service CUPS
+[2025-03-26 14:19:53,399] [INFO] Redémarrage du service cups
+[2025-03-26 14:19:53,399] [INFO] Redémarrage du service cups
+[2025-03-26 14:19:53,465] [INFO] [SUCCESS] Service cups redémarré avec succès
+[2025-03-26 14:19:53,465] [INFO] [SUCCESS] Service CUPS redémarré avec succès
+[2025-03-26 14:19:53,465] [INFO] [SUCCESS] Ajout de l'imprimante effectué avec succès
+[2025-03-26 14:19:53,665] [INFO] [SUCCESS] Succès: Ajout de l'imprimante effectué avec succès

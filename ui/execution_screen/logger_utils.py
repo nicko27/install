@@ -287,6 +287,10 @@ class LoggerUtils:
                 line = line.strip()
                 if not line:
                     return False
+
+                if "[LOG] [ERROR] [sudo]" in line:
+                    logger.debug(f"Ignoré la ligne de demande sudo: {line}")
+                    return False
                 
                 logger.debug(f"Traitement de la ligne: {line}")
 

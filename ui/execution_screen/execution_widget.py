@@ -281,7 +281,7 @@ class ExecutionWidget(Container):
             # Vérifier si des erreurs ont été détectées dans les plugins
             has_errors = False
             for plugin_id, plugin_widget in self.plugins.items():
-                if plugin_widget.status == "erreur" or "[ERROR]" in plugin_widget.output or "Error:" in plugin_widget.output:
+                if plugin_widget.status == "erreur":
                     has_errors = True
                     break
             

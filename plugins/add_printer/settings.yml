@@ -7,8 +7,8 @@ ssh_debug: true
 icon: 🖨
 # Ajout du support pour l'exécution distante
 remote_execution: true
-sudo: true
-exceptions:
+needs_sudo: true
+ssh_pattern_exceptions:
   - "models/*"
   - "settings.yml"
   - "get_printer_models.py"

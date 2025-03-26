@@ -56,30 +56,12 @@ def execute_plugin(config):
         printer_name = printer_conf.get('printer_name')
         printer_model = printer_conf.get('printer_model')
         printer_ip = printer_conf.get('printer_ip')
+        print(printer_ip)
         a3 = printer_conf.get('printer_a3')
         log.info(str(printer_conf))
 
         # Récupérer les informations du modèle d'imprimante
         model_content = config.get('printer_model_content')
-        
-        # Si le modèle n'est pas déjà dans la configuration, essayer de le récupérer
-        if model_content is None:
-            # Récupérer le répertoire des modèles d'imprimantes
-            script_dir = os.path.dirname(os.path.abspath(__file__))
-            printer_models_dir = os.path.join(script_dir, "printer_models")
-            
-            # Essayer de récupérer le modèle depuis les fichiers
-            try:
-                from get_printer_models import get_printer_model
-                model_content = get_printer_model(printer_model, printer_models_dir)
-                
-                if model_content is None:
-                    log.error(f"Modèle d'imprimante non trouvé: {printer_model}")
-                    return False, f"Modèle d'imprimante non trouvé: {printer_model}"
-            except Exception as e:
-                log.error(f"Erreur lors de la récupération du modèle d'imprimante: {e}")
-                return False, f"Erreur lors de la récupération du modèle d'imprimante: {e}"
-        
         # Récupérer les options du modèle
         couleurs = int(model_content.get('couleurs', 0))
         rectoverso = int(model_content.get('rectoverso', 0))
