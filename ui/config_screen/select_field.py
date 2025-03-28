@@ -4,6 +4,7 @@ from textual.containers import VerticalGroup, HorizontalGroup
 import os
 import importlib.util
 import sys
+import traceback
 
 from .config_field import ConfigField
 from ..utils.logging import get_logger
@@ -56,7 +57,7 @@ class SelectField(ConfigField):
                     self._value = option_value  # Update stored value to match what's actually available
                     match_found = True
                     break
-                    
+
             # If no match found, set default
             if not match_found:
                 if available_values:
@@ -156,10 +157,10 @@ class SelectField(ConfigField):
         if 'dynamic_options' in self.field_config:
             dynamic_config = self.field_config['dynamic_options']
 
-            # Déterminer le chemin du script (plugin ou utils_scripts)
+            # Déterminer le chemin du script (plugin ou scripts)
             if dynamic_config.get('global', False):
-                # Script dans le dossier utils_scripts
-                script_path = os.path.join(os.path.dirname(__file__), '..', '..', 'utils_scripts', dynamic_config['script'])
+                # Script dans le dossier scripts
+                script_path = os.path.join(os.path.dirname(__file__), '..', '..', 'scripts', dynamic_config['script'])
             else:
                 # Script dans le dossier du plugin
                 script_path = os.path.join(os.path.dirname(__file__), '..', '..', 'plugins', self.source_id, dynamic_config['script'])
@@ -197,8 +198,26 @@ class SelectField(ConfigField):
 
                 logger.debug(f"Using function: {func_name}")
 
-                # Call the function
-                result = getattr(module, func_name)()
+                # Préparer les arguments à passer à la fonction
+                function_args = {}
+                if 'args' in dynamic_config:
+                    for arg in dynamic_config['args']:
+                        # Si l'argument fait référence à un autre champ
+                        if 'field' in arg:
+                            field_id = arg['field']
+                            if field_id in self.fields_by_id:
+                                field_value = self.fields_by_id[field_id].get_value()
+                                param_name = arg.get('param_name', field_id)
+                                function_args[param_name] = field_value
+                        # Si l'argument est une valeur directe
+                        elif 'value' in arg:
+                            param_name = arg.get('param_name')
+                            if param_name:
+                                function_args[param_name] = arg['value']
+
+                # Call the function with arguments
+                logger.debug(f"Calling {func_name} with kwargs: {function_args}")
+                result = getattr(module, func_name)(**function_args)
                 logger.info(f"Got result from {func_name}: {result}")
 
                 # Initialiser data comme None
@@ -217,9 +236,20 @@ class SelectField(ConfigField):
                     data = value
 
                     # If data is a dict with a value_key, use that
-                    if isinstance(data, dict) and dynamic_config.get('value_key') in data:
-                        data = data[dynamic_config.get('value_key')]
-                        logger.info(f"Extracted data using value_key '{dynamic_config.get('value_key')}': {data}")
+                    if isinstance(data, dict) and dynamic_config.get('dict_key') in data:
+                        data = data[dynamic_config.get('dict_key')]
+                        logger.info(f"Extracted data using dict_key '{dynamic_config.get('dict_key')}': {data}")
+                        dict_options = []
+                        for elt  in data:
+                            # Si la valeur est un dictionnaire avec description/value, l'utiliser
+                            if isinstance(elt, dict) and dynamic_config.get('description') in elt and dynamic_config.get('value') in elt:
+                                dict_options.append((elt.get(dynamic_config.get('description')),elt.get(dynamic_config.get('value'))))
+                            elif isinstance(elt, dict) and "description" in elt and "value" in elt:
+                                dict_options.append((elt.get('description'),elt.get('value')))
+                            else:
+                                # Sinon créer un tuple (clé, valeur)
+                                dict_options.append((str(key), str(value)))
+                        options = self._normalize_options(dict_options)
                 else:
                     # Si le résultat n'est pas un tuple, on le considère directement comme data
                     data = result
@@ -235,7 +265,7 @@ class SelectField(ConfigField):
                     options = self._normalize_options(data)
 
                 # Si data est un dictionnaire sans value_key spécifié, on convertit en liste d'options
-                elif isinstance(data, dict) and not dynamic_config.get('value_key'):
+                elif isinstance(data, dict) and not dynamic_config.get('value'):
                     logger.info(f"Processing dictionary data without value_key: {data}")
                     # Transformer le dictionnaire en liste pour normalisation
                     dict_options = []
@@ -264,7 +294,7 @@ class SelectField(ConfigField):
 
             except Exception as e:
                 logger.error(f"Error loading dynamic options: {e}")
-                logger.exception("Traceback:")
+                logger.exception("Traceback:"+traceback.format_exc())
                 # Return a safe option
                 return [(f"Error: {str(e)}", "script_exception")]
 
@@ -279,23 +309,23 @@ class SelectField(ConfigField):
             return self.select.value
         # Otherwise return our stored value
         return self._value if hasattr(self, '_value') else None
-        
+
     @value.setter
     def value(self, new_value):
         # Store the value for later use
         self._value = new_value
-        
+
         # Update the select widget if it exists
         if hasattr(self, 'select') and hasattr(self, 'options'):
             # Check if the value is in the available options
             available_values = [opt[1] for opt in self.options]
-            
+
             # First try exact match
             if new_value in available_values:
                 logger.debug(f"Setting select widget value for {self.field_id} to {new_value} (exact match)")
                 self.select.value = new_value
                 return
-                
+
             # Try partial match (for cases like 'KM227' matching 'KM227.yml')
             for option_value in available_values:
                 if option_value.startswith(new_value) or new_value.startswith(option_value.split('.')[0]):
@@ -303,12 +333,12 @@ class SelectField(ConfigField):
                     self.select.value = option_value
                     self._value = option_value  # Update stored value to match what's actually set
                     return
-                    
+
             # No match found
             logger.warning(f"Value {new_value} not in available options for {self.field_id}: {available_values}")
         else:
             logger.debug(f"Select widget not yet created for {self.field_id}, value will be set during compose")
-            
+
     def on_select_changed(self, event: Select.Changed) -> None:
         if event.select.id == f"select_{self.field_id}":
             self.value = event.value  # event.value contains the value (not the label)

@@ -132,33 +132,32 @@ class LocalExecutor:
                     logger.debug(f"RAW LINE RECEIVED: {line_decoded}")
                     if line_decoded:
                         collected_lines.append(line_decoded)
-                        
+
                         try:
                             # Essayer de parser la ligne comme JSON
                             log_entry = json.loads(line_decoded)
-                            target_ip = getattr(plugin_widget, 'target_ip', None) if plugin_widget else None
-                            
+
                             if is_stderr:
-                                self.log_message(log_entry.get('message', line_decoded), level="error", target_ip=target_ip)
+                                self.log_message(log_entry.get('message', line_decoded), level="error", target_ip=None)
                             else:
                                 if self.app:
                                     await LoggerUtils.process_output_line(
                                         self.app,
                                         line_decoded,  # Passer la ligne JSON complète
                                         plugin_widget,
-                                        target_ip=target_ip
+                                        target_ip=None
                                     )
                         except json.JSONDecodeError:
                             # Fallback pour les lignes non-JSON
                             if is_stderr:
-                                self.log_message(line_decoded, level="error", target_ip=target_ip)
+                                self.log_message(line_decoded, level="error", target_ip=None)
                             else:
                                 if self.app:
                                     await LoggerUtils.process_output_line(
                                         self.app,
                                         line_decoded,
                                         plugin_widget,
-                                        target_ip=target_ip
+                                        target_ip=None
                                     )
 
             # Lancer la lecture des flux stdout et stderr
@@ -241,7 +240,7 @@ class LocalExecutor:
                 "Exception:" in stdout_text,
                 "Traceback (most recent call last)" in stdout_text
             ])
-            
+
             if has_error_in_output:
                 error_msg = "Des erreurs ont été détectées dans la sortie du plugin"
                 logger.error(f"Plugin {folder_name} a généré des erreurs dans sa sortie: {error_msg}")
@@ -250,7 +249,7 @@ class LocalExecutor:
                 # Ajouter ce message au log pour qu'il soit visible dans l'UI
                 self.log_message(f"[ERREUR] {error_msg}", level="error", target_ip=target_ip)
                 return False, stdout_text
-            
+
             # Succès
             logger.info(f"Plugin {folder_name} exécuté avec succès")
 

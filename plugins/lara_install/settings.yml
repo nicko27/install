@@ -4,5 +4,5 @@ version: 1.0
 category: Logiciel
 multiple: false
 icon: 🛠️
-remote_execution: false
+remote_execution: true
 sudo: true

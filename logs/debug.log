@@ -1,0 +1,332 @@
+2025-03-27 17:28:29,956 - install_ui.checkbox_group_field - DEBUG - Using function: get_users
+2025-03-27 17:28:29,957 - install_ui.checkbox_group_field - DEBUG - Calling get_users with args=[], kwargs={'home_dir': '/home'}
+2025-03-27 17:28:29,957 - install_ui.get_users - DEBUG - get_users called with home_dir=/home
+2025-03-27 17:28:29,957 - install_ui.get_users - DEBUG - Script path: /media/nicolas.voirin/Drive/pcUtils/ui/config_screen/../../scripts/get_users.py
+2025-03-27 17:28:29,957 - install_ui.get_users - DEBUG - Current working directory: /media/nicolas.voirin/Drive/pcUtils
+2025-03-27 17:28:29,958 - install_ui.get_users - DEBUG - get_users found 5 users: ['jack.boudin', 'karim.tariket', 'nicolas.voirin', 'ssic27', 'wilfried-1.martinez']
+2025-03-27 17:28:29,959 - install_ui.checkbox_group_field - DEBUG - Result from get_users: (True, [{'username': 'jack.boudin', 'home_path': '/home/jack.boudin', 'description': 'jack.boudin (BOUDIN Jack ADJ)', 'uid': 177966, 'gid': 112027, 'shell': '/bin/bash', 'group': 'unite_solc.bdrij.ggd27'}, {'username': 'karim.tariket', 'home_path': '/home/karim.tariket', 'description': 'karim.tariket (TARIKET Karim ADJ)', 'uid': 172492, 'gid': 112027, 'shell': '/bin/bash', 'group': 'unite_solc.bdrij.ggd27'}, {'username': 'nicolas.voirin', 'home_path': '/home/nicolas.voirin', 'description': 'nicolas.voirin (VOIRIN Nicolas ADJ)', 'uid': 224286, 'gid': 112027, 'shell': '/bin/bash', 'group': 'unite_solc.bdrij.ggd27'}, {'username': 'ssic27', 'home_path': '/home/ssic27', 'description': 'ssic27', 'uid': 1001, 'gid': 1001, 'shell': '/bin/sh', 'group': 'ssic27'}, {'username': 'wilfried-1.martinez', 'home_path': '/home/wilfried-1.martinez', 'description': 'wilfried-1.martinez (MARTINEZ Wilfried MDC)', 'uid': 363203, 'gid': 112027, 'shell': '/bin/bash', 'group': 'unite_solc.bdrij.ggd27'}])
+2025-03-27 17:28:29,959 - install_ui.checkbox_group_field - DEBUG - Checkbox group options for user_select: [('jack.boudin (BOUDIN Jack ADJ)', 'jack.boudin'), ('karim.tariket (TARIKET Karim ADJ)', 'karim.tariket'), ('nicolas.voirin (VOIRIN Nicolas ADJ)', 'nicolas.voirin'), ('ssic27', 'ssic27'), ('wilfried-1.martinez (MARTINEZ Wilfried MDC)', 'wilfried-1.martinez')]
+2025-03-27 17:28:29,962 - install_ui.checkbox_field - DEBUG - Création du checkbox user_all avec valeur False
+2025-03-27 17:28:29,964 - install_ui.select_field - INFO - Loading script from: /media/nicolas.voirin/Drive/pcUtils/ui/config_screen/../../scripts/get_usb.py
+2025-03-27 17:28:29,964 - install_ui.select_field - DEBUG - Script exists: True
+2025-03-27 17:28:29,964 - install_ui.select_field - DEBUG - Python path: ['/media/nicolas.voirin/Drive/pcUtils/ui', '/media/nicolas.voirin/Drive/pcUtils', '/media/nicolas.voirin/Drive/pcUtils/libs/ptyprocess-0.7.0-py2.py3-none-any', '/media/nicolas.voirin/Drive/pcUtils/libs/bcrypt-4.3.0-cp39-abi3-manylinux_2_34_x86_64', '/media/nicolas.voirin/Drive/pcUtils/libs/rich-13.9.4-py3-none-any', '/media/nicolas.voirin/Drive/pcUtils/libs/ruamel.yaml-0.18.10-py3-none-any', '/media/nicolas.voirin/Drive/pcUtils/libs/cffi-1.17.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nicolas.voirin/Drive/pcUtils/libs/pycparser-2.22-py3-none-any', '/media/nicolas.voirin/Drive/pcUtils/libs/mdit_py_plugins-0.4.2-py3-none-any', '/media/nicolas.voirin/Drive/pcUtils/libs/typing_extensions-4.12.2-py3-none-any', '/media/nicolas.voirin/Drive/pcUtils/libs/linkify_it_py-2.0.3-py3-none-any', '/media/nicolas.voirin/Drive/pcUtils/libs/PyNaCl-1.5.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64', '/media/nicolas.voirin/Drive/pcUtils/libs/pexpect-4.9.0-py2.py3-none-any', '/media/nicolas.voirin/Drive/pcUtils/libs/paramiko-3.5.1-py3-none-any', '/media/nicolas.voirin/Drive/pcUtils/libs/uc_micro_py-1.0.3-py3-none-any', '/media/nicolas.voirin/Drive/pcUtils/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nicolas.voirin/Drive/pcUtils/libs/pygments-2.19.1-py3-none-any', '/media/nicolas.voirin/Drive/pcUtils/libs/platformdirs-4.3.6-py3-none-any', '/media/nicolas.voirin/Drive/pcUtils/libs/textual-2.1.1-py3-none-any', '/media/nicolas.voirin/Drive/pcUtils/libs/cryptography-44.0.2-cp39-abi3-manylinux_2_34_x86_64', '', '/usr/lib/python310.zip', '/usr/lib/python3.10', '/usr/lib/python3.10/lib-dynload', '/home/nicolas.voirin/.local/lib/python3.10/site-packages', '/usr/local/lib/python3.10/dist-packages', '/usr/lib/python3/dist-packages', '/media/nicolas.voirin/Drive/pcUtils/ui/config_screen/../../scripts', '/media/nicolas.voirin/Drive/pcUtils/ui/config_screen/../../scripts']
+2025-03-27 17:28:29,965 - install_ui.select_field - DEBUG - Using function: get_usb
+2025-03-27 17:28:29,965 - install_ui.select_field - DEBUG - Calling get_usb with kwargs: {'include_system_disk': False, 'only_external': True, 'only_internal': False}
+2025-03-27 17:28:29,965 - install_ui.get_usb - DEBUG - Recherche des périphériques (include_system_disk=False, only_external=True, only_internal=False, kwargs={})
+2025-03-27 17:28:29,965 - install_ui.get_usb - DEBUG - Exécution de la commande lsblk
+2025-03-27 17:28:29,977 - install_ui.get_usb - DEBUG - Exclusion du disque interne: nvme0n1
+2025-03-27 17:28:29,977 - install_ui.get_usb - DEBUG - Trouvé 1 périphériques de stockage
+2025-03-27 17:28:29,977 - install_ui.select_field - INFO - Got result from get_usb: (True, {'devices': [{'device': 'sda1', 'path': '/dev/sda1', 'size': '1,8T', 'mounted': True, 'mount_point': '/media/nicolas.voirin/Drive', 'fs_type': 'ext4', 'label': 'Drive', 'model': '015-2E8174', 'is_external': True, 'description': 'Drive 015-2E8174 /dev/sda1 → /media/nicolas.voirin/Drive (ext4, 1,8T) [Externe]', 'value': '/dev/sda1'}]})
+2025-03-27 17:28:29,977 - install_ui.select_field - INFO - Extracted data using dict_key 'devices': [{'device': 'sda1', 'path': '/dev/sda1', 'size': '1,8T', 'mounted': True, 'mount_point': '/media/nicolas.voirin/Drive', 'fs_type': 'ext4', 'label': 'Drive', 'model': '015-2E8174', 'is_external': True, 'description': 'Drive 015-2E8174 /dev/sda1 → /media/nicolas.voirin/Drive (ext4, 1,8T) [Externe]', 'value': '/dev/sda1'}]
+2025-03-27 17:29:16,234 - install_ui.select_field - INFO - Processed data type: <class 'list'> for options
+2025-03-27 17:29:16,234 - install_ui.select_field - INFO - Processing list data: [{'device': 'sda1', 'path': '/dev/sda1', 'size': '1,8T', 'mounted': True, 'mount_point': '/media/nicolas.voirin/Drive', 'fs_type': 'ext4', 'label': 'Drive', 'model': '015-2E8174', 'is_external': True, 'description': 'Drive 015-2E8174 /dev/sda1 → /media/nicolas.voirin/Drive (ext4, 1,8T) [Externe]', 'value': '/dev/sda1'}]
+2025-03-27 17:29:16,235 - install_ui.select_field - INFO - Final normalized options: [('Drive 015-2E8174 /dev/sda1 → /media/nicolas.voirin/Drive (ext4, 1,8T) [Externe]', '/dev/sda1')]
+2025-03-27 17:29:16,236 - install_ui.select_field - INFO - Field dst_dir options: [('Drive 015-2E8174 /dev/sda1 → /media/nicolas.voirin/Drive (ext4, 1,8T) [Externe]', '/dev/sda1')]
+2025-03-27 17:29:16,236 - install_ui.select_field - DEBUG - Select widget not yet created for dst_dir, value will be set during compose
+2025-03-27 17:29:16,237 - install_ui.select_field - INFO - Setting default value for dst_dir: /dev/sda1
+2025-03-27 17:29:16,246 - install_ui.checkbox_field - DEBUG - Création du checkbox mount_if_needed avec valeur True
+2025-03-27 17:29:16,254 - install_ui.checkbox_field - DEBUG - Création du checkbox machine_dir avec valeur True
+2025-03-27 17:29:16,311 - install_ui.checkbox_field - DEBUG - Création du checkbox remote_exec_home_copy_1 avec valeur False
+2025-03-27 17:29:16,442 - install_ui.select_field - DEBUG - Setting select widget value for dst_dir to /dev/sda1 (exact match)
+2025-03-27 17:29:16,442 - install_ui.select_field - DEBUG - Select changed to: /dev/sda1
+2025-03-27 17:29:16,446 - install_ui.config_screen - DEBUG - PluginConfig.on_mount() completed
+2025-03-27 17:29:16,945 - install_ui.config_screen - DEBUG - Création des champs de configuration
+2025-03-27 17:29:16,947 - install_ui.config_screen - DEBUG - Nombre de containers trouvés: 2
+2025-03-27 17:29:16,947 - install_ui.config_screen - DEBUG - Container ajouté: plugin_home_copy_1
+2025-03-27 17:29:16,947 - install_ui.config_screen - DEBUG - Champ ajouté: src_dir
+2025-03-27 17:29:16,948 - install_ui.config_screen - DEBUG - Champ ajouté: user_select
+2025-03-27 17:29:16,948 - install_ui.config_screen - DEBUG - Champ ajouté: user_all
+2025-03-27 17:29:16,948 - install_ui.config_screen - DEBUG - Champ ajouté: dst_dir
+2025-03-27 17:29:16,948 - install_ui.config_screen - DEBUG - Champ ajouté: mount_if_needed
+2025-03-27 17:29:16,948 - install_ui.config_screen - DEBUG - Champ ajouté: subdir_path
+2025-03-27 17:29:16,948 - install_ui.config_screen - DEBUG - Champ ajouté: machine_dir
+2025-03-27 17:29:16,948 - install_ui.config_screen - DEBUG - Container ajouté: ssh-config
+2025-03-27 17:29:16,948 - install_ui.config_screen - DEBUG - Nombre total de containers indexés: 2
+2025-03-27 17:29:16,948 - install_ui.config_screen - DEBUG - Nombre total de champs indexés: 7
+2025-03-27 17:29:16,949 - choice - DEBUG - Config screen pushed successfully
+2025-03-27 17:29:16,949 - choice - DEBUG - Config returned: True
+2025-03-27 17:29:16,949 - choice - DEBUG - No configuration returned from config screen
+2025-03-27 17:29:28,100 - install_ui.config_screen - DEBUG - Button pressed: validate
+2025-03-27 17:29:28,101 - install_ui.config_screen - DEBUG - Validate button pressed
+2025-03-27 17:29:28,101 - install_ui.config_screen - DEBUG - Collecting configurations
+2025-03-27 17:29:28,101 - install_ui.config_screen - DEBUG - Collecting config for plugin: home_copy_1
+2025-03-27 17:29:28,101 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: home_copy
+2025-03-27 17:29:28,101 - install_ui.plugin_utils - DEBUG -   Test path: plugins/home_copy_test (exists: False)
+2025-03-27 17:29:28,102 - install_ui.plugin_utils - DEBUG -   Base path: plugins/home_copy (exists: True)
+2025-03-27 17:29:28,102 - install_ui.plugin_utils - DEBUG -   Returning base folder name: home_copy
+2025-03-27 17:29:28,134 - install_ui.config_screen - DEBUG - Found 7 fields for plugin home_copy
+2025-03-27 17:29:28,134 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: home_copy
+2025-03-27 17:29:28,134 - install_ui.plugin_utils - DEBUG -   Test path: plugins/home_copy_test (exists: False)
+2025-03-27 17:29:28,135 - install_ui.plugin_utils - DEBUG -   Base path: plugins/home_copy (exists: True)
+2025-03-27 17:29:28,135 - install_ui.plugin_utils - DEBUG -   Returning base folder name: home_copy
+2025-03-27 17:29:28,165 - install_ui.config_screen - DEBUG - Added plugin home_copy_1 to configuration
+2025-03-27 17:29:28,165 - install_ui.config_screen - DEBUG - Collected configuration: {'home_copy_1': {'plugin_name': 'home_copy', 'instance_id': 1, 'name': 'Sauvegarde de comptes utilisateurs', 'show_name': 'home_copy', 'icon': '🏠', 'config': {'src_dir': '/home', 'user_select': [], 'user_all': False, 'dst_dir': '/dev/sda1', 'mount_if_needed': True, 'subdir_path': None, 'machine_dir': True, 'remote_execution': False}, 'remote_execution': False}}
+2025-03-27 17:29:28,165 - install_ui.config_screen - DEBUG - Collected configuration: {'home_copy_1': {'plugin_name': 'home_copy', 'instance_id': 1, 'name': 'Sauvegarde de comptes utilisateurs', 'show_name': 'home_copy', 'icon': '🏠', 'config': {'src_dir': '/home', 'user_select': [], 'user_all': False, 'dst_dir': '/dev/sda1', 'mount_if_needed': True, 'subdir_path': None, 'machine_dir': True, 'remote_execution': False}, 'remote_execution': False}}
+2025-03-27 17:29:28,247 - install_ui.config_screen - DEBUG - Creating ExecutionScreen
+2025-03-27 17:29:28,247 - install_ui.config_screen - DEBUG - Switching to ExecutionScreen
+2025-03-27 17:29:28,334 - install_ui.execution_widget - DEBUG - ExecutionWidget initialized with 1 plugins: ['home_copy_1']
+2025-03-27 17:29:28,342 - install_ui.execution_widget - DEBUG - Création des conteneurs pour 1 plugins
+2025-03-27 17:29:28,343 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: home_copy_1
+2025-03-27 17:29:28,343 - install_ui.plugin_utils - DEBUG -   Test path: plugins/home_copy_test (exists: False)
+2025-03-27 17:29:28,343 - install_ui.plugin_utils - DEBUG -   Base path: plugins/home_copy (exists: True)
+2025-03-27 17:29:28,343 - install_ui.plugin_utils - DEBUG -   Returning base folder name: home_copy
+2025-03-27 17:29:28,343 - install_ui.execution_widget - DEBUG - Création du conteneur pour home_copy_1: nom=home_copy, affichage=Sauvegarde de comptes utilisateurs
+2025-03-27 17:29:28,343 - install_ui.plugin_container - DEBUG - Creating container with ID: plugin-home_copy_1
+2025-03-27 17:29:28,344 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: home_copy_1
+2025-03-27 17:29:28,344 - install_ui.plugin_utils - DEBUG -   Test path: plugins/home_copy_test (exists: False)
+2025-03-27 17:29:28,344 - install_ui.plugin_utils - DEBUG -   Base path: plugins/home_copy (exists: True)
+2025-03-27 17:29:28,344 - install_ui.plugin_utils - DEBUG -   Returning base folder name: home_copy
+2025-03-27 17:29:28,345 - install_ui.execution_widget - DEBUG - Conteneur ajouté pour home_copy_1: home_copy
+2025-03-27 17:29:28,433 - install_ui.execution_widget - DEBUG - ExecutionWidget on_mount: app=Choice(title='Choice', classes={'-dark-mode'}, pseudo_classes={'focus', 'dark'})
+2025-03-27 17:29:28,577 - install_ui.execution_widget - DEBUG - update_global_progress appelé avec progress=0
+2025-03-27 17:29:28,577 - install_ui.execution_widget - DEBUG - Mise à jour de la barre de progression globale: 0%
+2025-03-27 17:29:28,580 - install_ui.executor_logger - INFO - Initialisation de l'interface terminée
+2025-03-27 17:29:28,580 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:28.579688', 'level': 'info', 'message': "Initialisation de l'interface terminée"}
+2025-03-27 17:29:28,678 - choice - DEBUG - Bouton cliqué : validate
+2025-03-27 17:29:32,130 - install_ui.execution_widget - DEBUG - Clic sur le bouton start-button
+2025-03-27 17:29:32,131 - install_ui.execution_widget - INFO - Démarrage de l'exécution
+2025-03-27 17:29:32,133 - install_ui.execution_widget - DEBUG - Boutons Démarrer et Retour masqués
+2025-03-27 17:29:32,133 - install_ui.execution_widget - DEBUG - update_global_progress appelé avec progress=0
+2025-03-27 17:29:32,134 - install_ui.execution_widget - DEBUG - Mise à jour de la barre de progression globale: 0%
+2025-03-27 17:29:32,135 - install_ui.execution_widget - DEBUG - Démarrage de l'exécution de 1 plugins (après filtrage des séquences)
+2025-03-27 17:29:32,135 - install_ui.execution_widget - DEBUG - Plugins disponibles: ['home_copy_1']
+2025-03-27 17:29:32,136 - install_ui.execution_widget - DEBUG - Plugins config: ['home_copy_1']
+2025-03-27 17:29:32,136 - install_ui.execution_widget - DEBUG - Contenu des configurations filtrées: {'home_copy_1': {'plugin_name': 'home_copy', 'instance_id': 1, 'name': 'Sauvegarde de comptes utilisateurs', 'show_name': 'home_copy', 'icon': '🏠', 'config': {'src_dir': '/home', 'user_select': [], 'user_all': False, 'dst_dir': '/dev/sda1', 'mount_if_needed': True, 'subdir_path': None, 'machine_dir': True, 'remote_execution': False}, 'remote_execution': False}}
+2025-03-27 17:29:32,137 - install_ui.executor_logger - INFO - Démarrage de l'exécution de 1 plugins
+2025-03-27 17:29:32,137 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:32.136313', 'level': 'info', 'message': "Démarrage de l'exécution de 1 plugins"}
+2025-03-27 17:29:32,137 - install_ui.execution_widget - DEBUG - Préparation de l'exécution de home_copy_1
+2025-03-27 17:29:32,138 - install_ui.execution_widget - DEBUG - Début de l'exécution du plugin home_copy_1 avec config: {'plugin_name': 'home_copy', 'instance_id': 1, 'name': 'Sauvegarde de comptes utilisateurs', 'show_name': 'home_copy', 'icon': '🏠', 'config': {'src_dir': '/home', 'user_select': [], 'user_all': False, 'dst_dir': '/dev/sda1', 'mount_if_needed': True, 'subdir_path': None, 'machine_dir': True, 'remote_execution': False}, 'remote_execution': False}
+2025-03-27 17:29:32,138 - install_ui.execution_widget - DEBUG - update_global_progress appelé avec progress=0.0
+2025-03-27 17:29:32,139 - install_ui.execution_widget - DEBUG - Mise à jour de la barre de progression globale: 0.0%
+2025-03-27 17:29:32,139 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: home_copy_1
+2025-03-27 17:29:32,139 - install_ui.plugin_utils - DEBUG -   Test path: plugins/home_copy_test (exists: False)
+2025-03-27 17:29:32,139 - install_ui.plugin_utils - DEBUG -   Base path: plugins/home_copy (exists: True)
+2025-03-27 17:29:32,139 - install_ui.plugin_utils - DEBUG -   Returning base folder name: home_copy
+2025-03-27 17:29:32,139 - install_ui.execution_widget - DEBUG - Dossier du plugin home_copy_1: home_copy
+2025-03-27 17:29:32,139 - install_ui.execution_widget - DEBUG - Configuration du plugin home_copy_1: {'plugin_name': 'home_copy', 'instance_id': 1, 'name': 'Sauvegarde de comptes utilisateurs', 'show_name': 'home_copy', 'icon': '🏠', 'config': {'src_dir': '/home', 'user_select': [], 'user_all': False, 'dst_dir': '/dev/sda1', 'mount_if_needed': True, 'subdir_path': None, 'machine_dir': True, 'remote_execution': False}, 'remote_execution': False}
+2025-03-27 17:29:32,139 - install_ui.execution_widget - DEBUG - Exécution locale du plugin home_copy_1
+2025-03-27 17:29:32,139 - install_ui.execution_widget - DEBUG - Exécuteur local créé pour home_copy_1
+2025-03-27 17:29:32,139 - install_ui.local_executor - INFO - Exécution locale du plugin home_copy
+2025-03-27 17:29:32,140 - install_ui.local_executor - DEBUG - Chemin du plugin: /media/nicolas.voirin/Drive/pcUtils/plugins/home_copy
+2025-03-27 17:29:32,140 - install_ui.local_executor - INFO - Détecté comme plugin Python
+2025-03-27 17:29:32,140 - install_ui.local_executor - DEBUG - Chemin d'exécution: /media/nicolas.voirin/Drive/pcUtils/plugins/home_copy/exec.py
+2025-03-27 17:29:32,140 - install_ui.local_executor - DEBUG - Le fichier existe: True
+2025-03-27 17:29:32,173 - install_ui.local_executor - DEBUG - Paramètres du plugin chargés: {'name': 'Sauvegarde de comptes utilisateurs', 'description': 'Sauvegarde de comptes utilisateurs vers un support externe', 'version': 1.0, 'category': 'Système', 'multiple': 'ftrue', 'remote_execution': True, 'icon': '🏠', 'sudo': True, 'config_fields': {'src_dir': {'type': 'directory', 'label': 'Dossier source', 'default': '/home', 'required': True, 'not_empty': True}, 'user_select': {'type': 'checkbox_group', 'label': 'Sélectionner les utilisateurs à copier', 'depends_on': 'src_dir', 'dynamic_options': {'script': 'get_users.py', 'global': True, 'function': 'get_users', 'args': [{'field': 'src_dir', 'param_name': 'home_dir'}], 'value': 'username', 'description': 'description'}}, 'user_all': {'type': 'checkbox', 'label': 'Copier tous le contenu du dossier et ses sous_dossiers', 'default': False}, 'dst_dir': {'type': 'select', 'label': 'Support de destination', 'required': True, 'dynamic_options': {'global': True, 'script': 'get_usb.py', 'function': 'get_usb', 'args': [{'value': False, 'param_name': 'include_system_disk'}, {'value': True, 'param_name': 'only_external'}, {'value': False, 'param_name': 'only_internal'}], 'dict_key': 'devices', 'value': 'path', 'description': 'description'}}, 'mount_if_needed': {'type': 'checkbox', 'label': 'Monter le périphérique si nécessaire (si non monté)', 'default': True, 'depends_on': 'home_dst_dir'}, 'subdir_path': {'type': 'text', 'label': 'Sous-dossier dans le support (optionnel)', 'placeholder': 'Laisser vide pour copier à la racine', 'depends_on': 'home_dst_dir', 'help_text': "Chemin relatif où copier les données, par exemple: 'backups/utilisateurs'"}, 'machine_dir': {'type': 'checkbox', 'label': 'Créer un dossier avec le nom de machine dans la destination', 'default': True}}}
+2025-03-27 17:29:32,174 - install_ui.file_content_handler - INFO - Aucune configuration files_content trouvée
+2025-03-27 17:29:32,174 - install_ui.local_executor - INFO - Exécution de la commande: /bin/python3 /media/nicolas.voirin/Drive/pcUtils/plugins/home_copy/exec.py {"plugin_name": "home_copy", "instance_id": 1, "name": "Sauvegarde de comptes utilisateurs", "show_name": "home_copy", "icon": "\ud83c\udfe0", "config": {"src_dir": "/home", "user_select": [], "user_all": false, "dst_dir": "/dev/sda1", "mount_if_needed": true, "subdir_path": null, "machine_dir": true, "remote_execution": false}, "remote_execution": false}
+2025-03-27 17:29:32,253 - install_ui.local_executor - DEBUG - Stream reader started for stdout
+2025-03-27 17:29:32,253 - install_ui.local_executor - DEBUG - Stream reader started for stderr
+2025-03-27 17:29:35,900 - install_ui.local_executor - DEBUG - RAW LINE RECEIVED: Traceback (most recent call last):
+2025-03-27 17:29:35,900 - install_ui.local_executor - DEBUG - Ajout d'un message au log: Traceback (most recent call last): (niveau: error, ip: None)
+2025-03-27 17:29:35,905 - install_ui.executor_logger - ERROR - Traceback (most recent call last):
+2025-03-27 17:29:35,906 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:35.901353', 'level': 'error', 'message': 'Traceback (most recent call last):'}
+2025-03-27 17:29:35,908 - install_ui.local_executor - DEBUG - RAW LINE RECEIVED: File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3704, in <module>
+2025-03-27 17:29:35,908 - install_ui.local_executor - DEBUG - Ajout d'un message au log: File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3704, in <module> (niveau: error, ip: None)
+2025-03-27 17:29:35,909 - install_ui.local_executor - DEBUG - RAW LINE RECEIVED: main()
+2025-03-27 17:29:35,909 - install_ui.local_executor - DEBUG - Ajout d'un message au log: main() (niveau: error, ip: None)
+2025-03-27 17:29:35,909 - install_ui.local_executor - DEBUG - RAW LINE RECEIVED: File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3689, in main
+2025-03-27 17:29:35,910 - install_ui.local_executor - DEBUG - Ajout d'un message au log: File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3689, in main (niveau: error, ip: None)
+2025-03-27 17:29:35,910 - install_ui.local_executor - DEBUG - RAW LINE RECEIVED: globals = debugger.run(setup["file"], None, None, is_module)
+2025-03-27 17:29:35,911 - install_ui.local_executor - DEBUG - Ajout d'un message au log: globals = debugger.run(setup["file"], None, None, is_module) (niveau: error, ip: None)
+2025-03-27 17:29:35,911 - install_ui.local_executor - DEBUG - RAW LINE RECEIVED: File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2687, in run
+2025-03-27 17:29:35,912 - install_ui.local_executor - DEBUG - Ajout d'un message au log: File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2687, in run (niveau: error, ip: None)
+2025-03-27 17:29:35,912 - install_ui.local_executor - DEBUG - RAW LINE RECEIVED: return self._exec(is_module, entry_point_fn, module_name, file, globals, locals)
+2025-03-27 17:29:35,912 - install_ui.local_executor - DEBUG - Ajout d'un message au log: return self._exec(is_module, entry_point_fn, module_name, file, globals, locals) (niveau: error, ip: None)
+2025-03-27 17:29:35,913 - install_ui.local_executor - DEBUG - RAW LINE RECEIVED: File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2695, in _exec
+2025-03-27 17:29:35,913 - install_ui.local_executor - DEBUG - Ajout d'un message au log: File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2695, in _exec (niveau: error, ip: None)
+2025-03-27 17:29:35,914 - install_ui.local_executor - DEBUG - RAW LINE RECEIVED: globals = pydevd_runpy.run_path(file, globals, "__main__")
+2025-03-27 17:29:35,914 - install_ui.local_executor - DEBUG - Ajout d'un message au log: globals = pydevd_runpy.run_path(file, globals, "__main__") (niveau: error, ip: None)
+2025-03-27 17:29:35,914 - install_ui.local_executor - DEBUG - RAW LINE RECEIVED: File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 310, in run_path
+2025-03-27 17:29:35,915 - install_ui.local_executor - DEBUG - Ajout d'un message au log: File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 310, in run_path (niveau: error, ip: None)
+2025-03-27 17:29:35,934 - install_ui.executor_logger - ERROR - File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3704, in <module>
+2025-03-27 17:29:35,935 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:35.933388', 'level': 'error', 'message': 'File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3704, in <module>'}
+2025-03-27 17:29:35,937 - install_ui.executor_logger - ERROR - main()
+2025-03-27 17:29:35,937 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:35.935368', 'level': 'error', 'message': 'main()'}
+2025-03-27 17:29:35,939 - install_ui.executor_logger - ERROR - File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3689, in main
+2025-03-27 17:29:35,940 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:35.937711', 'level': 'error', 'message': 'File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3689, in main'}
+2025-03-27 17:29:35,942 - install_ui.executor_logger - ERROR - globals = debugger.run(setup["file"], None, None, is_module)
+2025-03-27 17:29:35,942 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:35.940325', 'level': 'error', 'message': 'globals = debugger.run(setup["file"], None, None, is_module)'}
+2025-03-27 17:29:35,946 - install_ui.executor_logger - ERROR - File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2687, in run
+2025-03-27 17:29:35,946 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:35.943171', 'level': 'error', 'message': 'File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2687, in run'}
+2025-03-27 17:29:35,950 - install_ui.executor_logger - ERROR - return self._exec(is_module, entry_point_fn, module_name, file, globals, locals)
+2025-03-27 17:29:35,950 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:35.946690', 'level': 'error', 'message': 'return self._exec(is_module, entry_point_fn, module_name, file, globals, locals)'}
+2025-03-27 17:29:35,956 - install_ui.executor_logger - ERROR - File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2695, in _exec
+2025-03-27 17:29:35,956 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:35.950940', 'level': 'error', 'message': 'File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2695, in _exec'}
+2025-03-27 17:29:35,960 - install_ui.executor_logger - ERROR - globals = pydevd_runpy.run_path(file, globals, "__main__")
+2025-03-27 17:29:35,960 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:35.956451', 'level': 'error', 'message': 'globals = pydevd_runpy.run_path(file, globals, "__main__")'}
+2025-03-27 17:29:35,965 - install_ui.executor_logger - ERROR - File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 310, in run_path
+2025-03-27 17:29:35,965 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:35.960942', 'level': 'error', 'message': 'File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 310, in run_path'}
+2025-03-27 17:29:35,969 - install_ui.local_executor - DEBUG - RAW LINE RECEIVED: return _run_module_code(code, init_globals, run_name, pkg_name=pkg_name, script_name=fname)
+2025-03-27 17:29:35,970 - install_ui.local_executor - DEBUG - Ajout d'un message au log: return _run_module_code(code, init_globals, run_name, pkg_name=pkg_name, script_name=fname) (niveau: error, ip: None)
+2025-03-27 17:29:35,970 - install_ui.local_executor - DEBUG - RAW LINE RECEIVED: File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 127, in _run_module_code
+2025-03-27 17:29:35,970 - install_ui.local_executor - DEBUG - Ajout d'un message au log: File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 127, in _run_module_code (niveau: error, ip: None)
+2025-03-27 17:29:35,970 - install_ui.local_executor - DEBUG - RAW LINE RECEIVED: _run_code(code, mod_globals, init_globals, mod_name, mod_spec, pkg_name, script_name)
+2025-03-27 17:29:35,970 - install_ui.local_executor - DEBUG - Ajout d'un message au log: _run_code(code, mod_globals, init_globals, mod_name, mod_spec, pkg_name, script_name) (niveau: error, ip: None)
+2025-03-27 17:29:35,970 - install_ui.local_executor - DEBUG - RAW LINE RECEIVED: File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 118, in _run_code
+2025-03-27 17:29:35,970 - install_ui.local_executor - DEBUG - Ajout d'un message au log: File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 118, in _run_code (niveau: error, ip: None)
+2025-03-27 17:29:35,971 - install_ui.local_executor - DEBUG - RAW LINE RECEIVED: exec(code, run_globals)
+2025-03-27 17:29:35,971 - install_ui.local_executor - DEBUG - Ajout d'un message au log: exec(code, run_globals) (niveau: error, ip: None)
+2025-03-27 17:29:35,971 - install_ui.local_executor - DEBUG - RAW LINE RECEIVED: File "/media/nicolas.voirin/Drive/pcUtils/plugins/home_copy/exec.py", line 47, in <module>
+2025-03-27 17:29:35,971 - install_ui.local_executor - DEBUG - Ajout d'un message au log: File "/media/nicolas.voirin/Drive/pcUtils/plugins/home_copy/exec.py", line 47, in <module> (niveau: error, ip: None)
+2025-03-27 17:29:35,972 - install_ui.local_executor - DEBUG - RAW LINE RECEIVED: file_handler = logging.FileHandler(LOG_FILE)
+2025-03-27 17:29:35,972 - install_ui.local_executor - DEBUG - Ajout d'un message au log: file_handler = logging.FileHandler(LOG_FILE) (niveau: error, ip: None)
+2025-03-27 17:29:35,972 - install_ui.local_executor - DEBUG - RAW LINE RECEIVED: File "/usr/lib/python3.10/logging/__init__.py", line 1169, in __init__
+2025-03-27 17:29:35,972 - install_ui.local_executor - DEBUG - Ajout d'un message au log: File "/usr/lib/python3.10/logging/__init__.py", line 1169, in __init__ (niveau: error, ip: None)
+2025-03-27 17:29:35,973 - install_ui.local_executor - DEBUG - RAW LINE RECEIVED: StreamHandler.__init__(self, self._open())
+2025-03-27 17:29:35,973 - install_ui.local_executor - DEBUG - Ajout d'un message au log: StreamHandler.__init__(self, self._open()) (niveau: error, ip: None)
+2025-03-27 17:29:35,973 - install_ui.local_executor - DEBUG - RAW LINE RECEIVED: File "/usr/lib/python3.10/logging/__init__.py", line 1201, in _open
+2025-03-27 17:29:35,973 - install_ui.local_executor - DEBUG - Ajout d'un message au log: File "/usr/lib/python3.10/logging/__init__.py", line 1201, in _open (niveau: error, ip: None)
+2025-03-27 17:29:35,974 - install_ui.local_executor - DEBUG - RAW LINE RECEIVED: return open_func(self.baseFilename, self.mode,
+2025-03-27 17:29:35,974 - install_ui.local_executor - DEBUG - Ajout d'un message au log: return open_func(self.baseFilename, self.mode, (niveau: error, ip: None)
+2025-03-27 17:29:35,974 - install_ui.local_executor - DEBUG - RAW LINE RECEIVED: PermissionError: [Errno 13] Permission denied: '/media/nicolas.voirin/Drive/pcUtils/logs/mysql_install.log'
+2025-03-27 17:29:35,974 - install_ui.local_executor - DEBUG - Ajout d'un message au log: PermissionError: [Errno 13] Permission denied: '/media/nicolas.voirin/Drive/pcUtils/logs/mysql_install.log' (niveau: error, ip: None)
+2025-03-27 17:29:36,002 - install_ui.executor_logger - ERROR - return _run_module_code(code, init_globals, run_name, pkg_name=pkg_name, script_name=fname)
+2025-03-27 17:29:36,003 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:36.000027', 'level': 'error', 'message': 'return _run_module_code(code, init_globals, run_name, pkg_name=pkg_name, script_name=fname)'}
+2025-03-27 17:29:36,006 - install_ui.executor_logger - ERROR - File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 127, in _run_module_code
+2025-03-27 17:29:36,006 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:36.003388', 'level': 'error', 'message': 'File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 127, in _run_module_code'}
+2025-03-27 17:29:36,010 - install_ui.executor_logger - ERROR - _run_code(code, mod_globals, init_globals, mod_name, mod_spec, pkg_name, script_name)
+2025-03-27 17:29:36,010 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:36.006820', 'level': 'error', 'message': '_run_code(code, mod_globals, init_globals, mod_name, mod_spec, pkg_name, script_name)'}
+2025-03-27 17:29:36,013 - install_ui.executor_logger - ERROR - File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 118, in _run_code
+2025-03-27 17:29:36,013 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:36.010229', 'level': 'error', 'message': 'File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 118, in _run_code'}
+2025-03-27 17:29:36,017 - install_ui.executor_logger - ERROR - exec(code, run_globals)
+2025-03-27 17:29:36,017 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:36.013579', 'level': 'error', 'message': 'exec(code, run_globals)'}
+2025-03-27 17:29:36,021 - install_ui.executor_logger - ERROR - File "/media/nicolas.voirin/Drive/pcUtils/plugins/home_copy/exec.py", line 47, in <module>
+2025-03-27 17:29:36,021 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:36.017348', 'level': 'error', 'message': 'File "/media/nicolas.voirin/Drive/pcUtils/plugins/home_copy/exec.py", line 47, in <module>'}
+2025-03-27 17:29:36,025 - install_ui.executor_logger - ERROR - file_handler = logging.FileHandler(LOG_FILE)
+2025-03-27 17:29:36,025 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:36.021530', 'level': 'error', 'message': 'file_handler = logging.FileHandler(LOG_FILE)'}
+2025-03-27 17:29:36,030 - install_ui.executor_logger - ERROR - File "/usr/lib/python3.10/logging/__init__.py", line 1169, in __init__
+2025-03-27 17:29:36,030 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:36.025757', 'level': 'error', 'message': 'File "/usr/lib/python3.10/logging/__init__.py", line 1169, in __init__'}
+2025-03-27 17:29:36,034 - install_ui.executor_logger - ERROR - StreamHandler.__init__(self, self._open())
+2025-03-27 17:29:36,035 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:36.030785', 'level': 'error', 'message': 'StreamHandler.__init__(self, self._open())'}
+2025-03-27 17:29:36,039 - install_ui.executor_logger - ERROR - File "/usr/lib/python3.10/logging/__init__.py", line 1201, in _open
+2025-03-27 17:29:36,039 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:36.035303', 'level': 'error', 'message': 'File "/usr/lib/python3.10/logging/__init__.py", line 1201, in _open'}
+2025-03-27 17:29:36,044 - install_ui.executor_logger - ERROR - return open_func(self.baseFilename, self.mode,
+2025-03-27 17:29:36,044 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:36.039990', 'level': 'error', 'message': 'return open_func(self.baseFilename, self.mode,'}
+2025-03-27 17:29:36,049 - install_ui.executor_logger - ERROR - PermissionError: [Errno 13] Permission denied: '/media/nicolas.voirin/Drive/pcUtils/logs/mysql_install.log'
+2025-03-27 17:29:36,049 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:36.044628', 'level': 'error', 'message': "PermissionError: [Errno 13] Permission denied: '/media/nicolas.voirin/Drive/pcUtils/logs/mysql_install.log'"}
+2025-03-27 17:29:36,471 - install_ui.local_executor - DEBUG - Stream reader ending after 22 lines
+2025-03-27 17:29:36,472 - install_ui.local_executor - DEBUG - Stream reader ending after 0 lines
+2025-03-27 17:29:36,473 - install_ui.local_executor - ERROR - Erreur lors de l'exécution du plugin home_copy: Traceback (most recent call last):
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3704, in <module>
+main()
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3689, in main
+globals = debugger.run(setup["file"], None, None, is_module)
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2687, in run
+return self._exec(is_module, entry_point_fn, module_name, file, globals, locals)
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2695, in _exec
+globals = pydevd_runpy.run_path(file, globals, "__main__")
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 310, in run_path
+return _run_module_code(code, init_globals, run_name, pkg_name=pkg_name, script_name=fname)
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 127, in _run_module_code
+_run_code(code, mod_globals, init_globals, mod_name, mod_spec, pkg_name, script_name)
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 118, in _run_code
+exec(code, run_globals)
+File "/media/nicolas.voirin/Drive/pcUtils/plugins/home_copy/exec.py", line 47, in <module>
+file_handler = logging.FileHandler(LOG_FILE)
+File "/usr/lib/python3.10/logging/__init__.py", line 1169, in __init__
+StreamHandler.__init__(self, self._open())
+File "/usr/lib/python3.10/logging/__init__.py", line 1201, in _open
+return open_func(self.baseFilename, self.mode,
+PermissionError: [Errno 13] Permission denied: '/media/nicolas.voirin/Drive/pcUtils/logs/mysql_install.log'
+2025-03-27 17:29:36,473 - install_ui.local_executor - DEBUG - Ajout d'un message au log: Erreur lors de l'exécution du plugin home_copy: Traceback (most recent call last):
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3704, in <module>
+main()
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3689, in main
+globals = debugger.run(setup["file"], None, None, is_module)
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2687, in run
+return self._exec(is_module, entry_point_fn, module_name, file, globals, locals)
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2695, in _exec
+globals = pydevd_runpy.run_path(file, globals, "__main__")
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 310, in run_path
+return _run_module_code(code, init_globals, run_name, pkg_name=pkg_name, script_name=fname)
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 127, in _run_module_code
+_run_code(code, mod_globals, init_globals, mod_name, mod_spec, pkg_name, script_name)
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 118, in _run_code
+exec(code, run_globals)
+File "/media/nicolas.voirin/Drive/pcUtils/plugins/home_copy/exec.py", line 47, in <module>
+file_handler = logging.FileHandler(LOG_FILE)
+File "/usr/lib/python3.10/logging/__init__.py", line 1169, in __init__
+StreamHandler.__init__(self, self._open())
+File "/usr/lib/python3.10/logging/__init__.py", line 1201, in _open
+return open_func(self.baseFilename, self.mode,
+PermissionError: [Errno 13] Permission denied: '/media/nicolas.voirin/Drive/pcUtils/logs/mysql_install.log' (niveau: error, ip: None)
+2025-03-27 17:29:36,474 - install_ui.execution_widget - DEBUG - Résultat brut de l'exécution du plugin home_copy_1: {'success': False, 'output': 'Traceback (most recent call last):\nFile "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3704, in <module>\nmain()\nFile "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3689, in main\nglobals = debugger.run(setup["file"], None, None, is_module)\nFile "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2687, in run\nreturn self._exec(is_module, entry_point_fn, module_name, file, globals, locals)\nFile "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2695, in _exec\nglobals = pydevd_runpy.run_path(file, globals, "__main__")\nFile "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 310, in run_path\nreturn _run_module_code(code, init_globals, run_name, pkg_name=pkg_name, script_name=fname)\nFile "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 127, in _run_module_code\n_run_code(code, mod_globals, init_globals, mod_name, mod_spec, pkg_name, script_name)\nFile "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 118, in _run_code\nexec(code, run_globals)\nFile "/media/nicolas.voirin/Drive/pcUtils/plugins/home_copy/exec.py", line 47, in <module>\nfile_handler = logging.FileHandler(LOG_FILE)\nFile "/usr/lib/python3.10/logging/__init__.py", line 1169, in __init__\nStreamHandler.__init__(self, self._open())\nFile "/usr/lib/python3.10/logging/__init__.py", line 1201, in _open\nreturn open_func(self.baseFilename, self.mode,\nPermissionError: [Errno 13] Permission denied: \'/media/nicolas.voirin/Drive/pcUtils/logs/mysql_install.log\''}
+2025-03-27 17:29:36,474 - install_ui.execution_widget - DEBUG - Succès: False, Sortie (début): Traceback (most recent call last):
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2...
+2025-03-27 17:29:36,490 - install_ui.plugin_container - DEBUG - Sortie stockée pour le plugin home_copy_1
+2025-03-27 17:29:36,490 - install_ui.execution_widget - ERROR - Échec du plugin home_copy: Traceback (most recent call last):
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3704, in <module>
+main()
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3689, in main
+globals = debugger.run(setup["file"], None, None, is_module)
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2687, in run
+return self._exec(is_module, entry_point_fn, module_name, file, globals, locals)
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2695, in _exec
+globals = pydevd_runpy.run_path(file, globals, "__main__")
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 310, in run_path
+return _run_module_code(code, init_globals, run_name, pkg_name=pkg_name, script_name=fname)
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 127, in _run_module_code
+_run_code(code, mod_globals, init_globals, mod_name, mod_spec, pkg_name, script_name)
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 118, in _run_code
+exec(code, run_globals)
+File "/media/nicolas.voirin/Drive/pcUtils/plugins/home_copy/exec.py", line 47, in <module>
+file_handler = logging.FileHandler(LOG_FILE)
+File "/usr/lib/python3.10/logging/__init__.py", line 1169, in __init__
+StreamHandler.__init__(self, self._open())
+File "/usr/lib/python3.10/logging/__init__.py", line 1201, in _open
+return open_func(self.baseFilename, self.mode,
+PermissionError: [Errno 13] Permission denied: '/media/nicolas.voirin/Drive/pcUtils/logs/mysql_install.log'
+2025-03-27 17:29:36,508 - install_ui.executor_logger - ERROR - Échec du plugin home_copy: Traceback (most recent call last):
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3704, in <module>
+main()
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3689, in main
+globals = debugger.run(setup["file"], None, None, is_module)
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2687, in run
+return self._exec(is_module, entry_point_fn, module_name, file, globals, locals)
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2695, in _exec
+globals = pydevd_runpy.run_path(file, globals, "__main__")
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 310, in run_path
+return _run_module_code(code, init_globals, run_name, pkg_name=pkg_name, script_name=fname)
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 127, in _run_module_code
+_run_code(code, mod_globals, init_globals, mod_name, mod_spec, pkg_name, script_name)
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 118, in _run_code
+exec(code, run_globals)
+File "/media/nicolas.voirin/Drive/pcUtils/plugins/home_copy/exec.py", line 47, in <module>
+file_handler = logging.FileHandler(LOG_FILE)
+File "/usr/lib/python3.10/logging/__init__.py", line 1169, in __init__
+StreamHandler.__init__(self, self._open())
+File "/usr/lib/python3.10/logging/__init__.py", line 1201, in _open
+return open_func(self.baseFilename, self.mode,
+PermissionError: [Errno 13] Permission denied: '/media/nicolas.voirin/Drive/pcUtils/logs/mysql_install.log'
+2025-03-27 17:29:36,508 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:36.491019', 'level': 'error', 'message': 'Échec du plugin home_copy: Traceback (most recent call last):\nFile "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3704, in <module>\nmain()\nFile "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3689, in main\nglobals = debugger.run(setup["file"], None, None, is_module)\nFile "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2687, in run\nreturn self._exec(is_module, entry_point_fn, module_name, file, globals, locals)\nFile "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2695, in _exec\nglobals = pydevd_runpy.run_path(file, globals, "__main__")\nFile "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 310, in run_path\nreturn _run_module_code(code, init_globals, run_name, pkg_name=pkg_name, script_name=fname)\nFile "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 127, in _run_module_code\n_run_code(code, mod_globals, init_globals, mod_name, mod_spec, pkg_name, script_name)\nFile "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 118, in _run_code\nexec(code, run_globals)\nFile "/media/nicolas.voirin/Drive/pcUtils/plugins/home_copy/exec.py", line 47, in <module>\nfile_handler = logging.FileHandler(LOG_FILE)\nFile "/usr/lib/python3.10/logging/__init__.py", line 1169, in __init__\nStreamHandler.__init__(self, self._open())\nFile "/usr/lib/python3.10/logging/__init__.py", line 1201, in _open\nreturn open_func(self.baseFilename, self.mode,\nPermissionError: [Errno 13] Permission denied: \'/media/nicolas.voirin/Drive/pcUtils/logs/mysql_install.log\''}
+2025-03-27 17:29:36,510 - install_ui.execution_widget - DEBUG - update_global_progress appelé avec progress=100.0
+2025-03-27 17:29:36,512 - install_ui.execution_widget - DEBUG - Mise à jour de la barre de progression globale: 10000.0%
+2025-03-27 17:29:36,529 - install_ui.executor_logger - INFO - SUCCESS: Exécution terminée : 1/1 plugin exécuté
+2025-03-27 17:29:36,529 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:36.513900', 'level': 'success', 'message': 'Exécution terminée : 1/1 plugin exécuté'}
+2025-03-27 17:29:36,530 - install_ui.execution_widget - DEBUG - Notification de fin d'exécution
+2025-03-27 17:29:36,535 - install_ui.execution_widget - DEBUG - Boutons Démarrer et Retour réaffichés après exécution
+2025-03-27 17:29:36,536 - install_ui.execution_widget - DEBUG - Réinitialisation de back_button_clicked à False après exécution
+2025-03-27 17:29:36,556 - install_ui.executor_logger - ERROR - Erreur lors de l'exécution du plugin home_copy: Traceback (most recent call last):
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3704, in <module>
+main()
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3689, in main
+globals = debugger.run(setup["file"], None, None, is_module)
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2687, in run
+return self._exec(is_module, entry_point_fn, module_name, file, globals, locals)
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2695, in _exec
+globals = pydevd_runpy.run_path(file, globals, "__main__")
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 310, in run_path
+return _run_module_code(code, init_globals, run_name, pkg_name=pkg_name, script_name=fname)
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 127, in _run_module_code
+_run_code(code, mod_globals, init_globals, mod_name, mod_spec, pkg_name, script_name)
+File "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 118, in _run_code
+exec(code, run_globals)
+File "/media/nicolas.voirin/Drive/pcUtils/plugins/home_copy/exec.py", line 47, in <module>
+file_handler = logging.FileHandler(LOG_FILE)
+File "/usr/lib/python3.10/logging/__init__.py", line 1169, in __init__
+StreamHandler.__init__(self, self._open())
+File "/usr/lib/python3.10/logging/__init__.py", line 1201, in _open
+return open_func(self.baseFilename, self.mode,
+PermissionError: [Errno 13] Permission denied: '/media/nicolas.voirin/Drive/pcUtils/logs/mysql_install.log'
+2025-03-27 17:29:36,557 - install_ui.executor_logger - DEBUG - Log ajouté: {'timestamp': '2025-03-27T17:29:36.541160', 'level': 'error', 'message': 'Erreur lors de l\'exécution du plugin home_copy: Traceback (most recent call last):\nFile "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3704, in <module>\nmain()\nFile "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 3689, in main\nglobals = debugger.run(setup["file"], None, None, is_module)\nFile "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2687, in run\nreturn self._exec(is_module, entry_point_fn, module_name, file, globals, locals)\nFile "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/pydevd.py", line 2695, in _exec\nglobals = pydevd_runpy.run_path(file, globals, "__main__")\nFile "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 310, in run_path\nreturn _run_module_code(code, init_globals, run_name, pkg_name=pkg_name, script_name=fname)\nFile "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 127, in _run_module_code\n_run_code(code, mod_globals, init_globals, mod_name, mod_spec, pkg_name, script_name)\nFile "/home/nicolas.voirin/.vscode/extensions/ms-python.debugpy-2024.13.2024111901/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 118, in _run_code\nexec(code, run_globals)\nFile "/media/nicolas.voirin/Drive/pcUtils/plugins/home_copy/exec.py", line 47, in <module>\nfile_handler = logging.FileHandler(LOG_FILE)\nFile "/usr/lib/python3.10/logging/__init__.py", line 1169, in __init__\nStreamHandler.__init__(self, self._open())\nFile "/usr/lib/python3.10/logging/__init__.py", line 1201, in _open\nreturn open_func(self.baseFilename, self.mode,\nPermissionError: [Errno 13] Permission denied: \'/media/nicolas.voirin/Drive/pcUtils/logs/mysql_install.log\''}
+2025-03-27 17:29:36,562 - choice - DEBUG - Bouton cliqué : start-button

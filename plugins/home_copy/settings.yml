@@ -1,15 +1,15 @@
-name: Copie de comptes utilisateurs
-description: "Copie de comptes utilisateurs vers un support externe"
+name: Sauvegarde de comptes utilisateurs
+description: "Sauvegarde de comptes utilisateurs vers un support externe"
 version: 1.0
 category: Système
-multiple: false
+multiple: ftrue
 remote_execution: true
 icon: 🏠
 sudo: true
 config_fields:
-  home_src_dir:
+  src_dir:
     type: directory
-    label: Dossier home source
+    label: Dossier source
     default: /home
     required: true
     not_empty: true
@@ -17,35 +17,40 @@ config_fields:
   user_select:
     type: checkbox_group
     label: Sélectionner les utilisateurs à copier
-    depends_on: home_src_dir
+    depends_on: src_dir
     dynamic_options:
       script: get_users.py
       global: true
       function: get_users
       args:
-        - field: home_src_dir
+        - field: src_dir
           param_name: home_dir
-      value_key: username
-      label_key: description
+      value: username
+      description: description
 
   user_all:
     type: checkbox
-    label: Copier tous les comptes utilisateurs
+    label: Copier tous le contenu du dossier et ses sous_dossiers
     default: false
 
-  home_dst_dir:
+  dst_dir:
     type: select
     label: Support de destination
     required: true
     dynamic_options:
-      script: get_usb.py
       global: true
+      script: get_usb.py
       function: get_usb
       args:
         - value: false
           param_name: include_system_disk
-      value_key: path
-      label_key: description
+        - value: true
+          param_name: only_external
+        - value: false
+          param_name: only_internal
+      dict_key: devices
+      value: path
+      description: description
 
   mount_if_needed:
     type: checkbox

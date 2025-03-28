@@ -5,6 +5,7 @@ category: Installation
 multiple: false
 icon: 📠
 sudo: true
+remote_execution: true
 config_fields:
   user:
     type: text

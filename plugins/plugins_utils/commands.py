@@ -7,6 +7,7 @@ et avec une gestion appropriée des erreurs et des logs.
 
 import subprocess
 import traceback
+import re
 
 
 class Commands:
@@ -130,7 +131,9 @@ class Commands:
         else:
             print(f"[LOG] [SUCCESS] {msg}")
 
-    def run(self, cmd, input_data=None, no_output=False, print_command=False, real_time_output=True):
+
+
+    def run(self, cmd, input_data=None, no_output=False, print_command=False, real_time_output=True, error_as_warning=False,re_error_ignore=None):
         """
         Exécute une commande et retourne le résultat, en traitant les messages de déprécation comme des avertissements.
 
@@ -180,11 +183,15 @@ class Commands:
                         if "deprecated" in line.lower() or "warning" in line.lower():
                             self.log_warning(line)
                         else:
-                            self.log_error(line)
+                            if error_as_warning:
+                                self.log_warning(line)
+                            else:
+                                self.log_error(line)
                     stderr_data.append(line)
 
                 process.wait()
                 success = process.returncode == 0
+
                 stdout = "\n".join(stdout_data)
                 stderr = "\n".join(stderr_data)
 
@@ -224,7 +231,10 @@ class Commands:
                         if "deprecated" in line.lower() or "warning" in line.lower():
                             self.log_warning(line.strip())
                         else:
-                            self.log_error(line.strip())
+                            if error_as_warning:
+                                self.log_warning(line)
+                            else:
+                                self.log_error(line)
 
                 # Si le code de retour est non-zéro mais que stderr contient uniquement des messages
                 # de déprécation, considérer comme un succès
@@ -244,6 +254,12 @@ class Commands:
 
                 stdout = result.stdout
                 stderr = result.stderr
+
+            if re_error_ignore!=None:
+                if re.compile(re_error_ignore).search(stderr) or re.compile(re_error_ignore).search(stdout):
+                    success = 0
+            if error_as_warning:
+                success=0
 
             return success, stdout, stderr
 
@@ -270,22 +286,22 @@ class Commands:
         # Utiliser l'option -S pour permettre à sudo de lire le mot de passe depuis stdin
         # quand il est exécuté sans terminal
         sudo_cmd = ["sudo", "-S"] + cmd
-        
+
         # Vérifier si nous avons des informations d'identification root
         if root_credentials and isinstance(root_credentials, dict) and 'password' in root_credentials:
             sudo_password = root_credentials.get('password', '')
             sudo_user = root_credentials.get('user', 'root')
-            
+
             if sudo_password:
                 # Construire une commande qui utilise echo pour passer le mot de passe à sudo
                 if sudo_user and sudo_user != 'root':
                     # Si un utilisateur spécifique est fourni, utiliser sudo -u
-                    echo_cmd = ["bash", "-c", f"echo '{sudo_password}' | sudo -S -u {sudo_user} {' '.join(cmd)}"] 
+                    echo_cmd = ["bash", "-c", f"echo '{sudo_password}' | sudo -S -u {sudo_user} {' '.join(cmd)}"]
                 else:
                     # Sinon, utiliser sudo standard
-                    echo_cmd = ["bash", "-c", f"echo '{sudo_password}' | sudo -S {' '.join(cmd)}"] 
+                    echo_cmd = ["bash", "-c", f"echo '{sudo_password}' | sudo -S {' '.join(cmd)}"]
                 return self.run(echo_cmd, None, no_output, print_command)
-        
+
         # Si nous sommes en mode d'exécution SSH, nous devons gérer le mot de passe différemment
         # car nous n'avons pas de terminal interactif
         import os
@@ -295,9 +311,9 @@ class Commands:
             sudo_password = os.environ.get("SUDO_PASSWORD", "")
             if sudo_password:
                 # Construire une commande qui utilise echo pour passer le mot de passe à sudo
-                echo_cmd = ["bash", "-c", f"echo '{sudo_password}' | sudo -S {' '.join(cmd)}"] 
+                echo_cmd = ["bash", "-c", f"echo '{sudo_password}' | sudo -S {' '.join(cmd)}"]
                 return self.run(echo_cmd, None, no_output, print_command)
-        
+
         # Si nous ne sommes pas en mode SSH ou si nous n'avons pas de mot de passe,
         # exécuter normalement avec sudo
         return self.run(sudo_cmd, input_data, no_output, print_command)

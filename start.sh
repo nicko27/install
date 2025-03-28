@@ -1,6 +1,8 @@
 #!/bin/bash
 # Traiter les paramètres
-EXTRACT_DIR="."
+# Utiliser le répertoire où le script est exécuté comme valeur par défaut
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+EXTRACT_DIR="$SCRIPT_DIR"
 DEBUG=0
 while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -9,6 +11,7 @@ while [ "$#" -gt 0 ]; do
             ;;
         --debug)
             DEBUG=1
+            set -xv
             ;;
     esac
     shift
@@ -21,11 +24,37 @@ fi
 
 # Créer le dossier logs s'il n'existe pas
 mkdir -p "$EXTRACT_DIR/logs"
+rm -rf "$EXTRACT_DIR/libs/*"
+mkdir -p "$EXTRACT_DIR/libs"
 
+# Code intégré de libsExtract.sh
+# Dossier où se trouvent les fichiers .whl
+WHL_DIR="$EXTRACT_DIR/whl"
 
-# Lancer l'application
+# Parcourir tous les fichiers .whl dans le dossier spécifié
+for whl in "$WHL_DIR"/*.whl; do
+    # Extraire le nom du paquet (sans l'extension)
+    pakname=$(basename "$whl" .whl)
+
+    # Créer un sous-dossier pour chaque paquet
+    mkdir -p "$EXTRACT_DIR/libs/$pakname"
+
+    # Dézipper le fichier .whl dans son dossier
+    unzip -q "$whl" -d "$EXTRACT_DIR/libs/$pakname 2>/dev/null"
+done
+
+echo "Tous les fichiers .whl ont été extraits dans le dossier libs/"
+
+# Vérifier si le binaire textual est disponible
 if [ "$DEBUG" -eq 1 ]; then
-    textual run "$EXTRACT_DIR/main.py" --dev
+    if command -v textual &> /dev/null; then
+        echo "Lancement de l'application en mode debug avec textual"
+        textual run "$EXTRACT_DIR/main.py" --dev
+    else
+        echo "Binaire textual non trouvé, utilisation de python3 en mode debug"
+        python3 -m textual "$EXTRACT_DIR/main.py"
+    fi
 else
+    echo "Lancement de l'application en mode normal"
     python3 "$EXTRACT_DIR/main.py"
 fi

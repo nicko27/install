@@ -37,8 +37,7 @@ class CheckboxGroupField(ConfigField):
             else:
                 # Create a checkbox for each option
                 for option_label, option_value in self.options:
-                    checkbox_id = f"checkbox_group_{self.source_id}_{self.field_id}_{option_value}"
-                    
+                    checkbox_id = f"checkbox_group_{self.source_id}_{self.field_id}_{option_value}".replace(".","_")
                     with HorizontalGroup(classes="checkbox-group-item"):
                         checkbox = Checkbox(
                             id=checkbox_id,
@@ -46,7 +45,7 @@ class CheckboxGroupField(ConfigField):
                             value=option_value in self.selected_values
                         )
                         self.checkboxes[option_value] = checkbox
-                        
+
                         yield checkbox
                         yield Label(option_label, classes="checkbox-group-label")
 
@@ -64,7 +63,7 @@ class CheckboxGroupField(ConfigField):
             if dynamic_config.get('global', False):
                 # Script in utils folder
                 script_name = dynamic_config['script']
-                script_path = os.path.join(os.path.dirname(__file__), '..', '..', 'utils_scripts', script_name)
+                script_path = os.path.join(os.path.dirname(__file__), '..', '..', 'scripts', script_name)
             else:
                 # Script in plugin folder
                 script_path = os.path.join(os.path.dirname(__file__), '..', '..', 'plugins', self.source_id, dynamic_config['script'])
@@ -96,7 +95,7 @@ class CheckboxGroupField(ConfigField):
                 # Prepare arguments if any
                 args = []
                 kwargs = {}
-                
+
                 if 'args' in dynamic_config:
                     for arg_config in dynamic_config['args']:
                         if 'field' in arg_config:
@@ -134,17 +133,17 @@ class CheckboxGroupField(ConfigField):
                 # Process the result
                 if isinstance(result, tuple) and len(result) == 2:
                     success, data = result
-                    
+
                     if not success:
                         logger.error(f"Dynamic options script failed: {data}")
                         return [("Script error", "script_error")]
-                    
+
                     # If data is a list, process it
                     if isinstance(data, list):
                         # Extract value_key and label_key if specified
-                        value_key = dynamic_config.get('value_key')
-                        label_key = dynamic_config.get('label_key')
-                        
+                        value_key = dynamic_config.get('value')
+                        label_key = dynamic_config.get('description')
+
                         options = []
                         for item in data:
                             if isinstance(item, dict):
@@ -158,17 +157,17 @@ class CheckboxGroupField(ConfigField):
                                 # For simple values, use as both label and value
                                 value = str(item)
                                 options.append((value, value))
-                        
+
                         return options
-                    
+
                     # If it's not a list, return an error
                     logger.error(f"Expected list result, got {type(data)}")
                     return [("Invalid data format", "invalid_format")]
-                
+
                 # If result is not a tuple, return an error
                 logger.error(f"Expected tuple result (success, data), got {type(result)}")
                 return [("Invalid result format", "invalid_format")]
-                
+
             except Exception as e:
                 logger.error(f"Error loading dynamic options: {e}")
                 logger.error(traceback.format_exc())
@@ -213,17 +212,17 @@ class CheckboxGroupField(ConfigField):
         # Check if this is one of our checkboxes
         checkbox_id = event.checkbox.id
         logger.debug(f"Checkbox changed: {checkbox_id} -> {event.value}")
-        
+
         for option_value, checkbox in self.checkboxes.items():
             if checkbox.id == checkbox_id:
                 logger.debug(f"Found matching checkbox for option: {option_value}")
-                
+
                 # Update selected values
                 if event.value and option_value not in self.selected_values:
                     self.selected_values.append(option_value)
                 elif not event.value and option_value in self.selected_values:
                     self.selected_values.remove(option_value)
-                
+
                 logger.debug(f"Updated selected values: {self.selected_values}")
                 break
 

@@ -4,7 +4,7 @@ Module utilitaire pour les plugins pcUtils.
 Contient des fonctions et classes communes utilisées par plusieurs plugins.
 
 Ce module découvre automatiquement tous les fichiers Python dans le répertoire
-loading_utils et expose toutes leurs classes et fonctions pour un import facile.
+plugins_utils et expose toutes leurs classes et fonctions pour un import facile.
 """
 
 import os
@@ -13,7 +13,7 @@ import inspect
 import importlib
 import pkgutil
 
-# Définir __all__ pour contrôler ce qui est importé avec "from loading_utils import *"
+# Définir __all__ pour contrôler ce qui est importé avec "from plugins_utils import *"
 __all__ = []
 
 # Chemin du répertoire courant

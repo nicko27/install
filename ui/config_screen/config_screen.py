@@ -93,7 +93,7 @@ class PluginConfig(Screen):
     def compose(self) -> ComposeResult:
         try:
             logger.debug("PluginConfig.compose() started")
-            
+
             # Import widgets at the beginning of the method
             from textual.widgets import Label, Button
 
@@ -126,7 +126,7 @@ class PluginConfig(Screen):
 
                         # Create unique ID for the checkbox
                         remote_field_id = f"remote_exec_{plugin_name}_{instance_id}"
-                        
+
                         # Create checkbox configuration
                         remote_config = {
                             "type": "checkbox",
@@ -137,18 +137,18 @@ class PluginConfig(Screen):
                             "variable": "remote_execution_enabled",
                             "required": True
                         }
-                        
+
                         # Create the checkbox field
                         remote_field = CheckboxField(plugin_name, remote_field_id, remote_config, self.fields_by_id, is_global=False)
                         remote_field.add_class("remote-execution-checkbox")
-                        
+
                         # Store field for future reference
                         self.fields_by_plugin[plugin_name][remote_field_id] = remote_field
                         self.plugins_remote_enabled[f"{plugin_name}_{instance_id}"] = remote_field
-                        
+
                         # Add the remote execution checkbox to the plugin container
                         plugin_container.remote_field = remote_field
-                    
+
                     # Render the plugin container
                     yield plugin_container
 
@@ -158,12 +158,12 @@ class PluginConfig(Screen):
                     logger.debug("Adding empty SSH container (content will be added in on_mount)")
                     self.ssh_container = Container(id="ssh-config", classes="ssh-container config-container disabled-container")
                     yield self.ssh_container
-                
+
                 # Ajouter un espace en bas pour garantir que tout le contenu est visible lors du scroll
                 yield Container(classes="scroll-spacer")
 
             with Horizontal(id="button-container"):
-                yield Button("Cancel", id="cancel", variant="error")
+                yield Button("Retour", id="retour", variant="error")
                 yield Button("Execute", id="validate", variant="primary")
 
             yield Footer()
@@ -176,22 +176,22 @@ class PluginConfig(Screen):
 
             # En cas d'erreur, au moins retourner des widgets de base sans essayer de les monter
             yield Label("Une erreur s'est produite lors du chargement de la configuration", id="error-message")
-            yield Button("Retour", id="cancel", variant="error")
+            yield Button("Retour", id="retour", variant="error")
 
     async def on_mount(self) -> None:
         """Called when screen is mounted - used to add remote execution checkboxes and SSH fields"""
         try:
             # Create containers and plugins input
             self.call_after_refresh(self.create_config_fields)
-            
+
             # Si nous revenons de l'écran d'exécution, restaurer les valeurs des champs
             if self.returning_from_execution and self.current_config:
                 logger.debug(f"Restauration de la configuration préservée: {self.current_config}")
-                
+
                 # Appeler la méthode de restauration après un court délai pour s'assurer que tous les widgets sont montés
                 await asyncio.sleep(0.1)  # court délai pour laisser le DOM se stabiliser
                 self.call_after_refresh(self.restore_saved_configuration)
-                
+
             logger.debug("PluginConfig.on_mount() completed")
         except Exception as e:
             logger.error(f"Error in PluginConfig.on_mount(): {e}")
@@ -203,32 +203,32 @@ class PluginConfig(Screen):
             if not self.current_config:
                 logger.debug("Pas de configuration à restaurer")
                 return
-                
+
             logger.debug(f"Début de la restauration de la configuration: {len(self.current_config)} plugins")
-            
+
             # Parcourir tous les plugins dans la configuration
             for plugin_id, plugin_config in self.current_config.items():
                 logger.debug(f"Restauration de la configuration pour {plugin_id}")
-                
+
                 # Extraire le nom du plugin et la configuration
                 plugin_name = plugin_id.split('_')[0]
                 config = plugin_config.get('config', {})
-                
+
                 # Parcourir tous les paramètres de la configuration du plugin
                 for param_name, value in config.items():
                     field_id = f"{plugin_name}.{param_name}"
-                    
+
                     # Vérifier si ce champ existe dans notre dictionnaire de champs
                     if field_id in self.fields_by_id:
                         field = self.fields_by_id[field_id]
                         logger.debug(f"Restauration du champ {field_id} avec la valeur {value}")
-                        
+
                         # Mettre à jour la valeur du champ
                         if hasattr(field, 'set_value'):
                             field.set_value(value)
                         elif hasattr(field, 'value'):
                             field.value = value
-                            
+
                             # Si le champ est un widget avec une valeur, mettre à jour également
                             try:
                                 for widget_type in [Input, Select, Checkbox]:
@@ -242,38 +242,38 @@ class PluginConfig(Screen):
                                         continue
                             except Exception as e:
                                 logger.debug(f"Erreur lors de la mise à jour du widget pour {field_id}: {e}")
-                
+
                 # Restaurer également l'état d'activation des plugins distants
                 if 'remote_execution' in plugin_config and plugin_name in self.plugins_remote_enabled:
                     ssh_enabled = plugin_config.get('remote_execution', False)
                     logger.debug(f"Restauration de l'état SSH pour {plugin_name}: {ssh_enabled}")
-                    
+
                     # Mettre à jour la case à cocher
                     checkbox_id = f"{plugin_name}_remote"
                     try:
                         checkbox = self.query_one(f"#{checkbox_id}", CheckboxField)
                         if checkbox:
                             checkbox.value = ssh_enabled
-                            
+
                             # Activer/désactiver les champs SSH en fonction de l'état
                             if ssh_enabled:
                                 self.toggle_ssh_config(True)
                     except Exception as e:
                         logger.error(f"Erreur lors de la restauration de l'état SSH pour {plugin_name}: {e}")
-            
+
             # Mettre à jour les dépendances entre champs après restauration
             self.update_all_dependencies()
-            
+
             logger.debug("Restauration de la configuration terminée")
         except Exception as e:
             logger.error(f"Erreur lors de la restauration de la configuration: {e}")
             logger.error(traceback.format_exc())
-            
+
     def update_all_dependencies(self):
         """Met à jour toutes les dépendances entre champs"""
         try:
             logger.debug("Mise à jour de toutes les dépendances entre champs")
-            
+
             # Parcourir tous les champs
             for field_id, field in self.fields_by_id.items():
                 # Mettre à jour les champs qui dépendent de ce champ
@@ -284,7 +284,7 @@ class PluginConfig(Screen):
                         if field_id in c.fields_by_id:
                             container = c
                             break
-                    
+
                     # Si le container est trouvé, mettre à jour les dépendances
                     if container and hasattr(container, 'update_dependent_fields'):
                         container.update_dependent_fields(field)
@@ -333,7 +333,7 @@ class PluginConfig(Screen):
             if plugin.startswith('__sequence__'):
                 logger.warning(f"Skipping configuration for sequence: {plugin}")
                 return None
-                
+
             plugin_config = self.config_manager.plugin_configs.get(plugin, {})
 
             if not plugin_config:
@@ -380,7 +380,7 @@ class PluginConfig(Screen):
         logger.debug(f"Button pressed: {event.button.id}")
 
         try:
-            if event.button.id == "cancel":
+            if event.button.id == "retour":
                 logger.debug("Cancel button pressed, popping screen")
                 self.app.pop_screen()
 
@@ -501,29 +501,29 @@ class PluginConfig(Screen):
                 # Get the dependency field
                 dep_field_id = field.enabled_if['field']
                 dep_field = self.fields_by_id.get(dep_field_id)
-                
+
                 if dep_field:
                     # Check if the dependency field's value matches the required value
                     dep_value = dep_field.get_value()
                     required_value = field.enabled_if['value']
-                    
+
                     logger.debug(f"Field {field.field_id} has enabled_if condition: {field.enabled_if}")
                     logger.debug(f"Dependency field {dep_field_id} value: {dep_value}, required: {required_value}")
-                    
+
                     # If the dependency condition is not met, force disable regardless of enable parameter
                     if dep_value != required_value:
                         logger.debug(f"Field {field.field_id} disabled due to enabled_if condition")
                         enable = False
-            
+
             # Set the disabled state on the field itself
             field.disabled = not enable
-            
+
             # Handle different widget types
             if hasattr(field, 'input'):
                 field.input.disabled = not enable
                 if enable:
                     field.input.remove_class('disabled')
-                    
+
                     # If we're enabling a field, restore its value
                     if hasattr(field, 'field_config'):
                         # Case 1: Field has a dynamic default
@@ -553,7 +553,7 @@ class PluginConfig(Screen):
                 field.select.disabled = not enable
                 if enable:
                     field.select.remove_class('disabled')
-                    
+
                     # If we're enabling a field, restore its value
                     if hasattr(field, 'field_config'):
                         # Case 1: Field has a dynamic default
@@ -624,13 +624,13 @@ class PluginConfig(Screen):
                     if hasattr(field, 'source_id') and field.source_id == plugin_name and
                     not field.field_id.startswith(f"remote_exec_{plugin_name}")
                 ]
-                
+
                 # Always process the plugin, even if it has no fields
                 # This ensures all plugins appear in the execution window
                 logger.debug(f"Found {len(plugin_fields)} fields for plugin {plugin_name}")
                 # Collect field values
                 config_values = {}
-                
+
                 # Get original plugin settings - moved outside the field loop to ensure it's always defined
                 plugin_settings = {}
                 try:
@@ -642,7 +642,7 @@ class PluginConfig(Screen):
                         plugin_settings = yaml.load(StringIO(file_content))
                 except Exception as e:
                     logger.error(f"Error loading settings for {plugin_name}: {e}")
-                
+
                 for field in plugin_fields:
                     if hasattr(field, 'variable_name'):
                         value = field.get_value()
@@ -691,26 +691,26 @@ class PluginConfig(Screen):
         """Crée les champs de configuration après le montage de l'interface"""
         try:
             logger.debug("Création des champs de configuration")
-            
+
             # Réinitialiser le dictionnaire des containers
             self.containers_by_id = {}
-            
+
             # Récupérer tous les containers de configuration
             config_containers = self.query(".config-container")
             logger.debug(f"Nombre de containers trouvés: {len(config_containers)}")
-            
+
             # Indexer les containers par ID
             for container in config_containers:
                 if hasattr(container, 'id'):
                     self.containers_by_id[container.id] = container
                     logger.debug(f"Container ajouté: {container.id}")
-                    
+
                     # Si le container est un ConfigContainer, ajouter ses champs à fields_by_id
                     if hasattr(container, 'fields_by_id'):
                         for field_id, field in container.fields_by_id.items():
                             self.fields_by_id[field_id] = field
                             logger.debug(f"Champ ajouté: {field_id}")
-            
+
             logger.debug(f"Nombre total de containers indexés: {len(self.containers_by_id)}")
             logger.debug(f"Nombre total de champs indexés: {len(self.fields_by_id)}")
         except Exception as e:

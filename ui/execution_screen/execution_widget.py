@@ -72,7 +72,7 @@ class ExecutionWidget(Container):
             logger.debug(f"Dossier du plugin {plugin_id}: {folder_name}")
             logger.debug(f"Configuration du plugin {plugin_id}: {config}")
             remote_execution = config.get('remote_execution', False)
-            
+
             # Exécuter le plugin localement ou via SSH selon la configuration
             if remote_execution:
                 logger.debug(f"Exécution SSH du plugin {plugin_id}")
@@ -278,21 +278,21 @@ class ExecutionWidget(Container):
             # Ajouter un message de fin d'exécution dans les logs
             # Vérifier si tous les plugins ont été exécutés avec succès
             all_executed = executed == total_plugins
-            
+
             # Vérifier si des erreurs ont été détectées dans les plugins
             has_errors = False
             for plugin_id, plugin_widget in self.plugins.items():
                 if plugin_widget.status == "erreur":
                     has_errors = True
                     break
-            
+
             # Déterminer si on est en mode SSH (remote_execution)
             is_remote = False
             for plugin_id, config in filtered_configs.items():
                 if config.get('remote_execution', False):
                     is_remote = True
                     break
-            
+
             # Ne pas afficher le message final en mode SSH, car il est déjà affiché par SSHExecutor
             if not is_remote:
                 # Déterminer le niveau de log en fonction de l'exécution et des erreurs
@@ -302,14 +302,17 @@ class ExecutionWidget(Container):
                     level = "warning"
                 else:
                     level = "success"
-                
+                if executed>1:
+                    texte_plugin="plugins exécutés"
+                else:
+                    texte_plugin="plugin exécuté"
                 # Construire le message
-                message = f"Exécution terminée : {executed}/{total_plugins} plugins exécutés"
+                message = f"Exécution terminée : {executed}/{total_plugins} {texte_plugin}"
                 if has_errors:
                     message += " (des erreurs ont été détectées)"
                 elif not all_executed:
                     message += " (certains plugins n'ont pas été exécutés)"
-                    
+
                 await LoggerUtils.add_log(self, message, level=level)
 
         except Exception as e:
@@ -335,7 +338,7 @@ class ExecutionWidget(Container):
             # Démarrer l'exécution
             self.is_running = True
             logger.info("Démarrage de l'exécution")
-            
+
             # Masquer les boutons Démarrer et Retour pendant l'exécution
             start_button.add_class("hidden")
             back_button.add_class("hidden")
@@ -629,7 +632,7 @@ class ExecutionWidget(Container):
                     # Ignorer les séquences
                     if plugin_id.startswith('__sequence__'):
                         continue
-                    
+
                     try:
                         # Récupérer le dossier du plugin
                         folder_name = get_plugin_folder_name(plugin_id)
@@ -643,14 +646,14 @@ class ExecutionWidget(Container):
 
                 # Créer l'écran de configuration
                 config_screen = PluginConfig(plugin_instances)
-                
+
                 # Convertir le format de configuration pour qu'il soit compatible avec PluginConfig
                 corrected_config = {}
                 for plugin_id, plugin_data in self.plugins_config.items():
                     # Ignorer les séquences
                     if plugin_id.startswith('__sequence__'):
                         continue
-                    
+
                     try:
                         # Si c'est déjà au bon format, l'utiliser directement
                         if isinstance(plugin_data, dict) and 'config' in plugin_data:
@@ -660,14 +663,14 @@ class ExecutionWidget(Container):
                             # Sinon, construire la structure attendue
                             plugin_name = plugin_id.split('_')[0]
                             instance_id = int(plugin_id.split('_')[-1])
-                            
+
                             # Déterminer les attributs du plugin
                             plugin_folder = get_plugin_folder_name(plugin_id)
                             settings_path = os.path.join(
-                                os.path.dirname(__file__), '..', '..', 'plugins', 
+                                os.path.dirname(__file__), '..', '..', 'plugins',
                                 plugin_folder, 'settings.yml'
                             )
-                            
+
                             plugin_settings = {}
                             try:
                                 with open(settings_path, 'r', encoding='utf-8') as f:
@@ -676,9 +679,9 @@ class ExecutionWidget(Container):
                                     plugin_settings = yaml.load(f)
                             except Exception as e:
                                 logger.error(f"Erreur lors du chargement des paramètres pour {plugin_id}: {e}")
-                            
+
                             remote_execution = plugin_data.get('remote_execution', False)
-                            
+
                             corrected_config[plugin_id] = {
                                 'plugin_name': plugin_name,
                                 'instance_id': instance_id,
@@ -691,14 +694,14 @@ class ExecutionWidget(Container):
                             logger.debug(f"Config reconstruite pour {plugin_id}")
                     except Exception as e:
                         logger.error(f"Erreur lors de la conversion de config pour {plugin_id}: {e}")
-                
+
                 # Préserver la configuration convertie
                 config_screen.current_config = corrected_config
                 logger.debug(f"Configuration préservée: {len(corrected_config)} plugins")
-                
+
                 # Indiquer que nous revenons de l'écran d'exécution pour charger la configuration
                 config_screen.returning_from_execution = True
-                
+
                 # Revenir à l'écran de configuration
                 self.app.switch_screen(config_screen)
             elif button_id == "toggle-logs-button":

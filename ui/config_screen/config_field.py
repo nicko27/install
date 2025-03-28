@@ -59,7 +59,7 @@ class ConfigField(VerticalGroup):
                     if 'path' in self.field_config['dynamic_default']:
                         # Utiliser le chemin personnalisé
                         path = self.field_config['dynamic_default']['path']
-                        
+
                         # Gérer la syntaxe @[directory]
                         if path.startswith('@[') and path.endswith(']'):
                             dir_name = path[2:-1]  # Extraire le nom du répertoire entre @[ et ]
@@ -82,6 +82,22 @@ class ConfigField(VerticalGroup):
                     spec = importlib.util.spec_from_file_location("dynamic_default_module", script_path)
                     module = importlib.util.module_from_spec(spec)
                     spec.loader.exec_module(module)
+                    # Préparer les arguments à passer à la fonction
+                    function_args = {}
+                    if 'args' in self.field_config['dynamic_default']:
+                        for arg in self.field_config['dynamic_default']['args']:
+                            # Si l'argument fait référence à un autre champ
+                            if 'field' in arg:
+                                field_id = arg['field']
+                                if field_id in self.fields_by_id:
+                                    field_value = self.fields_by_id[field_id].get_value()
+                                    param_name = arg.get('param_name', field_id)
+                                    function_args[param_name] = field_value
+                            # Si l'argument est une valeur directe
+                            elif 'value' in arg:
+                                param_name = arg.get('param_name')
+                                if param_name:
+                                    function_args[param_name] = arg['value']
                     function_name = self.field_config['dynamic_default'].get('function', 'get_default_value')
                     if hasattr(module, function_name):
                         result = getattr(module, function_name)()
@@ -93,7 +109,7 @@ class ConfigField(VerticalGroup):
 
                             # 1.1 If success, check if value is a dict with value_key
                             if success and isinstance(value, dict):
-                                value_key = self.field_config['dynamic_default'].get('value_key')
+                                value_key = self.field_config['dynamic_default'].get('value')
                                 if value_key and value_key in value:
                                     return str(value[value_key])
 
@@ -112,7 +128,7 @@ class ConfigField(VerticalGroup):
 
                         # 2. Handle direct dictionary returns
                         elif isinstance(result, dict):
-                            value_key = self.field_config['dynamic_default'].get('value_key')
+                            value_key = self.field_config['dynamic_default'].get('value')
                             if value_key and value_key in result:
                                 return str(result[value_key])
 
@@ -153,22 +169,22 @@ class ConfigField(VerticalGroup):
         if self.enabled_if:
             dep_field = self.fields_by_id.get(self.enabled_if['field'])
             logger.debug(f"Field {self.field_id}: enabled_if={self.enabled_if}, dep_field={dep_field and dep_field.field_id}, dep_value={dep_field and dep_field.value}")
-            
+
             # Check if the dependency field exists
             if dep_field:
                 # Récupérer les valeurs pour la comparaison
-                field_value = dep_field.value 
+                field_value = dep_field.value
                 required_value = self.enabled_if.get('value')
-                
+
                 # Convertir les valeurs en booléens si nécessaire pour la comparaison
                 if isinstance(required_value, bool) and not isinstance(field_value, bool):
                     if isinstance(field_value, str):
                         field_value = field_value.lower() in ('true', 't', 'yes', 'y', '1')
                     else:
                         field_value = bool(field_value)
-                
+
                 logger.debug(f"Comparaison pour {self.field_id}: {field_value} == {required_value}")
-                
+
                 # Check if the dependency field's value matches the required value
                 if field_value != required_value:
                     logger.debug(f"Field {self.field_id} should be initially disabled")
@@ -183,7 +199,7 @@ class ConfigField(VerticalGroup):
                 # If the dependency field doesn't exist yet (e.g., remote execution checkbox not yet created)
                 # Use the default value from the field configuration
                 logger.debug(f"Dependency field {self.enabled_if['field']} not found for {self.field_id}, using default state")
-                
+
                 # Default to disabled if the enabled_if condition exists but the dependency field doesn't
                 # This is safer as the field will be enabled when the dependency is satisfied
                 self.disabled = True
