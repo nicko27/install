@@ -32,7 +32,8 @@ config_fields:
     dynamic_options:
       script: get_printer_models.py
       function: get_printer_models
-      value_key: models
+      dict: models
+
 
   printer_ip:
     type: ip

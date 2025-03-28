@@ -5,7 +5,8 @@ from textual.containers import Horizontal, Vertical, ScrollableContainer
 from textual.widgets import Label, Header, Footer, Button
 import sys
 import os
-from logging import getLogger
+from ..utils.logging import get_logger
+from ..execution_screen.execution_screen import ExecutionScreen
 
 from .plugin_card import PluginCard
 from .selected_plugins_panel import SelectedPluginsPanel
@@ -13,7 +14,7 @@ from .plugin_utils import load_plugin_info
 from .sequence_handler import SequenceHandler
 from .template_handler import TemplateHandler
 
-logger = getLogger('choice')
+logger = get_logger('choice_screen')
 
 class Choice(App):
     """Application principale pour la sélection des plugins"""
@@ -145,6 +146,14 @@ class Choice(App):
             # Ajouter chaque plugin de la séquence
             for plugin_config in sequence['plugins']:
                 plugin_name = plugin_config['name']
+                
+                # Récupérer la configuration
+                config = {}
+                if 'config' in plugin_config:
+                    config = plugin_config['config']
+                elif 'variables' in plugin_config:  # Rétrocompatibilité
+                    config = plugin_config['variables']
+                logger.debug(f"Configuration pour {plugin_name}: {config}")
 
                 # Vérifier si un template est spécifié
                 if 'template' in plugin_config:
@@ -159,9 +168,12 @@ class Choice(App):
                 if plugin_name not in self.instance_counter:
                     self.instance_counter[plugin_name] = 0
                 self.instance_counter[plugin_name] += 1
+                
+                # Générer l'ID unique de l'instance
+                instance_id = self.instance_counter[plugin_name]
 
-                # Ajouter le plugin à la sélection
-                self.selected_plugins.append((plugin_name, self.instance_counter[plugin_name]))
+                # Ajouter le plugin à la sélection avec sa configuration
+                self.selected_plugins.append((plugin_name, instance_id, config))
 
             # Mettre à jour le panneau de sélection
             panel = self.query_one("#selected-plugins", SelectedPluginsPanel)
@@ -247,12 +259,21 @@ class Choice(App):
 
             # Créer l'écran de configuration pour tous les plugins sélectionnés
             logger.debug("Creating PluginConfig instance")
-            config_screen = PluginConfig(self.selected_plugins)
+            sequence_file = str(self.sequence_file) if self.sequence_file else None
+            logger.debug(f"Using sequence file: {sequence_file}")
+            config_screen = PluginConfig(self.selected_plugins, sequence_file=sequence_file)
 
-            # S'assurer que current_config existe
+            # S'assurer que current_config existe et contient les configurations initiales
             if not hasattr(config_screen, 'current_config'):
                 logger.debug("Adding default current_config attribute")
                 config_screen.current_config = {}
+                
+            # Transférer les configurations des plugins
+            for plugin in self.selected_plugins:
+                if len(plugin) >= 3:  # Si le plugin a une configuration
+                    plugin_name, instance_id, config = plugin
+                    logger.debug(f"Transfert de la config pour {plugin_name} (ID: {instance_id}): {config}")
+                    config_screen.current_config[instance_id] = config
 
             # Afficher l'écran de configuration et attendre qu'il se termine
             logger.debug("Pushing config screen")
@@ -263,12 +284,16 @@ class Choice(App):
             config = getattr(config_screen, 'current_config', None)
             logger.debug(f"Config returned: {config is not None}")
 
-            # Si une configuration a été définie, passer à l'écran d'exécution
+            # Si une configuration a été définie
             if config:
-                logger.debug("Creating and pushing execution screen")
-                execution_screen = ExecutionScreen(config)
-                await self.push_screen(execution_screen)
-                logger.debug("Execution screen pushed successfully")
+                # En mode auto-exécution, passer directement à l'écran d'exécution
+                if self.auto_execute:
+                    logger.debug("Mode auto-exécution: passage direct à l'écran d'exécution")
+                    execution_screen = ExecutionScreen(config)
+                    await self.push_screen(execution_screen)
+                    logger.debug("Execution screen pushed successfully")
+                else:
+                    logger.debug("Mode manuel: retour à l'écran de choix")
             else:
                 logger.debug("No configuration returned from config screen")
 

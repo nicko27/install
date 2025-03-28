@@ -2,6 +2,7 @@
 Module définissant le conteneur pour un plugin à exécuter.
 """
 
+import threading
 from ..utils.logging import get_logger
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal
@@ -27,6 +28,7 @@ class PluginContainer(Container):
         import re
         # Create a valid ID by replacing invalid characters with underscores
         # and ensuring it doesn't start with a number
+        # Utiliser uniquement le plugin_id qui est déjà unique
         valid_id = re.sub(r'[^a-zA-Z0-9_-]', '_', plugin_id)
         # If it starts with a number, prepend an underscore
         if valid_id and valid_id[0].isdigit():
@@ -70,22 +72,54 @@ class PluginContainer(Container):
             yield Label("En attente", classes="plugin-status")
 
     def update_progress(self, progress: float, step: str = None):
-        """Mise à jour de la progression du plugin"""
+        """Mise à jour synchrone de la progression du plugin"""
         try:
             # Récupérer la barre de progression
             progress_bar = self.query_one(ProgressBar)
             if progress_bar:
-                # Convertir la progression en pourcentage et s'assurer qu'elle est entre 0 et 100
-                progress_value = max(0, min(100, progress * 100))
-                progress_bar.update(progress=progress_value)
+                # Assurer que la progression est entre 0 et 1
+                progress_value = max(0.0, min(1.0, float(progress)))
+                # Convertir en pourcentage pour l'affichage
+                progress_bar.update(progress=progress_value * 100)
+                # Forcer le rafraîchissement
+                progress_bar.refresh()
 
             # Mettre à jour le texte de statut si fourni
             if step:
                 status_label = self.query_one(".plugin-status")
                 if status_label:
                     status_label.update(step)
+                    # Forcer le rafraîchissement
+                    status_label.refresh()
+                    
+            # Forcer le rafraîchissement du conteneur
+            self.refresh()
         except Exception as e:
             logger.error(f"Erreur lors de la mise à jour de la progression: {str(e)}")
+            
+    async def update_progress_async(self, progress: float, step: str = None):
+        """Mise à jour asynchrone de la progression du plugin"""
+        try:
+            # Assurer que nous sommes dans le thread principal
+            if not self.app._thread_id == threading.get_ident():
+                await self.app.call_from_thread(self.update_progress_async, progress, step)
+                return
+                
+            # Récupérer la barre de progression
+            progress_bar = self.query_one(ProgressBar)
+            if progress_bar:
+                # Assurer que la progression est entre 0 et 1
+                progress_value = max(0.0, min(1.0, float(progress)))
+                # Convertir en pourcentage pour l'affichage
+                await progress_bar.update(progress=progress_value * 100)
+
+            # Mettre à jour le texte de statut si fourni
+            if step:
+                status_label = self.query_one(".plugin-status")
+                if status_label:
+                    await status_label.update(step)
+        except Exception as e:
+            logger.error(f"Erreur lors de la mise à jour asynchrone de la progression: {str(e)}")
 
     def set_status(self, status: str, message: str = None):
         """Mise à jour du statut du plugin"""

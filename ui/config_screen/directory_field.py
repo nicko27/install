@@ -22,10 +22,16 @@ class DirectoryField(TextField):
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button press"""
         if event.button.id == f"browse_{self.field_id}":
+            logger.debug(f"Browse button pressed for field {self.field_id}")
             from subprocess import Popen, PIPE
             process = Popen(['zenity', '--file-selection', '--directory'], stdout=PIPE, stderr=PIPE)
             stdout, stderr = process.communicate()
+            logger.debug(f"Zenity return code: {process.returncode}")
+            if stderr:
+                logger.debug(f"Zenity stderr: {stderr.decode()}")
             if process.returncode == 0:
                 selected_dir = stdout.decode().strip()
-                self.input.value = selected_dir
-                self.value = selected_dir
+                logger.debug(f"Selected directory: {selected_dir}")
+                logger.debug(f"Calling set_value for field {self.field_id}")
+                result = self.set_value(selected_dir)
+                logger.debug(f"set_value result: {result}")

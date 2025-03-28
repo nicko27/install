@@ -133,7 +133,7 @@ class Commands:
 
 
 
-    def run(self, cmd, input_data=None, no_output=False, print_command=False, real_time_output=True, error_as_warning=False,re_error_ignore=None):
+    def run(self, cmd, input_data=None, no_output=False, print_command=False, real_time_output=True, error_as_warning=False,re_error_ignore=None, no_log=True):
         """
         Exécute une commande et retourne le résultat, en traitant les messages de déprécation comme des avertissements.
 
@@ -147,7 +147,7 @@ class Commands:
         Returns:
             Tuple (success, stdout, stderr)
         """
-        if print_command:
+        if print_command and not no_log:
             self.log_info(f"Exécution de: {' '.join(cmd)}")
 
         try:
@@ -173,7 +173,8 @@ class Commands:
                 for line in process.stdout:
                     line = line.rstrip()
                     if line and not no_output:
-                        self.log_info(line)
+                        if not no_log:
+                            self.log_info(line)
                     stdout_data.append(line)
 
                 # Lire les erreurs
@@ -181,12 +182,15 @@ class Commands:
                     line = line.rstrip()
                     if line and not no_output:
                         if "deprecated" in line.lower() or "warning" in line.lower():
-                            self.log_warning(line)
+                            if not no_log:
+                                self.log_warning(line)
                         else:
                             if error_as_warning:
-                                self.log_warning(line)
+                                if not no_log:
+                                    self.log_warning(line)
                             else:
-                                self.log_error(line)
+                                if not no_log:
+                                    self.log_error(line)
                     stderr_data.append(line)
 
                 process.wait()
@@ -211,10 +215,12 @@ class Commands:
                         if line.strip():
                             # Vérifier si la ligne est déjà au format standard [LOG]
                             if not line.strip().startswith("[LOG]"):
-                                self.log_info(line.strip())
+                                if not no_log:
+                                    self.log_info(line.strip())
                             else:
                                 # Si déjà au format [LOG], l'envoyer directement à stdout
-                                print(line.strip(), flush=True)
+                                if not no_log:
+                                    print(line.strip(), flush=True)
 
                     # Traiter stderr ligne par ligne, en distinguant erreurs et avertissements
                     for line in result.stderr.splitlines():
@@ -229,12 +235,15 @@ class Commands:
 
                         # Détecter si c'est un avertissement ou une erreur
                         if "deprecated" in line.lower() or "warning" in line.lower():
-                            self.log_warning(line.strip())
+                            if not no_log:
+                                self.log_warning(line.strip())
                         else:
                             if error_as_warning:
-                                self.log_warning(line)
+                                if not no_log:
+                                    self.log_warning(line)
                             else:
-                                self.log_error(line)
+                                if not no_log:
+                                    self.log_error(line)
 
                 # Si le code de retour est non-zéro mais que stderr contient uniquement des messages
                 # de déprécation, considérer comme un succès
@@ -249,7 +258,8 @@ class Commands:
                             break
 
                     if deprecation_only:
-                        self.log_warning("La commande a renvoyé des avertissements de déprécation mais est considérée comme réussie")
+                        if not no_log:
+                            self.log_warning("La commande a renvoyé des avertissements de déprécation mais est considérée comme réussie")
                         success = True
 
                 stdout = result.stdout
@@ -265,7 +275,9 @@ class Commands:
 
         except Exception as e:
             error_msg = f"Erreur lors de l'exécution de la commande: {str(e)}"
-            self.log_error(error_msg)
+            if not no_log:
+                self.log_error(error_msg)
+                self.log_error(traceback.format_exc())
             return False, "", str(e)
 
     def run_as_root(self, cmd, input_data=None, no_output=False, print_command=False, root_credentials=None):

@@ -1,7 +1,6 @@
 """Logging configuration for the application"""
 import os
 import logging
-import shutil
 from logging.handlers import RotatingFileHandler
 
 # Create logs directory if it doesn't exist
@@ -31,7 +30,7 @@ logger = logging.getLogger('install_ui')
 logger.setLevel(logging.DEBUG)
 
 def get_logger(name=None):
-    """Get a logger for the application
+    """Get a logger for the application 
     
     Args:
         name: Optional name to append to 'install_ui'

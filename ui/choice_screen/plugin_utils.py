@@ -63,6 +63,13 @@ def load_plugin_info(plugin_name: str, default_info=None) -> dict:
     """Charge les informations d'un plugin depuis son fichier settings.yml"""
     logger.debug(f"Loading plugin info for: {plugin_name}")
 
+    # Si c'est une séquence, retourner directement les infos par défaut
+    if plugin_name.startswith('__sequence__'):
+        logger.debug(f"  Plugin {plugin_name} is a sequence, using default info")
+        if default_info is None:
+            default_info = {"name": plugin_name.replace('__sequence__', ''), "icon": "⚙️ "}
+        return default_info
+
     if default_info is None:
         default_info = {"name": plugin_name, "description": "No description available", "icon": "📦"}
 

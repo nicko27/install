@@ -46,10 +46,12 @@ class ExecutionWidget(Container):
         self._app_ref = None  # Référence à l'application, sera définie lors du montage
 
         # Extraire le nom de la séquence si présent dans la configuration
-        for plugin_id in self.plugins_config.keys():
-            if plugin_id.startswith('__sequence__'):
-                # Extraire le nom de la séquence du plugin_id
-                sequence_file = plugin_id.replace('__sequence__', '')
+        for plugin_id, config in self.plugins_config.items():
+            # Récupérer le nom du plugin associé à cet ID
+            plugin_name = config.get('plugin_name', '')
+            if isinstance(plugin_name, str) and plugin_name.startswith('__sequence__'):
+                # Extraire le nom de la séquence du nom du plugin
+                sequence_file = plugin_name.replace('__sequence__', '')
                 self.sequence_name = sequence_file.replace('.yml', '')
                 logger.debug(f"Séquence détectée: {self.sequence_name}")
                 break
@@ -60,17 +62,44 @@ class ExecutionWidget(Container):
         """Exécute un plugin spécifique"""
         try:
             # Vérifier si c'est une séquence et ne pas l'exécuter
-            if plugin_id.startswith('__sequence__'):
-                logger.warning(f"Tentative d'exécution d'une séquence comme plugin: {plugin_id}")
+            if not isinstance(config, dict):
+                logger.error(f"Configuration invalide pour le plugin {plugin_id}: {config}")
                 return {
                     'success': False,
-                    'output': f"Erreur: {plugin_id} est une séquence, pas un plugin."
+                    'output': f"Erreur: Configuration invalide pour le plugin {plugin_id}"
+                }
+            
+            # Extraire les informations de base de la configuration
+            plugin_name = config.get('plugin_name', '')
+            if not plugin_name:
+                # Si pas de nom de plugin, utiliser le dossier du plugin comme nom
+                plugin_name = get_plugin_folder_name(str(plugin_id))
+                logger.debug(f"Utilisation du dossier comme nom de plugin: {plugin_name}")
+                
+            # Récupérer la configuration du plugin
+            plugin_config = {}
+            # Si on a une clé 'config', l'utiliser
+            if 'config' in config:
+                plugin_config = config['config']
+            else:
+                # Sinon, copier toutes les clés sauf celles spéciales
+                special_keys = {'plugin_name', 'instance_id', 'show_name', 'icon', 'remote_execution'}
+                plugin_config = {k: v for k, v in config.items() if k not in special_keys}
+            instance_id = config.get('instance_id', plugin_id)  # Si pas d'instance_id, utiliser plugin_id
+            show_name = config.get('show_name', config.get('name', plugin_name))
+            icon = config.get('icon', '📦')
+                
+            if isinstance(plugin_name, str) and plugin_name.startswith('__sequence__'):
+                logger.warning(f"Tentative d'exécution d'une séquence comme plugin: {plugin_name}")
+                return {
+                    'success': False,
+                    'output': f"Erreur: {plugin_name} est une séquence, pas un plugin."
                 }
 
             # Récupérer le nom du plugin depuis son dossier
-            folder_name = get_plugin_folder_name(plugin_id)
-            logger.debug(f"Dossier du plugin {plugin_id}: {folder_name}")
-            logger.debug(f"Configuration du plugin {plugin_id}: {config}")
+            folder_name = get_plugin_folder_name(plugin_name)
+            logger.debug(f"Dossier du plugin {plugin_name} (ID: {instance_id}): {folder_name}")
+            logger.debug(f"Configuration du plugin {plugin_name}: {plugin_config}")
             remote_execution = config.get('remote_execution', False)
 
             # Exécuter le plugin localement ou via SSH selon la configuration
@@ -79,9 +108,9 @@ class ExecutionWidget(Container):
                 # Créer la configuration complète pour l'exécuteur SSH
                 ssh_config = {
                     'plugin_name': folder_name,
-                    'instance_id': 0,
-                    'config': config,
-                    'ssh_debug': config.get('ssh_debug', False)  # Récupérer ssh_debug de la config
+                    'instance_id': instance_id,
+                    'config': plugin_config,
+                    'ssh_debug': plugin_config.get('ssh_debug', False)  # Récupérer ssh_debug de la config
                 }
                 executor = SSHExecutor(ssh_config)
                 logger.debug(f"Exécuteur SSH créé pour {plugin_id} avec la configuration: {ssh_config}")
@@ -464,20 +493,49 @@ class ExecutionWidget(Container):
         with ScrollableContainer(id="plugins-list"):
             # Créer les conteneurs de plugins
             logger.debug(f"Création des conteneurs pour {len(self.plugins_config)} plugins")
+            # Garder une trace des IDs de plugins déjà traités
+            processed_plugins = set()
+            
             # Faire une copie du dictionnaire pour éviter l'erreur "dictionary changed size during iteration"
             plugins_config_copy = self.plugins_config.copy()
             for plugin_id, config in plugins_config_copy.items():
-                # Ignorer les plugins de type séquence (commençant par __sequence__)
-                if plugin_id.startswith('__sequence__'):
-                    logger.debug(f"Ignoré le plugin de type séquence: {plugin_id}")
+                # Ignorer les plugins de type séquence
+                plugin_name = config.get('plugin_name', '')
+                if isinstance(plugin_name, str) and plugin_name.startswith('__sequence__'):
+                    logger.debug(f"Ignoré le plugin de type séquence: {plugin_name}")
                     continue
-
-                # Récupérer le nom du plugin depuis son dossier
-                folder_name = get_plugin_folder_name(plugin_id)
-                plugin_name = config.get('plugin_name', folder_name)
-                plugin_icon = config.get('icon', '📦')
-                plugin_show_name = config.get('name', plugin_name)
-                logger.debug(f"Création du conteneur pour {plugin_id}: nom={plugin_name}, affichage={plugin_show_name}")
+                
+                # Vérifier si ce plugin a déjà été traité
+                if plugin_id in processed_plugins:
+                    logger.debug(f"Plugin {plugin_id} déjà traité, ignoré")
+                    continue
+                processed_plugins.add(plugin_id)
+                
+                # Récupérer le nom du plugin depuis la configuration
+                if not plugin_name:
+                    plugin_name = get_plugin_folder_name(str(plugin_id))
+                    logger.debug(f"Utilisation du dossier comme nom de plugin: {plugin_name}")
+                
+                # Déterminer le nom à afficher
+                show_name = config.get('name', plugin_name)
+                logger.debug(f"Nom d'affichage pour {plugin_name}: {show_name}")
+                icon=config.get('icon', '📦')
+                # Créer le conteneur pour ce plugin avec un ID unique
+                plugin_container = PluginContainer(
+                    plugin_id=plugin_id,
+                    plugin_name=plugin_name,
+                    plugin_show_name=show_name,
+                    plugin_icon=icon
+                )
+                
+                # Vérifier que le conteneur a bien été créé avec un ID unique
+                if plugin_container.id:
+                    # Stocker le conteneur
+                    self.plugins[plugin_id] = plugin_container
+                    # Ajouter le conteneur au DOM
+                    yield plugin_container
+                else:
+                    logger.error(f"Impossible de créer un conteneur avec un ID unique pour {plugin_id}")
 
                 # Vérifier si c'est un plugin SSH avec plusieurs IPs
                 plugin_config = config.get('config', {})
@@ -495,11 +553,17 @@ class ExecutionWidget(Container):
                         for ip in target_ips:
                             # Créer un ID unique pour ce plugin+IP
                             ip_plugin_id = f"{plugin_id}_{ip.replace('.', '_')}"
+
+                            # Vérifier si ce conteneur existe déjà
+                            if ip_plugin_id in self.plugins:
+                                logger.debug(f"Conteneur déjà existant pour {ip_plugin_id}, ignoré")
+                                continue
+
                             sanitized_id = self.sanitize_id(ip_plugin_id)
 
                             # Créer un conteneur avec l'IP dans le nom
-                            ip_show_name = f"{plugin_show_name} ({ip})"
-                            container = PluginContainer(sanitized_id, plugin_name, ip_show_name, plugin_icon)
+                            ip_show_name = f"{show_name} ({ip})"
+                            container = PluginContainer(sanitized_id, plugin_name, ip_show_name, icon)
 
                             # Stocker l'IP cible dans le conteneur pour l'exécution
                             container.target_ip = ip
@@ -516,24 +580,35 @@ class ExecutionWidget(Container):
 
                             yield container
                     else:
-                        # Aucune IP valide, créer un conteneur d'erreur
-                        sanitized_id = self.sanitize_id(plugin_id)
-                        container = PluginContainer(sanitized_id, plugin_name, f"{plugin_show_name} (Aucune IP valide)", plugin_icon)
-                        self.plugins[plugin_id] = container
-                        logger.debug(f"Conteneur d'erreur ajouté pour {plugin_id}: Aucune IP valide")
-                        yield container
+                        # Vérifier si un conteneur d'erreur existe déjà
+                        if plugin_id in self.plugins:
+                            logger.debug(f"Conteneur d'erreur déjà existant pour {plugin_id}, ignoré")
+                        else:
+                            # Aucune IP valide, créer un conteneur d'erreur
+                            sanitized_id = self.sanitize_id(plugin_id)
+                            container = PluginContainer(sanitized_id, plugin_name, f"{show_name} (Aucune IP valide)", icon)
+                            self.plugins[plugin_id] = container
+                            logger.debug(f"Conteneur d'erreur ajouté pour {plugin_id}: Aucune IP valide")
+                            yield container
                 else:
-                    # Plugin normal (non-SSH ou SSH avec une seule IP)
-                    sanitized_id = self.sanitize_id(plugin_id)
-                    container = PluginContainer(sanitized_id, plugin_name, plugin_show_name, plugin_icon)
+                    # Vérifier si le conteneur existe déjà
+                    if plugin_id in self.plugins:
+                        logger.debug(f"Conteneur déjà existant pour {plugin_id}, ignoré")
+                    else:
+                        # Plugin normal (non-SSH ou SSH avec une seule IP)
+                        sanitized_id = self.sanitize_id(plugin_id)
+                        container = PluginContainer(sanitized_id, plugin_name, show_name, icon)
 
-                    # Si c'est un plugin SSH avec une seule IP, stocker l'IP
-                    if ssh_ips and not ('*' in ssh_ips or ',' in ssh_ips):
-                        container.target_ip = ssh_ips.strip()
+                        # Si c'est un plugin SSH avec une seule IP, stocker l'IP
+                        if ssh_ips and not ('*' in ssh_ips or ',' in ssh_ips):
+                            container.target_ip = ssh_ips.strip()
+                            
+                        # Stocker le conteneur et le retourner
+                        self.plugins[plugin_id] = container
+                        logger.debug(f"Conteneur ajouté pour {plugin_id}: {plugin_name}")
+                        yield container
 
-                    self.plugins[plugin_id] = container
-                    logger.debug(f"Conteneur ajouté pour {plugin_id}: {plugin_name}")
-                    yield container
+
 
         # Zone des logs (visible par défaut)
         with Horizontal(id="logs"):
@@ -629,15 +704,22 @@ class ExecutionWidget(Container):
                 # Extraire les infos de plugin_id
                 plugin_instances = []
                 for plugin_id in self.plugins_config.keys():
+                    # Récupérer la configuration du plugin
+                    config = self.plugins_config.get(plugin_id, {})
+                    if not isinstance(config, dict):
+                        logger.error(f"Configuration invalide pour le plugin {plugin_id}")
+                        continue
+
                     # Ignorer les séquences
-                    if plugin_id.startswith('__sequence__'):
+                    plugin_name = config.get('plugin_name', '')
+                    if isinstance(plugin_name, str) and plugin_name.startswith('__sequence__'):
                         continue
 
                     try:
                         # Récupérer le dossier du plugin
-                        folder_name = get_plugin_folder_name(plugin_id)
-                        # Extraire l'instance ID (dernier nombre)
-                        instance_id = int(plugin_id.split('_')[-1])
+                        folder_name = get_plugin_folder_name(plugin_name)
+                        # Utiliser l'instance ID de la configuration
+                        instance_id = config.get('instance_id', 0)
                         # Ajouter le tuple (nom_plugin, instance_id)
                         plugin_instances.append((folder_name, instance_id))
                         logger.debug(f"Plugin ajouté pour retour: {folder_name}_{instance_id}")

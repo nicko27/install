@@ -101,9 +101,11 @@ class LocalExecutor:
             # Préparer la commande en fonction du type de plugin
             if is_bash_plugin:
                 base_cmd = ["bash", exec_path, config.get('name', 'test'), config.get('intensity', 'light')]
+                logger.debug(f"Commande bash: {' '.join(base_cmd)}")
             else:
                 python_path = sys.executable if sys.executable.strip() else "/usr/bin/python3"
                 base_cmd = [python_path, exec_path, json.dumps(config)]
+                logger.debug(f"Commande Python: {' '.join(base_cmd)}")
 
             # Exécuter la commande
             logger.info(f"Exécution de la commande: {' '.join(base_cmd)}")
@@ -138,9 +140,13 @@ class LocalExecutor:
                             log_entry = json.loads(line_decoded)
 
                             if is_stderr:
-                                self.log_message(log_entry.get('message', line_decoded), level="error", target_ip=None)
+                                # Pour stderr, toujours traiter comme une erreur
+                                error_msg = log_entry.get('message', line_decoded)
+                                logger.error(f"Erreur du plugin: {error_msg}")
+                                self.log_message(error_msg, level="error", target_ip=None)
                             else:
                                 if self.app:
+                                    # Pour stdout, traiter normalement via LoggerUtils
                                     await LoggerUtils.process_output_line(
                                         self.app,
                                         line_decoded,  # Passer la ligne JSON complète

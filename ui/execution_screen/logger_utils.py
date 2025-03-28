@@ -40,15 +40,31 @@ class LoggerUtils:
         Returns:
             bool: True si le message est un doublon, False sinon
         """
+        # Pour les messages de progression, ne pas vérifier les doublons
+        if message_obj.type == MessageType.PROGRESS:
+            return False
+            
         # Créer une clé unique basée sur le type et le contenu
-        message_key = (message_obj.type, message_obj.content)
-        
-        # Si le message a déjà été traité récemment, le considérer comme un doublon
-        if message_key in LoggerUtils._processed_lines:
-            return True
-        
-        # Ajouter le message aux lignes traitées
-        LoggerUtils._processed_lines.add(message_key)
+        try:
+            # Si le contenu est un dict, le convertir en tuple de tuples
+            if isinstance(message_obj.content, dict):
+                content = tuple(sorted(message_obj.content.items()))
+            else:
+                content = str(message_obj.content)
+                
+            message_key = (message_obj.type, content)
+            
+            # Si le message a déjà été traité récemment, le considérer comme un doublon
+            if message_key in LoggerUtils._processed_lines:
+                return True
+            
+            # Ajouter le message aux lignes traitées
+            LoggerUtils._processed_lines.add(message_key)
+            return False
+            
+        except Exception as e:
+            logger.warning(f"Erreur lors de la vérification des doublons: {e}")
+            return False
         
         return False
 
@@ -287,31 +303,34 @@ class LoggerUtils:
             
             # Si c'est un message de progression
             if log_entry.get("level") == "progress":
-                progress_data = log_entry.get("message", {}).get("data", {})
-                percentage = progress_data.get("percentage", 0) / 100.0
-                current_step = progress_data.get("current_step", 0)
-                total_steps = progress_data.get("total_steps", 0)
+                current_step = log_entry.get("current_step", 0)
+                total_steps = log_entry.get("total_steps", 0)
+                
+                # Récupérer le pourcentage directement du message
+                percentage = log_entry.get("message", {}).get("data", {}).get("percentage", 0.0)
                 
                 # Créer un objet Message avec les informations de progression
                 message_obj = Message(
                     type=MessageType.PROGRESS,
-                    content=f"Progression: {percentage*100}%",
+                    content="",  # Pas de message texte pour la progression
                     source=log_entry.get("plugin_name"),
-                    progress=percentage,
+                    progress=float(percentage),  # Le pourcentage est déjà entre 0 et 1
                     step=current_step,
                     total_steps=total_steps,
                     instance_id=log_entry.get("instance_id"),
                     target_ip=target_ip
                 )
                 
-                # Mettre à jour le widget de progression
+                # Mettre à jour le widget de progression immédiatement
+                # Utiliser le widget spécifique si disponible, sinon chercher le bon widget
                 if plugin_widget:
-                    plugin_widget.update_progress(percentage, f"Étape {current_step}/{total_steps}")
+                    # Le pourcentage est déjà entre 0 et 1, pas besoin de diviser par 100
+                    await plugin_widget.update_progress_async(percentage, f"Étape {current_step}/{total_steps}")
                 else:
                     await LoggerUtils._update_progress_widget(app, message_obj)
                 
-                # Afficher le message de progression dans les logs
-                await LoggerUtils.display_message(app, message_obj)
+                # Ne pas afficher le message de progression dans les logs pour éviter la duplication
+                return
             else:
                 # Pour les autres types de messages
                 level = log_entry.get("level", "info")

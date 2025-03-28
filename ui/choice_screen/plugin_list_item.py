@@ -54,7 +54,15 @@ class PluginListItem(Horizontal):
     
     def __init__(self, plugin_data: tuple, index: int):
         super().__init__()
-        self.plugin_name, self.instance_id = plugin_data  # Nom du plugin et ID d'instance
+        # Gérer le cas où plugin_data est un tuple de 3 éléments (nom, id, config)
+        if len(plugin_data) == 3:
+            self.plugin_name, self.instance_id, self.config = plugin_data
+            logger.info(f"Plugin avec config: {self.plugin_name}, config: {self.config}")
+        else:
+            self.plugin_name, self.instance_id = plugin_data
+            self.config = {}
+            logger.info(f"Plugin sans config: {self.plugin_name}")
+            
         self.index = index  # Index de l'élément dans la liste
         self.is_sequence = self.plugin_name.startswith('__sequence__')
         logger.warning(f"Initialisation de PluginListItem: {self.plugin_name}, is_sequence: {self.is_sequence}, type: {type(self.plugin_name)}, startswith: {self.plugin_name.startswith('__sequence__') if isinstance(self.plugin_name, str) else 'N/A'}")

@@ -208,6 +208,12 @@ class ConfigField(VerticalGroup):
     def get_value(self):
         """Get the current value of the field"""
         return self.value
+        
+    def update_dynamic_options(self):
+        """Met à jour les options dynamiques du champ"""
+        # Cette méthode est destinée à être surchargée par les classes filles
+        # qui ont des options dynamiques (SelectField, CheckboxGroupField, etc.)
+        pass
 
     def set_value(self, value):
         """Set the value of the field"""

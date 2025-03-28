@@ -23,7 +23,7 @@ setup_import_paths()
 from plugins_utils import *
 
 # Initialiser le logger du plugin
-log = PluginLogger()
+log = PluginLogger("add_printer")
 
 # Initialiser les gestionnaires de commandes
 printer_manager = PrinterCommands(log)
@@ -43,24 +43,11 @@ class Plugin:
         try:
             # Log de débogage pour indiquer le début de l'exécution
             log.debug(f"Début de l'exécution du plugin add_printer")
-
-            # Vérifier si nous sommes en mode SSH depuis la configuration
-            is_ssh = config.get('ssh_mode', False)
-            # Mettre à jour le logger avec les informations de configuration
-            log.plugin_name = config.get('plugin_name', 'add_printer')
-            log.instance_id = config.get('instance_id', 0)
-            if is_ssh:
-                log.ssh_mode = True
-                log.init_logs()
-
-            # Récupérer la configuration
             printer_conf = config['config']
             printer_name = printer_conf.get('printer_name')
             printer_model = printer_conf.get('printer_model')
             printer_ip = printer_conf.get('printer_ip')
             a3 = printer_conf.get('printer_a3')
-            log.info(f"Configuration de l'imprimante: {json.dumps(printer_conf, ensure_ascii=False)}")
-
             # Récupérer les informations du modèle d'imprimante
             model_content = config.get('printer_model_content')
             # Récupérer les options du modèle
@@ -122,10 +109,8 @@ class Plugin:
             log.set_total_steps(total_steps)
 
             # Débuter avec la première étape
-            log.next_step()
             log.info(f"Installation de l'imprimante {printer_name} avec IP {printer_ip}")
 
-            log.next_step()
             log.info("Suppression de la config evince pour éviter bug avec nouvelle imprimante")
             # Utiliser le module os importé globalement
             import os as os_module  # Réimporter explicitement pour éviter les problèmes de portée
@@ -151,7 +136,6 @@ class Plugin:
             is_ppd= (mode=="ppd") or (mode =="-P")
 
             returnValue = printer_manager.add_printer(name, ip, driver_param, options,is_ppd)
-
             if couleurs == 1 and returnValue:
                 log.next_step()
                 name = f"{baseName}_{printer_name}_Recto_Couleurs"
@@ -174,7 +158,6 @@ class Plugin:
 
                 options = f"{ocommun} {orectoverso} {oa4} {onb}"
                 returnValue = printer_manager.add_printer(name, ip, driver_param, options,is_ppd)
-
             if agraffes == 1 and returnValue:
                 log.next_step()
                 name = f"{baseName}_{printer_name}_Recto_NB_Agraffes"
@@ -201,7 +184,6 @@ class Plugin:
 
                     options = f"{ocommun} {orecto} {oagraffes} {oa4} {ocouleurs}"
                     returnValue = printer_manager.add_printer(name, ip, driver_param, options,is_ppd)
-
             if a3 and returnValue:
                 log.next_step()
                 name = f"{baseName}_{printer_name}_Recto_NB_A3"
@@ -232,19 +214,16 @@ class Plugin:
                     options = f"{ocommun} {orecto} {oa3} {ocouleurs}"
                     returnValue = printer_manager.add_printer(name, ip, driver_param, options,is_ppd)
 
+            log.new_pb("Ajout")
+            log.set_total_steps(10,"Ajout")
+            for i in range(1,10):
+                log.next_step()
+                time.sleep(1)
+                
             # Redémarrer le service CUPS si l'installation a réussi
             if returnValue:
-                log.info("Redémarrage du service CUPS")
                 try:
-                    # Redémarrer CUPS directement car nous sommes déjà en sudo
-                    log.info("Redémarrage du service cups")
-                    cups_restart_success = service_manager.restart("cups")
-
-                    if cups_restart_success:
-                        log.success("Service CUPS redémarré avec succès")
-                    else:
-                        log.error(f"Erreur lors du redémarrage du service CUPS")
-                        return False, "Erreur lors du redémarrage de CUPS"
+                    returnValue = service_manager.restart("cups")
                 except Exception as e:
                     log.error(f"Erreur lors du redémarrage de CUPS: {e}")
                     return False, f"Erreur lors du redémarrage de CUPS: {e}"

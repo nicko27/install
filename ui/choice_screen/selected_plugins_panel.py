@@ -34,7 +34,19 @@ class SelectedPluginsPanel(Static):
         # Créer tous les éléments de la liste
         items = []
         for idx, plugin in enumerate(plugins, 1):
-            item = PluginListItem(plugin, idx)  # Créer un élément de la liste pour chaque plugin
+            # Vérifier si le plugin a une configuration
+            if isinstance(plugin, tuple) and len(plugin) >= 2:
+                plugin_name, instance_id = plugin[:2]
+                # Chercher la configuration dans l'app
+                config = {}
+                if hasattr(self.app, 'current_config') and instance_id in self.app.current_config:
+                    config = self.app.current_config[instance_id]
+                    logger.info(f"Configuration trouvée pour {plugin_name}: {config}")
+                # Créer le plugin avec sa configuration
+                item = PluginListItem((plugin_name, instance_id, config), idx)
+            else:
+                # Fallback pour les anciens formats
+                item = PluginListItem(plugin, idx)
             items.append(item)
             
         # Approche simplifiée pour la gestion des séquences
@@ -58,8 +70,8 @@ class SelectedPluginsPanel(Static):
                 base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
                 yaml_path = os.path.join(base_dir, 'sequences', sequence_name)
                 
-                # Liste des noms de plugins dans la séquence
-                sequence_plugin_names = []
+                # Liste des plugins dans la séquence avec leur configuration
+                sequence_plugins = []
                 
                 if os.path.exists(yaml_path):
                     try:
@@ -67,14 +79,24 @@ class SelectedPluginsPanel(Static):
                             sequence_data = yaml.load(f)
                         
                         if 'plugins' in sequence_data and isinstance(sequence_data['plugins'], list):
-                            # Extraire les noms des plugins de la séquence
+                            # Extraire les plugins et leurs configurations
                             for plugin_entry in sequence_data['plugins']:
                                 if isinstance(plugin_entry, dict) and 'name' in plugin_entry:
-                                    sequence_plugin_names.append(plugin_entry['name'])
+                                    # Créer un identifiant unique basé sur le nom et la configuration
+                                    plugin_id = {
+                                        'name': plugin_entry['name'],
+                                        'config': plugin_entry.get('config', {})
+                                    }
+                                    sequence_plugins.append(plugin_id)
                                 elif isinstance(plugin_entry, str):
-                                    sequence_plugin_names.append(plugin_entry)
+                                    # Pour les plugins sans configuration
+                                    plugin_id = {
+                                        'name': plugin_entry,
+                                        'config': {}
+                                    }
+                                    sequence_plugins.append(plugin_id)
                             
-                            logger.info(f"Plugins dans la séquence {sequence_name}: {sequence_plugin_names}")
+                            logger.info(f"Plugins dans la séquence {sequence_name}: {sequence_plugins}")
                     except Exception as e:
                         logger.error(f"Erreur lors du chargement de la séquence {sequence_name}: {e}")
                 else:
@@ -89,13 +111,40 @@ class SelectedPluginsPanel(Static):
                     if items[j].is_sequence:
                         break
                     
-                    # Si ce plugin est dans la liste des plugins de la séquence
-                    if items[j].plugin_name in sequence_plugin_names and items[j].plugin_name not in plugins_found:
-                        # Marquer ce plugin comme faisant partie de la séquence
-                        items[j].is_part_of_sequence = True
-                        items[j].sequence_id = item.instance_id
-                        plugins_found.append(items[j].plugin_name)
-                        logger.info(f"Plugin {items[j].plugin_name} marqué comme faisant partie de la séquence {item.instance_id}")
+                    # Si ce plugin correspond à une entrée dans la séquence (nom et configuration)
+                    current_plugin = {
+                        'name': items[j].plugin_name,
+                        'config': items[j].config if hasattr(items[j], 'config') else {}
+                    }
+                    
+                    # Chercher une correspondance non utilisée dans la séquence
+                    for seq_plugin in sequence_plugins:
+                        # Vérifier le nom du plugin
+                        if seq_plugin['name'] != current_plugin['name']:
+                            continue
+                            
+                        # Vérifier que cette configuration n'a pas déjà été utilisée
+                        if seq_plugin in plugins_found:
+                            continue
+                            
+                        # Vérifier les configurations
+                        seq_config = seq_plugin.get('config', {})
+                        current_config = current_plugin.get('config', {})
+                        
+                        # Vérifier que toutes les clés de la séquence sont présentes avec les mêmes valeurs
+                        config_match = True
+                        for key, value in seq_config.items():
+                            if key not in current_config or current_config[key] != value:
+                                config_match = False
+                                break
+                                
+                        if config_match:
+                            # Marquer ce plugin comme faisant partie de la séquence
+                            items[j].is_part_of_sequence = True
+                            items[j].sequence_id = item.instance_id
+                            plugins_found.append(seq_plugin)
+                            logger.info(f"Plugin {items[j].plugin_name} marqué comme faisant partie de la séquence {item.instance_id}")
+                            break
             
         # Monter tous les éléments
         for item in items:

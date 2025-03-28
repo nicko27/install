@@ -20,21 +20,29 @@ class CheckboxGroupField(ConfigField):
         self.checkboxes = {}
         self.options = []
         self.selected_values = []
+        
+        # Initialiser la dépendance si elle est définie dans la configuration
+        if 'depends_on' in field_config:
+            self.depends_on = field_config['depends_on']
+            logger.debug(f"Champ {self.field_id} dépend de {self.depends_on}")
 
     def compose(self) -> ComposeResult:
-        # Render label and any other common elements
-        yield from super().compose()
-
-        # Get options for checkboxes
-        self.options = self._get_options()
-        logger.debug(f"Checkbox group options for {self.field_id}: {self.options}")
-
-        # Create container for checkboxes
+        # Créer le conteneur pour les checkboxes
         with VerticalGroup(classes="field-input-container checkbox-group-container"):
+            # Get options for checkboxes
+            self.options = self._get_options()
+            logger.debug(f"Checkbox group options for {self.field_id}: {self.options}")
+
             if not self.options:
                 logger.warning(f"No options available for checkbox group {self.field_id}")
-                yield Label("Aucune option disponible", classes="no-options-label")
             else:
+                label = self.field_config.get('label', self.field_id)
+                with HorizontalGroup(classes="field-header", id=f"header_{self.field_id}"):
+                    if self.field_config.get('required', False):
+                        yield Label(f"{label} *", classes="field-label required-field")
+                    else:
+                        yield Label(label, classes="field-label")
+
                 # Create a checkbox for each option
                 for option_label, option_value in self.options:
                     checkbox_id = f"checkbox_group_{self.source_id}_{self.field_id}_{option_value}".replace(".","_")
@@ -47,7 +55,6 @@ class CheckboxGroupField(ConfigField):
                         self.checkboxes[option_value] = checkbox
 
                         yield checkbox
-                        yield Label(option_label, classes="checkbox-group-label")
 
     def _get_options(self) -> list:
         """Get options for the checkbox group, either static or dynamic"""
@@ -158,11 +165,15 @@ class CheckboxGroupField(ConfigField):
                                 value = str(item)
                                 options.append((value, value))
 
-                        return options
+                        if options:
+                            return options
+                        else:
+                            # Si la liste est vide, retourner None pour que le champ soit supprimé
+                            return None
 
                     # If it's not a list, return an error
                     logger.error(f"Expected list result, got {type(data)}")
-                    return [("Invalid data format", "invalid_format")]
+                    return None
 
                 # If result is not a tuple, return an error
                 logger.error(f"Expected tuple result (success, data), got {type(result)}")
@@ -229,3 +240,60 @@ class CheckboxGroupField(ConfigField):
     def get_value(self):
         """Return the list of selected values"""
         return self.selected_values
+        
+    def update_dynamic_options(self):
+        """Met à jour les options dynamiques du champ"""
+        new_options = self._get_options()
+        
+        # Si les options sont None ou vides, le champ doit être supprimé
+        if new_options is None:
+            logger.debug(f"Aucune option disponible pour {self.field_id}, le champ sera supprimé")
+            self.options = []
+            # Trouver le conteneur parent
+            from .config_container import ConfigContainer
+            parent = next((ancestor for ancestor in self.ancestors_with_self if isinstance(ancestor, ConfigContainer)), None)
+            if parent:
+                # Supprimer le champ du dictionnaire
+                if self.field_id in parent.fields_by_id:
+                    del parent.fields_by_id[self.field_id]
+                # Supprimer le widget de l'interface
+                self.remove()
+            return
+            
+        # Mettre à jour les options
+        self.options = new_options
+        
+        # Sauvegarder les valeurs sélectionnées qui sont toujours valides
+        self.selected_values = [val for val in self.selected_values if any(opt[1] == val for opt in self.options)]
+        
+        # Supprimer les anciens checkboxes
+        for checkbox in self.checkboxes.values():
+            checkbox.remove()
+        self.checkboxes.clear()
+        
+        # Créer les nouveaux checkboxes
+        container = self.query_one('.checkbox-group-container')
+        if container:
+            # Supprimer le label "Aucune option disponible" s'il existe
+            for label in container.query('.no-options-label'):
+                label.remove()
+                
+            # Créer les nouveaux checkboxes
+            for option_label, option_value in self.options:
+                checkbox_id = f"checkbox_group_{self.source_id}_{self.field_id}_{option_value}".replace(".", "_")
+                # Créer le groupe horizontal
+                group = HorizontalGroup(classes="checkbox-group-item")
+                # Monter d'abord le groupe dans le conteneur
+                container.mount(group)
+                # Créer la checkbox
+                checkbox = Checkbox(
+                    id=checkbox_id,
+                    classes="field-checkbox-group-item",
+                    value=option_value in self.selected_values
+                )
+                self.checkboxes[option_value] = checkbox
+                # Créer le label
+                label = Label(option_label, classes="checkbox-group-label")
+                # Monter la checkbox et le label dans le groupe déjà monté
+                group.mount(checkbox)
+                group.mount(label)

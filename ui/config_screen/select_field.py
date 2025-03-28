@@ -236,9 +236,9 @@ class SelectField(ConfigField):
                     data = value
 
                     # If data is a dict with a value_key, use that
-                    if isinstance(data, dict) and dynamic_config.get('dict_key') in data:
-                        data = data[dynamic_config.get('dict_key')]
-                        logger.info(f"Extracted data using dict_key '{dynamic_config.get('dict_key')}': {data}")
+                    if isinstance(data, dict) and dynamic_config.get('dict') in data:
+                        data = data[dynamic_config.get('dict')]
+                        logger.info(f"Extracted data using dict_key '{dynamic_config.get('dict')}': {data}")
                         dict_options = []
                         for elt  in data:
                             # Si la valeur est un dictionnaire avec description/value, l'utiliser
@@ -266,6 +266,8 @@ class SelectField(ConfigField):
 
                 # Si data est un dictionnaire sans value_key spécifié, on convertit en liste d'options
                 elif isinstance(data, dict) and not dynamic_config.get('value'):
+                    if 'dict' in dynamic_config.keys():
+                        data = data[dynamic_config.get('dict')]
                     logger.info(f"Processing dictionary data without value_key: {data}")
                     # Transformer le dictionnaire en liste pour normalisation
                     dict_options = []
@@ -343,6 +345,13 @@ class SelectField(ConfigField):
         if event.select.id == f"select_{self.field_id}":
             self.value = event.value  # event.value contains the value (not the label)
             logger.debug(f"Select changed to: {self.value}")
+            
+            # Trouver le conteneur parent et mettre à jour les champs dépendants
+            from .config_container import ConfigContainer
+            # Trouver le premier parent qui est un ConfigContainer
+            parent = next((ancestor for ancestor in self.ancestors_with_self if isinstance(ancestor, ConfigContainer)), None)
+            if parent:
+                parent.update_dependent_fields(self)
 
     def get_value(self) -> str:
         """Get the current value"""

@@ -61,10 +61,17 @@ class AutoConfig:
                 
                 # Chercher la configuration du plugin dans la séquence
                 plugin_config = None
-                for p in sequence_data.get('plugins', []):
-                    if p.get('name') == plugin_name and isinstance(p, dict):
+                matching_plugins = [p for p in sequence_data.get('plugins', []) 
+                                 if p.get('name') == plugin_name and isinstance(p, dict)]
+                
+                if instance_id < len(matching_plugins):
+                    p = matching_plugins[instance_id]
+                    # Récupérer la configuration du plugin
+                    plugin_config = p.get('config', {})
+                    if not plugin_config:
+                        # Compatibilité avec l'ancien format
                         plugin_config = {k: v for k, v in p.items() if k != 'name'}
-                        break
+                    logger.debug(f"Configuration trouvée pour {plugin_name} instance {instance_id}")
                 
                 if not plugin_config:
                     logger.warning(f"Configuration non trouvée pour {plugin_name}")
@@ -81,12 +88,24 @@ class AutoConfig:
                     logger.debug(f"Paramètres chargés pour {plugin_name}")
                 except Exception as e:
                     logger.error(f"Erreur lors du chargement des paramètres de {plugin_name}: {e}")
+
+                # Vérifier si c'est un plugin SSH
+                if 'ssh_ips' in plugin_config:
+                    # Gérer les IPs multiples ou wildcards
+                    from ..ssh_manager.ip_utils import get_target_ips
+                    target_ips = get_target_ips(plugin_config.get('ssh_ips', ''), plugin_config.get('ssh_exception_ips', []))
+                    if target_ips:
+                        plugin_config['ssh_ips'] = ','.join(target_ips)
                 
                 # Vérifier si le plugin utilise files_content
                 files_content = {}
                 if 'files_content' in plugin_settings and isinstance(plugin_settings['files_content'], dict):
                     files_content = plugin_settings['files_content']
                     logger.debug(f"Le plugin {plugin_name} utilise files_content: {files_content}")
+                
+                # Ajouter la configuration au dictionnaire final
+                config[plugin_id] = plugin_config
+                logger.debug(f"Configuration ajoutée pour {plugin_id}: {plugin_config}")
                 
                 # Charger le contenu des fichiers dynamiques si nécessaire
                 for content_key, path_template in files_content.items():

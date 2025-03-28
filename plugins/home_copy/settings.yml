@@ -48,7 +48,7 @@ config_fields:
           param_name: only_external
         - value: false
           param_name: only_internal
-      dict_key: devices
+      dict: devices
       value: path
       description: description
 

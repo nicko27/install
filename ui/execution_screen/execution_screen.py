@@ -9,7 +9,6 @@ from textual.widgets import Button
 from textual.message import Message
 
 from .execution_widget import ExecutionWidget
-from ..report_screen import ReportScreen
 
 class ExecutionScreen(Screen):
     """Écran contenant le widget d'exécution des plugins"""

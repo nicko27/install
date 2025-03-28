@@ -54,7 +54,7 @@ class PrinterCommands(Commands):
         self.log_info("Recherche de toutes les imprimantes réseau")
 
         # Obtenir la liste complète des informations d'imprimantes
-        success, stdout, _ = self.run(['lpstat', '-t'], no_output=True)
+        success, stdout, _ = self.run(['lpstat', '-t'], no_output=True, error_as_warning=True)
 
         if not success:
             self.log_error("Impossible d'obtenir la liste des imprimantes")
@@ -258,7 +258,7 @@ class PrinterCommands(Commands):
         self.log_info(f"Recherche des imprimantes associées à l'IP {ip_address}")
 
         # Obtenir la liste complète des informations d'imprimantes
-        success, stdout, _ = self.run(['lpstat', '-t'], no_output=True)
+        success, stdout, _ = self.run(['lpstat', '-t'], no_output=True, error_as_warning=True)
 
         if not success:
             self.log_error(f"Impossible d'obtenir la liste des imprimantes")

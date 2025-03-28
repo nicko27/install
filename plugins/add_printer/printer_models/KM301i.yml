@@ -1,9 +1,0 @@
-couleurs: 1
-rectoverso: 1
-ppdFile: KM301i.ppd
-agraffes: 0
-orecto: -o sides=one-sided
-orectoverso: -o sides=two-sided-long-edge
-onb: -o ColorModel=Gray
-ocouleurs: -o ColorModel=CMYK
-oagraffes: 

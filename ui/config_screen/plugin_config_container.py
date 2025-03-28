@@ -97,6 +97,24 @@ class PluginConfigContainer(ConfigContainer):
                 self.fields_by_id[field_id] = field
                 logger.debug(f"Champ {field_id} créé et ajouté au dictionnaire")
 
+                # Appliquer la valeur prédéfinie si elle existe
+                variable_name = field_config.get('variable', field_id)
+                config_screen = self.app.screen
+                if hasattr(config_screen, 'current_config'):
+                    plugin_instance_id = self.id.replace('plugin_', '')
+                    if plugin_instance_id in config_screen.current_config:
+                        predefined_config = config_screen.current_config[plugin_instance_id]
+                        # Chercher d'abord dans le sous-dictionnaire 'config'
+                        if 'config' in predefined_config and variable_name in predefined_config['config']:
+                            predefined_value = predefined_config['config'][variable_name]
+                            logger.debug(f"Application de la valeur prédéfinie {predefined_value} pour {field_id} (depuis config)")
+                            field.set_value(predefined_value)
+                        # Sinon chercher au niveau principal (pour rétrocompatibilité)
+                        elif variable_name in predefined_config:
+                            predefined_value = predefined_config[variable_name]
+                            logger.debug(f"Application de la valeur prédéfinie {predefined_value} pour {field_id} (depuis racine)")
+                            field.set_value(predefined_value)
+
                 # Si c'est une case à cocher, ajouter le gestionnaire d'événements
                 if field_type in ['checkbox', 'checkbox_group']:
                     field.on_checkbox_changed = self.on_checkbox_changed
