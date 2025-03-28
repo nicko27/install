@@ -10,10 +10,10 @@ import asyncio
 from ..utils.logging import get_logger
 from ..choice_screen.plugin_utils import get_plugin_folder_name
 from .plugin_config_container import PluginConfigContainer
-from .global_config_container import GlobalConfigContainer
 from .text_field import TextField
 from .checkbox_field import CheckboxField
 from .config_manager import ConfigManager
+from .sequence_config_manager import SequenceConfigManager
 
 logger = get_logger('config_screen')
 # Configuration de ruamel.yaml pour préserver les commentaires
@@ -41,153 +41,72 @@ class PluginConfig(Screen):
             self.plugins_remote_enabled = {}
             self.ssh_container = None
             self.sequence_file = sequence_file
-            self.sequence_data = None
             # Attribut pour indiquer si nous revenons de l'écran d'exécution
             self.returning_from_execution = False
             
-            # Si c'est une séquence, charger les configurations
-            if sequence_file:
-                logger.debug(f"=== Chargement de la séquence: {sequence_file} ===")
-                try:
-                    with open(sequence_file, 'r', encoding='utf-8') as f:
-                        self.sequence_data = yaml.load(f)
-                    logger.debug(f"Données de séquence chargées: {self.sequence_data}")
-                    
-                    # Préparer les configurations par plugin
-                    if 'plugins' in self.sequence_data:
-                        for i, plugin in enumerate(self.sequence_data['plugins']):
-                            if isinstance(plugin, dict) and 'name' in plugin:
-                                # Générer un instance_id unique pour ce plugin
-                                instance_id = f"{plugin['name']}_{i+1}"
-                                
-                                # Créer la structure de configuration
-                                config_data = {
-                                    'plugin_name': plugin['name'],
-                                    'config': {}
-                                }
-                                
-                                # Vérifier d'abord 'config' puis 'variables' pour la rétrocompatibilité
-                                if 'config' in plugin:
-                                    config_data['config'] = plugin['config'].copy()
-                                elif 'variables' in plugin:
-                                    config_data['config'] = plugin['variables'].copy()
-                                
-                                # Copier les clés spéciales au niveau principal
-                                special_keys = {'plugin_name', 'instance_id', 'show_name', 'icon', 'remote_execution'}
-                                for key in special_keys:
-                                    if key in plugin:
-                                        config_data[key] = plugin[key]
-                                
-                                logger.debug(f"Configuration trouvée pour {plugin['name']} (ID: {instance_id}): {config_data}")
-                                self.current_config[instance_id] = config_data
-                except Exception as e:
-                    logger.error(f"Erreur lors du chargement de la séquence: {e}")
-                    logger.error(traceback.format_exc())
-
+            self.sequence_manager = SequenceConfigManager()
+            
             # Initialiser le gestionnaire de configuration
             logger.debug("Création ConfigManager")
             self.config_manager = ConfigManager()
+            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 
             # Charger la configuration SSH
-            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
             ssh_config_path = os.path.join(project_root, 'ui', 'ssh_manager', 'ssh_fields.yml')
             logger.debug(f"Chargement config SSH depuis: {ssh_config_path}")
             self.config_manager.load_global_config('ssh', ssh_config_path)
-
-            # Créer un mapping des configurations de séquence par plugin
-            sequence_configs = {}
-            if self.sequence_data and 'plugins' in self.sequence_data:
-                for i, plugin_config in enumerate(self.sequence_data['plugins']):
-                    plugin_name = plugin_config['name']
-                    if plugin_name not in sequence_configs:
-                        sequence_configs[plugin_name] = []
-                    
-                    # Vérifier d'abord 'config' puis 'variables' pour la rétrocompatibilité
-                    config_data = None
-                    if 'config' in plugin_config:
-                        config_data = plugin_config['config']
-                        logger.info(f"Configuration prédéfinie trouvée pour {plugin_name}")
-                    elif 'variables' in plugin_config:
-                        config_data = plugin_config['variables']
-                        logger.info(f"Variables prédéfinies trouvées pour {plugin_name}")
-                    
-                    if config_data:
-                        sequence_configs[plugin_name].append(config_data)
-
-            # Initialiser les collections de champs
-            plugin_instance_counts = {}
+            
+            # Charger d'abord les configurations des plugins
             for plugin_data in plugin_instances:
-                # Extraire les données du plugin (compatible avec les tuples à 2 ou 3 éléments)
-                if len(plugin_data) >= 3:
-                    plugin_name, instance_id, config = plugin_data
-                    # Stocker la configuration si elle existe
-                    if config:
-                        config_with_name = {
-                            'plugin_name': plugin_name,
-                            'config': {}
-                        }
-                        
-                        # Si on a déjà une structure avec 'config'
-                        if 'config' in config:
-                            config_with_name['config'] = config['config'].copy()
-                        else:
-                            # Sinon, copier toutes les clés sauf celles spéciales dans 'config'
-                            special_keys = {'plugin_name', 'instance_id', 'show_name', 'icon', 'remote_execution'}
-                            config_with_name['config'] = {k: v for k, v in config.items() if k not in special_keys}
-                            
-                            # Copier les clés spéciales au niveau principal
-                            for key in special_keys:
-                                if key in config:
-                                    config_with_name[key] = config[key]
-                                    
-                        self.current_config[instance_id] = config_with_name
-                        logger.debug(f"Configuration existante trouvée pour {plugin_name} (ID: {instance_id}): {config_with_name}")
-                else:
-                    plugin_name, instance_id = plugin_data[:2]
+                plugin_name = plugin_data[0]
+                instance_id = plugin_data[1]
+                logger.debug(f"Chargement config pour plugin: {plugin_name}")
                 
-                logger.debug(f"Initialisation champs pour plugin: {plugin_name}")
-                self.fields_by_plugin[plugin_name] = {}
-
-                # Charger la configuration du plugin
+                # Charger la config du plugin depuis settings.yml
                 folder_name = get_plugin_folder_name(plugin_name)
                 settings_path = os.path.join(project_root, 'plugins', folder_name, 'settings.yml')
                 logger.debug(f"Chargement config plugin depuis: {settings_path}")
                 self.config_manager.load_plugin_config(plugin_name, settings_path)
-
-                # Compter les instances de ce plugin
-                if plugin_name not in plugin_instance_counts:
-                    plugin_instance_counts[plugin_name] = 0
-                else:
-                    plugin_instance_counts[plugin_name] += 1
-
-                # Si pas de configuration existante, chercher dans la séquence
-                if instance_id not in self.current_config and plugin_name in sequence_configs:
-                    configs = sequence_configs[plugin_name]
-                    current_instance = plugin_instance_counts[plugin_name]
-                    if current_instance < len(configs):
-                        config_data = {
-                            'plugin_name': plugin_name,
-                            'config': {}
-                        }
-                        
-                        # Si on a déjà une structure avec 'config'
-                        sequence_config = configs[current_instance]
-                        if isinstance(sequence_config, dict):
-                            if 'config' in sequence_config:
-                                config_data['config'] = sequence_config['config'].copy()
-                            else:
-                                # Sinon, copier toutes les clés sauf celles spéciales dans 'config'
-                                special_keys = {'plugin_name', 'instance_id', 'show_name', 'icon', 'remote_execution'}
-                                config_data['config'] = {k: v for k, v in sequence_config.items() if k not in special_keys}
-                                
-                                # Copier les clés spéciales au niveau principal
-                                for key in special_keys:
-                                    if key in sequence_config:
-                                        config_data[key] = sequence_config[key]
-                        
-                        self.current_config[instance_id] = config_data
-                        logger.debug(f"Configuration de séquence appliquée pour {plugin_name} instance {instance_id}: {config_data}")
-
+                self.fields_by_plugin[plugin_name] = {}
+                
+                # Initialiser la config par défaut à partir des champs
+                plugin_config = self.config_manager.plugin_configs.get(plugin_name, {})
+                default_config = {'config': {}}
+                
+                # Récupérer les valeurs par défaut des champs
+                for field_id, field_config in plugin_config.get('config_fields', {}).items():
+                    if 'default' in field_config:
+                        variable_name = field_config.get('variable', field_id)
+                        default_config['config'][variable_name] = field_config['default']
+                        logger.debug(f"[1] Valeur par défaut pour {plugin_name}.{variable_name}: {field_config['default']}")
+                
+                # Stocker la config par défaut
+                plugin_instance_id = f"{plugin_name}_{instance_id}"
+                self.current_config[plugin_instance_id] = default_config
+                logger.debug(f"[1] Config initiale pour {plugin_instance_id}: {default_config}")
+            
+            # Si c'est une séquence, charger les configurations
+            if sequence_file:
+                try:
+                    # Charger et traiter la séquence
+                    self.sequence_manager.load_sequence(sequence_file)
+                    logger.debug(f"[2] Séquence chargée: {self.sequence_manager.sequence_data}")
+                except Exception as e:
+                    logger.error(f"Erreur lors du chargement de la séquence: {e}")
+                    logger.error(traceback.format_exc())
+                    self.current_config = {}
+            
+            # Ajouter les configs existantes au sequence_manager
+            for plugin_data in plugin_instances:
+                if len(plugin_data) >= 3:
+                    plugin_name, instance_id, config = plugin_data
+                    if config:
+                        self.sequence_manager.add_plugin_config(plugin_name, instance_id, config)
+                        logger.debug(f"[3] Config existante ajoutée pour {plugin_name}_{instance_id}: {config}")
+            
+            # Appliquer les configurations aux plugins (fusion des valeurs par défaut et de la séquence)
+            self.current_config = self.sequence_manager.apply_configs_to_plugins(plugin_instances)
+            logger.debug(f"[4] Configs finales après fusion: {self.current_config}")
             logger.debug("PluginConfig initialized successfully")
         except Exception as e:
             logger.error(f"Error initializing PluginConfig: {e}")
@@ -352,6 +271,16 @@ class PluginConfig(Screen):
                                         continue
                             except Exception as e:
                                 logger.debug(f"Erreur lors de la mise à jour du widget pour {field_id}: {e}")
+                                
+                # Restaurer également les métadonnées spéciales
+                special_keys = {'show_name', 'icon', 'remote_execution'}
+                for key in special_keys:
+                    if key in plugin_config:
+                        field_id = f"{plugin_name}.{key}"
+                        if field_id in self.fields_by_id:
+                            field = self.fields_by_id[field_id]
+                            if hasattr(field, 'set_value'):
+                                field.set_value(plugin_config[key])
 
                 # Restaurer également l'état d'activation des plugins distants
                 if 'remote_execution' in plugin_config and plugin_name in self.plugins_remote_enabled:
@@ -476,8 +405,14 @@ class PluginConfig(Screen):
                 if plugin_instance_id in self.current_config:
                     predefined_config = self.current_config[plugin_instance_id]
                     variable_name = field_config_copy.get('variable', field_id)
-                    if variable_name in predefined_config:
-                        logger.debug(f"Valeur prédéfinie trouvée pour {plugin}.{field_id}: {predefined_config[variable_name]}")
+                    
+                    # D'abord chercher dans le sous-dictionnaire 'config'
+                    if 'config' in predefined_config and variable_name in predefined_config['config']:
+                        logger.debug(f"Valeur prédéfinie trouvée pour {plugin}.{field_id}: {predefined_config['config'][variable_name]}")
+                        field_config_copy['default'] = predefined_config['config'][variable_name]
+                    # Sinon chercher au niveau principal (pour la rétrocompatibilité)
+                    elif variable_name in predefined_config:
+                        logger.debug(f"Valeur prédéfinie (legacy) trouvée pour {plugin}.{field_id}: {predefined_config[variable_name]}")
                         field_config_copy['default'] = predefined_config[variable_name]
                 
                 config_fields.append(field_config_copy)

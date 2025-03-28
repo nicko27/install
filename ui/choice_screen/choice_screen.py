@@ -1,10 +1,9 @@
 from pathlib import Path
-from typing import Dict, List, Optional, Any
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal, Vertical, ScrollableContainer
 from textual.widgets import Label, Header, Footer, Button
 import sys
-import os
+import traceback
 from ..utils.logging import get_logger
 from ..execution_screen.execution_screen import ExecutionScreen
 
@@ -268,12 +267,8 @@ class Choice(App):
                 logger.debug("Adding default current_config attribute")
                 config_screen.current_config = {}
                 
-            # Transférer les configurations des plugins
-            for plugin in self.selected_plugins:
-                if len(plugin) >= 3:  # Si le plugin a une configuration
-                    plugin_name, instance_id, config = plugin
-                    logger.debug(f"Transfert de la config pour {plugin_name} (ID: {instance_id}): {config}")
-                    config_screen.current_config[instance_id] = config
+            # Les configurations sont maintenant gérées par SequenceConfigManager
+            logger.debug("Les configurations seront gérées par SequenceConfigManager")
 
             # Afficher l'écran de configuration et attendre qu'il se termine
             logger.debug("Pushing config screen")
@@ -286,14 +281,42 @@ class Choice(App):
 
             # Si une configuration a été définie
             if config:
+                # Mettre à jour les configurations des plugins sélectionnés
+                updated_plugins = []
+                for i, plugin_data in enumerate(self.selected_plugins):
+                    plugin_name = plugin_data[0]
+                    instance_id = plugin_data[1]
+                    
+                    # Récupérer la nouvelle config depuis l'ID unique
+                    if i + 1 in config:  # +1 car on commence à 1 dans sequence_config_manager
+                        new_config = config[i + 1]
+                        # Créer un nouveau tuple avec la config mise à jour
+                        updated_plugins.append((plugin_name, instance_id, new_config))
+                        logger.debug(f"Config mise à jour pour {plugin_name} (ID: {instance_id}): {new_config}")
+                    else:
+                        # Garder l'ancienne config si elle existe
+                        updated_plugins.append(plugin_data)
+                        logger.debug(f"Pas de nouvelle config pour {plugin_name} (ID: {instance_id})")
+                
+                # Remplacer les plugins avec leurs nouvelles configs
+                self.selected_plugins = updated_plugins
+                
                 # En mode auto-exécution, passer directement à l'écran d'exécution
+                # Sauvegarder la séquence avec les nouvelles configs
+                if self.sequence_file:
+                    logger.debug(f"Sauvegarde de la séquence {self.sequence_file} avec les nouvelles configs")
+                    self._save_sequence(self.sequence_file)
+                
                 if self.auto_execute:
                     logger.debug("Mode auto-exécution: passage direct à l'écran d'exécution")
-                    execution_screen = ExecutionScreen(config)
+                    logger.debug(f"Plugins configurés à exécuter: {self.selected_plugins}")
+                    execution_screen = ExecutionScreen(self.selected_plugins)
                     await self.push_screen(execution_screen)
                     logger.debug("Execution screen pushed successfully")
                 else:
                     logger.debug("Mode manuel: retour à l'écran de choix")
+                    # Mettre à jour l'affichage des plugins sélectionnés
+                    await self._update_selected_plugins_display()
             else:
                 logger.debug("No configuration returned from config screen")
 
@@ -303,6 +326,19 @@ class Choice(App):
             logger.error(traceback.format_exc())
             self.notify(f"Erreur: {str(e)}", severity="error")
 
+    async def _update_selected_plugins_display(self) -> None:
+        """Met à jour l'affichage des plugins sélectionnés avec leurs nouvelles configs"""
+        try:
+            # Récupérer le panel des plugins sélectionnés
+            panel = self.query_one(SelectedPluginsPanel)
+            if panel:
+                # Mettre à jour l'affichage avec les nouvelles configs
+                panel.update_plugins(self.selected_plugins)
+                logger.debug("Affichage des plugins sélectionnés mis à jour")
+        except Exception as e:
+            logger.error(f"Erreur lors de la mise à jour de l'affichage: {e}")
+            logger.error(traceback.format_exc())
+    
     def action_quit(self) -> None:
         """Quit the application"""
         logger.debug("Quitting application")

@@ -11,7 +11,6 @@ from .checkbox_field import CheckboxField
 from .select_field import SelectField
 from .config_container import ConfigContainer
 from .plugin_config_container import PluginConfigContainer
-from .global_config_container import GlobalConfigContainer
 
 __all__ = [
     'ConfigField',
@@ -22,6 +21,5 @@ __all__ = [
     'SelectField',
     'ConfigContainer',
     'PluginConfigContainer',
-    'GlobalConfigContainer',
     'PasswordField'
 ]

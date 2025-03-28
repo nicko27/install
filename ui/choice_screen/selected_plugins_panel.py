@@ -39,9 +39,10 @@ class SelectedPluginsPanel(Static):
                 plugin_name, instance_id = plugin[:2]
                 # Chercher la configuration dans l'app
                 config = {}
-                if hasattr(self.app, 'current_config') and instance_id in self.app.current_config:
-                    config = self.app.current_config[instance_id]
-                    logger.info(f"Configuration trouvée pour {plugin_name}: {config}")
+                plugin_instance_id = f"{plugin_name}_{instance_id}"
+                if hasattr(self.app, 'current_config') and plugin_instance_id in self.app.current_config:
+                    config = self.app.current_config[plugin_instance_id]
+                    logger.info(f"Configuration trouvée pour {plugin_instance_id}: {config}")
                 # Créer le plugin avec sa configuration
                 item = PluginListItem((plugin_name, instance_id, config), idx)
             else:
