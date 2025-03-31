@@ -303,55 +303,98 @@ class SelectField(ConfigField):
         # Fallback if no options defined
         return [("No options defined", "no_options_defined")]
 
-    # Add a property setter for value to ensure the select widget is updated
+    # Ajouter un flag spécifique pour surveiller les mises à jour du widget Select
+    _updating_widget = False
+    
+    def set_value(self, value: str, update_input: bool = True, update_dependencies: bool = True) -> bool:
+        """Méthode standard pour tous les champs qui définit la valeur"""
+        logger.debug(f"🔎 set_value({value}) pour {self.field_id}, update_input={update_input}, update_dependencies={update_dependencies}")
+        
+        # 1. Vérification si la valeur est la même (évite les oscillations)
+        if hasattr(self, '_value') and self._value == value:
+            logger.debug(f"✓ Valeur déjà définie à '{value}' pour {self.field_id}, aucune action nécessaire")
+            return True
+        
+        # 2. Stockage de la valeur interne
+        self._value = value
+        
+        # 3. Mise à jour du widget si demandé et disponible
+        if update_input and hasattr(self, 'select') and not self._updating_widget:
+            try:
+                # Marquer que nous mettons à jour le widget pour éviter les cycles
+                self._updating_widget = True
+                
+                # Vérifier que la valeur existe dans les options
+                available_values = [opt[1] for opt in self.options]
+                
+                # Cas 1: Correspondance exacte
+                if value in available_values:
+                    logger.debug(f"✓ Valeur '{value}' trouvée dans les options pour {self.field_id}")
+                    if self.select.value != value:
+                        logger.debug(f"Mise à jour du widget select pour {self.field_id}: '{self.select.value}' → '{value}'")
+                        self.select.value = value
+                # Cas 2: Correspondance partielle (ex: 'KM227' correspondant à 'KM227.yml')
+                else:
+                    found = False
+                    for option_value in available_values:
+                        # Vérifier si la valeur commence par notre recherche ou l'inverse
+                        prefix_match = option_value.startswith(value) 
+                        base_match = value.startswith(option_value.split('.')[0])
+                        
+                        if prefix_match or base_match:
+                            # Seulement mettre à jour si nécessaire
+                            if self.select.value != option_value:
+                                logger.debug(f"Correspondance partielle pour {self.field_id}: '{value}' → '{option_value}'")
+                                self.select.value = option_value
+                            found = True
+                            break
+                    
+                    if not found:
+                        logger.warning(f"⚠️ Valeur '{value}' non trouvée dans les options pour {self.field_id}")
+            finally:
+                # Toujours réinitialiser le flag
+                self._updating_widget = False
+        
+        # 4. Mise à jour des dépendances si demandé
+        if update_dependencies:
+            from .config_container import ConfigContainer
+            parent = next((a for a in self.ancestors_with_self if isinstance(a, ConfigContainer)), None)
+            if parent:
+                logger.debug(f"Mise à jour des dépendances pour {self.field_id} avec '{value}'")
+                parent.update_dependent_fields(self)
+        
+        return True
+    
+    # Property getter/setter pour la manipulation via self.value
     @property
     def value(self):
-        # If we have a select widget, return its value
+        """Récupère la valeur actuelle, priorité au widget s'il existe"""
         if hasattr(self, 'select'):
             return self.select.value
-        # Otherwise return our stored value
         return self._value if hasattr(self, '_value') else None
 
     @value.setter
     def value(self, new_value):
-        # Store the value for later use
-        self._value = new_value
-
-        # Update the select widget if it exists
-        if hasattr(self, 'select') and hasattr(self, 'options'):
-            # Check if the value is in the available options
-            available_values = [opt[1] for opt in self.options]
-
-            # First try exact match
-            if new_value in available_values:
-                logger.debug(f"Setting select widget value for {self.field_id} to {new_value} (exact match)")
-                self.select.value = new_value
-                return
-
-            # Try partial match (for cases like 'KM227' matching 'KM227.yml')
-            for option_value in available_values:
-                if option_value.startswith(new_value) or new_value.startswith(option_value.split('.')[0]):
-                    logger.debug(f"Setting select widget value for {self.field_id} to {option_value} (partial match from {new_value})")
-                    self.select.value = option_value
-                    self._value = option_value  # Update stored value to match what's actually set
-                    return
-
-            # No match found
-            logger.warning(f"Value {new_value} not in available options for {self.field_id}: {available_values}")
-        else:
-            logger.debug(f"Select widget not yet created for {self.field_id}, value will be set during compose")
+        """Définit la valeur via la méthode set_value standard"""
+        # Utiliser la méthode standard pour éviter la duplication de code
+        self.set_value(new_value)
 
     def on_select_changed(self, event: Select.Changed) -> None:
+        """Gestionnaire d'événement quand le select change de valeur"""
         if event.select.id == f"select_{self.field_id}":
-            self.value = event.value  # event.value contains the value (not the label)
-            logger.debug(f"Select changed to: {self.value}")
-            
-            # Trouver le conteneur parent et mettre à jour les champs dépendants
-            from .config_container import ConfigContainer
-            # Trouver le premier parent qui est un ConfigContainer
-            parent = next((ancestor for ancestor in self.ancestors_with_self if isinstance(ancestor, ConfigContainer)), None)
-            if parent:
-                parent.update_dependent_fields(self)
+            # Si nous sommes déjà en train de mettre à jour le widget, ignorer l'événement
+            if self._updating_widget:
+                logger.debug(f"⚠️ Ignorer l'événement on_select_changed pendant la mise à jour du widget pour {self.field_id}")
+                return
+                
+            # Vérifier si la valeur est différente de celle stockée
+            if hasattr(self, '_value') and self._value == event.value:
+                logger.debug(f"✓ On_select_changed: valeur inchangée pour {self.field_id}: {event.value}")
+                return
+                
+            # Valeur différente, mettre à jour via set_value
+            logger.debug(f"On_select_changed: valeur modifiée pour {self.field_id}: {event.value}")
+            self.set_value(event.value, update_input=False)  # Ne pas mettre à jour le widget qui vient de changer
 
     def get_value(self) -> str:
         """Get the current value"""

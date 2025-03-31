@@ -5,7 +5,7 @@ description: "Paramètres de connexion pour l'exécution distante des plugins"
 hint: "Activez l'exécution distante sur au moins un plugin pour configurer SSH"
 
 # Définition des champs de configuration
-fields:
+config_fields:
   ssh_ips:
     type: "text"
     label: "Adresses IP (séparées par des virgules)"

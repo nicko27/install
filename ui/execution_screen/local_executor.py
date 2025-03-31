@@ -94,9 +94,17 @@ class LocalExecutor:
             file_content = FileContentHandler.process_file_content(plugin_settings, config, plugin_dir)
 
             # Intégrer le contenu des fichiers dans la configuration
-            for param_name, content in file_content.items():
-                config[param_name] = content
-                logger.info(f"Contenu du fichier intégré dans la configuration sous {param_name}")
+            # S'assurer que le contenu n'est ajouté que sous config et pas à la racine
+            if 'config' in config and isinstance(config['config'], dict):
+                for param_name, content in file_content.items():
+                    # Ajouter le contenu uniquement dans le dictionnaire config
+                    config['config'][param_name] = content
+                    logger.info(f"Contenu du fichier intégré dans config.{param_name}")
+            else:
+                # Fallback si config n'est pas un dictionnaire
+                for param_name, content in file_content.items():
+                    config[param_name] = content
+                    logger.info(f"Contenu du fichier intégré dans la configuration sous {param_name}")
 
             # Préparer la commande en fonction du type de plugin
             if is_bash_plugin:

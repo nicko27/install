@@ -6,6 +6,7 @@ from typing import Dict
 import traceback
 import sys
 import os
+import json
 
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal, ScrollableContainer, Vertical
@@ -189,20 +190,54 @@ class ExecutionWidget(Container):
         """Exécute les plugins de façon séquentielle"""
         try:
             # Filtrer les plugins de type séquence
-            filtered_plugins = {plugin_id: plugin for plugin_id, plugin in self.plugins.items()
-                              if not plugin_id.startswith('__sequence__')}
-
-            # Filtrer également les configurations des plugins
-            filtered_configs = {plugin_id: config for plugin_id, config in self.plugins_config.items()
-                              if not plugin_id.startswith('__sequence__')}
+            filtered_plugins = {}
+            filtered_configs = {}
+            sequence_plugin_ids = []
+            
+            # D'abord identifier tous les plugins de séquence principaux (pour les conserver)
+            for plugin_id, config in self.plugins_config.items():
+                plugin_name = config.get('plugin_name', '')
+                if isinstance(plugin_name, str) and plugin_name.startswith('__sequence__'):
+                    sequence_plugin_ids.append(plugin_id)
+                    logger.debug(f"Plugin de séquence principal identifié: {plugin_id} -> {plugin_name}")
+            
+            # Créer une liste ordonnée des plugins pour préserver l'ordre d'exécution
+            ordered_plugins = []
+            
+            # Parcourir tous les plugins disponibles
+            for plugin_id, plugin in self.plugins.items():
+                # Ignorer uniquement les plugins de séquence principaux, pas les plugins de la séquence
+                if plugin_id in sequence_plugin_ids:
+                    logger.debug(f"Ignoré plugin de séquence principal: {plugin_id}")
+                    continue
+                    
+                # Vérifier si la configuration correspondante existe
+                if plugin_id in self.plugins_config:
+                    config = self.plugins_config[plugin_id]
+                    
+                    # Ajouter le plugin et sa configuration aux dictionnaires filtrés
+                    filtered_plugins[plugin_id] = plugin
+                    filtered_configs[plugin_id] = config
+                    ordered_plugins.append(plugin_id)
+                    logger.debug(f"Plugin ajouté aux filtres: {plugin_id}")
+                else:
+                    logger.warning(f"Configuration manquante pour le plugin {plugin_id}")
 
             total_plugins = len(filtered_plugins)
             logger.debug(f"Démarrage de l'exécution de {total_plugins} plugins (après filtrage des séquences)")
             logger.debug(f"Plugins disponibles: {list(filtered_plugins.keys())}")
             logger.debug(f"Plugins config: {list(filtered_configs.keys())}")
-            logger.debug(f"Contenu des configurations filtrées: {filtered_configs}")
+            logger.debug(f"Ordre d'exécution des plugins: {ordered_plugins}")
+            logger.debug(f"Contenu détaillé des configurations filtrées: {json.dumps(filtered_configs, default=str, indent=2)}")
             executed = 0
 
+            # Logs complets pour débogage
+            logger.debug("=== Débogage de la séquence ===")
+            logger.debug(f"self.plugins_config COMPLET: {json.dumps(self.plugins_config, default=str, indent=2)}")
+            logger.debug(f"plugins.items() COMPLET: {[key for key in self.plugins.keys()]}")
+            logger.debug(f"plugin_instance_counts DEBUG: {json.dumps({key: self.plugins_config[key].get('instance_id', '?') for key in self.plugins_config}, default=str)}")
+            logger.debug("=== FIN Débogage de la séquence ===")
+            
             # Ajouter un message de début d'exécution dans les logs
             await LoggerUtils.add_log(self, f"Démarrage de l'exécution de {total_plugins} plugins", level="info")
 
@@ -212,15 +247,20 @@ class ExecutionWidget(Container):
                 logs_container.remove_class("hidden")
                 self.show_logs = True
 
-            for plugin_id, plugin_widget in filtered_plugins.items():
+            # Utiliser la liste ordonnée pour préserver l'ordre d'exécution
+            for plugin_id in ordered_plugins:
                 try:
                     logger.debug(f"Préparation de l'exécution de {plugin_id}")
+                    plugin_widget = filtered_plugins[plugin_id]
                     config = filtered_configs[plugin_id]
                     plugin_name = plugin_widget.plugin_name
                     self.set_current_plugin(plugin_name)
 
                     # Initialiser la progression et le statut
-                    plugin_widget.update_progress(0.0, "Démarrage...")
+                    try:
+                        plugin_widget.update_progress(0.0, "En cours")
+                    except Exception as e:
+                        logger.warning(f"Impossible de mettre à jour la progression pour {plugin_id}: {e}")
 
                     # Exécuter le plugin
                     try:
@@ -236,11 +276,17 @@ class ExecutionWidget(Container):
 
                         # Mettre à jour le statut du plugin
                         status = "success" if success else "error"
-                        plugin_widget.set_status(status)
+                        try:
+                            plugin_widget.set_status(status)
+                        except Exception as status_error:
+                            logger.warning(f"Impossible de mettre à jour le statut pour {plugin_id}: {status_error}")
 
                         # Vérifier que la méthode set_output existe
                         if hasattr(plugin_widget, 'set_output'):
-                            plugin_widget.set_output(output)
+                            try:
+                                plugin_widget.set_output(output)
+                            except Exception as output_error:
+                                logger.warning(f"Impossible de définir la sortie pour {plugin_id}: {output_error}")
                         else:
                             logger.error(f"Le widget {plugin_id} n'a pas de méthode set_output")
 
@@ -249,15 +295,27 @@ class ExecutionWidget(Container):
                             error_message = f"Échec du plugin {plugin_name}: {output}"
                             logger.error(error_message)
                             await LoggerUtils.add_log(self, error_message, level="error")
-                            plugin_widget.update_progress(100.0, "Échec")
+                            try:
+                                plugin_widget.update_progress(100.0, "Échec")
+                            except Exception as e:
+                                logger.warning(f"Impossible de mettre à jour la progression finale pour {plugin_id}: {e}")
                         else:
-                            plugin_widget.update_progress(100.0, "Terminé")
+                            try:
+                                plugin_widget.update_progress(100.0, "Terminé")
+                            except Exception as e:
+                                logger.warning(f"Impossible de mettre à jour la progression finale pour {plugin_id}: {e}")
                             await LoggerUtils.add_log(self, f"Plugin {plugin_name} exécuté avec succès", level="success")
                     except Exception as exec_error:
                         logger.error(f"Erreur lors de l'exécution de {plugin_id}: {str(exec_error)}")
                         logger.error(f"Traceback complet: {traceback.format_exc()}")
-                        plugin_widget.set_status("error", f"Erreur: {str(exec_error)}")
-                        plugin_widget.update_progress(100.0, "Erreur")
+                        try:
+                            plugin_widget.set_status("error", f"Erreur: {str(exec_error)}")
+                        except Exception as e:
+                            logger.warning(f"Impossible de mettre à jour le statut d'erreur pour {plugin_id}: {e}")
+                        try:
+                            plugin_widget.update_progress(100.0, "Erreur")
+                        except Exception as e:
+                            logger.warning(f"Impossible de mettre à jour la progression d'erreur pour {plugin_id}: {e}")
                         success = False
                         output = f"Erreur: {str(exec_error)}"
 
@@ -286,23 +344,39 @@ class ExecutionWidget(Container):
                     error_msg = f"Erreur lors de l'exécution de {plugin_id}: {str(e)}"
                     logger.error(error_msg)
                     logger.error(f"Traceback complet: {traceback.format_exc()}")
-                    plugin_widget.set_status("erreur")
-                    plugin_widget.set_output(error_msg)
-                    plugin_widget.update_progress(100.0, "Erreur")
+                    try:
+                        plugin_widget.set_status("erreur")
+                    except Exception as status_error:
+                        logger.warning(f"Impossible de mettre à jour le statut d'erreur pour {plugin_id}: {status_error}")
+                    try:
+                        plugin_widget.set_output(error_msg)
+                    except Exception as output_error:
+                        logger.warning(f"Impossible de définir la sortie d'erreur pour {plugin_id}: {output_error}")
+                    try:
+                        plugin_widget.update_progress(100.0, "Erreur")
+                    except Exception as progress_error:
+                        logger.warning(f"Impossible de mettre à jour la progression d'erreur pour {plugin_id}: {progress_error}")
 
                     # Ajouter l'erreur au rapport
                     if self.report_manager:
-                        instance_id = int(plugin_id.split('_')[-1])
-                        self.report_manager.add_result(
-                            plugin_name=plugin_name,
-                            instance_id=instance_id,
-                            success=False,
-                            output=error_msg,
-                            sequence_name=self.sequence_name
-                        )
+                        try:
+                            instance_id = int(plugin_id.split('_')[-1])
+                            self.report_manager.add_result(
+                                plugin_name=plugin_name,
+                                instance_id=instance_id,
+                                success=False,
+                                output=error_msg,
+                                sequence_name=self.sequence_name
+                            )
+                        except Exception as report_error:
+                            logger.error(f"Impossible d'ajouter l'erreur au rapport pour {plugin_id}: {report_error}")
 
+                    # Continuer l'exécution même en cas d'erreur si l'option est activée
                     if not self.continue_on_error:
+                        logger.warning(f"Arrêt de l'exécution après erreur sur {plugin_id}")
                         break
+                    else:
+                        logger.info(f"Poursuite de l'exécution malgré l'erreur sur {plugin_id} (continue_on_error=True)")
 
             # Ajouter un message de fin d'exécution dans les logs
             # Vérifier si tous les plugins ont été exécutés avec succès
@@ -486,8 +560,11 @@ class ExecutionWidget(Container):
 
     def compose(self) -> ComposeResult:
         """Création de l'interface"""
-        # En-tête - Afficher seulement 'Exécution des plugins' sans le nom de la séquence
-        yield Header(name="Exécution des plugins")
+        # En-tête - Afficher le nom de la séquence si disponible
+        header_text = "Exécution des plugins"
+        if self.sequence_name:
+            header_text = f"Exécution de la séquence: {self.sequence_name}"
+        yield Header(name=header_text)
 
         # Liste des plugins
         with ScrollableContainer(id="plugins-list"):
@@ -499,7 +576,7 @@ class ExecutionWidget(Container):
             # Faire une copie du dictionnaire pour éviter l'erreur "dictionary changed size during iteration"
             plugins_config_copy = self.plugins_config.copy()
             for plugin_id, config in plugins_config_copy.items():
-                # Ignorer les plugins de type séquence
+                # Ignorer les plugins de type séquence mais conserver leur information
                 plugin_name = config.get('plugin_name', '')
                 if isinstance(plugin_name, str) and plugin_name.startswith('__sequence__'):
                     logger.debug(f"Ignoré le plugin de type séquence: {plugin_name}")

@@ -54,18 +54,35 @@ class AutoConfig:
             # Configuration finale à retourner
             config = {}
             
-            # Traiter chaque plugin
+            # Dictionnaire pour suivre le nombre d'occurrences de chaque type de plugin dans plugin_instances
+            plugin_type_counts = {}
+            
+            # Première passe: compter les occurrences et associer position dans la séquence
+            plugin_seq_positions = {}
             for plugin_name, instance_id in plugin_instances:
                 plugin_id = f"{plugin_name}_{instance_id}"
-                logger.debug(f"Traitement du plugin {plugin_id}")
+                if plugin_name not in plugin_type_counts:
+                    plugin_type_counts[plugin_name] = 0
+                
+                # Stocker la position de séquence pour ce plugin_id
+                plugin_seq_positions[plugin_id] = plugin_type_counts[plugin_name]
+                plugin_type_counts[plugin_name] += 1
+                
+                logger.debug(f"Plugin {plugin_id} assigné à la position {plugin_seq_positions[plugin_id]} dans la séquence")
+            
+            # Traiter chaque plugin avec sa position séquentielle correcte
+            for plugin_name, instance_id in plugin_instances:
+                plugin_id = f"{plugin_name}_{instance_id}"
+                sequence_position = plugin_seq_positions[plugin_id]
+                logger.debug(f"Traitement du plugin {plugin_id} (position séquentielle: {sequence_position})")
                 
                 # Chercher la configuration du plugin dans la séquence
                 plugin_config = None
                 matching_plugins = [p for p in sequence_data.get('plugins', []) 
                                  if p.get('name') == plugin_name and isinstance(p, dict)]
                 
-                if instance_id < len(matching_plugins):
-                    p = matching_plugins[instance_id]
+                if sequence_position < len(matching_plugins):
+                    p = matching_plugins[sequence_position]
                     # Récupérer la configuration du plugin
                     plugin_config = p.get('config', {})
                     if not plugin_config:
@@ -122,7 +139,16 @@ class AutoConfig:
                         file_path = path_template
                         for var in variables:
                             if var in plugin_config:
-                                file_path = file_path.replace(f"{{{var}}}", str(plugin_config[var]))
+                                value = str(plugin_config[var])
+                                
+                                # Vérifier si on va ajouter une extension en double
+                                if '.yml' in path_template and value.endswith('.yml'):
+                                    # Si le chemin contient déjà .yml et que la valeur se termine par .yml,
+                                    # retirer l'extension .yml de la valeur pour éviter la double extension
+                                    value = value[:-4]  # Retirer les 4 derniers caractères (.yml)
+                                    logger.debug(f"Extension .yml retirée de la valeur {value+'.yml'} pour éviter la double extension")
+                                    
+                                file_path = file_path.replace(f"{{{var}}}", value)
                             else:
                                 logger.warning(f"Variable {var} non trouvée dans la configuration")
                                 break
@@ -137,9 +163,13 @@ class AutoConfig:
                                 with open(full_path, 'r', encoding='utf-8') as f:
                                     file_content = yaml.load(f)
                                 
-                                # Ajouter le contenu à plugin_config
-                                plugin_config[content_key] = file_content
-                                logger.debug(f"Contenu de {full_path} chargé pour {content_key}")
+                                # Vérifier si la structure config existe
+                                if 'config' not in config[plugin_id]:
+                                    config[plugin_id]['config'] = {}
+                                    
+                                # Ajouter le contenu dans config.content_key pour être cohérent avec local_executor.py
+                                config[plugin_id]['config'][content_key] = file_content
+                                logger.debug(f"Contenu de {full_path} chargé pour config.{content_key}")
                             else:
                                 logger.warning(f"Fichier {full_path} introuvable")
                     except Exception as e:

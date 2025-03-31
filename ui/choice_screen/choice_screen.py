@@ -329,12 +329,16 @@ class Choice(App):
     async def _update_selected_plugins_display(self) -> None:
         """Met à jour l'affichage des plugins sélectionnés avec leurs nouvelles configs"""
         try:
-            # Récupérer le panel des plugins sélectionnés
-            panel = self.query_one(SelectedPluginsPanel)
-            if panel:
+            # Vérifier d'abord si le panel existe avant d'utiliser query_one
+            # Utiliser query avec un test d'existence plutôt que query_one qui lève une exception
+            panels = self.query(SelectedPluginsPanel)
+            if panels and len(panels) > 0:
+                panel = panels[0]
                 # Mettre à jour l'affichage avec les nouvelles configs
                 panel.update_plugins(self.selected_plugins)
                 logger.debug("Affichage des plugins sélectionnés mis à jour")
+            else:
+                logger.debug("Panneau SelectedPluginsPanel non trouvé - probablement dans un autre écran")
         except Exception as e:
             logger.error(f"Erreur lors de la mise à jour de l'affichage: {e}")
             logger.error(traceback.format_exc())

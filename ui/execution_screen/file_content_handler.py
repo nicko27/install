@@ -42,6 +42,12 @@ class FileContentHandler:
                     if isinstance(value, str):
                         placeholder = f"{{{key}}}"
                         if placeholder in file_path:
+                            # Vérifier si on va ajouter une extension en double
+                            if '.yml' in file_path and value.endswith('.yml'):
+                                # Si le chemin contient déjà .yml et que la valeur se termine par .yml,
+                                # retirer l'extension .yml de la valeur pour éviter la double extension
+                                value = value[:-4]  # Retirer les 4 derniers caractères (.yml)
+                                logger.info(f"Extension .yml retirée de la valeur {value+'.yml'} pour éviter la double extension")
                             file_path = file_path.replace(placeholder, value)
                             logger.info(f"Variable {placeholder} remplacée par {value} dans le chemin")
                 
@@ -51,6 +57,12 @@ class FileContentHandler:
                         if isinstance(value, str):
                             placeholder = f"{{{key}}}"
                             if placeholder in file_path:
+                                # Vérifier si on va ajouter une extension en double
+                                if '.yml' in file_path and value.endswith('.yml'):
+                                    # Si le chemin contient déjà .yml et que la valeur se termine par .yml,
+                                    # retirer l'extension .yml de la valeur pour éviter la double extension
+                                    value = value[:-4]  # Retirer les 4 derniers caractères (.yml)
+                                    logger.info(f"Extension .yml retirée de la valeur {value+'.yml'} pour éviter la double extension")
                                 file_path = file_path.replace(placeholder, value)
                                 logger.info(f"Variable {placeholder} (depuis config) remplacée par {value} dans le chemin")
                 

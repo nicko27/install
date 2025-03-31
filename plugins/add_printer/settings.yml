@@ -14,7 +14,7 @@ ssh_pattern_exceptions:
   - "get_printer_models.py"
 # Configuration pour l'intégration du fichier du modèle d'imprimante
 files_content:
-  printer_model_content: "models/{printer_model}"
+  printer_model_content: "models/{printer_model}.yml"
 
 config_fields:
   printer_name:

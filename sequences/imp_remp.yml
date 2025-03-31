@@ -6,7 +6,8 @@ shortcut:
 plugins:
   - name: delete_printer
     config:
-      printer_ip: 192.168.1.220
+      printer_ip: 192.168.1.223
+      printer_all: false
 
   - name: add_printer
     config:
@@ -18,6 +19,6 @@ plugins:
   - name: add_printer
     config:
       printer_ip: 192.168.1.221
-      printer_model: EC4200
+      printer_model: KM227
       printer_name: Autre
       printer_a3: false

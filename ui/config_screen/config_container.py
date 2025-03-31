@@ -105,97 +105,155 @@ class ConfigContainer(VerticalGroup):
                 # La méthode update_dependent_fields sera appelée pour mettre à jour les champs dépendants
                 break
     
-    def update_dependent_fields(self, field):
-        """Met à jour les champs qui dépendent d'un champ spécifique"""
-        logger.debug(f"Mise à jour des champs dépendants de {field.field_id} (valeur={field.value})")
-        logger.debug(f"Champs disponibles: {[f.field_id for f in self.fields_by_id.values()]}")
-        
-        # Parcourir tous les champs pour trouver ceux qui dépendent de ce champ
-        fields_to_remove = []
-        # Créer une copie de la liste des champs pour éviter les problèmes de modification pendant l'itération
-        dependent_fields = list(self.fields_by_id.values())
-        
-        for dependent_field in dependent_fields:
-            logger.debug(f"Vérification des dépendances pour {dependent_field.field_id}")
-            # Vérifier si le champ dépend directement du champ actuel via depends_on
-            has_depends_on = hasattr(dependent_field, 'depends_on')
-            depends_on_match = has_depends_on and dependent_field.depends_on == field.field_id
-            logger.debug(f"Champ {dependent_field.field_id}: has_depends_on={has_depends_on}, depends_on_match={depends_on_match}")
+    def update_dependent_fields(self, source_field):
+        """Met à jour les champs qui dépendent d'un champ spécifique, avec prévention des cycles de mise à jour"""
+        # Protection contre les appels récursifs en cours de traitement
+        if hasattr(self, '_updating_dependencies') and self._updating_dependencies:
+            logger.debug(f"⚠️ Mise à jour des dépendances déjà en cours, ignorant l'appel pour {source_field.field_id}")
+            return
             
-            if depends_on_match:
-                logger.debug(f"Champ avec depends_on trouvé: {dependent_field.field_id}")
-                # Si le champ a des options dynamiques, les mettre à jour
-                has_update = hasattr(dependent_field, 'update_dynamic_options')
-                logger.debug(f"Champ {dependent_field.field_id}: has_update_dynamic_options={has_update}")
+        try:
+            # Marquer le début de la mise à jour pour éviter les cycles
+            self._updating_dependencies = True
+            
+            logger.debug(f"🔄 DÉBUT mise à jour des champs dépendants de {source_field.field_id} (valeur={source_field.value})")
+            # Liste de tous les IDs de champs disponibles pour le log
+            field_ids = sorted([f.field_id for f in self.fields_by_id.values()])
+            logger.debug(f"Champs disponibles: {field_ids}")
+            
+            # 1. Créer une copie de la liste des champs pour l'itération
+            dependent_fields = list(self.fields_by_id.values())
+            fields_to_remove = []
+            
+            for dependent_field in dependent_fields:
+                # Ignorer le champ source et les champs déjà traités ce cycle
+                if dependent_field.field_id == source_field.field_id or hasattr(dependent_field, '_processed_in_cycle'):
+                    continue
+                    
+                logger.debug(f"🔍 Analyse des dépendances pour {dependent_field.field_id}")
                 
-                if has_update:
-                    logger.debug(f"Mise à jour des options dynamiques pour {dependent_field.field_id}")
+                # 2. TRAITEMENT DES DÉPENDANCES DEPENDS_ON (options dynamiques)
+                # Ces champs changent leurs options selon la valeur d'un autre champ
+                has_depends_on = hasattr(dependent_field, 'depends_on')
+                depends_on_match = has_depends_on and dependent_field.depends_on == source_field.field_id
+                
+                if depends_on_match and hasattr(dependent_field, 'update_dynamic_options'):
+                    logger.debug(f"✅ Champ avec options dynamiques trouvé: {dependent_field.field_id}")
+                    
+                    # Marquer ce champ comme traité dans ce cycle
+                    dependent_field._processed_in_cycle = True
+                    
+                    # Sauvegarder l'ancienne valeur pour vérifier si elle change
+                    old_value = getattr(dependent_field, 'value', None)
+                    
+                    # Mettre à jour les options dynamiques
                     dependent_field.update_dynamic_options()
-                    # Si le champ n'a plus d'options, le marquer pour suppression
+                    
+                    # Si après mise à jour le champ n'a plus d'options, le marquer pour suppression
                     has_options = hasattr(dependent_field, 'options')
-                    options_empty = has_options and (dependent_field.options is None or not dependent_field.options)
-                    logger.debug(f"Champ {dependent_field.field_id}: has_options={has_options}, options_empty={options_empty}")
+                    options_empty = has_options and (dependent_field.options is None or len(dependent_field.options) == 0)
                     
                     if options_empty:
-                        logger.debug(f"Le champ {dependent_field.field_id} n'a plus d'options, il sera supprimé")
+                        logger.debug(f"❌ {dependent_field.field_id} n'a plus d'options valides")
                         fields_to_remove.append(dependent_field)
-
-            # Vérifier si le champ a une condition enabled_if qui dépend du champ actuel
-            if hasattr(dependent_field, 'enabled_if') and dependent_field.enabled_if and dependent_field.enabled_if.get('field') == field.field_id:
-                logger.debug(f"Champ dépendant trouvé: {dependent_field.field_id} avec enabled_if={dependent_field.enabled_if}")
+                    elif old_value != dependent_field.value:
+                        logger.debug(f"🔄 La valeur de {dependent_field.field_id} a changé: {old_value} -> {dependent_field.value}")
                 
-                # Récupérer les valeurs pour la comparaison
-                field_value = field.value
-                required_value = dependent_field.enabled_if.get('value')
+                # 3. TRAITEMENT DES CONDITIONS ENABLED_IF
+                # Ces champs sont activés/désactivés selon la valeur d'un autre champ
+                has_enabled_if = (hasattr(dependent_field, 'enabled_if') and 
+                                  dependent_field.enabled_if and 
+                                  dependent_field.enabled_if.get('field') == source_field.field_id)
                 
-                # Convertir les valeurs en booléens si nécessaire pour la comparaison
-                if isinstance(required_value, bool) and not isinstance(field_value, bool):
-                    if isinstance(field_value, str):
-                        field_value = field_value.lower() in ('true', 't', 'yes', 'y', '1')
-                    else:
-                        field_value = bool(field_value)
-                
-                # Déterminer si le champ doit être activé ou désactivé
-                should_enable = field_value == required_value
-                logger.debug(f"Champ {dependent_field.field_id}: should_enable={should_enable} (valeur={field_value}, valeur requise={required_value})")
-                
-                if not should_enable:
-                    # Si le champ ne doit pas être activé, le marquer pour suppression
-                    logger.debug(f"Le champ {dependent_field.field_id} ne doit pas être activé, il sera supprimé")
-                    fields_to_remove.append(dependent_field)
-                else:
-                    # Sauvegarder la valeur actuelle avant de désactiver le champ
-                    if hasattr(dependent_field, 'value'):
-                        # Stocker la valeur actuelle dans un attribut temporaire
-                        if not hasattr(dependent_field, '_saved_value') or dependent_field._saved_value is None:
-                            dependent_field._saved_value = dependent_field.value
-                            logger.debug(f"Valeur sauvegardée pour {dependent_field.field_id}: {dependent_field._saved_value}")
+                if has_enabled_if:
+                    # Marquer ce champ comme traité dans ce cycle
+                    dependent_field._processed_in_cycle = True
                     
-                    # Trouver le widget à activer/désactiver
-                    for widget_type in [Input, Select, Button, Checkbox]:
-                        try:
-                            widget = dependent_field.query_one(widget_type)
-                            logger.debug(f"Widget de type {widget_type.__name__} trouvé pour le champ {dependent_field.field_id}")
-                            
-                            # Toujours supprimer les classes existantes d'abord
-                            dependent_field.remove_class('disabled')
-                            dependent_field.disabled = False
-                            widget.remove_class('disabled')
-                            widget.disabled = False
-                            
-                            # Restaurer la valeur sauvegardée si elle existe
-                            if hasattr(dependent_field, '_saved_value') and dependent_field._saved_value is not None:
-                                logger.debug(f"Restauration de la valeur pour {dependent_field.field_id}: {dependent_field._saved_value}")
-                                dependent_field.value = dependent_field._saved_value
-                            break
-                        except Exception as e:
-                            logger.debug(f"Widget de type {widget_type.__name__} non trouvé pour le champ {dependent_field.field_id}: {e}")
-                                
-        # Supprimer les champs qui ne devraient plus être là
-        for field_to_remove in fields_to_remove:
-            logger.debug(f"Suppression du champ {field_to_remove.field_id}")
-            # Supprimer le champ du dictionnaire
-            if field_to_remove.field_id in self.fields_by_id:
-                del self.fields_by_id[field_to_remove.field_id]
-            # Supprimer le widget de l'interface
-            field_to_remove.remove()
+                    field_value = source_field.value
+                    required_value = dependent_field.enabled_if.get('value')
+                    
+                    # Normaliser les valeurs booléennes pour comparaison
+                    if isinstance(required_value, bool) and not isinstance(field_value, bool):
+                        if isinstance(field_value, str):
+                            field_value = field_value.lower() in ('true', 't', 'yes', 'y', '1')
+                        else:
+                            field_value = bool(field_value)
+                    
+                    # Est-ce que le champ doit être activé ou désactivé?
+                    should_enable = field_value == required_value
+                    
+                    if not should_enable:
+                        logger.debug(f"❌ Condition non remplie pour {dependent_field.field_id} (valeur={field_value}, requise={required_value})")
+                        fields_to_remove.append(dependent_field)
+                    else:
+                        logger.debug(f"✅ Condition remplie pour {dependent_field.field_id}")
+                        
+                        # Sauvegarder la valeur actuelle avant réactivation
+                        if hasattr(dependent_field, 'value') and (
+                            not hasattr(dependent_field, '_saved_value') or dependent_field._saved_value is None
+                        ):
+                            dependent_field._saved_value = dependent_field.value
+                        
+                        # Réactiver le widget et restaurer sa valeur
+                        self._restore_field_state(dependent_field)
+            
+            # 4. SUPPRIMER LES CHAMPS INVALIDÉS de l'interface
+            for field_to_remove in fields_to_remove:
+                logger.debug(f"🗑️ Suppression du champ {field_to_remove.field_id} de l'interface")
+                
+                # Supprimer du dictionnaire des champs
+                if field_to_remove.field_id in self.fields_by_id:
+                    del self.fields_by_id[field_to_remove.field_id]
+                
+                # Supprimer le widget de l'interface
+                if field_to_remove in self.children:
+                    field_to_remove.remove()
+                    
+            logger.debug(f"✓ FIN mise à jour des dépendances pour {source_field.field_id}")
+        
+        except Exception as e:
+            logger.error(f"❌ ERREUR lors de la mise à jour des dépendances: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+        
+        finally:
+            # Toujours nettoyer les marqueurs de cycle et le flag de mise à jour
+            self._updating_dependencies = False
+            # Nettoyer les indicateurs de traitement pour tous les champs
+            for field in self.fields_by_id.values():
+                if hasattr(field, '_processed_in_cycle'):
+                    delattr(field, '_processed_in_cycle')
+    
+    def _restore_field_state(self, field):
+        """Restaure l'état d'un champ désactivé"""
+        logger.debug(f"🔄 Restauration de l'état du champ {field.field_id}")
+        
+        # Rechercher tous les widgets d'interaction à réactiver
+        for widget_type in [Input, Select, Button, Checkbox]:
+            try:
+                widget = field.query_one(widget_type)
+                
+                # Réactiver le widget et son conteneur
+                field.remove_class('disabled')
+                field.disabled = False
+                widget.remove_class('disabled')
+                widget.disabled = False
+                
+                # Restaurer la valeur sauvegardée si disponible
+                if hasattr(field, '_saved_value') and field._saved_value is not None:
+                    logger.debug(f"📝 Restauration de la valeur pour {field.field_id}: {field._saved_value}")
+                    # Utiliser set_value avec update_dependencies=False pour éviter les cycles
+                    if hasattr(field, 'set_value'):
+                        field.set_value(field._saved_value, update_dependencies=False)
+                    else:
+                        field.value = field._saved_value
+                        
+                # Widget trouvé et traité, on peut sortir
+                return True
+            except Exception:
+                # Widget de ce type non trouvé, continuer avec le suivant
+                pass
+                
+        # Aucun widget interactif trouvé
+        logger.warning(f"⚠️ Aucun widget interactif trouvé pour {field.field_id}")
+        return False

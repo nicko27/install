@@ -781,6 +781,67 @@ class PluginConfig(Screen):
         """Handle escape key"""
         logger.debug("Quit action triggered")
         self.app.pop_screen()
+        
+    def populate_ssh_container(self):
+        """Populate the SSH container with fields from the SSH configuration"""
+        try:
+            logger.debug("Populating SSH container with fields")
+            
+            # Ensure the SSH container exists
+            if not self.ssh_container:
+                logger.error("SSH container not found")
+                return
+                
+            # Get the SSH configuration fields
+            ssh_config = self.config_manager.global_configs.get('ssh', {})
+            ssh_fields = ssh_config.get('config_fields', {})
+            
+            if not ssh_fields:
+                logger.warning("No SSH fields found in configuration")
+                return
+                
+            logger.debug(f"Found {len(ssh_fields)} SSH fields in configuration")
+            
+            # Create a label for the SSH configuration
+            from textual.widgets import Label
+            self.ssh_container.mount(Label("Configuration SSH", classes="section-title"))
+            
+            # Create fields for each SSH configuration field
+            from .config_field import ConfigField
+            from .text_field import TextField
+            from .ip_field import IPField
+            from .password_field import PasswordField
+            from .checkbox_field import CheckboxField
+            
+            # Create fields based on their type
+            for field_id, field_config in ssh_fields.items():
+                logger.debug(f"Creating SSH field: {field_id}")
+                
+                field_type = field_config.get('type', 'text')
+                field = None
+                
+                if field_type == 'text':
+                    field = TextField('ssh', field_id, field_config, self.fields_by_id)
+                elif field_type == 'ip':
+                    field = IPField('ssh', field_id, field_config, self.fields_by_id)
+                elif field_type == 'password':
+                    field = PasswordField('ssh', field_id, field_config, self.fields_by_id)
+                elif field_type == 'checkbox':
+                    field = CheckboxField('ssh', field_id, field_config, self.fields_by_id)
+                else:
+                    logger.warning(f"Unknown field type: {field_type} for field {field_id}")
+                    continue
+                    
+                # Add the field to the SSH container
+                self.ssh_container.mount(field)
+                
+                # Store the field for future reference
+                self.fields_by_id[field_id] = field
+                
+            logger.debug("SSH container populated successfully")
+        except Exception as e:
+            logger.error(f"Error populating SSH container: {e}")
+            logger.error(traceback.format_exc())
 
     def create_config_fields(self):
         """Crée les champs de configuration après le montage de l'interface"""
@@ -805,6 +866,10 @@ class PluginConfig(Screen):
                         for field_id, field in container.fields_by_id.items():
                             self.fields_by_id[field_id] = field
                             logger.debug(f"Champ ajouté: {field_id}")
+            
+            # Ajouter les champs SSH au container SSH s'il existe
+            if self.ssh_container and self.ssh_container.id in self.containers_by_id:
+                self.populate_ssh_container()
 
             logger.debug(f"Nombre total de containers indexés: {len(self.containers_by_id)}")
             logger.debug(f"Nombre total de champs indexés: {len(self.fields_by_id)}")

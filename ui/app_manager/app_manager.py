@@ -53,7 +53,10 @@ class AppManager:
         # Vérifier la configuration
         auto_config = AutoConfig()
         plugins = sequence_data.get('plugins', [])
-        plugin_instances = [(p['name'], 0) for p in plugins if isinstance(p, dict) and 'name' in p]
+        
+        
+        
+        plugin_instances = [(p['name'], i) for i, p in enumerate(plugins) if isinstance(p, dict) and 'name' in p]
         config = auto_config.process_sequence(sequence_path, plugin_instances)
         
         # Créer une liste de tuples (nom, instance) avec des instances uniques
