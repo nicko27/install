@@ -185,7 +185,7 @@ class PluginConfig(Screen):
                 # Content will be added in on_mount
                 if has_remote_plugins:
                     logger.debug("Adding empty SSH container (content will be added in on_mount)")
-                    self.ssh_container = Container(id="ssh-config", classes="ssh-container config-container disabled-container")
+                    self.ssh_container = Container(id="ssh-config", classes="ssh-container config-fields disabled-container disabled-ssh-container")
                     yield self.ssh_container
 
                 # Ajouter un espace en bas pour garantir que tout le contenu est visible lors du scroll
@@ -208,23 +208,23 @@ class PluginConfig(Screen):
             yield Button("Retour", id="retour", variant="error")
 
     async def on_mount(self) -> None:
-        """Called when screen is mounted - used to add remote execution checkboxes and SSH fields"""
-        try:
-            # Create containers and plugins input
-            self.call_after_refresh(self.create_config_fields)
+            """Called when screen is mounted - used to add remote execution checkboxes and SSH fields"""
+            try:
+                # Create containers and plugins input
+                self.call_after_refresh(self.create_config_fields)
 
-            # Si nous revenons de l'écran d'exécution, restaurer les valeurs des champs
-            if self.returning_from_execution and self.current_config:
-                logger.debug(f"Restauration de la configuration préservée: {self.current_config}")
+                # Si nous revenons de l'écran d'exécution, restaurer les valeurs des champs
+                if self.returning_from_execution and self.current_config:
+                    logger.debug(f"Restauration de la configuration préservée: {self.current_config}")
 
-                # Appeler la méthode de restauration après un court délai pour s'assurer que tous les widgets sont montés
-                await asyncio.sleep(0.1)  # court délai pour laisser le DOM se stabiliser
-                self.call_after_refresh(self.restore_saved_configuration)
+                    # Appeler la méthode de restauration après un court délai pour s'assurer que tous les widgets sont montés
+                    await asyncio.sleep(0.1)  # court délai pour laisser le DOM se stabiliser
+                    self.call_after_refresh(self.restore_saved_configuration)
 
-            logger.debug("PluginConfig.on_mount() completed")
-        except Exception as e:
-            logger.error(f"Error in PluginConfig.on_mount(): {e}")
-            logger.error(traceback.format_exc())
+                logger.debug("PluginConfig.on_mount() completed")
+            except Exception as e:
+                logger.error(f"Error in PluginConfig.on_mount(): {e}")
+                logger.error(traceback.format_exc())
 
     def restore_saved_configuration(self):
         """Restaure la configuration sauvegardée lors du retour de l'écran d'exécution"""
@@ -533,8 +533,10 @@ class PluginConfig(Screen):
             if self.ssh_container:
                 if enable:
                     self.ssh_container.remove_class("disabled-ssh-container")
+                    self.ssh_container.remove_class("disabled-container")
                 else:
                     self.ssh_container.add_class("disabled-ssh-container")
+                    self.ssh_container.add_class("disabled-container")
 
                 # Update SSH field states
                 for field_id, field in self.fields_by_id.items():
@@ -868,8 +870,50 @@ class PluginConfig(Screen):
                             logger.debug(f"Champ ajouté: {field_id}")
             
             # Ajouter les champs SSH au container SSH s'il existe
-            if self.ssh_container and self.ssh_container.id in self.containers_by_id:
-                self.populate_ssh_container()
+            if self.ssh_container:
+                # Get the SSH configuration fields
+                ssh_config = self.config_manager.global_configs.get('ssh', {})
+                ssh_fields = ssh_config.get('config_fields', {})
+                
+                if ssh_fields:
+                    logger.debug(f"Found {len(ssh_fields)} SSH fields in configuration")
+                    
+                    # Create a label for the SSH configuration
+                    from textual.widgets import Label
+                    self.ssh_container.mount(Label("Configuration SSH", classes="section-title"))
+                    
+                    # Create fields for each SSH configuration field based on their type
+                    for field_id, field_config in ssh_fields.items():
+                        logger.debug(f"Creating SSH field: {field_id}")
+                        
+                        field_type = field_config.get('type', 'text')
+                        field = None
+                        
+                        # Import necessary field classes
+                        from .text_field import TextField
+                        from .ip_field import IPField
+                        from .password_field import PasswordField
+                        from .checkbox_field import CheckboxField
+
+                        if field_type == 'text':
+                            field = TextField('ssh', field_id, field_config, self.fields_by_id)
+                        elif field_type == 'ip':
+                            field = IPField('ssh', field_id, field_config, self.fields_by_id)
+                        elif field_type == 'password':
+                            field = PasswordField('ssh', field_id, field_config, self.fields_by_id)
+                        elif field_type == 'checkbox':
+                            field = CheckboxField('ssh', field_id, field_config, self.fields_by_id)
+                        else:
+                            logger.warning(f"Unknown field type: {field_type} for field {field_id}")
+                            continue
+                            
+                        # Add the field to the SSH container
+                        self.ssh_container.mount(field)
+                        
+                        # Store the field for future reference
+                        self.fields_by_id[field_id] = field
+                    
+                    logger.debug("SSH fields added successfully")
 
             logger.debug(f"Nombre total de containers indexés: {len(self.containers_by_id)}")
             logger.debug(f"Nombre total de champs indexés: {len(self.fields_by_id)}")

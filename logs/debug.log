@@ -1,259 +1,465 @@
-2025-03-31 11:35:10,840 - install_ui.main - DEBUG - Répertoire de base de l'application: /media/nico/Drive/pcUtils_internet
-2025-03-31 11:35:10,841 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/cryptography-44.0.2-cp39-abi3-manylinux_2_34_x86_64 au sys.path
-2025-03-31 11:35:10,841 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/textual-2.1.1-py3-none-any au sys.path
-2025-03-31 11:35:10,841 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/platformdirs-4.3.6-py3-none-any au sys.path
-2025-03-31 11:35:10,841 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/pygments-2.19.1-py3-none-any au sys.path
-2025-03-31 11:35:10,841 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64 au sys.path
-2025-03-31 11:35:10,841 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/mdurl-0.1.2-py3-none-any au sys.path
-2025-03-31 11:35:10,841 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/uc_micro_py-1.0.3-py3-none-any au sys.path
-2025-03-31 11:35:10,841 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/paramiko-3.5.1-py3-none-any au sys.path
-2025-03-31 11:35:10,841 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/pexpect-4.9.0-py2.py3-none-any au sys.path
-2025-03-31 11:35:10,842 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/PyNaCl-1.5.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64 au sys.path
-2025-03-31 11:35:10,842 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/linkify_it_py-2.0.3-py3-none-any au sys.path
-2025-03-31 11:35:10,842 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/textual-2.1.2-py3-none-any au sys.path
-2025-03-31 11:35:10,842 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/typing_extensions-4.12.2-py3-none-any au sys.path
-2025-03-31 11:35:10,842 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/mdit_py_plugins-0.4.2-py3-none-any au sys.path
-2025-03-31 11:35:10,842 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/pycparser-2.22-py3-none-any au sys.path
-2025-03-31 11:35:10,842 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/cffi-1.17.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64 au sys.path
-2025-03-31 11:35:10,842 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/platformdirs-4.3.7-py3-none-any au sys.path
-2025-03-31 11:35:10,842 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/ruamel.yaml-0.18.10-py3-none-any au sys.path
-2025-03-31 11:35:10,842 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/rich-13.9.4-py3-none-any au sys.path
-2025-03-31 11:35:10,842 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/bcrypt-4.3.0-cp39-abi3-manylinux_2_34_x86_64 au sys.path
-2025-03-31 11:35:10,842 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/markdown_it_py-3.0.0-py3-none-any au sys.path
-2025-03-31 11:35:10,842 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/ptyprocess-0.7.0-py2.py3-none-any au sys.path
-2025-03-31 11:35:10,842 - install_ui.main - DEBUG - sys.path complet: ['/media/nico/Drive/pcUtils_internet/libs/ptyprocess-0.7.0-py2.py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/markdown_it_py-3.0.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/bcrypt-4.3.0-cp39-abi3-manylinux_2_34_x86_64', '/media/nico/Drive/pcUtils_internet/libs/rich-13.9.4-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/ruamel.yaml-0.18.10-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/platformdirs-4.3.7-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/cffi-1.17.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pycparser-2.22-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/mdit_py_plugins-0.4.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/typing_extensions-4.12.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/textual-2.1.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/linkify_it_py-2.0.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/PyNaCl-1.5.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pexpect-4.9.0-py2.py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/paramiko-3.5.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/uc_micro_py-1.0.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/mdurl-0.1.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pygments-2.19.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/platformdirs-4.3.6-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/textual-2.1.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/cryptography-44.0.2-cp39-abi3-manylinux_2_34_x86_64', '/media/nico/Drive/pcUtils_internet', '/usr/lib/python310.zip', '/usr/lib/python3.10', '/usr/lib/python3.10/lib-dynload', '/usr/local/lib/python3.10/dist-packages', '/usr/lib/python3/dist-packages']
-2025-03-31 11:35:10,855 - install_ui.main - DEBUG - ruamel.yaml importé avec succès depuis /media/nico/Drive/pcUtils_internet/libs/ruamel.yaml-0.18.10-py3-none-any/ruamel/yaml/__init__.py
-2025-03-31 11:35:11,083 - install_ui.choice_screen - DEBUG - Initialisation de l'application Choice
-2025-03-31 11:35:11,083 - sequence_handler - DEBUG - Dossier des séquences : sequences
-2025-03-31 11:35:11,083 - template_handler - DEBUG - Dossier des templates : templates
-2025-03-31 11:35:11,083 - template_handler - DEBUG - Fichier de schéma : templates/template_schema.yml
-2025-03-31 11:35:11,083 - asyncio - DEBUG - Using selector: EpollSelector
-2025-03-31 11:35:11,106 - install_ui.plugin_utils - DEBUG - Loading plugin info for: lara_install
-2025-03-31 11:35:11,106 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: lara_install
-2025-03-31 11:35:11,106 - install_ui.plugin_utils - DEBUG -   Test path: plugins/lara_install_test (exists: False)
-2025-03-31 11:35:11,106 - install_ui.plugin_utils - DEBUG -   Base path: plugins/lara_install (exists: True)
-2025-03-31 11:35:11,106 - install_ui.plugin_utils - DEBUG -   Returning base folder name: lara_install
-2025-03-31 11:35:11,106 - install_ui.plugin_utils - DEBUG -   Folder name: lara_install
-2025-03-31 11:35:11,107 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/lara_install/settings.yml (exists: True)
-2025-03-31 11:35:11,117 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for lara_install
-2025-03-31 11:35:11,118 - template_handler - DEBUG - Aucun dossier de templates trouvé pour lara_install
-2025-03-31 11:35:11,118 - install_ui.plugin_utils - DEBUG - Loading plugin info for: home_copy
-2025-03-31 11:35:11,118 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: home_copy
-2025-03-31 11:35:11,118 - install_ui.plugin_utils - DEBUG -   Test path: plugins/home_copy_test (exists: False)
-2025-03-31 11:35:11,118 - install_ui.plugin_utils - DEBUG -   Base path: plugins/home_copy (exists: True)
-2025-03-31 11:35:11,118 - install_ui.plugin_utils - DEBUG -   Returning base folder name: home_copy
-2025-03-31 11:35:11,118 - install_ui.plugin_utils - DEBUG -   Folder name: home_copy
-2025-03-31 11:35:11,118 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/home_copy/settings.yml (exists: True)
-2025-03-31 11:35:11,134 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for home_copy
-2025-03-31 11:35:11,134 - template_handler - DEBUG - Aucun dossier de templates trouvé pour home_copy
-2025-03-31 11:35:11,134 - install_ui.plugin_utils - DEBUG - Loading plugin info for: add_printer
-2025-03-31 11:35:11,134 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
-2025-03-31 11:35:11,134 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
-2025-03-31 11:35:11,134 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
-2025-03-31 11:35:11,134 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
-2025-03-31 11:35:11,134 - install_ui.plugin_utils - DEBUG -   Folder name: add_printer
-2025-03-31 11:35:11,134 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/add_printer/settings.yml (exists: True)
-2025-03-31 11:35:11,143 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for add_printer
-2025-03-31 11:35:11,152 - template_handler - DEBUG - Schéma de validation chargé
-2025-03-31 11:35:11,153 - template_handler - DEBUG - Validation du template contre le schéma réussie
-2025-03-31 11:35:11,154 - template_handler - DEBUG - Template chargé : solc.yml
-2025-03-31 11:35:11,155 - template_handler - DEBUG - Validation du template contre le schéma réussie
-2025-03-31 11:35:11,155 - template_handler - DEBUG - Template chargé : amfreville_bas.yml
-2025-03-31 11:35:11,157 - template_handler - DEBUG - Validation du template contre le schéma réussie
-2025-03-31 11:35:11,157 - template_handler - DEBUG - Template chargé : default.yml
-2025-03-31 11:35:11,157 - install_ui.plugin_utils - DEBUG - Loading plugin info for: scan_plugin
-2025-03-31 11:35:11,157 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: scan_plugin
-2025-03-31 11:35:11,157 - install_ui.plugin_utils - DEBUG -   Test path: plugins/scan_plugin_test (exists: False)
-2025-03-31 11:35:11,157 - install_ui.plugin_utils - DEBUG -   Base path: plugins/scan_plugin (exists: True)
-2025-03-31 11:35:11,157 - install_ui.plugin_utils - DEBUG -   Returning base folder name: scan_plugin
-2025-03-31 11:35:11,157 - install_ui.plugin_utils - DEBUG -   Folder name: scan_plugin
-2025-03-31 11:35:11,157 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/scan_plugin/settings.yml (exists: True)
-2025-03-31 11:35:11,165 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for scan_plugin
-2025-03-31 11:35:11,165 - template_handler - DEBUG - Aucun dossier de templates trouvé pour scan_plugin
-2025-03-31 11:35:11,165 - install_ui.plugin_utils - DEBUG - Loading plugin info for: delete_printer
-2025-03-31 11:35:11,165 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: delete_printer
-2025-03-31 11:35:11,165 - install_ui.plugin_utils - DEBUG -   Test path: plugins/delete_printer_test (exists: False)
-2025-03-31 11:35:11,165 - install_ui.plugin_utils - DEBUG -   Base path: plugins/delete_printer (exists: True)
-2025-03-31 11:35:11,165 - install_ui.plugin_utils - DEBUG -   Returning base folder name: delete_printer
-2025-03-31 11:35:11,165 - install_ui.plugin_utils - DEBUG -   Folder name: delete_printer
-2025-03-31 11:35:11,165 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/delete_printer/settings.yml (exists: True)
-2025-03-31 11:35:11,171 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for delete_printer
-2025-03-31 11:35:11,171 - template_handler - DEBUG - Aucun dossier de templates trouvé pour delete_printer
-2025-03-31 11:35:11,176 - install_ui.plugin_utils - DEBUG - Loading plugin info for: add_printer
-2025-03-31 11:35:11,176 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
-2025-03-31 11:35:11,176 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
-2025-03-31 11:35:11,177 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
-2025-03-31 11:35:11,177 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
-2025-03-31 11:35:11,177 - install_ui.plugin_utils - DEBUG -   Folder name: add_printer
-2025-03-31 11:35:11,177 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/add_printer/settings.yml (exists: True)
-2025-03-31 11:35:11,185 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for add_printer
-2025-03-31 11:35:11,185 - install_ui.plugin_utils - DEBUG - Loading plugin info for: scan_plugin
-2025-03-31 11:35:11,185 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: scan_plugin
-2025-03-31 11:35:11,185 - install_ui.plugin_utils - DEBUG -   Test path: plugins/scan_plugin_test (exists: False)
-2025-03-31 11:35:11,185 - install_ui.plugin_utils - DEBUG -   Base path: plugins/scan_plugin (exists: True)
-2025-03-31 11:35:11,185 - install_ui.plugin_utils - DEBUG -   Returning base folder name: scan_plugin
-2025-03-31 11:35:11,185 - install_ui.plugin_utils - DEBUG -   Folder name: scan_plugin
-2025-03-31 11:35:11,186 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/scan_plugin/settings.yml (exists: True)
-2025-03-31 11:35:11,193 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for scan_plugin
-2025-03-31 11:35:11,193 - install_ui.plugin_utils - DEBUG - Loading plugin info for: lara_install
-2025-03-31 11:35:11,193 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: lara_install
-2025-03-31 11:35:11,193 - install_ui.plugin_utils - DEBUG -   Test path: plugins/lara_install_test (exists: False)
-2025-03-31 11:35:11,193 - install_ui.plugin_utils - DEBUG -   Base path: plugins/lara_install (exists: True)
-2025-03-31 11:35:11,193 - install_ui.plugin_utils - DEBUG -   Returning base folder name: lara_install
-2025-03-31 11:35:11,193 - install_ui.plugin_utils - DEBUG -   Folder name: lara_install
-2025-03-31 11:35:11,193 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/lara_install/settings.yml (exists: True)
-2025-03-31 11:35:11,195 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for lara_install
-2025-03-31 11:35:11,195 - install_ui.plugin_utils - DEBUG - Loading plugin info for: home_copy
-2025-03-31 11:35:11,195 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: home_copy
-2025-03-31 11:35:11,195 - install_ui.plugin_utils - DEBUG -   Test path: plugins/home_copy_test (exists: False)
-2025-03-31 11:35:11,196 - install_ui.plugin_utils - DEBUG -   Base path: plugins/home_copy (exists: True)
-2025-03-31 11:35:11,196 - install_ui.plugin_utils - DEBUG -   Returning base folder name: home_copy
-2025-03-31 11:35:11,196 - install_ui.plugin_utils - DEBUG -   Folder name: home_copy
-2025-03-31 11:35:11,196 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/home_copy/settings.yml (exists: True)
-2025-03-31 11:35:11,209 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for home_copy
-2025-03-31 11:35:11,209 - install_ui.plugin_utils - DEBUG - Loading plugin info for: delete_printer
-2025-03-31 11:35:11,209 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: delete_printer
-2025-03-31 11:35:11,209 - install_ui.plugin_utils - DEBUG -   Test path: plugins/delete_printer_test (exists: False)
-2025-03-31 11:35:11,209 - install_ui.plugin_utils - DEBUG -   Base path: plugins/delete_printer (exists: True)
-2025-03-31 11:35:11,209 - install_ui.plugin_utils - DEBUG -   Returning base folder name: delete_printer
-2025-03-31 11:35:11,209 - install_ui.plugin_utils - DEBUG -   Folder name: delete_printer
-2025-03-31 11:35:11,209 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/delete_printer/settings.yml (exists: True)
-2025-03-31 11:35:11,215 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for delete_printer
-2025-03-31 11:35:13,546 - install_ui.plugin_utils - DEBUG - Loading plugin info for: delete_printer
-2025-03-31 11:35:13,547 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: delete_printer
-2025-03-31 11:35:13,547 - install_ui.plugin_utils - DEBUG -   Test path: plugins/delete_printer_test (exists: False)
-2025-03-31 11:35:13,548 - install_ui.plugin_utils - DEBUG -   Base path: plugins/delete_printer (exists: True)
-2025-03-31 11:35:13,548 - install_ui.plugin_utils - DEBUG -   Returning base folder name: delete_printer
-2025-03-31 11:35:13,548 - install_ui.plugin_utils - DEBUG -   Folder name: delete_printer
-2025-03-31 11:35:13,549 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/delete_printer/settings.yml (exists: True)
-2025-03-31 11:35:13,576 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for delete_printer
-2025-03-31 11:35:13,580 - install_ui.choice_screen - DEBUG - Changement sélection: delete_printer -> True
-2025-03-31 11:35:13,580 - install_ui.plugin_utils - DEBUG - Loading plugin info for: delete_printer
-2025-03-31 11:35:13,580 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: delete_printer
-2025-03-31 11:35:13,580 - install_ui.plugin_utils - DEBUG -   Test path: plugins/delete_printer_test (exists: False)
-2025-03-31 11:35:13,581 - install_ui.plugin_utils - DEBUG -   Base path: plugins/delete_printer (exists: True)
-2025-03-31 11:35:13,581 - install_ui.plugin_utils - DEBUG -   Returning base folder name: delete_printer
-2025-03-31 11:35:13,581 - install_ui.plugin_utils - DEBUG -   Folder name: delete_printer
-2025-03-31 11:35:13,581 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/delete_printer/settings.yml (exists: True)
-2025-03-31 11:35:13,591 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for delete_printer
-2025-03-31 11:35:13,591 - install_ui.choice_screen - DEBUG - Plugin ajouté: delete_printer (id: 1)
-2025-03-31 11:35:13,592 - install_ui.plugin_list_item - INFO - Plugin avec config: delete_printer, config: {}
-2025-03-31 11:35:13,592 - install_ui.plugin_list_item - WARNING - Initialisation de PluginListItem: delete_printer, is_sequence: False, type: <class 'str'>, startswith: False
-2025-03-31 11:35:13,592 - install_ui.plugin_utils - DEBUG - Loading plugin info for: delete_printer
-2025-03-31 11:35:13,592 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: delete_printer
-2025-03-31 11:35:13,592 - install_ui.plugin_utils - DEBUG -   Test path: plugins/delete_printer_test (exists: False)
-2025-03-31 11:35:13,592 - install_ui.plugin_utils - DEBUG -   Base path: plugins/delete_printer (exists: True)
-2025-03-31 11:35:13,592 - install_ui.plugin_utils - DEBUG -   Returning base folder name: delete_printer
-2025-03-31 11:35:13,592 - install_ui.plugin_utils - DEBUG -   Folder name: delete_printer
-2025-03-31 11:35:13,592 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/delete_printer/settings.yml (exists: True)
-2025-03-31 11:35:13,600 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for delete_printer
-2025-03-31 11:35:13,600 - install_ui.plugin_list_item - WARNING - Plugin info final pour delete_printer: {'name': "Suppression d'imprimante(s)", 'description': "Suppression d'une ou plusieurs imprimantes en fonction de l'IP", 'version': 1.0, 'category': 'Système', 'multiple': True, 'icon': '🖨', 'remote_execution': True, 'sudo': True, 'config_fields': {'printer_all': {'type': 'checkbox', 'label': 'Supprimer toutes les imprimantes', 'default': True, 'required': True}, 'printer_ip': {'type': 'ip', 'label': 'Adresse IP', 'description': "Adresse IP de l'imprimante", 'required': True, 'not_empty': True, 'dynamic_default': {'script': 'get_ip.py', 'function': 'get_local_ip', 'value_key': 'ip', 'path': '@[scripts]'}, 'enabled_if': {'field': 'printer_all', 'value': False}}}}
-2025-03-31 11:35:13,601 - install_ui.plugin_list_item - INFO - Composition de l'élément delete_printer, nom: Suppression d'imprimante(s), is_sequence: False
-2025-03-31 11:35:16,107 - install_ui.choice_screen - DEBUG - Bouton cliqué : configure_selected
-2025-03-31 11:35:16,107 - install_ui.choice_screen - DEBUG - Starting action_configure_selected
-2025-03-31 11:35:16,107 - install_ui.choice_screen - DEBUG - Selected plugins: [('delete_printer', 1)]
-2025-03-31 11:35:16,107 - install_ui.choice_screen - DEBUG - Creating PluginConfig instance
-2025-03-31 11:35:16,108 - install_ui.choice_screen - DEBUG - Using sequence file: None
-2025-03-31 11:35:16,108 - install_ui.config_screen - DEBUG - === Début Initialisation de PluginConfig ===
-2025-03-31 11:35:16,108 - install_ui.config_screen - DEBUG - Instances de plugins reçues: [('delete_printer', 1)]
-2025-03-31 11:35:16,108 - install_ui.config_screen - DEBUG - Création ConfigManager
-2025-03-31 11:35:16,108 - install_ui.config_screen - DEBUG - Chargement config SSH depuis: /media/nico/Drive/pcUtils_internet/ui/ssh_manager/ssh_fields.yml
-2025-03-31 11:35:16,123 - install_ui.config_manager - DEBUG - Global config 'ssh' loaded: {'name': 'Configuration SSH globale', 'icon': '🔒', 'description': "Paramètres de connexion pour l'exécution distante des plugins", 'hint': "Activez l'exécution distante sur au moins un plugin pour configurer SSH", 'fields': {'ssh_ips': {'type': 'text', 'label': 'Adresses IP (séparées par des virgules)', 'description': 'Peut inclure des caractères génériques (ex: 192.168.1.*) et des virgules', 'placeholder': '150.27.2.*', 'default': '192.168.1.136', 'required': True}, 'ssh_user': {'type': 'text', 'label': 'Utilisateur SSH', 'default': 'nico', 'required': True}, 'ssh_passwd': {'type': 'password', 'label': 'Mot de passe SSH', 'default': 'orion1111', 'required': True}, 'ssh_sms_enabled': {'type': 'checkbox', 'label': 'Authentification via la SMS', 'default': False}, 'ssh_sms': {'type': 'text', 'label': 'Nom de machine de la SMS', 'default': 'ggd027sf', 'placeholder': 'ggd027sf....', 'required': True, 'enabled_if': {'field': 'ssh_sms_enabled', 'value': True}}, 'ssh_exception_ips': {'type': 'text', 'label': "Adresses IP exclues de l'exception", 'placeholder': '150.27.2.200,150.27.2.21*,150.27.2.22*', 'required': False}, 'ssh_root_same': {'type': 'checkbox', 'label': 'Utiliser les mêmes identifiants pour sudo', 'description': "Utiliser les mêmes identifiants que ssh_user et ssh_passwd pour l'accès root", 'default': True}, 'ssh_root_user': {'type': 'text', 'label': 'Utilisateur root SSH', 'description': "Utilisateur à utiliser pour l'accès root via SSH", 'default': 'nico', 'required': True, 'enabled_if': {'field': 'ssh_root_same', 'value': False}}, 'ssh_root_passwd': {'type': 'password', 'label': 'Mot de passe root SSH', 'description': "Mot de passe à utiliser pour l'accès root via SSH", 'default': 'orion1111', 'required': True, 'enabled_if': {'field': 'ssh_root_same', 'value': False}}, 'ssh_port': {'type': 'text', 'label': 'Port SSH', 'description': 'Port SSH à utiliser (22 par défaut)', 'default': '22', 'required': False}}}
-2025-03-31 11:35:16,123 - install_ui.config_screen - DEBUG - Chargement config pour plugin: delete_printer
-2025-03-31 11:35:16,123 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: delete_printer
-2025-03-31 11:35:16,123 - install_ui.plugin_utils - DEBUG -   Test path: plugins/delete_printer_test (exists: False)
-2025-03-31 11:35:16,123 - install_ui.plugin_utils - DEBUG -   Base path: plugins/delete_printer (exists: True)
-2025-03-31 11:35:16,123 - install_ui.plugin_utils - DEBUG -   Returning base folder name: delete_printer
-2025-03-31 11:35:16,123 - install_ui.config_screen - DEBUG - Chargement config plugin depuis: /media/nico/Drive/pcUtils_internet/plugins/delete_printer/settings.yml
-2025-03-31 11:35:16,129 - install_ui.config_manager - DEBUG - Plugin config 'delete_printer' loaded
-2025-03-31 11:35:16,129 - install_ui.config_screen - DEBUG - [1] Valeur par défaut pour delete_printer.printer_all: True
-2025-03-31 11:35:16,129 - install_ui.config_screen - DEBUG - [1] Config initiale pour delete_printer_1: {'config': {'printer_all': True}}
-2025-03-31 11:35:16,129 - install_ui.sequence_config_manager - DEBUG - === DÉBUT FUSION DES CONFIGURATIONS ===
-2025-03-31 11:35:16,129 - install_ui.sequence_config_manager - DEBUG - Plugins à configurer: [('delete_printer', 1)]
-2025-03-31 11:35:16,129 - install_ui.sequence_config_manager - DEBUG - Traitement du plugin delete_printer_1
-2025-03-31 11:35:16,129 - install_ui.sequence_config_manager - DEBUG - Configuration finale pour delete_printer_1: {'plugin_name': 'delete_printer', 'config': {}}
-2025-03-31 11:35:16,129 - install_ui.sequence_config_manager - DEBUG - === CONFIGURATIONS FINALES: {'delete_printer_1': {'plugin_name': 'delete_printer', 'config': {}}} ===
-2025-03-31 11:35:16,129 - install_ui.config_screen - DEBUG - [4] Configs finales après fusion: {'delete_printer_1': {'plugin_name': 'delete_printer', 'config': {}}}
-2025-03-31 11:35:16,130 - install_ui.config_screen - DEBUG - PluginConfig initialized successfully
-2025-03-31 11:35:16,130 - install_ui.choice_screen - DEBUG - Les configurations seront gérées par SequenceConfigManager
-2025-03-31 11:35:16,130 - install_ui.choice_screen - DEBUG - Pushing config screen
-2025-03-31 11:35:16,156 - install_ui.config_screen - DEBUG - PluginConfig.compose() started
-2025-03-31 11:35:16,156 - install_ui.config_screen - DEBUG - Plugin instances to check for remote execution: [('delete_printer', 1)]
-2025-03-31 11:35:16,156 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: delete_printer
-2025-03-31 11:35:16,156 - install_ui.plugin_utils - DEBUG -   Test path: plugins/delete_printer_test (exists: False)
-2025-03-31 11:35:16,156 - install_ui.plugin_utils - DEBUG -   Base path: plugins/delete_printer (exists: True)
-2025-03-31 11:35:16,156 - install_ui.plugin_utils - DEBUG -   Returning base folder name: delete_printer
-2025-03-31 11:35:16,156 - install_ui.config_screen - DEBUG - Reading settings from: /media/nico/Drive/pcUtils_internet/plugins/delete_printer/settings.yml
-2025-03-31 11:35:16,162 - install_ui.config_screen - DEBUG - Loaded settings: {'name': "Suppression d'imprimante(s)", 'description': "Suppression d'une ou plusieurs imprimantes en fonction de l'IP", 'version': 1.0, 'category': 'Système', 'multiple': True, 'icon': '🖨', 'remote_execution': True, 'sudo': True, 'config_fields': {'printer_all': {'type': 'checkbox', 'label': 'Supprimer toutes les imprimantes', 'default': True, 'required': True}, 'printer_ip': {'type': 'ip', 'label': 'Adresse IP', 'description': "Adresse IP de l'imprimante", 'required': True, 'not_empty': True, 'dynamic_default': {'script': 'get_ip.py', 'function': 'get_local_ip', 'value_key': 'ip', 'path': '@[scripts]'}, 'enabled_if': {'field': 'printer_all', 'value': False}}}}
-2025-03-31 11:35:16,162 - install_ui.config_screen - DEBUG - Plugin delete_printer remote_execution: True
-2025-03-31 11:35:16,162 - install_ui.config_screen - DEBUG - Found remote execution plugin: delete_printer
-2025-03-31 11:35:16,162 - install_ui.config_screen - DEBUG - Remote execution plugins: ['delete_printer']
-2025-03-31 11:35:16,162 - install_ui.config_screen - DEBUG - Has remote plugins: True
-2025-03-31 11:35:16,163 - install_ui.config_screen - DEBUG - Remote plugins list: ['delete_printer']
-2025-03-31 11:35:16,163 - install_ui.config_screen - DEBUG - Creating config for plugin: delete_printer_1
-2025-03-31 11:35:16,163 - plugin_config_container - DEBUG - Initialisation du conteneur de configuration pour delete_printer
-2025-03-31 11:35:16,163 - template_manager - DEBUG - Templates directory: /media/nico/Drive/pcUtils_internet/templates
-2025-03-31 11:35:16,170 - template_manager - DEBUG - Gestionnaire de templates initialisé
-2025-03-31 11:35:16,170 - plugin_config_container - DEBUG - Gestionnaire de templates initialisé pour delete_printer
-2025-03-31 11:35:16,170 - install_ui.config_screen - DEBUG - Checking if delete_printer is in remote_plugins: True
-2025-03-31 11:35:16,170 - install_ui.config_screen - DEBUG - Adding remote execution checkbox for plugin delete_printer_1
-2025-03-31 11:35:16,171 - install_ui.config_screen - DEBUG - Adding empty SSH container (content will be added in on_mount)
-2025-03-31 11:35:16,172 - install_ui.config_screen - DEBUG - PluginConfig.compose() completed
-2025-03-31 11:35:16,189 - plugin_config_container - DEBUG - Composition du conteneur pour delete_printer
-2025-03-31 11:35:16,189 - template_manager - DEBUG - Aucun dossier de templates trouvé pour delete_printer
-2025-03-31 11:35:16,189 - plugin_config_container - DEBUG - Aucun template trouvé pour delete_printer
-2025-03-31 11:35:16,189 - plugin_config_container - DEBUG - Création du champ printer_all de type checkbox
-2025-03-31 11:35:16,190 - plugin_config_container - DEBUG - Champ printer_all créé et ajouté au dictionnaire
-2025-03-31 11:35:16,190 - plugin_config_container - DEBUG - Gestionnaire d'événements ajouté pour printer_all
-2025-03-31 11:35:16,190 - plugin_config_container - DEBUG - Création du champ printer_ip de type ip
-2025-03-31 11:35:16,190 - install_ui.config_field - INFO - Attempting to get dynamic default for field: printer_ip
-2025-03-31 11:35:16,190 - install_ui.config_field - INFO - Field config: {'type': 'ip', 'label': 'Adresse IP', 'description': "Adresse IP de l'imprimante", 'required': True, 'not_empty': True, 'dynamic_default': {'script': 'get_ip.py', 'function': 'get_local_ip', 'value_key': 'ip', 'path': '@[scripts]'}, 'enabled_if': {'field': 'printer_all', 'value': False}, 'id': 'printer_ip'}
-2025-03-31 11:35:16,190 - install_ui.config_field - INFO - Loading script from: /media/nico/Drive/pcUtils_internet/ui/config_screen/../../scripts/get_ip.py
-2025-03-31 11:35:16,191 - install_ui.config_field - INFO - Dynamic default value obtained: (True, {'ip': '192.168.1.220'})
-2025-03-31 11:35:16,191 - install_ui.ip_field - DEBUG - 🔔 set_value(192.168.1.220) pour printer_ip, update_input=True
-2025-03-31 11:35:16,191 - install_ui.ip_field - DEBUG - 💾 Valeur interne mise à jour pour printer_ip: '' → '192.168.1.220'
-2025-03-31 11:35:16,191 - install_ui.ip_field - DEBUG - Widget input pas encore créé pour printer_ip, valeur en attente: '192.168.1.220'
-2025-03-31 11:35:16,191 - install_ui.ip_field - DEBUG - ✅ set_value réussi pour printer_ip
-2025-03-31 11:35:16,191 - install_ui.ip_field - DEBUG - Initialisation du champ IP printer_ip
-2025-03-31 11:35:16,191 - plugin_config_container - DEBUG - Champ printer_ip créé et ajouté au dictionnaire
-2025-03-31 11:35:16,191 - plugin_config_container - DEBUG - Ajout du champ d'exécution distante pour delete_printer
-2025-03-31 11:35:16,199 - install_ui.checkbox_field - DEBUG - 💻 Création du checkbox printer_all avec valeur True
-2025-03-31 11:35:16,201 - install_ui.ip_field - DEBUG - 🎨 Composition du champ IP printer_ip
-2025-03-31 11:35:16,201 - install_ui.config_field - DEBUG - Field printer_ip: enabled_if={'field': 'printer_all', 'value': False}, dep_field=printer_all, dep_value=True
-2025-03-31 11:35:16,201 - install_ui.config_field - DEBUG - Comparaison pour printer_ip: True == False
-2025-03-31 11:35:16,201 - install_ui.config_field - DEBUG - Field printer_ip should be initially disabled
-2025-03-31 11:35:16,202 - install_ui.ip_field - DEBUG - 💻 Création du widget IP pour printer_ip avec valeur: '192.168.1.220'
-2025-03-31 11:35:16,203 - install_ui.ip_field - DEBUG - Champ IP printer_ip désactivé initialement
-2025-03-31 11:35:16,213 - install_ui.checkbox_field - DEBUG - 💻 Création du checkbox remote_exec_delete_printer_1 avec valeur False
-2025-03-31 11:35:16,231 - install_ui.ip_field - DEBUG - ✓ Valeur IP déjà à '192.168.1.220' pour printer_ip
-2025-03-31 11:35:16,232 - plugin_config_container - DEBUG - Montage du conteneur pour delete_printer
-2025-03-31 11:35:16,232 - plugin_config_container - DEBUG - Application des valeurs prédéfinies pour delete_printer
-2025-03-31 11:35:16,232 - plugin_config_container - DEBUG - Configuration trouvée pour delete_printer_1: {'plugin_name': 'delete_printer', 'config': {}}
-2025-03-31 11:35:16,233 - install_ui.config_screen - DEBUG - PluginConfig.on_mount() completed
-2025-03-31 11:35:16,358 - install_ui.config_screen - DEBUG - Création des champs de configuration
-2025-03-31 11:35:16,358 - install_ui.config_screen - DEBUG - Nombre de containers trouvés: 2
-2025-03-31 11:35:16,358 - install_ui.config_screen - DEBUG - Container ajouté: plugin_delete_printer_1
-2025-03-31 11:35:16,359 - install_ui.config_screen - DEBUG - Champ ajouté: printer_all
-2025-03-31 11:35:16,359 - install_ui.config_screen - DEBUG - Champ ajouté: printer_ip
-2025-03-31 11:35:16,359 - install_ui.config_screen - DEBUG - Container ajouté: ssh-config
-2025-03-31 11:35:16,359 - install_ui.config_screen - DEBUG - Populating SSH container with fields
-2025-03-31 11:35:16,359 - install_ui.config_screen - WARNING - No SSH fields found in configuration
-2025-03-31 11:35:16,359 - install_ui.config_screen - DEBUG - Nombre total de containers indexés: 2
-2025-03-31 11:35:16,359 - install_ui.config_screen - DEBUG - Nombre total de champs indexés: 2
-2025-03-31 11:35:16,360 - install_ui.choice_screen - DEBUG - Config screen pushed successfully
-2025-03-31 11:35:16,360 - install_ui.choice_screen - DEBUG - Config returned: True
-2025-03-31 11:35:16,360 - install_ui.choice_screen - DEBUG - Pas de nouvelle config pour delete_printer (ID: 1)
-2025-03-31 11:35:16,360 - install_ui.choice_screen - DEBUG - Mode manuel: retour à l'écran de choix
-2025-03-31 11:35:16,361 - install_ui.choice_screen - DEBUG - Panneau SelectedPluginsPanel non trouvé - probablement dans un autre écran
-2025-03-31 11:35:18,350 - install_ui.checkbox_field - DEBUG - Valeur de la checkbox remote_exec_delete_printer_1 changée de False à True
-2025-03-31 11:35:18,350 - install_ui.config_container - DEBUG - 🔄 DÉBUT mise à jour des champs dépendants de remote_exec_delete_printer_1 (valeur=True)
-2025-03-31 11:35:18,350 - install_ui.config_container - DEBUG - Champs disponibles: ['printer_all', 'printer_ip']
-2025-03-31 11:35:18,350 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour printer_all
-2025-03-31 11:35:18,350 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour printer_ip
-2025-03-31 11:35:18,350 - install_ui.config_container - DEBUG - ✓ FIN mise à jour des dépendances pour remote_exec_delete_printer_1
-2025-03-31 11:35:18,351 - install_ui.config_container - DEBUG - Checkbox changed: checkbox_delete_printer_remote_exec_delete_printer_1 -> True
-2025-03-31 11:35:18,351 - plugin_config_container - DEBUG - Changement d'état de la case à cocher checkbox_delete_printer_remote_exec_delete_printer_1
-2025-03-31 11:35:18,351 - install_ui.config_container - DEBUG - Checkbox changed: checkbox_delete_printer_remote_exec_delete_printer_1 -> True
-2025-03-31 11:35:18,352 - install_ui.config_screen - DEBUG - Checkbox changed: checkbox_delete_printer_remote_exec_delete_printer_1 -> True
-2025-03-31 11:35:18,352 - install_ui.config_screen - DEBUG - Toggling SSH config: enable=True
-2025-03-31 11:36:03,954 - install_ui.choice_screen - DEBUG - Quitting application
+2025-03-31 12:00:45,754 - install_ui.main - DEBUG - Répertoire de base de l'application: /media/nico/Drive/pcUtils_internet
+2025-03-31 12:00:45,755 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/cryptography-44.0.2-cp39-abi3-manylinux_2_34_x86_64 au sys.path
+2025-03-31 12:00:45,755 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/textual-2.1.1-py3-none-any au sys.path
+2025-03-31 12:00:45,755 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/platformdirs-4.3.6-py3-none-any au sys.path
+2025-03-31 12:00:45,755 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/pygments-2.19.1-py3-none-any au sys.path
+2025-03-31 12:00:45,755 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64 au sys.path
+2025-03-31 12:00:45,755 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/mdurl-0.1.2-py3-none-any au sys.path
+2025-03-31 12:00:45,755 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/uc_micro_py-1.0.3-py3-none-any au sys.path
+2025-03-31 12:00:45,755 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/paramiko-3.5.1-py3-none-any au sys.path
+2025-03-31 12:00:45,755 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/pexpect-4.9.0-py2.py3-none-any au sys.path
+2025-03-31 12:00:45,755 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/PyNaCl-1.5.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64 au sys.path
+2025-03-31 12:00:45,755 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/linkify_it_py-2.0.3-py3-none-any au sys.path
+2025-03-31 12:00:45,756 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/textual-2.1.2-py3-none-any au sys.path
+2025-03-31 12:00:45,756 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/typing_extensions-4.12.2-py3-none-any au sys.path
+2025-03-31 12:00:45,756 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/mdit_py_plugins-0.4.2-py3-none-any au sys.path
+2025-03-31 12:00:45,756 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/pycparser-2.22-py3-none-any au sys.path
+2025-03-31 12:00:45,756 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/cffi-1.17.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64 au sys.path
+2025-03-31 12:00:45,756 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/platformdirs-4.3.7-py3-none-any au sys.path
+2025-03-31 12:00:45,756 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/ruamel.yaml-0.18.10-py3-none-any au sys.path
+2025-03-31 12:00:45,756 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/rich-13.9.4-py3-none-any au sys.path
+2025-03-31 12:00:45,756 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/bcrypt-4.3.0-cp39-abi3-manylinux_2_34_x86_64 au sys.path
+2025-03-31 12:00:45,756 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/markdown_it_py-3.0.0-py3-none-any au sys.path
+2025-03-31 12:00:45,756 - install_ui.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/ptyprocess-0.7.0-py2.py3-none-any au sys.path
+2025-03-31 12:00:45,756 - install_ui.main - DEBUG - sys.path complet: ['/media/nico/Drive/pcUtils_internet/libs/ptyprocess-0.7.0-py2.py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/markdown_it_py-3.0.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/bcrypt-4.3.0-cp39-abi3-manylinux_2_34_x86_64', '/media/nico/Drive/pcUtils_internet/libs/rich-13.9.4-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/ruamel.yaml-0.18.10-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/platformdirs-4.3.7-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/cffi-1.17.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pycparser-2.22-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/mdit_py_plugins-0.4.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/typing_extensions-4.12.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/textual-2.1.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/linkify_it_py-2.0.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/PyNaCl-1.5.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pexpect-4.9.0-py2.py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/paramiko-3.5.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/uc_micro_py-1.0.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/mdurl-0.1.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pygments-2.19.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/platformdirs-4.3.6-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/textual-2.1.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/cryptography-44.0.2-cp39-abi3-manylinux_2_34_x86_64', '/media/nico/Drive/pcUtils_internet', '/usr/lib/python310.zip', '/usr/lib/python3.10', '/usr/lib/python3.10/lib-dynload', '/usr/local/lib/python3.10/dist-packages', '/usr/lib/python3/dist-packages']
+2025-03-31 12:00:45,769 - install_ui.main - DEBUG - ruamel.yaml importé avec succès depuis /media/nico/Drive/pcUtils_internet/libs/ruamel.yaml-0.18.10-py3-none-any/ruamel/yaml/__init__.py
+2025-03-31 12:00:45,999 - install_ui.choice_screen - DEBUG - Initialisation de l'application Choice
+2025-03-31 12:00:45,999 - sequence_handler - DEBUG - Dossier des séquences : sequences
+2025-03-31 12:00:45,999 - template_handler - DEBUG - Dossier des templates : templates
+2025-03-31 12:00:45,999 - template_handler - DEBUG - Fichier de schéma : templates/template_schema.yml
+2025-03-31 12:00:45,999 - asyncio - DEBUG - Using selector: EpollSelector
+2025-03-31 12:00:46,021 - install_ui.plugin_utils - DEBUG - Loading plugin info for: lara_install
+2025-03-31 12:00:46,021 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: lara_install
+2025-03-31 12:00:46,021 - install_ui.plugin_utils - DEBUG -   Test path: plugins/lara_install_test (exists: False)
+2025-03-31 12:00:46,021 - install_ui.plugin_utils - DEBUG -   Base path: plugins/lara_install (exists: True)
+2025-03-31 12:00:46,021 - install_ui.plugin_utils - DEBUG -   Returning base folder name: lara_install
+2025-03-31 12:00:46,021 - install_ui.plugin_utils - DEBUG -   Folder name: lara_install
+2025-03-31 12:00:46,021 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/lara_install/settings.yml (exists: True)
+2025-03-31 12:00:46,032 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for lara_install
+2025-03-31 12:00:46,032 - template_handler - DEBUG - Aucun dossier de templates trouvé pour lara_install
+2025-03-31 12:00:46,032 - install_ui.plugin_utils - DEBUG - Loading plugin info for: home_copy
+2025-03-31 12:00:46,033 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: home_copy
+2025-03-31 12:00:46,033 - install_ui.plugin_utils - DEBUG -   Test path: plugins/home_copy_test (exists: False)
+2025-03-31 12:00:46,033 - install_ui.plugin_utils - DEBUG -   Base path: plugins/home_copy (exists: True)
+2025-03-31 12:00:46,033 - install_ui.plugin_utils - DEBUG -   Returning base folder name: home_copy
+2025-03-31 12:00:46,033 - install_ui.plugin_utils - DEBUG -   Folder name: home_copy
+2025-03-31 12:00:46,033 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/home_copy/settings.yml (exists: True)
+2025-03-31 12:00:46,048 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for home_copy
+2025-03-31 12:00:46,048 - template_handler - DEBUG - Aucun dossier de templates trouvé pour home_copy
+2025-03-31 12:00:46,048 - install_ui.plugin_utils - DEBUG - Loading plugin info for: add_printer
+2025-03-31 12:00:46,048 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
+2025-03-31 12:00:46,048 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-31 12:00:46,048 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-31 12:00:46,048 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-31 12:00:46,049 - install_ui.plugin_utils - DEBUG -   Folder name: add_printer
+2025-03-31 12:00:46,049 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/add_printer/settings.yml (exists: True)
+2025-03-31 12:00:46,058 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for add_printer
+2025-03-31 12:00:46,066 - template_handler - DEBUG - Schéma de validation chargé
+2025-03-31 12:00:46,068 - template_handler - DEBUG - Validation du template contre le schéma réussie
+2025-03-31 12:00:46,068 - template_handler - DEBUG - Template chargé : solc.yml
+2025-03-31 12:00:46,070 - template_handler - DEBUG - Validation du template contre le schéma réussie
+2025-03-31 12:00:46,070 - template_handler - DEBUG - Template chargé : amfreville_bas.yml
+2025-03-31 12:00:46,071 - template_handler - DEBUG - Validation du template contre le schéma réussie
+2025-03-31 12:00:46,071 - template_handler - DEBUG - Template chargé : default.yml
+2025-03-31 12:00:46,071 - install_ui.plugin_utils - DEBUG - Loading plugin info for: scan_plugin
+2025-03-31 12:00:46,071 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: scan_plugin
+2025-03-31 12:00:46,071 - install_ui.plugin_utils - DEBUG -   Test path: plugins/scan_plugin_test (exists: False)
+2025-03-31 12:00:46,071 - install_ui.plugin_utils - DEBUG -   Base path: plugins/scan_plugin (exists: True)
+2025-03-31 12:00:46,071 - install_ui.plugin_utils - DEBUG -   Returning base folder name: scan_plugin
+2025-03-31 12:00:46,071 - install_ui.plugin_utils - DEBUG -   Folder name: scan_plugin
+2025-03-31 12:00:46,071 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/scan_plugin/settings.yml (exists: True)
+2025-03-31 12:00:46,079 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for scan_plugin
+2025-03-31 12:00:46,079 - template_handler - DEBUG - Aucun dossier de templates trouvé pour scan_plugin
+2025-03-31 12:00:46,079 - install_ui.plugin_utils - DEBUG - Loading plugin info for: delete_printer
+2025-03-31 12:00:46,079 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: delete_printer
+2025-03-31 12:00:46,079 - install_ui.plugin_utils - DEBUG -   Test path: plugins/delete_printer_test (exists: False)
+2025-03-31 12:00:46,079 - install_ui.plugin_utils - DEBUG -   Base path: plugins/delete_printer (exists: True)
+2025-03-31 12:00:46,079 - install_ui.plugin_utils - DEBUG -   Returning base folder name: delete_printer
+2025-03-31 12:00:46,079 - install_ui.plugin_utils - DEBUG -   Folder name: delete_printer
+2025-03-31 12:00:46,079 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/delete_printer/settings.yml (exists: True)
+2025-03-31 12:00:46,085 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for delete_printer
+2025-03-31 12:00:46,085 - template_handler - DEBUG - Aucun dossier de templates trouvé pour delete_printer
+2025-03-31 12:00:46,090 - install_ui.plugin_utils - DEBUG - Loading plugin info for: add_printer
+2025-03-31 12:00:46,090 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: add_printer
+2025-03-31 12:00:46,090 - install_ui.plugin_utils - DEBUG -   Test path: plugins/add_printer_test (exists: False)
+2025-03-31 12:00:46,090 - install_ui.plugin_utils - DEBUG -   Base path: plugins/add_printer (exists: True)
+2025-03-31 12:00:46,090 - install_ui.plugin_utils - DEBUG -   Returning base folder name: add_printer
+2025-03-31 12:00:46,090 - install_ui.plugin_utils - DEBUG -   Folder name: add_printer
+2025-03-31 12:00:46,090 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/add_printer/settings.yml (exists: True)
+2025-03-31 12:00:46,099 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for add_printer
+2025-03-31 12:00:46,099 - install_ui.plugin_utils - DEBUG - Loading plugin info for: scan_plugin
+2025-03-31 12:00:46,099 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: scan_plugin
+2025-03-31 12:00:46,099 - install_ui.plugin_utils - DEBUG -   Test path: plugins/scan_plugin_test (exists: False)
+2025-03-31 12:00:46,099 - install_ui.plugin_utils - DEBUG -   Base path: plugins/scan_plugin (exists: True)
+2025-03-31 12:00:46,099 - install_ui.plugin_utils - DEBUG -   Returning base folder name: scan_plugin
+2025-03-31 12:00:46,099 - install_ui.plugin_utils - DEBUG -   Folder name: scan_plugin
+2025-03-31 12:00:46,099 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/scan_plugin/settings.yml (exists: True)
+2025-03-31 12:00:46,107 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for scan_plugin
+2025-03-31 12:00:46,107 - install_ui.plugin_utils - DEBUG - Loading plugin info for: lara_install
+2025-03-31 12:00:46,107 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: lara_install
+2025-03-31 12:00:46,107 - install_ui.plugin_utils - DEBUG -   Test path: plugins/lara_install_test (exists: False)
+2025-03-31 12:00:46,107 - install_ui.plugin_utils - DEBUG -   Base path: plugins/lara_install (exists: True)
+2025-03-31 12:00:46,107 - install_ui.plugin_utils - DEBUG -   Returning base folder name: lara_install
+2025-03-31 12:00:46,107 - install_ui.plugin_utils - DEBUG -   Folder name: lara_install
+2025-03-31 12:00:46,107 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/lara_install/settings.yml (exists: True)
+2025-03-31 12:00:46,109 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for lara_install
+2025-03-31 12:00:46,109 - install_ui.plugin_utils - DEBUG - Loading plugin info for: home_copy
+2025-03-31 12:00:46,109 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: home_copy
+2025-03-31 12:00:46,109 - install_ui.plugin_utils - DEBUG -   Test path: plugins/home_copy_test (exists: False)
+2025-03-31 12:00:46,109 - install_ui.plugin_utils - DEBUG -   Base path: plugins/home_copy (exists: True)
+2025-03-31 12:00:46,109 - install_ui.plugin_utils - DEBUG -   Returning base folder name: home_copy
+2025-03-31 12:00:46,110 - install_ui.plugin_utils - DEBUG -   Folder name: home_copy
+2025-03-31 12:00:46,110 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/home_copy/settings.yml (exists: True)
+2025-03-31 12:00:46,122 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for home_copy
+2025-03-31 12:00:46,122 - install_ui.plugin_utils - DEBUG - Loading plugin info for: delete_printer
+2025-03-31 12:00:46,123 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: delete_printer
+2025-03-31 12:00:46,123 - install_ui.plugin_utils - DEBUG -   Test path: plugins/delete_printer_test (exists: False)
+2025-03-31 12:00:46,123 - install_ui.plugin_utils - DEBUG -   Base path: plugins/delete_printer (exists: True)
+2025-03-31 12:00:46,123 - install_ui.plugin_utils - DEBUG -   Returning base folder name: delete_printer
+2025-03-31 12:00:46,123 - install_ui.plugin_utils - DEBUG -   Folder name: delete_printer
+2025-03-31 12:00:46,123 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/delete_printer/settings.yml (exists: True)
+2025-03-31 12:00:46,128 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for delete_printer
+2025-03-31 12:00:47,372 - install_ui.plugin_utils - DEBUG - Loading plugin info for: delete_printer
+2025-03-31 12:00:47,372 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: delete_printer
+2025-03-31 12:00:47,372 - install_ui.plugin_utils - DEBUG -   Test path: plugins/delete_printer_test (exists: False)
+2025-03-31 12:00:47,373 - install_ui.plugin_utils - DEBUG -   Base path: plugins/delete_printer (exists: True)
+2025-03-31 12:00:47,374 - install_ui.plugin_utils - DEBUG -   Returning base folder name: delete_printer
+2025-03-31 12:00:47,374 - install_ui.plugin_utils - DEBUG -   Folder name: delete_printer
+2025-03-31 12:00:47,375 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/delete_printer/settings.yml (exists: True)
+2025-03-31 12:00:47,400 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for delete_printer
+2025-03-31 12:00:47,404 - install_ui.choice_screen - DEBUG - Changement sélection: delete_printer -> True
+2025-03-31 12:00:47,404 - install_ui.plugin_utils - DEBUG - Loading plugin info for: delete_printer
+2025-03-31 12:00:47,404 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: delete_printer
+2025-03-31 12:00:47,404 - install_ui.plugin_utils - DEBUG -   Test path: plugins/delete_printer_test (exists: False)
+2025-03-31 12:00:47,404 - install_ui.plugin_utils - DEBUG -   Base path: plugins/delete_printer (exists: True)
+2025-03-31 12:00:47,404 - install_ui.plugin_utils - DEBUG -   Returning base folder name: delete_printer
+2025-03-31 12:00:47,405 - install_ui.plugin_utils - DEBUG -   Folder name: delete_printer
+2025-03-31 12:00:47,405 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/delete_printer/settings.yml (exists: True)
+2025-03-31 12:00:47,415 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for delete_printer
+2025-03-31 12:00:47,415 - install_ui.choice_screen - DEBUG - Plugin ajouté: delete_printer (id: 1)
+2025-03-31 12:00:47,416 - install_ui.plugin_list_item - INFO - Plugin avec config: delete_printer, config: {}
+2025-03-31 12:00:47,416 - install_ui.plugin_list_item - WARNING - Initialisation de PluginListItem: delete_printer, is_sequence: False, type: <class 'str'>, startswith: False
+2025-03-31 12:00:47,416 - install_ui.plugin_utils - DEBUG - Loading plugin info for: delete_printer
+2025-03-31 12:00:47,416 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: delete_printer
+2025-03-31 12:00:47,416 - install_ui.plugin_utils - DEBUG -   Test path: plugins/delete_printer_test (exists: False)
+2025-03-31 12:00:47,416 - install_ui.plugin_utils - DEBUG -   Base path: plugins/delete_printer (exists: True)
+2025-03-31 12:00:47,416 - install_ui.plugin_utils - DEBUG -   Returning base folder name: delete_printer
+2025-03-31 12:00:47,416 - install_ui.plugin_utils - DEBUG -   Folder name: delete_printer
+2025-03-31 12:00:47,417 - install_ui.plugin_utils - DEBUG -   Settings path: plugins/delete_printer/settings.yml (exists: True)
+2025-03-31 12:00:47,423 - install_ui.plugin_utils - DEBUG -   Successfully loaded settings for delete_printer
+2025-03-31 12:00:47,424 - install_ui.plugin_list_item - WARNING - Plugin info final pour delete_printer: {'name': "Suppression d'imprimante(s)", 'description': "Suppression d'une ou plusieurs imprimantes en fonction de l'IP", 'version': 1.0, 'category': 'Système', 'multiple': True, 'icon': '🖨', 'remote_execution': True, 'sudo': True, 'config_fields': {'printer_all': {'type': 'checkbox', 'label': 'Supprimer toutes les imprimantes', 'default': True, 'required': True}, 'printer_ip': {'type': 'ip', 'label': 'Adresse IP', 'description': "Adresse IP de l'imprimante", 'required': True, 'not_empty': True, 'dynamic_default': {'script': 'get_ip.py', 'function': 'get_local_ip', 'value_key': 'ip', 'path': '@[scripts]'}, 'enabled_if': {'field': 'printer_all', 'value': False}}}}
+2025-03-31 12:00:47,425 - install_ui.plugin_list_item - INFO - Composition de l'élément delete_printer, nom: Suppression d'imprimante(s), is_sequence: False
+2025-03-31 12:00:48,267 - install_ui.choice_screen - DEBUG - Bouton cliqué : configure_selected
+2025-03-31 12:00:48,268 - install_ui.choice_screen - DEBUG - Starting action_configure_selected
+2025-03-31 12:00:48,268 - install_ui.choice_screen - DEBUG - Selected plugins: [('delete_printer', 1)]
+2025-03-31 12:00:48,268 - install_ui.choice_screen - DEBUG - Creating PluginConfig instance
+2025-03-31 12:00:48,268 - install_ui.choice_screen - DEBUG - Using sequence file: None
+2025-03-31 12:00:48,268 - install_ui.config_screen - DEBUG - === Début Initialisation de PluginConfig ===
+2025-03-31 12:00:48,268 - install_ui.config_screen - DEBUG - Instances de plugins reçues: [('delete_printer', 1)]
+2025-03-31 12:00:48,268 - install_ui.config_screen - DEBUG - Création ConfigManager
+2025-03-31 12:00:48,268 - install_ui.config_screen - DEBUG - Chargement config SSH depuis: /media/nico/Drive/pcUtils_internet/ui/ssh_manager/ssh_fields.yml
+2025-03-31 12:00:48,284 - install_ui.config_manager - DEBUG - Global config 'ssh' loaded: {'name': 'Configuration SSH globale', 'icon': '🔒', 'description': "Paramètres de connexion pour l'exécution distante des plugins", 'hint': "Activez l'exécution distante sur au moins un plugin pour configurer SSH", 'config_fields': {'ssh_ips': {'type': 'text', 'label': 'Adresses IP (séparées par des virgules)', 'description': 'Peut inclure des caractères génériques (ex: 192.168.1.*) et des virgules', 'placeholder': '150.27.2.*', 'default': '192.168.1.136', 'required': True}, 'ssh_user': {'type': 'text', 'label': 'Utilisateur SSH', 'default': 'nico', 'required': True}, 'ssh_passwd': {'type': 'password', 'label': 'Mot de passe SSH', 'default': 'orion1111', 'required': True}, 'ssh_sms_enabled': {'type': 'checkbox', 'label': 'Authentification via la SMS', 'default': False}, 'ssh_sms': {'type': 'text', 'label': 'Nom de machine de la SMS', 'default': 'ggd027sf', 'placeholder': 'ggd027sf....', 'required': True, 'enabled_if': {'field': 'ssh_sms_enabled', 'value': True}}, 'ssh_exception_ips': {'type': 'text', 'label': "Adresses IP exclues de l'exception", 'placeholder': '150.27.2.200,150.27.2.21*,150.27.2.22*', 'required': False}, 'ssh_root_same': {'type': 'checkbox', 'label': 'Utiliser les mêmes identifiants pour sudo', 'description': "Utiliser les mêmes identifiants que ssh_user et ssh_passwd pour l'accès root", 'default': True}, 'ssh_root_user': {'type': 'text', 'label': 'Utilisateur root SSH', 'description': "Utilisateur à utiliser pour l'accès root via SSH", 'default': 'nico', 'required': True, 'enabled_if': {'field': 'ssh_root_same', 'value': False}}, 'ssh_root_passwd': {'type': 'password', 'label': 'Mot de passe root SSH', 'description': "Mot de passe à utiliser pour l'accès root via SSH", 'default': 'orion1111', 'required': True, 'enabled_if': {'field': 'ssh_root_same', 'value': False}}, 'ssh_port': {'type': 'text', 'label': 'Port SSH', 'description': 'Port SSH à utiliser (22 par défaut)', 'default': '22', 'required': False}}}
+2025-03-31 12:00:48,284 - install_ui.config_screen - DEBUG - Chargement config pour plugin: delete_printer
+2025-03-31 12:00:48,284 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: delete_printer
+2025-03-31 12:00:48,284 - install_ui.plugin_utils - DEBUG -   Test path: plugins/delete_printer_test (exists: False)
+2025-03-31 12:00:48,284 - install_ui.plugin_utils - DEBUG -   Base path: plugins/delete_printer (exists: True)
+2025-03-31 12:00:48,284 - install_ui.plugin_utils - DEBUG -   Returning base folder name: delete_printer
+2025-03-31 12:00:48,284 - install_ui.config_screen - DEBUG - Chargement config plugin depuis: /media/nico/Drive/pcUtils_internet/plugins/delete_printer/settings.yml
+2025-03-31 12:00:48,290 - install_ui.config_manager - DEBUG - Plugin config 'delete_printer' loaded
+2025-03-31 12:00:48,290 - install_ui.config_screen - DEBUG - [1] Valeur par défaut pour delete_printer.printer_all: True
+2025-03-31 12:00:48,290 - install_ui.config_screen - DEBUG - [1] Config initiale pour delete_printer_1: {'config': {'printer_all': True}}
+2025-03-31 12:00:48,290 - install_ui.sequence_config_manager - DEBUG - === DÉBUT FUSION DES CONFIGURATIONS ===
+2025-03-31 12:00:48,290 - install_ui.sequence_config_manager - DEBUG - Plugins à configurer: [('delete_printer', 1)]
+2025-03-31 12:00:48,290 - install_ui.sequence_config_manager - DEBUG - Traitement du plugin delete_printer_1
+2025-03-31 12:00:48,290 - install_ui.sequence_config_manager - DEBUG - Configuration finale pour delete_printer_1: {'plugin_name': 'delete_printer', 'config': {}}
+2025-03-31 12:00:48,290 - install_ui.sequence_config_manager - DEBUG - === CONFIGURATIONS FINALES: {'delete_printer_1': {'plugin_name': 'delete_printer', 'config': {}}} ===
+2025-03-31 12:00:48,291 - install_ui.config_screen - DEBUG - [4] Configs finales après fusion: {'delete_printer_1': {'plugin_name': 'delete_printer', 'config': {}}}
+2025-03-31 12:00:48,291 - install_ui.config_screen - DEBUG - PluginConfig initialized successfully
+2025-03-31 12:00:48,291 - install_ui.choice_screen - DEBUG - Les configurations seront gérées par SequenceConfigManager
+2025-03-31 12:00:48,291 - install_ui.choice_screen - DEBUG - Pushing config screen
+2025-03-31 12:00:48,319 - install_ui.config_screen - DEBUG - PluginConfig.compose() started
+2025-03-31 12:00:48,319 - install_ui.config_screen - DEBUG - Plugin instances to check for remote execution: [('delete_printer', 1)]
+2025-03-31 12:00:48,319 - install_ui.plugin_utils - DEBUG - Getting folder name for plugin: delete_printer
+2025-03-31 12:00:48,319 - install_ui.plugin_utils - DEBUG -   Test path: plugins/delete_printer_test (exists: False)
+2025-03-31 12:00:48,319 - install_ui.plugin_utils - DEBUG -   Base path: plugins/delete_printer (exists: True)
+2025-03-31 12:00:48,319 - install_ui.plugin_utils - DEBUG -   Returning base folder name: delete_printer
+2025-03-31 12:00:48,319 - install_ui.config_screen - DEBUG - Reading settings from: /media/nico/Drive/pcUtils_internet/plugins/delete_printer/settings.yml
+2025-03-31 12:00:48,325 - install_ui.config_screen - DEBUG - Loaded settings: {'name': "Suppression d'imprimante(s)", 'description': "Suppression d'une ou plusieurs imprimantes en fonction de l'IP", 'version': 1.0, 'category': 'Système', 'multiple': True, 'icon': '🖨', 'remote_execution': True, 'sudo': True, 'config_fields': {'printer_all': {'type': 'checkbox', 'label': 'Supprimer toutes les imprimantes', 'default': True, 'required': True}, 'printer_ip': {'type': 'ip', 'label': 'Adresse IP', 'description': "Adresse IP de l'imprimante", 'required': True, 'not_empty': True, 'dynamic_default': {'script': 'get_ip.py', 'function': 'get_local_ip', 'value_key': 'ip', 'path': '@[scripts]'}, 'enabled_if': {'field': 'printer_all', 'value': False}}}}
+2025-03-31 12:00:48,325 - install_ui.config_screen - DEBUG - Plugin delete_printer remote_execution: True
+2025-03-31 12:00:48,325 - install_ui.config_screen - DEBUG - Found remote execution plugin: delete_printer
+2025-03-31 12:00:48,326 - install_ui.config_screen - DEBUG - Remote execution plugins: ['delete_printer']
+2025-03-31 12:00:48,326 - install_ui.config_screen - DEBUG - Has remote plugins: True
+2025-03-31 12:00:48,326 - install_ui.config_screen - DEBUG - Remote plugins list: ['delete_printer']
+2025-03-31 12:00:48,326 - install_ui.config_screen - DEBUG - Creating config for plugin: delete_printer_1
+2025-03-31 12:00:48,326 - plugin_config_container - DEBUG - Initialisation du conteneur de configuration pour delete_printer
+2025-03-31 12:00:48,326 - template_manager - DEBUG - Templates directory: /media/nico/Drive/pcUtils_internet/templates
+2025-03-31 12:00:48,333 - template_manager - DEBUG - Gestionnaire de templates initialisé
+2025-03-31 12:00:48,333 - plugin_config_container - DEBUG - Gestionnaire de templates initialisé pour delete_printer
+2025-03-31 12:00:48,333 - install_ui.config_screen - DEBUG - Checking if delete_printer is in remote_plugins: True
+2025-03-31 12:00:48,333 - install_ui.config_screen - DEBUG - Adding remote execution checkbox for plugin delete_printer_1
+2025-03-31 12:00:48,334 - install_ui.config_screen - DEBUG - Adding empty SSH container (content will be added in on_mount)
+2025-03-31 12:00:48,335 - install_ui.config_screen - DEBUG - PluginConfig.compose() completed
+2025-03-31 12:00:48,353 - plugin_config_container - DEBUG - Composition du conteneur pour delete_printer
+2025-03-31 12:00:48,354 - template_manager - DEBUG - Aucun dossier de templates trouvé pour delete_printer
+2025-03-31 12:00:48,354 - plugin_config_container - DEBUG - Aucun template trouvé pour delete_printer
+2025-03-31 12:00:48,354 - plugin_config_container - DEBUG - Création du champ printer_all de type checkbox
+2025-03-31 12:00:48,354 - plugin_config_container - DEBUG - Champ printer_all créé et ajouté au dictionnaire
+2025-03-31 12:00:48,354 - plugin_config_container - DEBUG - Gestionnaire d'événements ajouté pour printer_all
+2025-03-31 12:00:48,354 - plugin_config_container - DEBUG - Création du champ printer_ip de type ip
+2025-03-31 12:00:48,355 - install_ui.config_field - INFO - Attempting to get dynamic default for field: printer_ip
+2025-03-31 12:00:48,355 - install_ui.config_field - INFO - Field config: {'type': 'ip', 'label': 'Adresse IP', 'description': "Adresse IP de l'imprimante", 'required': True, 'not_empty': True, 'dynamic_default': {'script': 'get_ip.py', 'function': 'get_local_ip', 'value_key': 'ip', 'path': '@[scripts]'}, 'enabled_if': {'field': 'printer_all', 'value': False}, 'id': 'printer_ip'}
+2025-03-31 12:00:48,355 - install_ui.config_field - INFO - Loading script from: /media/nico/Drive/pcUtils_internet/ui/config_screen/../../scripts/get_ip.py
+2025-03-31 12:00:48,355 - install_ui.config_field - INFO - Dynamic default value obtained: (True, {'ip': '192.168.1.220'})
+2025-03-31 12:00:48,355 - install_ui.ip_field - DEBUG - 🔔 set_value(192.168.1.220) pour printer_ip, update_input=True
+2025-03-31 12:00:48,356 - install_ui.ip_field - DEBUG - 💾 Valeur interne mise à jour pour printer_ip: '' → '192.168.1.220'
+2025-03-31 12:00:48,356 - install_ui.ip_field - DEBUG - Widget input pas encore créé pour printer_ip, valeur en attente: '192.168.1.220'
+2025-03-31 12:00:48,356 - install_ui.ip_field - DEBUG - ✅ set_value réussi pour printer_ip
+2025-03-31 12:00:48,356 - install_ui.ip_field - DEBUG - Initialisation du champ IP printer_ip
+2025-03-31 12:00:48,356 - plugin_config_container - DEBUG - Champ printer_ip créé et ajouté au dictionnaire
+2025-03-31 12:00:48,356 - plugin_config_container - DEBUG - Ajout du champ d'exécution distante pour delete_printer
+2025-03-31 12:00:48,367 - install_ui.checkbox_field - DEBUG - 💻 Création du checkbox printer_all avec valeur True
+2025-03-31 12:00:48,368 - install_ui.ip_field - DEBUG - 🎨 Composition du champ IP printer_ip
+2025-03-31 12:00:48,369 - install_ui.config_field - DEBUG - Field printer_ip: enabled_if={'field': 'printer_all', 'value': False}, dep_field=printer_all, dep_value=True
+2025-03-31 12:00:48,369 - install_ui.config_field - DEBUG - Comparaison pour printer_ip: True == False
+2025-03-31 12:00:48,369 - install_ui.config_field - DEBUG - Field printer_ip should be initially disabled
+2025-03-31 12:00:48,370 - install_ui.ip_field - DEBUG - 💻 Création du widget IP pour printer_ip avec valeur: '192.168.1.220'
+2025-03-31 12:00:48,371 - install_ui.ip_field - DEBUG - Champ IP printer_ip désactivé initialement
+2025-03-31 12:00:48,383 - install_ui.checkbox_field - DEBUG - 💻 Création du checkbox remote_exec_delete_printer_1 avec valeur False
+2025-03-31 12:00:48,405 - install_ui.ip_field - DEBUG - ✓ Valeur IP déjà à '192.168.1.220' pour printer_ip
+2025-03-31 12:00:48,407 - plugin_config_container - DEBUG - Montage du conteneur pour delete_printer
+2025-03-31 12:00:48,407 - plugin_config_container - DEBUG - Application des valeurs prédéfinies pour delete_printer
+2025-03-31 12:00:48,407 - plugin_config_container - DEBUG - Configuration trouvée pour delete_printer_1: {'plugin_name': 'delete_printer', 'config': {}}
+2025-03-31 12:00:48,409 - install_ui.config_screen - DEBUG - PluginConfig.on_mount() completed
+2025-03-31 12:00:48,549 - install_ui.config_screen - DEBUG - Création des champs de configuration
+2025-03-31 12:00:48,549 - install_ui.config_screen - DEBUG - Nombre de containers trouvés: 1
+2025-03-31 12:00:48,550 - install_ui.config_screen - DEBUG - Container ajouté: plugin_delete_printer_1
+2025-03-31 12:00:48,550 - install_ui.config_screen - DEBUG - Champ ajouté: printer_all
+2025-03-31 12:00:48,550 - install_ui.config_screen - DEBUG - Champ ajouté: printer_ip
+2025-03-31 12:00:48,550 - install_ui.config_screen - DEBUG - Found 10 SSH fields in configuration
+2025-03-31 12:00:48,551 - install_ui.config_screen - DEBUG - Creating SSH field: ssh_ips
+2025-03-31 12:00:48,551 - install_ui.text_field - DEBUG - 🔔 [1] set_value(192.168.1.136) pour ssh_ips, update_input=True
+2025-03-31 12:00:48,551 - install_ui.text_field - DEBUG - 💾 Valeur interne mise à jour pour ssh_ips: '' → '192.168.1.136'
+2025-03-31 12:00:48,551 - install_ui.text_field - DEBUG - Widget input non créé pour ssh_ips, stockage de '192.168.1.136' en attente
+2025-03-31 12:00:48,551 - install_ui.text_field - DEBUG - ✅ set_value réussi pour ssh_ips
+2025-03-31 12:00:48,551 - install_ui.config_screen - DEBUG - Creating SSH field: ssh_user
+2025-03-31 12:00:48,552 - install_ui.text_field - DEBUG - 🔔 [1] set_value(nico) pour ssh_user, update_input=True
+2025-03-31 12:00:48,552 - install_ui.text_field - DEBUG - 💾 Valeur interne mise à jour pour ssh_user: '' → 'nico'
+2025-03-31 12:00:48,552 - install_ui.text_field - DEBUG - Widget input non créé pour ssh_user, stockage de 'nico' en attente
+2025-03-31 12:00:48,552 - install_ui.text_field - DEBUG - ✅ set_value réussi pour ssh_user
+2025-03-31 12:00:48,552 - install_ui.config_screen - DEBUG - Creating SSH field: ssh_passwd
+2025-03-31 12:00:48,552 - install_ui.text_field - DEBUG - 🔔 [1] set_value(orion1111) pour ssh_passwd, update_input=True
+2025-03-31 12:00:48,552 - install_ui.text_field - DEBUG - 💾 Valeur interne mise à jour pour ssh_passwd: '' → 'orion1111'
+2025-03-31 12:00:48,552 - install_ui.text_field - DEBUG - Widget input non créé pour ssh_passwd, stockage de 'orion1111' en attente
+2025-03-31 12:00:48,553 - install_ui.text_field - DEBUG - ✅ set_value réussi pour ssh_passwd
+2025-03-31 12:00:48,553 - install_ui.config_screen - DEBUG - Creating SSH field: ssh_sms_enabled
+2025-03-31 12:00:48,554 - install_ui.config_screen - DEBUG - Creating SSH field: ssh_sms
+2025-03-31 12:00:48,554 - install_ui.text_field - DEBUG - 🔔 [1] set_value(ggd027sf) pour ssh_sms, update_input=True
+2025-03-31 12:00:48,554 - install_ui.text_field - DEBUG - 💾 Valeur interne mise à jour pour ssh_sms: '' → 'ggd027sf'
+2025-03-31 12:00:48,554 - install_ui.text_field - DEBUG - Widget input non créé pour ssh_sms, stockage de 'ggd027sf' en attente
+2025-03-31 12:00:48,554 - install_ui.text_field - DEBUG - ✅ set_value réussi pour ssh_sms
+2025-03-31 12:00:48,555 - install_ui.config_screen - DEBUG - Creating SSH field: ssh_exception_ips
+2025-03-31 12:00:48,555 - install_ui.text_field - DEBUG - 🔔 [1] set_value() pour ssh_exception_ips, update_input=True
+2025-03-31 12:00:48,555 - install_ui.text_field - DEBUG - ✓ Valeur interne déjà à '' pour ssh_exception_ips
+2025-03-31 12:00:48,556 - install_ui.config_screen - DEBUG - Creating SSH field: ssh_root_same
+2025-03-31 12:00:48,556 - install_ui.config_screen - DEBUG - Creating SSH field: ssh_root_user
+2025-03-31 12:00:48,556 - install_ui.text_field - DEBUG - 🔔 [1] set_value(nico) pour ssh_root_user, update_input=True
+2025-03-31 12:00:48,556 - install_ui.text_field - DEBUG - 💾 Valeur interne mise à jour pour ssh_root_user: '' → 'nico'
+2025-03-31 12:00:48,556 - install_ui.text_field - DEBUG - Widget input non créé pour ssh_root_user, stockage de 'nico' en attente
+2025-03-31 12:00:48,556 - install_ui.text_field - DEBUG - ✅ set_value réussi pour ssh_root_user
+2025-03-31 12:00:48,557 - install_ui.config_screen - DEBUG - Creating SSH field: ssh_root_passwd
+2025-03-31 12:00:48,557 - install_ui.text_field - DEBUG - 🔔 [1] set_value(orion1111) pour ssh_root_passwd, update_input=True
+2025-03-31 12:00:48,557 - install_ui.text_field - DEBUG - 💾 Valeur interne mise à jour pour ssh_root_passwd: '' → 'orion1111'
+2025-03-31 12:00:48,557 - install_ui.text_field - DEBUG - Widget input non créé pour ssh_root_passwd, stockage de 'orion1111' en attente
+2025-03-31 12:00:48,557 - install_ui.text_field - DEBUG - ✅ set_value réussi pour ssh_root_passwd
+2025-03-31 12:00:48,558 - install_ui.config_screen - DEBUG - Creating SSH field: ssh_port
+2025-03-31 12:00:48,558 - install_ui.text_field - DEBUG - 🔔 [1] set_value(22) pour ssh_port, update_input=True
+2025-03-31 12:00:48,558 - install_ui.text_field - DEBUG - 💾 Valeur interne mise à jour pour ssh_port: '' → '22'
+2025-03-31 12:00:48,558 - install_ui.text_field - DEBUG - Widget input non créé pour ssh_port, stockage de '22' en attente
+2025-03-31 12:00:48,558 - install_ui.text_field - DEBUG - ✅ set_value réussi pour ssh_port
+2025-03-31 12:00:48,559 - install_ui.config_screen - DEBUG - SSH fields added successfully
+2025-03-31 12:00:48,559 - install_ui.config_screen - DEBUG - Nombre total de containers indexés: 1
+2025-03-31 12:00:48,559 - install_ui.config_screen - DEBUG - Nombre total de champs indexés: 12
+2025-03-31 12:00:48,560 - install_ui.text_field - DEBUG - 💻 Création du widget input pour ssh_ips avec valeur: '192.168.1.136'
+2025-03-31 12:00:48,562 - install_ui.text_field - DEBUG - 💻 Création du widget input pour ssh_user avec valeur: 'nico'
+2025-03-31 12:00:48,565 - install_ui.text_field - DEBUG - 💻 Création du widget input pour ssh_passwd avec valeur: 'orion1111'
+2025-03-31 12:00:48,568 - install_ui.checkbox_field - DEBUG - 💻 Création du checkbox ssh_sms_enabled avec valeur False
+2025-03-31 12:00:48,570 - install_ui.config_field - DEBUG - Field ssh_sms: enabled_if={'field': 'ssh_sms_enabled', 'value': True}, dep_field=ssh_sms_enabled, dep_value=False
+2025-03-31 12:00:48,570 - install_ui.config_field - DEBUG - Comparaison pour ssh_sms: False == True
+2025-03-31 12:00:48,570 - install_ui.config_field - DEBUG - Field ssh_sms should be initially disabled
+2025-03-31 12:00:48,571 - install_ui.text_field - DEBUG - 💻 Création du widget input pour ssh_sms avec valeur: 'ggd027sf'
+2025-03-31 12:00:48,572 - install_ui.text_field - DEBUG - Champ ssh_sms désactivé initialement
+2025-03-31 12:00:48,575 - install_ui.text_field - DEBUG - 💻 Création du widget input pour ssh_exception_ips avec valeur: ''
+2025-03-31 12:00:48,576 - install_ui.checkbox_field - DEBUG - 💻 Création du checkbox ssh_root_same avec valeur True
+2025-03-31 12:00:48,578 - install_ui.config_field - DEBUG - Field ssh_root_user: enabled_if={'field': 'ssh_root_same', 'value': False}, dep_field=ssh_root_same, dep_value=True
+2025-03-31 12:00:48,578 - install_ui.config_field - DEBUG - Comparaison pour ssh_root_user: True == False
+2025-03-31 12:00:48,578 - install_ui.config_field - DEBUG - Field ssh_root_user should be initially disabled
+2025-03-31 12:00:48,579 - install_ui.text_field - DEBUG - 💻 Création du widget input pour ssh_root_user avec valeur: 'nico'
+2025-03-31 12:00:48,579 - install_ui.text_field - DEBUG - Champ ssh_root_user désactivé initialement
+2025-03-31 12:00:48,583 - install_ui.config_field - DEBUG - Field ssh_root_passwd: enabled_if={'field': 'ssh_root_same', 'value': False}, dep_field=ssh_root_same, dep_value=True
+2025-03-31 12:00:48,583 - install_ui.config_field - DEBUG - Comparaison pour ssh_root_passwd: True == False
+2025-03-31 12:00:48,583 - install_ui.config_field - DEBUG - Field ssh_root_passwd should be initially disabled
+2025-03-31 12:00:48,584 - install_ui.text_field - DEBUG - 💻 Création du widget input pour ssh_root_passwd avec valeur: 'orion1111'
+2025-03-31 12:00:48,585 - install_ui.text_field - DEBUG - Champ ssh_root_passwd désactivé initialement
+2025-03-31 12:00:48,588 - install_ui.password_field - DEBUG - PasswordField ssh_root_passwd is initially disabled
+2025-03-31 12:00:48,592 - install_ui.text_field - DEBUG - 💻 Création du widget input pour ssh_port avec valeur: '22'
+2025-03-31 12:00:48,593 - install_ui.choice_screen - DEBUG - Config screen pushed successfully
+2025-03-31 12:00:48,594 - install_ui.choice_screen - DEBUG - Config returned: True
+2025-03-31 12:00:48,594 - install_ui.choice_screen - DEBUG - Pas de nouvelle config pour delete_printer (ID: 1)
+2025-03-31 12:00:48,594 - install_ui.choice_screen - DEBUG - Mode manuel: retour à l'écran de choix
+2025-03-31 12:00:48,594 - install_ui.choice_screen - DEBUG - Panneau SelectedPluginsPanel non trouvé - probablement dans un autre écran
+2025-03-31 12:00:48,654 - install_ui.text_field - DEBUG - 🚨 MONTAGE du champ ssh_ips
+2025-03-31 12:00:48,654 - install_ui.text_field - DEBUG - Application de la valeur en attente '192.168.1.136' pour ssh_ips
+2025-03-31 12:00:48,654 - install_ui.text_field - DEBUG - Widget déjà à la valeur '192.168.1.136' pour ssh_ips, rien à faire
+2025-03-31 12:00:48,655 - install_ui.text_field - DEBUG - ✓ on_input_changed: valeur déjà à jour pour ssh_ips: '192.168.1.136'
+2025-03-31 12:00:48,655 - install_ui.text_field - DEBUG - 🚨 MONTAGE du champ ssh_user
+2025-03-31 12:00:48,655 - install_ui.text_field - DEBUG - Application de la valeur en attente 'nico' pour ssh_user
+2025-03-31 12:00:48,655 - install_ui.text_field - DEBUG - Widget déjà à la valeur 'nico' pour ssh_user, rien à faire
+2025-03-31 12:00:48,655 - install_ui.text_field - DEBUG - ✓ on_input_changed: valeur déjà à jour pour ssh_user: 'nico'
+2025-03-31 12:00:48,655 - install_ui.text_field - DEBUG - 🚨 MONTAGE du champ ssh_passwd
+2025-03-31 12:00:48,655 - install_ui.text_field - DEBUG - Application de la valeur en attente 'orion1111' pour ssh_passwd
+2025-03-31 12:00:48,656 - install_ui.text_field - DEBUG - Widget déjà à la valeur 'orion1111' pour ssh_passwd, rien à faire
+2025-03-31 12:00:48,656 - install_ui.text_field - DEBUG - ✓ on_input_changed: valeur déjà à jour pour ssh_passwd: 'orion1111'
+2025-03-31 12:00:48,656 - install_ui.text_field - DEBUG - 🚨 MONTAGE du champ ssh_sms
+2025-03-31 12:00:48,656 - install_ui.text_field - DEBUG - Application de la valeur en attente 'ggd027sf' pour ssh_sms
+2025-03-31 12:00:48,656 - install_ui.text_field - DEBUG - Widget déjà à la valeur 'ggd027sf' pour ssh_sms, rien à faire
+2025-03-31 12:00:48,657 - install_ui.text_field - DEBUG - ✓ on_input_changed: valeur déjà à jour pour ssh_sms: 'ggd027sf'
+2025-03-31 12:00:48,657 - install_ui.text_field - DEBUG - 🚨 MONTAGE du champ ssh_exception_ips
+2025-03-31 12:00:48,657 - install_ui.text_field - DEBUG - Pas de valeur en attente pour ssh_exception_ips, valeur actuelle: ''
+2025-03-31 12:00:48,657 - install_ui.text_field - DEBUG - 🚨 MONTAGE du champ ssh_root_user
+2025-03-31 12:00:48,658 - install_ui.text_field - DEBUG - Application de la valeur en attente 'nico' pour ssh_root_user
+2025-03-31 12:00:48,658 - install_ui.text_field - DEBUG - Widget déjà à la valeur 'nico' pour ssh_root_user, rien à faire
+2025-03-31 12:00:48,658 - install_ui.text_field - DEBUG - ✓ on_input_changed: valeur déjà à jour pour ssh_root_user: 'nico'
+2025-03-31 12:00:48,658 - install_ui.text_field - DEBUG - 🚨 MONTAGE du champ ssh_root_passwd
+2025-03-31 12:00:48,658 - install_ui.text_field - DEBUG - Application de la valeur en attente 'orion1111' pour ssh_root_passwd
+2025-03-31 12:00:48,658 - install_ui.text_field - DEBUG - Widget déjà à la valeur 'orion1111' pour ssh_root_passwd, rien à faire
+2025-03-31 12:00:48,658 - install_ui.text_field - DEBUG - ✓ on_input_changed: valeur déjà à jour pour ssh_root_passwd: 'orion1111'
+2025-03-31 12:00:48,659 - install_ui.text_field - DEBUG - 🚨 MONTAGE du champ ssh_port
+2025-03-31 12:00:48,659 - install_ui.text_field - DEBUG - Application de la valeur en attente '22' pour ssh_port
+2025-03-31 12:00:48,659 - install_ui.text_field - DEBUG - Widget déjà à la valeur '22' pour ssh_port, rien à faire
+2025-03-31 12:00:48,659 - install_ui.text_field - DEBUG - ✓ on_input_changed: valeur déjà à jour pour ssh_port: '22'
+2025-03-31 12:00:49,489 - install_ui.checkbox_field - DEBUG - Valeur de la checkbox remote_exec_delete_printer_1 changée de False à True
+2025-03-31 12:00:49,489 - install_ui.config_container - DEBUG - 🔄 DÉBUT mise à jour des champs dépendants de remote_exec_delete_printer_1 (valeur=True)
+2025-03-31 12:00:49,489 - install_ui.config_container - DEBUG - Champs disponibles: ['printer_all', 'printer_ip', 'ssh_exception_ips', 'ssh_ips', 'ssh_passwd', 'ssh_port', 'ssh_root_passwd', 'ssh_root_same', 'ssh_root_user', 'ssh_sms', 'ssh_sms_enabled', 'ssh_user']
+2025-03-31 12:00:49,489 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour printer_all
+2025-03-31 12:00:49,489 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour printer_ip
+2025-03-31 12:00:49,489 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_ips
+2025-03-31 12:00:49,489 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_user
+2025-03-31 12:00:49,489 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_passwd
+2025-03-31 12:00:49,489 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_sms_enabled
+2025-03-31 12:00:49,489 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_sms
+2025-03-31 12:00:49,489 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_exception_ips
+2025-03-31 12:00:49,489 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_root_same
+2025-03-31 12:00:49,489 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_root_user
+2025-03-31 12:00:49,489 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_root_passwd
+2025-03-31 12:00:49,490 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_port
+2025-03-31 12:00:49,490 - install_ui.config_container - DEBUG - ✓ FIN mise à jour des dépendances pour remote_exec_delete_printer_1
+2025-03-31 12:00:49,490 - install_ui.config_container - DEBUG - Checkbox changed: checkbox_delete_printer_remote_exec_delete_printer_1 -> True
+2025-03-31 12:00:49,491 - plugin_config_container - DEBUG - Changement d'état de la case à cocher checkbox_delete_printer_remote_exec_delete_printer_1
+2025-03-31 12:00:49,491 - install_ui.config_container - DEBUG - Checkbox changed: checkbox_delete_printer_remote_exec_delete_printer_1 -> True
+2025-03-31 12:00:49,491 - install_ui.config_screen - DEBUG - Checkbox changed: checkbox_delete_printer_remote_exec_delete_printer_1 -> True
+2025-03-31 12:00:49,491 - install_ui.config_screen - DEBUG - Toggling SSH config: enable=True
+2025-03-31 12:00:49,538 - install_ui.config_screen - DEBUG - Restoring static default value for field ssh_ips: 192.168.1.136
+2025-03-31 12:00:49,538 - install_ui.text_field - DEBUG - 🔔 [2] set_value(192.168.1.136) pour ssh_ips, update_input=True
+2025-03-31 12:00:49,538 - install_ui.text_field - DEBUG - ✓ Valeur interne déjà à '192.168.1.136' pour ssh_ips
+2025-03-31 12:00:49,538 - install_ui.config_screen - DEBUG - Restored static default value: 192.168.1.136
+2025-03-31 12:00:49,539 - install_ui.config_screen - DEBUG - Restoring static default value for field ssh_user: nico
+2025-03-31 12:00:49,539 - install_ui.text_field - DEBUG - 🔔 [2] set_value(nico) pour ssh_user, update_input=True
+2025-03-31 12:00:49,539 - install_ui.text_field - DEBUG - ✓ Valeur interne déjà à 'nico' pour ssh_user
+2025-03-31 12:00:49,539 - install_ui.config_screen - DEBUG - Restored static default value: nico
+2025-03-31 12:00:49,540 - install_ui.config_screen - DEBUG - Restoring static default value for field ssh_passwd: orion1111
+2025-03-31 12:00:49,540 - install_ui.text_field - DEBUG - 🔔 [2] set_value(orion1111) pour ssh_passwd, update_input=True
+2025-03-31 12:00:49,540 - install_ui.text_field - DEBUG - ✓ Valeur interne déjà à 'orion1111' pour ssh_passwd
+2025-03-31 12:00:49,540 - install_ui.config_screen - DEBUG - Restored static default value: orion1111
+2025-03-31 12:00:49,540 - install_ui.config_screen - DEBUG - Field ssh_sms has enabled_if condition: {'field': 'ssh_sms_enabled', 'value': True}
+2025-03-31 12:00:49,540 - install_ui.config_screen - DEBUG - Dependency field ssh_sms_enabled value: False, required: True
+2025-03-31 12:00:49,540 - install_ui.config_screen - DEBUG - Field ssh_sms disabled due to enabled_if condition
+2025-03-31 12:00:49,541 - install_ui.config_screen - DEBUG - Field ssh_root_user has enabled_if condition: {'field': 'ssh_root_same', 'value': False}
+2025-03-31 12:00:49,541 - install_ui.config_screen - DEBUG - Dependency field ssh_root_same value: True, required: False
+2025-03-31 12:00:49,541 - install_ui.config_screen - DEBUG - Field ssh_root_user disabled due to enabled_if condition
+2025-03-31 12:00:49,541 - install_ui.config_screen - DEBUG - Field ssh_root_passwd has enabled_if condition: {'field': 'ssh_root_same', 'value': False}
+2025-03-31 12:00:49,541 - install_ui.config_screen - DEBUG - Dependency field ssh_root_same value: True, required: False
+2025-03-31 12:00:49,541 - install_ui.config_screen - DEBUG - Field ssh_root_passwd disabled due to enabled_if condition
+2025-03-31 12:00:49,542 - install_ui.config_screen - DEBUG - Restoring static default value for field ssh_port: 22
+2025-03-31 12:00:49,542 - install_ui.text_field - DEBUG - 🔔 [2] set_value(22) pour ssh_port, update_input=True
+2025-03-31 12:00:49,542 - install_ui.text_field - DEBUG - ✓ Valeur interne déjà à '22' pour ssh_port
+2025-03-31 12:00:49,542 - install_ui.config_screen - DEBUG - Restored static default value: 22
+2025-03-31 12:01:12,843 - install_ui.checkbox_field - DEBUG - Valeur de la checkbox remote_exec_delete_printer_1 changée de True à False
+2025-03-31 12:01:12,845 - install_ui.config_container - DEBUG - 🔄 DÉBUT mise à jour des champs dépendants de remote_exec_delete_printer_1 (valeur=False)
+2025-03-31 12:01:12,845 - install_ui.config_container - DEBUG - Champs disponibles: ['printer_all', 'printer_ip', 'ssh_exception_ips', 'ssh_ips', 'ssh_passwd', 'ssh_port', 'ssh_root_passwd', 'ssh_root_same', 'ssh_root_user', 'ssh_sms', 'ssh_sms_enabled', 'ssh_user']
+2025-03-31 12:01:12,845 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour printer_all
+2025-03-31 12:01:12,846 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour printer_ip
+2025-03-31 12:01:12,846 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_ips
+2025-03-31 12:01:12,846 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_user
+2025-03-31 12:01:12,846 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_passwd
+2025-03-31 12:01:12,846 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_sms_enabled
+2025-03-31 12:01:12,847 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_sms
+2025-03-31 12:01:12,847 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_exception_ips
+2025-03-31 12:01:12,847 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_root_same
+2025-03-31 12:01:12,847 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_root_user
+2025-03-31 12:01:12,848 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_root_passwd
+2025-03-31 12:01:12,848 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_port
+2025-03-31 12:01:12,848 - install_ui.config_container - DEBUG - ✓ FIN mise à jour des dépendances pour remote_exec_delete_printer_1
+2025-03-31 12:01:12,861 - install_ui.config_container - DEBUG - Checkbox changed: checkbox_delete_printer_remote_exec_delete_printer_1 -> False
+2025-03-31 12:01:12,862 - plugin_config_container - DEBUG - Changement d'état de la case à cocher checkbox_delete_printer_remote_exec_delete_printer_1
+2025-03-31 12:01:12,862 - install_ui.config_container - DEBUG - Checkbox changed: checkbox_delete_printer_remote_exec_delete_printer_1 -> False
+2025-03-31 12:01:12,864 - install_ui.config_screen - DEBUG - Checkbox changed: checkbox_delete_printer_remote_exec_delete_printer_1 -> False
+2025-03-31 12:01:12,865 - install_ui.config_screen - DEBUG - Toggling SSH config: enable=False
+2025-03-31 12:01:12,933 - install_ui.config_screen - DEBUG - Field ssh_sms has enabled_if condition: {'field': 'ssh_sms_enabled', 'value': True}
+2025-03-31 12:01:12,933 - install_ui.config_screen - DEBUG - Dependency field ssh_sms_enabled value: False, required: True
+2025-03-31 12:01:12,933 - install_ui.config_screen - DEBUG - Field ssh_sms disabled due to enabled_if condition
+2025-03-31 12:01:12,941 - install_ui.config_screen - DEBUG - Field ssh_root_user has enabled_if condition: {'field': 'ssh_root_same', 'value': False}
+2025-03-31 12:01:12,941 - install_ui.config_screen - DEBUG - Dependency field ssh_root_same value: True, required: False
+2025-03-31 12:01:12,941 - install_ui.config_screen - DEBUG - Field ssh_root_user disabled due to enabled_if condition
+2025-03-31 12:01:12,941 - install_ui.config_screen - DEBUG - Field ssh_root_passwd has enabled_if condition: {'field': 'ssh_root_same', 'value': False}
+2025-03-31 12:01:12,941 - install_ui.config_screen - DEBUG - Dependency field ssh_root_same value: True, required: False
+2025-03-31 12:01:12,941 - install_ui.config_screen - DEBUG - Field ssh_root_passwd disabled due to enabled_if condition
+2025-03-31 12:01:14,240 - install_ui.checkbox_field - DEBUG - Valeur de la checkbox remote_exec_delete_printer_1 changée de False à True
+2025-03-31 12:01:14,241 - install_ui.config_container - DEBUG - 🔄 DÉBUT mise à jour des champs dépendants de remote_exec_delete_printer_1 (valeur=True)
+2025-03-31 12:01:14,241 - install_ui.config_container - DEBUG - Champs disponibles: ['printer_all', 'printer_ip', 'ssh_exception_ips', 'ssh_ips', 'ssh_passwd', 'ssh_port', 'ssh_root_passwd', 'ssh_root_same', 'ssh_root_user', 'ssh_sms', 'ssh_sms_enabled', 'ssh_user']
+2025-03-31 12:01:14,241 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour printer_all
+2025-03-31 12:01:14,242 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour printer_ip
+2025-03-31 12:01:14,242 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_ips
+2025-03-31 12:01:14,242 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_user
+2025-03-31 12:01:14,243 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_passwd
+2025-03-31 12:01:14,243 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_sms_enabled
+2025-03-31 12:01:14,243 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_sms
+2025-03-31 12:01:14,243 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_exception_ips
+2025-03-31 12:01:14,244 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_root_same
+2025-03-31 12:01:14,244 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_root_user
+2025-03-31 12:01:14,244 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_root_passwd
+2025-03-31 12:01:14,244 - install_ui.config_container - DEBUG - 🔍 Analyse des dépendances pour ssh_port
+2025-03-31 12:01:14,244 - install_ui.config_container - DEBUG - ✓ FIN mise à jour des dépendances pour remote_exec_delete_printer_1
+2025-03-31 12:01:14,257 - install_ui.config_container - DEBUG - Checkbox changed: checkbox_delete_printer_remote_exec_delete_printer_1 -> True
+2025-03-31 12:01:14,257 - plugin_config_container - DEBUG - Changement d'état de la case à cocher checkbox_delete_printer_remote_exec_delete_printer_1
+2025-03-31 12:01:14,258 - install_ui.config_container - DEBUG - Checkbox changed: checkbox_delete_printer_remote_exec_delete_printer_1 -> True
+2025-03-31 12:01:14,259 - install_ui.config_screen - DEBUG - Checkbox changed: checkbox_delete_printer_remote_exec_delete_printer_1 -> True
+2025-03-31 12:01:14,259 - install_ui.config_screen - DEBUG - Toggling SSH config: enable=True
+2025-03-31 12:01:14,313 - install_ui.config_screen - DEBUG - Restoring static default value for field ssh_ips: 192.168.1.136
+2025-03-31 12:01:14,313 - install_ui.text_field - DEBUG - 🔔 [3] set_value(192.168.1.136) pour ssh_ips, update_input=True
+2025-03-31 12:01:14,313 - install_ui.text_field - DEBUG - ✓ Valeur interne déjà à '192.168.1.136' pour ssh_ips
+2025-03-31 12:01:14,313 - install_ui.config_screen - DEBUG - Restored static default value: 192.168.1.136
+2025-03-31 12:01:14,319 - install_ui.config_screen - DEBUG - Restoring static default value for field ssh_user: nico
+2025-03-31 12:01:14,319 - install_ui.text_field - DEBUG - 🔔 [3] set_value(nico) pour ssh_user, update_input=True
+2025-03-31 12:01:14,319 - install_ui.text_field - DEBUG - ✓ Valeur interne déjà à 'nico' pour ssh_user
+2025-03-31 12:01:14,319 - install_ui.config_screen - DEBUG - Restored static default value: nico
+2025-03-31 12:01:14,325 - install_ui.config_screen - DEBUG - Restoring static default value for field ssh_passwd: orion1111
+2025-03-31 12:01:14,325 - install_ui.text_field - DEBUG - 🔔 [3] set_value(orion1111) pour ssh_passwd, update_input=True
+2025-03-31 12:01:14,326 - install_ui.text_field - DEBUG - ✓ Valeur interne déjà à 'orion1111' pour ssh_passwd
+2025-03-31 12:01:14,326 - install_ui.config_screen - DEBUG - Restored static default value: orion1111
+2025-03-31 12:01:14,329 - install_ui.config_screen - DEBUG - Field ssh_sms has enabled_if condition: {'field': 'ssh_sms_enabled', 'value': True}
+2025-03-31 12:01:14,329 - install_ui.config_screen - DEBUG - Dependency field ssh_sms_enabled value: False, required: True
+2025-03-31 12:01:14,329 - install_ui.config_screen - DEBUG - Field ssh_sms disabled due to enabled_if condition
+2025-03-31 12:01:14,338 - install_ui.config_screen - DEBUG - Field ssh_root_user has enabled_if condition: {'field': 'ssh_root_same', 'value': False}
+2025-03-31 12:01:14,338 - install_ui.config_screen - DEBUG - Dependency field ssh_root_same value: True, required: False
+2025-03-31 12:01:14,338 - install_ui.config_screen - DEBUG - Field ssh_root_user disabled due to enabled_if condition
+2025-03-31 12:01:14,338 - install_ui.config_screen - DEBUG - Field ssh_root_passwd has enabled_if condition: {'field': 'ssh_root_same', 'value': False}
+2025-03-31 12:01:14,339 - install_ui.config_screen - DEBUG - Dependency field ssh_root_same value: True, required: False
+2025-03-31 12:01:14,339 - install_ui.config_screen - DEBUG - Field ssh_root_passwd disabled due to enabled_if condition
+2025-03-31 12:01:14,344 - install_ui.config_screen - DEBUG - Restoring static default value for field ssh_port: 22
+2025-03-31 12:01:14,344 - install_ui.text_field - DEBUG - 🔔 [3] set_value(22) pour ssh_port, update_input=True
+2025-03-31 12:01:14,344 - install_ui.text_field - DEBUG - ✓ Valeur interne déjà à '22' pour ssh_port
+2025-03-31 12:01:14,344 - install_ui.config_screen - DEBUG - Restored static default value: 22
+2025-03-31 12:01:16,988 - install_ui.config_screen - DEBUG - Button pressed: retour
+2025-03-31 12:01:16,988 - install_ui.config_screen - DEBUG - Cancel button pressed, popping screen
+2025-03-31 12:01:17,034 - install_ui.choice_screen - DEBUG - Bouton cliqué : retour
+2025-03-31 12:01:19,098 - install_ui.choice_screen - DEBUG - Quitting application

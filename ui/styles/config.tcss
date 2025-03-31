@@ -50,6 +50,7 @@ Screen {
     margin-right: 2;
     padding: 1;
     margin-bottom:1;
+    height: auto;
 }
 
 .checkbox-group-label {

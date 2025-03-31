@@ -46,7 +46,7 @@ try:
     setup_import_paths()
 
     # Importer les classes nécessaires
-    from plugins_utils.pluginlogger import PluginLogger
+    from plugins_utils.plugin_logger import PluginLogger
     from plugins_utils.commands import Commands
 
     # Initialiser le logger pour le wrapper
