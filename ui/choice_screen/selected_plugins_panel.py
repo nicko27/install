@@ -168,12 +168,17 @@ class SelectedPluginsPanel(Static):
                     sequence_name = None
                     sequence_index = None
                     
-                    for idx, (p, i) in enumerate(self.app.selected_plugins):
-                        if i == instance_id and p.startswith('__sequence__'):
-                            sequence_found = True
-                            sequence_name = p
-                            sequence_index = idx
-                            break
+                    for idx, plugin_data in enumerate(self.app.selected_plugins):
+                        # Extraire le nom du plugin et l'ID de l'instance
+                        if len(plugin_data) >= 2:
+                            p_name = plugin_data[0]
+                            p_instance = plugin_data[1]
+                            
+                            if p_instance == instance_id and p_name.startswith('__sequence__'):
+                                sequence_found = True
+                                sequence_name = p_name
+                                sequence_index = idx
+                                break
                             
                     if not sequence_found:
                         # Si aucune séquence correspondante n'est trouvée, ne rien faire
@@ -183,20 +188,30 @@ class SelectedPluginsPanel(Static):
                     # Identifier tous les plugins qui font partie de cette séquence
                     # Les plugins d'une séquence sont tous ceux qui suivent la séquence dans la liste
                     # jusqu'à la prochaine séquence ou la fin de la liste
-                    plugins_to_remove = []
-                    plugins_to_remove.append((sequence_name, instance_id))  # Ajouter la séquence elle-même
+                    indices_to_remove = [sequence_index]  # Commencer par l'indice de la séquence
                     
-                    # Parcourir les plugins après la séquence
-                    for p, i in self.app.selected_plugins[sequence_index + 1:]:
+                    # Parcourir les plugins après la séquence pour trouver ceux à supprimer
+                    current_index = sequence_index + 1
+                    while current_index < len(self.app.selected_plugins):
+                        plugin_data = self.app.selected_plugins[current_index]
+                        plugin_name = plugin_data[0]
+                        
                         # Si on trouve une autre séquence, on s'arrête
-                        if p.startswith('__sequence__'):
+                        if plugin_name.startswith('__sequence__'):
                             break
-                        # Sinon, on ajoute le plugin à la liste des plugins à supprimer
-                        plugins_to_remove.append((p, i))
+                            
+                        # Sinon, on ajoute l'indice à la liste des indices à supprimer
+                        indices_to_remove.append(current_index)
+                        current_index += 1
                     
-                    # Supprimer tous les plugins identifiés
-                    self.app.selected_plugins = [(p, i) for p, i in self.app.selected_plugins 
-                                               if (p, i) not in plugins_to_remove]
+                    # Supprimer tous les plugins identifiés en créant une nouvelle liste
+                    # sans les éléments aux indices à supprimer
+                    new_selected_plugins = []
+                    for idx, plugin_data in enumerate(self.app.selected_plugins):
+                        if idx not in indices_to_remove:
+                            new_selected_plugins.append(plugin_data)
+                    
+                    self.app.selected_plugins = new_selected_plugins
                     
                     # Définir plugin_name pour la mise à jour des cartes plus bas
                     plugin_name = sequence_name
@@ -220,10 +235,19 @@ class SelectedPluginsPanel(Static):
             
             # Retirer l'instance spécifique de la liste
             # Pour les séquences comme pour les plugins normaux, on ne supprime que l'entrée spécifique
-            self.app.selected_plugins = [(p, i) for p, i in self.app.selected_plugins if not (p == plugin_name and i == instance_id)]
+            # Utiliser une approche qui fonctionne avec des tuples de différentes longueurs
+            new_selected_plugins = []
+            for plugin_data in self.app.selected_plugins:
+                # Extraire le nom du plugin et l'ID de l'instance
+                p_name = plugin_data[0]
+                p_instance = plugin_data[1]
+                # Ne garder que les plugins qui ne correspondent pas au plugin à supprimer
+                if not (p_name == plugin_name and p_instance == instance_id):
+                    new_selected_plugins.append(plugin_data)
+            self.app.selected_plugins = new_selected_plugins
 
             # Si c'était la dernière instance du plugin, on peut mettre à jour la carte
-            if not any(p == plugin_name for p, _ in self.app.selected_plugins):
+            if not any(plugin_data[0] == plugin_name for plugin_data in self.app.selected_plugins):
                 for card in self.app.query(PluginCard):
                     if card.plugin_name == plugin_name:
                         card.selected = False

@@ -21,11 +21,6 @@ class ExecutionScreen(Screen):
 
     CSS_PATH = os.path.join(os.path.dirname(__file__), "../styles/execution.tcss")
     
-    class ShowReportRequested(Message):
-        """Message pour demander l'affichage du rapport"""
-        def __init__(self, report_path: str):
-            self.report_path = report_path
-            super().__init__()
 
     def __init__(self, plugins_config: dict = None, auto_execute: bool = False, report_manager=None):
         """Initialise l'écran avec la configuration des plugins
@@ -33,12 +28,10 @@ class ExecutionScreen(Screen):
         Args:
             plugins_config: Dictionnaire de configuration des plugins
             auto_execute: Si True, lance l'exécution automatiquement
-            report_manager: Gestionnaire de rapports optionnel
         """
         super().__init__()
         self.plugins_config = plugins_config
         self.auto_execute = auto_execute
-        self.report_manager = report_manager
         
     async def on_mount(self) -> None:
         """Appelé quand l'écran est monté"""
@@ -81,16 +74,26 @@ class ExecutionScreen(Screen):
     async def initialize_screen(self):
         """Initialise l'écran après le montage complet"""
         try:
-            # Configurer le gestionnaire de rapports si présent
+            from ..utils.logging import get_logger
+            logger = get_logger('execution_screen')
+            
+            # Récupérer le widget d'exécution
             widget = self.query_one(ExecutionWidget)
-            if widget and self.report_manager:
-                widget.report_manager = self.report_manager
                 
             if self.auto_execute:
+                # En mode auto, masquer les boutons Démarrer et Retour définitivement
+                try:
+                    start_button = widget.query_one("#start-button")
+                    back_button = widget.query_one("#back-button")
+                    if start_button and back_button:
+                        start_button.add_class("hidden")
+                        back_button.add_class("hidden")
+                        logger.debug("Boutons Démarrer et Retour masqués en mode auto")
+                except Exception as e:
+                    logger.error(f"Erreur lors du masquage des boutons en mode auto: {str(e)}")
+                
                 # Lancer l'exécution automatiquement (le délai a déjà été appliqué dans _delayed_initialization)
                 if widget:
-                    from ..utils.logging import get_logger
-                    logger = get_logger('execution_screen')
                     
                     # Forcer un rafraîchissement de l'interface avant de commencer
                     logger.debug("Forçage d'un rafraîchissement de l'interface avant l'exécution automatique")
@@ -117,7 +120,8 @@ class ExecutionScreen(Screen):
                     try:
                         # Exécuter directement plutôt que via une tâche pour éviter les problèmes de troncature
                         logger.debug("Démarrage direct de l'exécution")
-                        await widget.start_execution()
+                        # En mode auto, ne pas réafficher les boutons après l'exécution
+                        await widget.start_execution(auto_mode=True)
                         logger.debug("Exécution terminée avec succès")
                     except asyncio.CancelledError:
                         logger.info("Exécution automatique annulée par l'utilisateur")
@@ -171,22 +175,8 @@ class ExecutionScreen(Screen):
                 self.notify("Annulation de l'exécution en cours...", severity="warning")
                 return  # Ne pas quitter immédiatement, laisser le temps à la tâche de se terminer
                 
-            # Sauvegarder le rapport si nécessaire
-            try:
-                widget = self.query_one(ExecutionWidget)
-                if hasattr(widget, 'save_report') and callable(widget.save_report):
-                    logger.info("Sauvegarde du rapport avant de quitter")
-                    widget.save_report()
-            except Exception as e:
-                logger.debug(f"Widget d'exécution non trouvé ou erreur lors de la sauvegarde du rapport: {e}")
-                
-            # Quitter l'écran ou l'application selon le contexte
-            if hasattr(self, 'auto_execute') and self.auto_execute:
-                logger.info("Mode auto détecté, fermeture de l'application")
-                self.app.exit()
-            else:
-                logger.info("Retour à l'écran précédent")
-                self.app.pop_screen()
+            self.app.exit()
+
             
         except Exception as e:
             logger.error(f"Erreur lors de la sortie: {str(e)}")
@@ -201,14 +191,7 @@ class ExecutionScreen(Screen):
     
     async def on_execution_completed(self) -> None:
         """Appelé quand l'exécution des plugins est terminée"""
-        # Si un rapport a été généré, proposer de l'afficher
-        widget = self.query_one(ExecutionWidget)
-        if widget and widget.report_manager:
-            report_path = widget.report_manager.save_csv_report()
-            if report_path:
-                self.notify(f"Rapport sauvegardé : {report_path}", severity="information")
-                # Émettre un message pour afficher le rapport
-                self.post_message(self.ShowReportRequested(report_path))
+        pass
                 
     async def _handle_cancellation(self):
         """Gère l'annulation de l'exécution et quitte l'écran après un court délai"""
@@ -238,15 +221,6 @@ class ExecutionScreen(Screen):
                 logger.debug("L'écran n'est plus monté, annulation de la fermeture")
                 return
             
-            # Sauvegarder le rapport si nécessaire
-            try:
-                widget = self.query_one(ExecutionWidget)
-                if hasattr(widget, 'report_manager') and widget.report_manager:
-                    logger.info("Sauvegarde du rapport après annulation")
-                    widget.report_manager.save_csv_report()
-            except Exception as e:
-                logger.warning(f"Impossible de sauvegarder le rapport: {e}")
-                
             # Quitter l'écran ou l'application selon le contexte
             if hasattr(self, 'auto_execute') and self.auto_execute:
                 logger.info("Mode auto détecté, fermeture de l'application après annulation")
@@ -263,10 +237,6 @@ class ExecutionScreen(Screen):
                 self.app.pop_screen()
             except Exception:
                 pass
-    
-    def show_report(self, report_path: str) -> None:
-        """Affiche l'écran de rapport"""
-        self.app.push_screen(ReportScreen(report_path))
 
     def compose(self) -> ComposeResult:
         """Création de l'interface"""

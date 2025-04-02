@@ -42,7 +42,6 @@ class ExecutionWidget(Container):
         self._current_plugin = None
         self._total_plugins = 0
         self._executed_plugins = 0
-        self.report_manager = None  # Gestionnaire de rapports
         self.sequence_name = None   # Nom de la séquence en cours
         self._app_ref = None  # Référence à l'application, sera définie lors du montage
 
@@ -319,18 +318,6 @@ class ExecutionWidget(Container):
                         success = False
                         output = f"Erreur: {str(exec_error)}"
 
-                    # Ajouter au rapport si activé
-                    if self.report_manager:
-                        # Extraire l'ID d'instance du plugin_id (dernier nombre)
-                        instance_id = int(plugin_id.split('_')[-1])
-
-                        self.report_manager.add_result(
-                            plugin_name=plugin_name,
-                            instance_id=instance_id,
-                            success=success,
-                            output=output,
-                            sequence_name=self.sequence_name
-                        )
 
                     executed += 1
                     self.update_global_progress(executed / total_plugins * 100)
@@ -356,20 +343,6 @@ class ExecutionWidget(Container):
                         plugin_widget.update_progress(100.0, "Erreur")
                     except Exception as progress_error:
                         logger.warning(f"Impossible de mettre à jour la progression d'erreur pour {plugin_id}: {progress_error}")
-
-                    # Ajouter l'erreur au rapport
-                    if self.report_manager:
-                        try:
-                            instance_id = int(plugin_id.split('_')[-1])
-                            self.report_manager.add_result(
-                                plugin_name=plugin_name,
-                                instance_id=instance_id,
-                                success=False,
-                                output=error_msg,
-                                sequence_name=self.sequence_name
-                            )
-                        except Exception as report_error:
-                            logger.error(f"Impossible d'ajouter l'erreur au rapport pour {plugin_id}: {report_error}")
 
                     # Continuer l'exécution même en cas d'erreur si l'option est activée
                     if not self.continue_on_error:
@@ -424,8 +397,12 @@ class ExecutionWidget(Container):
             await LoggerUtils.add_log(self, f"Erreur lors de l'exécution : {str(e)}", level="error")
             raise
 
-    async def start_execution(self):
-        """Démarrage de l'exécution des plugins"""
+    async def start_execution(self, auto_mode=False):
+        """Démarrage de l'exécution des plugins
+        
+        Args:
+            auto_mode (bool, optional): Indique si l'exécution est en mode auto. Defaults to False.
+        """
         # Vérifier si une exécution est déjà en cours
         if self.is_running:
             logger.debug("Exécution déjà en cours, ignoré")
@@ -460,10 +437,13 @@ class ExecutionWidget(Container):
             if hasattr(self.app.screen, 'on_execution_completed'):
                 await self.app.screen.on_execution_completed()
 
-            # Réafficher les boutons après l'exécution
-            start_button.remove_class("hidden")
-            back_button.remove_class("hidden")
-            logger.debug("Boutons Démarrer et Retour réaffichés après exécution")
+            # Réafficher les boutons après l'exécution seulement si on n'est pas en mode auto
+            if not auto_mode:
+                start_button.remove_class("hidden")
+                back_button.remove_class("hidden")
+                logger.debug("Boutons Démarrer et Retour réaffichés après exécution")
+            else:
+                logger.debug("Mode auto: boutons Démarrer et Retour laissés masqués après exécution")
 
         except Exception as e:
             logger.error(f"Erreur lors du démarrage de l'exécution : {str(e)}")

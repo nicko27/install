@@ -16,13 +16,14 @@ logger = logging.getLogger('pcutils.messaging')
 
 class MessageType(Enum):
     """Types de messages standardisés dans l'application"""
-    INFO = auto()      # Information générale
-    WARNING = auto()   # Avertissement
-    ERROR = auto()     # Erreur
-    SUCCESS = auto()   # Action réussie
-    PROGRESS = auto()  # Mise à jour de progression
-    DEBUG = auto()     # Information de débogage
-    UNKNOWN = auto()   # Type non reconnu
+    INFO = auto()        # Information générale
+    WARNING = auto()     # Avertissement
+    ERROR = auto()       # Erreur
+    SUCCESS = auto()     # Action réussie
+    PROGRESS = auto()    # Mise à jour de progression
+    DEBUG = auto()       # Information de débogage
+    UNKNOWN = auto()     # Type non reconnu
+    PROGRESS_TEXT = auto()  # Barre de progression textuelle
 
 class Message:
     """Conteneur pour un message standardisé"""
@@ -74,6 +75,10 @@ class Message:
             # Format spécial pour les messages de progression
             plugin_part = f" {self.source}" if self.source else ""
             return f"[PROGRESS] {int(self.progress * 100)} {self.step or 0} {self.total_steps or 1}{plugin_part}"
+        elif self.type == MessageType.PROGRESS_TEXT:
+            # Format spécial pour les barres de progression textuelles
+            status = self.data.get('status', 'running')
+            return f"[PROGRESS_TEXT] {status} {self.content}"
         else:
             # Format standard pour les autres types de messages
             return f"[LOG] [{self.type.name}] {self.content}"
@@ -114,6 +119,17 @@ class Message:
                 msg.plugin_name = plugin_name
                 print(f"DEBUG: Attribut plugin_name ajouté: {msg.plugin_name}")
             return msg
+        
+        # Vérifier le format de progression textuelle
+        # Format: [PROGRESS_TEXT] status content
+        progress_text_match = re.match(r'^\[PROGRESS_TEXT\] (\w+) (.+)$', message)
+        if progress_text_match:
+            status, content = progress_text_match.groups()
+            return cls(
+                type=MessageType.PROGRESS_TEXT,
+                content=content,
+                data={'status': status}
+            )
         
         # Vérifier le format de log standard
         log_match = re.match(r'^\[LOG\] \[(\w+)\] (.+)$', message)
@@ -197,7 +213,8 @@ class MessageFormatter:
             MessageType.SUCCESS: "green",
             MessageType.DEBUG: "gray70",
             MessageType.UNKNOWN: "white",
-            MessageType.PROGRESS: "blue"
+            MessageType.PROGRESS: "blue",
+            MessageType.PROGRESS_TEXT: "blue"
         }
     
     @staticmethod
@@ -232,6 +249,9 @@ class MessageFormatter:
         # Ajouter un préfixe pour les messages de succès pour les rendre plus visibles
         if message.type == MessageType.SUCCESS:
             return f"SUCCESS: {ip_prefix}{message.content}"
+        elif message.type == MessageType.PROGRESS_TEXT:
+            # Pour les barres de progression textuelles
+            return f"PROGRESS_TEXT: {ip_prefix}{message.content}"
         else:
             return f"{ip_prefix}{message.content}"
     
@@ -254,6 +274,7 @@ class MessageFormatter:
             MessageType.SUCCESS: "bright_green",
             MessageType.DEBUG: "dim grey",
             MessageType.PROGRESS: "bright_blue",
+            MessageType.PROGRESS_TEXT: "bright_blue",
             MessageType.UNKNOWN: "white"
         }
         
@@ -286,7 +307,11 @@ class MessageFormatter:
         if message.target_ip:
             ip_info = f"[magenta]@{message.target_ip}[/magenta] "
         
-        # Format lisible et coloré
+        # Format spécial pour les barres de progression textuelles
+        if message.type == MessageType.PROGRESS_TEXT:
+            return f"[{color}]{safe_content}[/{color}]"
+        
+        # Format lisible et coloré pour les autres types de messages
         return f"[cyan]{timestamp}[/cyan]  [{color}]{level_str}[/{color}]  {ip_info}[{color}]{safe_content}[/{color}]"
 
 
@@ -355,6 +380,29 @@ def create_progress(progress: float, step: int = None, total_steps: int = None, 
         step=step,
         total_steps=total_steps,
         target_ip=target_ip
+    )
+
+def create_progress_text(content: str, status: str = "running", source: str = None, instance_id: int = None, target_ip: str = None) -> Message:
+    """
+    Crée un message de barre de progression textuelle
+    
+    Args:
+        content: Contenu textuel de la barre de progression
+        status: État de la barre ("running" ou "stop")
+        source: Source du message (optionnel)
+        instance_id: ID d'instance du plugin (optionnel)
+        target_ip: Adresse IP cible pour les plugins SSH (optionnel)
+        
+    Returns:
+        Message: Message de barre de progression textuelle
+    """
+    return Message(
+        type=MessageType.PROGRESS_TEXT,
+        content=content,
+        source=source,
+        instance_id=instance_id,
+        target_ip=target_ip,
+        data={"status": status}
     )
 
 def parse_message(text: str) -> Message:
