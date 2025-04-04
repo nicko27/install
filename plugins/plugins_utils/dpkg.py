@@ -9,6 +9,7 @@ import os
 import re
 import tempfile
 import time
+from typing import Union, Optional, List, Dict, Any, Tuple
 
 
 class DpkgCommands(Commands):
@@ -17,14 +18,15 @@ class DpkgCommands(Commands):
     Hérite de la classe Commands pour la gestion des commandes système.
     """
 
-    def __init__(self, logger=None):
+    def __init__(self, logger=None, target_ip=None):
         """
         Initialise le gestionnaire dpkg.
 
         Args:
             logger: Instance de PluginLogger à utiliser
+            target_ip: Adresse IP cible pour les logs (optionnel, pour les exécutions SSH)
         """
-        super().__init__(logger)
+        super().__init__(logger, target_ip)
         self._package_selections = []
         self._debconf_selections = []
 

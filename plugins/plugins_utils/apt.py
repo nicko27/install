@@ -9,6 +9,7 @@ from .commands import Commands
 import os
 import re
 import time
+from typing import Union, Optional, List, Dict, Any, Tuple
 
 
 class AptCommands(Commands):

@@ -5,6 +5,7 @@ Permet de démarrer, arrêter, redémarrer et vérifier l'état des services du 
 """
 
 from .commands import Commands
+from typing import Union, Optional, List, Dict, Any, Tuple
 
 
 class ServiceCommands(Commands):
@@ -15,6 +16,16 @@ class ServiceCommands(Commands):
     Les méthodes acceptent un paramètre optionnel root_credentials qui permet de spécifier
     les informations d'identification pour sudo. Format: {'user': 'username', 'password': 'password'}
     """
+    
+    def __init__(self, logger=None, target_ip=None):
+        """
+        Initialise le gestionnaire de services.
+
+        Args:
+            logger: Instance de PluginLogger à utiliser
+            target_ip: Adresse IP cible pour les logs (optionnel, pour les exécutions SSH)
+        """
+        super().__init__(logger, target_ip)
 
     def start(self, service_name):
         """

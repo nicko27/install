@@ -1,7 +1,7 @@
 import os
 from ruamel.yaml import YAML
 from textual.app import ComposeResult
-from textual.containers import Container, Horizontal
+from textual.containers import Container, VerticalGroup
 from textual.widgets import Label, Button, Static
 
 from .plugin_list_item import PluginListItem
@@ -18,13 +18,14 @@ class SelectedPluginsPanel(Static):
         self.selected_plugins = []  # Liste des plugins sélectionnés
 
     def compose(self) -> ComposeResult:
-        yield Label("Plugins sélectionnés", classes="panel-title")  # Titre du panneau
-        yield Container(id="selected-plugins-list")  # Conteneur pour la liste des plugins sélectionnés
+        with VerticalGroup(id="selected-plugins-list"):
+            yield Label("Plugins sélectionnés", id="selected-plugins-list-title")  # Titre du panneau
+            yield Container(id="selected-plugins-list-content")  # Conteneur pour la liste des plugins sélectionnés
 
     def update_plugins(self, plugins: list) -> None:
         """Update the display when selected plugins change"""
         self.selected_plugins = plugins  # Mettre à jour la liste des plugins sélectionnés
-        container = self.query_one("#selected-plugins-list", Container)  # Rechercher le conteneur de la liste
+        container = self.query_one("#selected-plugins-list-content", Container)  # Rechercher le conteneur de la liste
         container.remove_children()  # Retirer tous les enfants du conteneur
 
         if not plugins:
@@ -107,10 +108,32 @@ class SelectedPluginsPanel(Static):
                 # jusqu'à la prochaine séquence ou jusqu'à ce qu'on ait trouvé tous les plugins de la séquence
                 plugins_found = []
                 
-                for j in range(idx + 1, len(items)):
-                    # Si on rencontre une autre séquence, arrêter
-                    if items[j].is_sequence:
-                        break
+                logger.debug(f"Recherche des plugins pour la séquence {sequence_name} avec ID {item.instance_id}")
+                logger.debug(f"Nombre de plugins attendus dans la séquence: {len(sequence_plugins)}")
+                
+                # Générer des identifiants uniques pour chaque plugin de la séquence basés sur le nom ET la configuration
+                # Cela permet de différencier les instances multiples du même plugin avec des configurations différentes
+                sequence_plugin_identifiers = []
+                for seq_plugin in sequence_plugins:
+                    # Créer un identifiant unique basé sur le nom et les valeurs de configuration
+                    config_str = ""
+                    for key, value in sorted(seq_plugin.get('config', {}).items()):
+                        config_str += f"{key}:{value};"
+                    unique_id = f"{seq_plugin['name']}_{config_str}"
+                    sequence_plugin_identifiers.append({
+                        'id': unique_id,
+                        'plugin': seq_plugin,
+                        'used': False  # Pour suivre si ce plugin a déjà été utilisé
+                    })
+                
+                logger.debug(f"Identifiants uniques générés pour les plugins de la séquence: {[p['id'] for p in sequence_plugin_identifiers]}")
+                
+                # Parcourir tous les plugins pour trouver ceux qui font partie de la séquence
+                # Ne pas se limiter aux plugins qui suivent immédiatement la séquence
+                for j in range(0, len(items)):
+                    # Ignorer les séquences et le plugin de séquence actuel
+                    if items[j].is_sequence or j == idx:
+                        continue
                     
                     # Si ce plugin correspond à une entrée dans la séquence (nom et configuration)
                     current_plugin = {
@@ -118,34 +141,67 @@ class SelectedPluginsPanel(Static):
                         'config': items[j].config if hasattr(items[j], 'config') else {}
                     }
                     
-                    # Chercher une correspondance non utilisée dans la séquence
-                    for seq_plugin in sequence_plugins:
-                        # Vérifier le nom du plugin
-                        if seq_plugin['name'] != current_plugin['name']:
+                    # Générer l'identifiant unique pour ce plugin
+                    config_str = ""
+                    for key, value in sorted(current_plugin.get('config', {}).items()):
+                        config_str += f"{key}:{value};"
+                    current_id = f"{current_plugin['name']}_{config_str}"
+                    
+                    logger.debug(f"Vérification du plugin {current_plugin['name']} à l'index {j} avec ID: {current_id}")
+                    
+                    # Chercher une correspondance non utilisée dans la séquence en utilisant les identifiants uniques
+                    match_found = False
+                    
+                    # Parcourir les identifiants uniques des plugins de la séquence
+                    for seq_identifier in sequence_plugin_identifiers:
+                        # Si cet identifiant a déjà été utilisé, passer au suivant
+                        if seq_identifier['used']:
                             continue
                             
-                        # Vérifier que cette configuration n'a pas déjà été utilisée
-                        if seq_plugin in plugins_found:
+                        # Vérifier si le nom du plugin correspond
+                        seq_plugin = seq_identifier['plugin']
+                        if seq_plugin['name'] != current_plugin['name']:
+                            logger.debug(f"Nom de plugin différent: {seq_plugin['name']} != {current_plugin['name']}")
                             continue
                             
                         # Vérifier les configurations
                         seq_config = seq_plugin.get('config', {})
                         current_config = current_plugin.get('config', {})
                         
+                        logger.debug(f"Comparaison des configurations - Séquence: {seq_config}, Actuel: {current_config}")
+                        
                         # Vérifier que toutes les clés de la séquence sont présentes avec les mêmes valeurs
                         config_match = True
                         for key, value in seq_config.items():
                             if key not in current_config or current_config[key] != value:
+                                logger.debug(f"Non-correspondance de configuration pour la clé {key}: {value} != {current_config.get(key, 'non défini')}")
                                 config_match = False
                                 break
                                 
                         if config_match:
-                            # Marquer ce plugin comme faisant partie de la séquence
-                            items[j].is_part_of_sequence = True
-                            items[j].sequence_id = item.instance_id
-                            plugins_found.append(seq_plugin)
-                            logger.info(f"Plugin {items[j].plugin_name} marqué comme faisant partie de la séquence {item.instance_id}")
+                            # Marquer ce plugin comme faisant partie de la séquence en utilisant la méthode dédiée
+                            # qui va aussi rafraîchir l'affichage
+                            items[j].set_sequence_attributes(
+                                is_part_of_sequence=True,
+                                sequence_id=item.instance_id,
+                                sequence_name=sequence_name.replace('.yml', '')
+                            )
+                            
+                            # Marquer cet identifiant comme utilisé
+                            seq_identifier['used'] = True
+                            
+                            # Copier la configuration du plugin de la séquence dans le plugin actuel
+                            # pour s'assurer qu'il a la bonne configuration
+                            if hasattr(items[j], 'config') and seq_config:
+                                items[j].config.update(seq_config)
+                                logger.debug(f"Configuration mise à jour pour {items[j].plugin_name}: {items[j].config}")
+                            
+                            match_found = True
+                            logger.warning(f"Plugin {items[j].plugin_name} marqué comme faisant partie de la séquence {item.instance_id} (nom: {sequence_name})")
                             break
+                    
+                    if not match_found:
+                        logger.debug(f"Aucune correspondance trouvée pour le plugin {current_plugin['name']} dans la séquence")
             
         # Monter tous les éléments
         for item in items:

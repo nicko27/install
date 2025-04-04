@@ -71,6 +71,10 @@ class PluginListItem(Horizontal):
         # Un plugin fait partie d'une séquence s'il est précédé par une séquence et qu'il n'y a pas d'autre séquence entre les deux
         self.is_part_of_sequence = False
         self.sequence_id = None
+        self.sequence_name = None  # Nom de la séquence à laquelle ce plugin appartient
+        
+        # Ajouter un log pour déboguer
+        logger.debug(f"Initialisation de {self.plugin_name} avec is_part_of_sequence={self.is_part_of_sequence}")
         
         # Cette vérification sera faite dans la méthode update_sequence_info
         
@@ -99,11 +103,42 @@ class PluginListItem(Horizontal):
         # Cette méthode est conservée pour compatibilité, mais la logique est maintenant dans SelectedPluginsPanel
         # pour assurer une gestion cohérente des séquences et éviter les problèmes de style
         pass
+        
+    def set_sequence_attributes(self, is_part_of_sequence: bool, sequence_id: str = None, sequence_name: str = None) -> None:
+        """
+        Met à jour les attributs de séquence et rafraîchit l'affichage.
+        
+        Args:
+            is_part_of_sequence: Indique si ce plugin fait partie d'une séquence
+            sequence_id: ID de la séquence à laquelle ce plugin appartient
+            sequence_name: Nom de la séquence à laquelle ce plugin appartient
+        """
+        # Mettre à jour les attributs
+        self.is_part_of_sequence = is_part_of_sequence
+        self.sequence_id = sequence_id
+        self.sequence_name = sequence_name
+        
+        # Forcer le rafraîchissement de l'affichage
+        self.refresh()
+        
+        logger.warning(f"Attributs de séquence mis à jour pour {self.plugin_name}: is_part_of_sequence={self.is_part_of_sequence}, sequence_id={self.sequence_id}, sequence_name={self.sequence_name}")
     
     def compose(self) -> ComposeResult:
         # Pour les séquences, s'assurer que nous utilisons le nom du YAML
         # Sauvegarder l'état original de is_sequence pour l'utiliser plus tard
         original_is_sequence = self.is_sequence
+        
+        # Vérifier si ce plugin fait partie d'une séquence en examinant les attributs CSS
+        # Cela permet de détecter les plugins de séquence même si les attributs is_part_of_sequence et sequence_id
+        # n'ont pas été correctement définis par SelectedPluginsPanel
+        if hasattr(self, 'classes') and 'sequence-plugin' in self.classes:
+            # Extraire l'ID de séquence à partir des classes CSS
+            for css_class in self.classes:
+                if css_class.startswith('sequence-') and css_class != 'sequence-plugin' and css_class != 'sequence-item-name':
+                    self.is_part_of_sequence = True
+                    self.sequence_id = css_class.replace('sequence-', '')
+                    logger.debug(f"Détection de séquence à partir des classes CSS: {self.sequence_id}")
+                    break
         
         if original_is_sequence:
             # Récupérer les informations de séquence à nouveau pour s'assurer qu'elles sont à jour
@@ -116,17 +151,20 @@ class PluginListItem(Horizontal):
             name = self.plugin_info.get('name', self.plugin_name)  # Nom du plugin
             icon = self.plugin_info.get('icon', '📦')  # Icône du plugin
         
-        logger.info(f"Composition de l'élément {self.plugin_name}, nom: {name}, is_sequence: {original_is_sequence}")
+        logger.info(f"Composition de l'élément {self.plugin_name}, nom: {name}, is_sequence: {original_is_sequence}, is_part_of_sequence: {self.is_part_of_sequence}, sequence_id: {self.sequence_id}")
         
         # Déterminer les classes du label
         if original_is_sequence:
             # Si c'est une séquence, utiliser le style de séquence
             label_classes = "plugin-list-name sequence-list-name"
-        elif self.is_part_of_sequence and self.sequence_id is not None:
-            # Si c'est un plugin faisant partie d'une séquence active, utiliser le style de plugin de séquence
-            label_classes = f"plugin-list-name sequence-item-name sequence-plugin sequence-{self.sequence_id}"
+        elif self.is_part_of_sequence and hasattr(self, 'sequence_name') and self.sequence_name:
+            # Si c'est un plugin faisant partie d'une séquence, ajouter la classe sequence-list-name
+            label_classes = "plugin-list-name sequence-list-name"
+            if self.sequence_id is not None:
+                label_classes += f" sequence-item-name sequence-plugin sequence-{self.sequence_id}"
+            logger.warning(f"Plugin {self.plugin_name} identifié comme faisant partie de la séquence {self.sequence_name}")
         else:
-            # Sinon, utiliser le style standard
+            # Pour les plugins normaux
             label_classes = "plugin-list-name"
         
         # Modifier le texte pour les séquences
@@ -174,7 +212,7 @@ class PluginListItem(Horizontal):
             button_classes = "remove-button hidden"
         else:
             button_classes = "remove-button"
-            
+        
         yield Button("X", id=button_id, variant="error", classes=button_classes)  # Bouton pour retirer le plugin
 
     # Les styles sont maintenant définis dans le fichier TCSS

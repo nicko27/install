@@ -8,6 +8,7 @@ from .commands import Commands
 import os
 import json
 import re
+from typing import Union, Optional, List, Dict, Any, Tuple
 
 
 class PrinterCommands(Commands):
@@ -15,6 +16,16 @@ class PrinterCommands(Commands):
     Classe pour gérer les imprimantes via CUPS.
     Hérite de la classe Commands pour la gestion des commandes système.
     """
+    
+    def __init__(self, logger=None, target_ip=None):
+        """
+        Initialise le gestionnaire d'imprimantes.
+
+        Args:
+            logger: Instance de PluginLogger à utiliser
+            target_ip: Adresse IP cible pour les logs (optionnel, pour les exécutions SSH)
+        """
+        super().__init__(logger, target_ip)
 
     def list_printers(self):
         """

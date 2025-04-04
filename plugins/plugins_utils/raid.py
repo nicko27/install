@@ -9,6 +9,7 @@ import os
 import re
 import time
 import tempfile
+from typing import Union, Optional, List, Dict, Any, Tuple
 
 
 class RaidCommands(Commands):
@@ -16,6 +17,16 @@ class RaidCommands(Commands):
     Classe pour gérer les tableaux RAID Linux (mdadm).
     Hérite de la classe Commands pour la gestion des commandes système.
     """
+    
+    def __init__(self, logger=None, target_ip=None):
+        """
+        Initialise le gestionnaire RAID.
+
+        Args:
+            logger: Instance de PluginLogger à utiliser
+            target_ip: Adresse IP cible pour les logs (optionnel, pour les exécutions SSH)
+        """
+        super().__init__(logger, target_ip)
 
     def create_raid_array(self, raid_level, devices, array_name=None, spare_devices=None, chunk_size=None, metadata=None):
         """

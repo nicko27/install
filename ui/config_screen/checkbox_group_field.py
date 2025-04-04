@@ -25,6 +25,13 @@ class CheckboxGroupField(ConfigField):
         if 'depends_on' in field_config:
             self.depends_on = field_config['depends_on']
             logger.debug(f"Champ {self.field_id} dépend de {self.depends_on}")
+        
+        # Initialiser les valeurs par défaut si elles sont définies
+        if 'default_selected' in field_config:
+            self.default_selected = field_config['default_selected']
+            logger.debug(f"Valeurs par défaut pour {self.field_id}: {self.default_selected}")
+        else:
+            self.default_selected = []
 
     def compose(self) -> ComposeResult:
         # Créer le conteneur pour les checkboxes
@@ -55,6 +62,7 @@ class CheckboxGroupField(ConfigField):
                         self.checkboxes[option_value] = checkbox
 
                         yield checkbox
+                        yield Label(option_label, classes="checkbox-group-label")
 
     def _get_options(self) -> list:
         """Get options for the checkbox group, either static or dynamic"""
@@ -136,6 +144,9 @@ class CheckboxGroupField(ConfigField):
                     result = getattr(module, func_name)()
 
                 logger.debug(f"Result from {func_name}: {result}")
+                
+                # Stocker les données brutes pour une utilisation ultérieure
+                self.raw_data = result
 
                 # Process the result
                 if isinstance(result, tuple) and len(result) == 2:
@@ -150,20 +161,45 @@ class CheckboxGroupField(ConfigField):
                         # Extract value_key and label_key if specified
                         value_key = dynamic_config.get('value')
                         label_key = dynamic_config.get('description')
-
+                        
+                        # Récupérer les clés pour la sélection automatique
+                        auto_select_key = dynamic_config.get('auto_select_key')
+                        auto_select_value = dynamic_config.get('auto_select_value', True)
+                        
                         options = []
                         for item in data:
                             if isinstance(item, dict):
                                 if value_key and label_key and value_key in item and label_key in item:
-                                    options.append((str(item[label_key]), str(item[value_key])))
+                                    value = str(item[value_key])
+                                    options.append((str(item[label_key]), value))
+                                    
+                                    # Vérifier si cet élément doit être sélectionné par défaut
+                                    if auto_select_key and auto_select_key in item and item[auto_select_key] == auto_select_value:
+                                        if value not in self.selected_values:
+                                            self.selected_values.append(value)
+                                            logger.debug(f"Auto-sélection de {value} basée sur {auto_select_key}={auto_select_value}")
+                                            
                                 elif value_key and value_key in item:
                                     # Use value as label if no label_key specified
                                     value = str(item[value_key])
                                     options.append((value, value))
+                                    
+                                    # Vérifier si cet élément doit être sélectionné par défaut
+                                    if auto_select_key and auto_select_key in item and item[auto_select_key] == auto_select_value:
+                                        if value not in self.selected_values:
+                                            self.selected_values.append(value)
+                                            logger.debug(f"Auto-sélection de {value} basée sur {auto_select_key}={auto_select_value}")
                             else:
                                 # For simple values, use as both label and value
                                 value = str(item)
                                 options.append((value, value))
+                        
+                        # Appliquer les valeurs par défaut définies dans la configuration
+                        if hasattr(self, 'default_selected') and self.default_selected:
+                            for default_value in self.default_selected:
+                                if any(opt[1] == default_value for opt in options) and default_value not in self.selected_values:
+                                    self.selected_values.append(default_value)
+                                    logger.debug(f"Sélection par défaut de {default_value} depuis la configuration")
 
                         if options:
                             return options

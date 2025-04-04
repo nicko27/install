@@ -1,137 +1,39 @@
 #!/usr/bin/env python3
 """
 Module utilitaire pour l'exécution de commandes système.
-Fournit une classe Commands de base pour exécuter des commandes shell de manière sécurisée
+Fournit une classe Commands pour exécuter des commandes shell de manière sécurisée
 et avec une gestion appropriée des erreurs et des logs.
 """
 
 import subprocess
 import traceback
 import re
+import time
+import os
+from typing import Union, Optional, List, Tuple, Dict, Any
+
+from .plugin_utils_base import PluginUtilsBase
 
 
-class Commands:
+class Commands(PluginUtilsBase):
     """
     Classe utilitaire pour l'exécution de commandes système.
     Permet d'exécuter des commandes shell avec une gestion appropriée des logs et des erreurs.
     """
 
-    def __init__(self, logger=None):
+    def __init__(self, logger=None, target_ip=None):
         """
         Initialise un gestionnaire de commandes.
 
         Args:
             logger: Instance de PluginLogger à utiliser pour la journalisation (optionnel)
+            target_ip: Adresse IP cible pour les logs (optionnel, pour les exécutions SSH)
         """
-        self.logger = logger
+        # Appel du constructeur de la classe parente
+        super().__init__(logger, target_ip)
 
-        # Variables pour la gestion de la progression
-        self.total_steps = 1
-        self.current_step = 0
-
-        # Si aucun logger n'est fourni, essayer d'en créer un temporaire
-        if self.logger is None:
-            try:
-                from .pluginlogger import PluginLogger
-                self.logger = PluginLogger()
-            except:
-                # Fallback si impossible de créer un logger
-                pass
-
-    def set_total_steps(self, total):
-        """
-        Définit le nombre total d'étapes pour calculer les pourcentages.
-
-        Args:
-            total: Nombre total d'étapes
-        """
-        self.total_steps = max(1, total)
-        self.current_step = 0
-
-        if self.logger:
-            self.logger.set_total_steps(self.total_steps)
-
-    def next_step(self, message=None):
-        """
-        Passe à l'étape suivante et met à jour la progression.
-
-        Args:
-            message: Message optionnel à afficher
-
-        Returns:
-            int: Étape actuelle
-        """
-        self.current_step += 1
-        current = min(self.current_step, self.total_steps)
-
-        # Mise à jour de la progression
-        if self.logger:
-            self.logger.next_step()
-            if message:
-                self.logger.info(message)
-        else:
-            progress = int(current / self.total_steps * 100)
-            print(f"[PROGRESSION] {progress}% ({current}/{self.total_steps})")
-            if message:
-                print(f"[INFO] {message}")
-
-        return current
-
-    def update_progress(self, percentage, message=None):
-        """
-        Met à jour la progression sans passer à l'étape suivante.
-        Utile pour les opérations longues avec progression continue.
-
-        Args:
-            percentage: Pourcentage de progression (0.0 à 1.0)
-            message: Message optionnel à afficher
-        """
-        if self.logger:
-            self.logger.update_progress(percentage)
-            if message:
-                self.logger.info(message)
-        else:
-            progress = int(percentage * 100)
-            print(f"[PROGRESSION] {progress}%")
-            if message:
-                print(f"[INFO] {message}")
-
-    def log_info(self, msg):
-        """Enregistre un message d'information."""
-        if self.logger:
-            self.logger.info(msg)
-        else:
-            print(f"[LOG] [INFO] {msg}")
-
-    def log_warning(self, msg):
-        """Enregistre un message d'avertissement."""
-        if self.logger:
-            self.logger.warning(msg)
-        else:
-            print(f"[LOG] [WARNING] {msg}")
-
-    def log_error(self, msg):
-        """Enregistre un message d'erreur."""
-        if self.logger:
-            self.logger.error(msg)
-        else:
-            print(f"[LOG] [ERROR] {msg}")
-
-    def log_debug(self, msg):
-        """Enregistre un message de débogage."""
-        if self.logger:
-            self.logger.debug(msg)
-        else:
-            print(f"[LOG] [DEBUG] {msg}")
-
-    def log_success(self, msg):
-        """Enregistre un message de succès."""
-        if self.logger:
-            self.logger.success(msg)
-        else:
-            print(f"[LOG] [SUCCESS] {msg}")
-
-
+    # Les méthodes set_total_steps, next_step, update_progress, log_info, log_warning, log_error, log_debug, log_success
+    # sont héritées de PluginUtilsBase et n'ont pas besoin d'être redéfinies
 
     def run(self, cmd, input_data=None, no_output=False, print_command=False, real_time_output=True, error_as_warning=False,re_error_ignore=None, no_log=True):
         """

@@ -27,6 +27,9 @@ config_fields:
           param_name: home_dir
       value: username
       description: description
+      auto_select_key: uid
+      auto_select_value: 1000
+    default_selected: ["nico"]
 
   user_all:
     type: checkbox
