@@ -1,6 +1,0 @@
-name: SOLC
-description: SOLC
-variables:
-  printer_name: SOLC
-  printer_ip: 128.81.4.184
-  printer_model: KM227C.yml

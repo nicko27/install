@@ -19,6 +19,9 @@ logger = get_logger('auto_config')
 yaml = YAML()
 yaml.preserve_quotes = True
 
+# Compilation de l'expression régulière une seule fois pour une meilleure performance
+VAR_PATTERN = re.compile(r'\{([^}]+)\}')
+
 class AutoConfig:
     """
     Gestion automatique de la configuration des plugins sans interface graphique.
@@ -403,7 +406,7 @@ class AutoConfig:
         path = template
         
         # Trouver toutes les variables dans le template
-        var_matches = re.findall(r'\{([^}]+)\}', template)
+        var_matches = VAR_PATTERN.findall(template)
         
         for var in var_matches:
             if var in variables:

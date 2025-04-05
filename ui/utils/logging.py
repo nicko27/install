@@ -26,18 +26,18 @@ file_handler.setFormatter(file_formatter)
 root_logger.addHandler(file_handler)
 
 # Create a logger for our application
-logger = logging.getLogger('install_ui')
+logger = logging.getLogger('pcUtils')
 logger.setLevel(logging.DEBUG)
 
 def get_logger(name=None):
     """Get a logger for the application 
     
     Args:
-        name: Optional name to append to 'install_ui'
+        name: Optional name to append to 'pcUtils'
         
     Returns:
         Logger instance
     """
     if name:
-        return logging.getLogger(f'install_ui.{name}')
+        return logging.getLogger(f'pcUtils.{name}')
     return logger

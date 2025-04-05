@@ -1,6 +1,0 @@
-name: Amfreville-Bas
-description: Configuration pour l'imprimante du rez-de-chaussée à Amfreville
-variables:
-  printer_name: BAS
-  printer_ip: 150.27.26.220
-  printer_model: KM301i

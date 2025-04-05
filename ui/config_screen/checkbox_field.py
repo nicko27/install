@@ -18,11 +18,7 @@ class CheckboxField(ConfigField):
         # Ajouter un conteneur pour le checkbox
         with VerticalGroup(classes="checkbox-container"):
             # S'assurer que la valeur est bien un booléen
-            if not isinstance(self.value, bool):
-                if isinstance(self.value, str):
-                    self.value = self.value.lower() in ('true', 't', 'yes', 'y', '1')
-                else:
-                    self.value = bool(self.value)
+            self.value = self._ensure_boolean(self.value)
                     
             logger.debug(f"💻 Création du checkbox {self.field_id} avec valeur {self.value}")
             
@@ -32,6 +28,14 @@ class CheckboxField(ConfigField):
                 classes="field-checkbox"
             )
             yield self.checkbox
+    
+    def _ensure_boolean(self, value):
+        """Convertit une valeur en booléen"""
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            return value.lower() in ('true', 't', 'yes', 'y', '1')
+        return bool(value)
             
     def _try_load_sequence_value(self):
         """Essaie de charger la valeur depuis la configuration prédéfinie (séquence)"""
@@ -80,10 +84,7 @@ class CheckboxField(ConfigField):
             # Mettre à jour la valeur si trouvée
             if value is not None:
                 # Conversion en booléen
-                if isinstance(value, str):
-                    self.value = value.lower() in ('true', 't', 'yes', 'y', '1')
-                else:
-                    self.value = bool(value)
+                self.value = self._ensure_boolean(value)
                 logger.debug(f"💾 Valeur booléenne pour {self.field_id} définie à: {self.value}")
                     
         except Exception as e:
@@ -109,14 +110,10 @@ class CheckboxField(ConfigField):
         """Récupère la valeur actuelle de la checkbox"""
         return self.value
     
-    def set_value(self, value):
+    def set_value(self, value, update_dependencies=True):
         """Définit la valeur de la checkbox"""
         # Convertir la valeur en booléen si nécessaire
-        if not isinstance(value, bool):
-            if isinstance(value, str):
-                value = value.lower() in ('true', 't', 'yes', 'y', '1')
-            else:
-                value = bool(value)
+        value = self._ensure_boolean(value)
                 
         logger.debug(f"Définition de la valeur de la checkbox {self.field_id} à {value}")
         
@@ -126,5 +123,14 @@ class CheckboxField(ConfigField):
         # Mettre à jour le widget
         if hasattr(self, 'checkbox'):
             self.checkbox.value = value
+            
+        # Notifier les dépendances si nécessaire
+        if update_dependencies:
+            parent = self.parent
+            while parent:
+                if hasattr(parent, 'update_dependent_fields'):
+                    parent.update_dependent_fields(self)
+                    break
+                parent = parent.parent
             
         return True

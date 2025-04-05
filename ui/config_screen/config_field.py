@@ -39,22 +39,16 @@ class ConfigField(VerticalGroup):
         self.is_global = is_global         # Indique si c'est un champ global ou plugin
 
         # Attributs pour la gestion des dépendances
-        if 'enabled_if' in field_config:
-            self.enabled_if = field_config['enabled_if']
-            self._original_default = field_config.get('default')
-        else:
-            self.enabled_if = None
-            self._original_default = None
+        self.enabled_if = field_config.get('enabled_if')
+        self._original_default = field_config.get('default') if self.enabled_if else None
             
         # Nom de la variable pour l'export (peut être différent de l'ID)
         self.variable_name = field_config.get('variable', field_id)
         
         # Gestion des dépendances pour les valeurs dynamiques
-        if 'depends_on' in field_config:
-            self.depends_on = field_config['depends_on']
+        self.depends_on = field_config.get('depends_on')
+        if self.depends_on:
             logger.debug(f"Champ {self.field_id} dépend de {self.depends_on}")
-        else:
-            self.depends_on = None
 
         # Initialisation de la valeur par défaut
         self.value = self._get_default_value()
@@ -196,7 +190,9 @@ class ConfigField(VerticalGroup):
         """
         try:
             # Ajouter le dossier du script au chemin de recherche
-            sys.path.append(os.path.dirname(script_path))
+            script_dir = os.path.dirname(script_path)
+            if script_dir not in sys.path:
+                sys.path.append(script_dir)
             
             # Créer un spécificateur de module
             spec = importlib.util.spec_from_file_location("dynamic_module", script_path)
@@ -265,28 +261,22 @@ class ConfigField(VerticalGroup):
                 logger.warning(f"Fonction dynamique a échoué: {value}")
                 return None
                 
-            # Traiter la valeur selon son type
+            # Extraire la valeur du dictionnaire si nécessaire
             if isinstance(value, dict):
-                # Extraire une clé spécifique si définie
                 value_key = dynamic_config.get('value')
                 if value_key and value_key in value:
                     return value[value_key]
-                    
-                # Sinon prendre la première valeur
-                if value:
+                elif value:
                     return next(iter(value.values()))
-                    
-            # Valeur non-dictionnaire
+            
             return value
             
         # Cas 2: Résultat est un dictionnaire
-        elif isinstance(result, dict):
+        if isinstance(result, dict):
             value_key = dynamic_config.get('value')
             if value_key and value_key in result:
                 return result[value_key]
-                
-            # Sinon prendre la première valeur
-            if result:
+            elif result:
                 return next(iter(result.values()))
                 
         # Cas 3: Tout autre type de résultat
@@ -330,10 +320,7 @@ class ConfigField(VerticalGroup):
 
             # Convertir en booléens si nécessaire pour la comparaison
             if isinstance(required_value, bool) and not isinstance(field_value, bool):
-                if isinstance(field_value, str):
-                    field_value = field_value.lower() in ('true', 't', 'yes', 'y', '1')
-                else:
-                    field_value = bool(field_value)
+                field_value = self._normalize_bool_value(field_value)
 
             logger.debug(f"Comparaison pour {self.field_id}: {field_value} == {required_value}")
 
@@ -351,6 +338,12 @@ class ConfigField(VerticalGroup):
             logger.debug(f"Champ dépendant {self.enabled_if['field']} non trouvé pour {self.field_id}, désactivé par défaut")
             self.disabled = True
             self.add_class('disabled')
+    
+    def _normalize_bool_value(self, value):
+        """Normalise une valeur en booléen"""
+        if isinstance(value, str):
+            return value.lower() in ('true', 't', 'yes', 'y', '1')
+        return bool(value)
 
     def get_value(self) -> Any:
         """
@@ -411,6 +404,10 @@ class ConfigField(VerticalGroup):
         logger.debug(f"Valeur de {self.field_id} changée à {self.value}")
 
         # Mettre à jour les champs qui dépendent de celui-ci
+        self._notify_dependent_fields()
+    
+    def _notify_dependent_fields(self):
+        """Notifie les champs dépendants d'un changement de valeur"""
         if self.fields_by_id:
             for field_id, field in self.fields_by_id.items():
                 if hasattr(field, 'depends_on') and field.depends_on == self.field_id:

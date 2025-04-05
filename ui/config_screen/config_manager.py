@@ -40,38 +40,7 @@ class ConfigManager:
         Returns:
             Optional[Dict[str, Any]]: Configuration chargée ou None en cas d'erreur
         """
-        # Vérifier si la configuration est déjà en cache
-        cache_key = f"global:{config_path}"
-        if cache_key in self.config_cache:
-            self.global_configs[config_id] = self.config_cache[cache_key]
-            logger.debug(f"Configuration globale '{config_id}' récupérée du cache")
-            return self.config_cache[cache_key]
-        
-        try:
-            path = Path(config_path)
-            if not path.exists():
-                logger.error(f"Fichier de configuration inexistant: {config_path}")
-                return None
-                
-            with open(path, 'r', encoding='utf-8') as f:
-                config = self.yaml.load(f)
-                
-            # Valider la configuration
-            is_valid, errors = self._validate_global_config(config)
-            if not is_valid:
-                logger.error(f"Configuration globale '{config_id}' invalide: {errors}")
-                return None
-                
-            # Stocker dans le cache et le dictionnaire des configurations
-            self.config_cache[cache_key] = config
-            self.global_configs[config_id] = config
-            logger.debug(f"Configuration globale '{config_id}' chargée: {len(config)} clés")
-            return config
-        except Exception as e:
-            logger.error(f"Erreur lors du chargement de la configuration '{config_id}': {e}")
-            import traceback
-            logger.error(traceback.format_exc())
-            return None
+        return self._load_config(config_id, config_path, is_global=True)
 
     def load_plugin_config(self, plugin_id: str, settings_path: str) -> Optional[Dict[str, Any]]:
         """
@@ -84,38 +53,64 @@ class ConfigManager:
         Returns:
             Optional[Dict[str, Any]]: Configuration du plugin ou None en cas d'erreur
         """
-        # Vérifier si la configuration est déjà en cache
-        cache_key = f"plugin:{settings_path}"
-        if cache_key in self.config_cache:
-            self.plugin_configs[plugin_id] = self.config_cache[cache_key]
-            logger.debug(f"Configuration du plugin '{plugin_id}' récupérée du cache")
-            return self.config_cache[cache_key]
+        return self._load_config(plugin_id, settings_path, is_global=False)
+
+    def _load_config(self, config_id: str, config_path: str, is_global: bool = False) -> Optional[Dict[str, Any]]:
+        """
+        Méthode générique pour charger une configuration.
+        
+        Args:
+            config_id: Identifiant de la configuration
+            config_path: Chemin du fichier de configuration
+            is_global: Si True, charge une configuration globale
             
+        Returns:
+            Optional[Dict[str, Any]]: Configuration chargée ou None en cas d'erreur
+        """
+        # Vérifier si la configuration est déjà en cache
+        cache_key = f"{'global' if is_global else 'plugin'}:{config_path}"
+        if cache_key in self.config_cache:
+            config = self.config_cache[cache_key]
+            # Stocker dans le dictionnaire approprié
+            if is_global:
+                self.global_configs[config_id] = config
+            else:
+                self.plugin_configs[config_id] = config
+            logger.debug(f"Configuration {'globale' if is_global else 'plugin'} '{config_id}' récupérée du cache")
+            return config
+        
         try:
-            path = Path(settings_path)
+            path = Path(config_path)
             if not path.exists():
-                logger.error(f"Fichier settings.yml inexistant: {settings_path}")
+                logger.error(f"Fichier de configuration inexistant: {config_path}")
                 return None
                 
             with open(path, 'r', encoding='utf-8') as f:
                 config = self.yaml.load(f)
                 
             # Valider la configuration
-            is_valid, errors = self._validate_plugin_config(config)
+            validator = self._validate_global_config if is_global else self._validate_plugin_config
+            is_valid, errors = validator(config)
             if not is_valid:
-                logger.error(f"Configuration du plugin '{plugin_id}' invalide: {errors}")
+                logger.error(f"Configuration {'globale' if is_global else 'plugin'} '{config_id}' invalide: {errors}")
                 return None
                 
-            # Normaliser les champs de configuration
-            config = self._normalize_config_fields(config)
+            # Normaliser les champs de configuration si nécessaire
+            if not is_global:
+                config = self._normalize_config_fields(config)
                 
-            # Stocker dans le cache et le dictionnaire des configurations
+            # Stocker dans le cache et le dictionnaire approprié
             self.config_cache[cache_key] = config
-            self.plugin_configs[plugin_id] = config
-            logger.debug(f"Configuration du plugin '{plugin_id}' chargée: {len(config)} clés")
+            if is_global:
+                self.global_configs[config_id] = config
+            else:
+                self.plugin_configs[config_id] = config
+                
+            logger.debug(f"Configuration {'globale' if is_global else 'plugin'} '{config_id}' chargée: {len(config)} clés")
             return config
+            
         except Exception as e:
-            logger.error(f"Erreur lors du chargement du plugin '{plugin_id}': {e}")
+            logger.error(f"Erreur lors du chargement de {'la configuration' if is_global else 'du plugin'} '{config_id}': {e}")
             import traceback
             logger.error(traceback.format_exc())
             return None
@@ -151,20 +146,7 @@ class ConfigManager:
         Returns:
             Tuple[bool, str]: (est_valide, message_erreur)
         """
-        if not isinstance(config, dict):
-            return False, "La configuration doit être un dictionnaire"
-            
-        # Vérifier les champs requis
-        required_fields = ['config_fields']
-        for field in required_fields:
-            if field not in config:
-                return False, f"Champ requis manquant: {field}"
-                
-        # Vérifier le format de config_fields
-        if not isinstance(config['config_fields'], (dict, list)):
-            return False, "Le champ 'config_fields' doit être un dictionnaire ou une liste"
-            
-        return True, ""
+        return self._validate_config(config, is_global=True)
 
     def _validate_plugin_config(self, config: Dict[str, Any]) -> Tuple[bool, str]:
         """
@@ -176,11 +158,26 @@ class ConfigManager:
         Returns:
             Tuple[bool, str]: (est_valide, message_erreur)
         """
+        return self._validate_config(config, is_global=False)
+
+    def _validate_config(self, config: Dict[str, Any], is_global: bool = False) -> Tuple[bool, str]:
+        """
+        Valide une configuration selon son type.
+        
+        Args:
+            config: Configuration à valider
+            is_global: Si True, valide une configuration globale
+            
+        Returns:
+            Tuple[bool, str]: (est_valide, message_erreur)
+        """
         if not isinstance(config, dict):
             return False, "La configuration doit être un dictionnaire"
-            
+        
+        # Champs requis selon le type de configuration
+        required_fields = ['config_fields'] if is_global else ['name']
+        
         # Vérifier les champs requis
-        required_fields = ['name']
         for field in required_fields:
             if field not in config:
                 return False, f"Champ requis manquant: {field}"
@@ -188,7 +185,7 @@ class ConfigManager:
         # Vérifier le format de config_fields s'il existe
         if 'config_fields' in config and not isinstance(config['config_fields'], (dict, list)):
             return False, "Le champ 'config_fields' doit être un dictionnaire ou une liste"
-            
+        
         return True, ""
 
     def get_fields(self, config_id: str, is_global: bool = False) -> Dict[str, Any]:
@@ -357,11 +354,10 @@ class ConfigManager:
             if config_id in source:
                 # Trouver la clé de cache correspondante
                 prefix = 'global:' if is_global else 'plugin:'
-                to_remove = []
-                
-                for cache_key in self.config_cache:
-                    if cache_key.startswith(prefix) and self.config_cache[cache_key] is source[config_id]:
-                        to_remove.append(cache_key)
+                to_remove = [
+                    key for key in self.config_cache
+                    if key.startswith(prefix) and self.config_cache[key] is source[config_id]
+                ]
                 
                 # Supprimer les entrées du cache
                 for key in to_remove:

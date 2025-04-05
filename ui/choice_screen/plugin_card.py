@@ -4,124 +4,202 @@ from textual.reactive import reactive
 from textual.message import Message
 from textual.widget import Widget
 from pathlib import Path
-from ruamel.yaml import YAML
+from typing import Dict, Any, Optional, Union
 
 from .plugin_utils import load_plugin_info
 from ..utils.logging import get_logger
 
 logger = get_logger('plugin_card')
-yaml = YAML()
 
 class PluginCard(Static):
-    """A widget to represent a single plugin"""
-    selected = reactive(False)  # État réactif pour savoir si le plugin est sélectionné
+    """
+    Widget représentant une carte de plugin dans l'interface.
+    
+    Cette classe gère l'affichage et l'interaction des cartes de plugins
+    et de séquences dans l'écran de sélection.
+    """
+    
+    # État réactif pour savoir si le plugin est sélectionné
+    selected = reactive(False)
 
     def __init__(self, plugin_name: str, *args, **kwargs):
+        """
+        Initialise une carte de plugin.
+        
+        Args:
+            plugin_name: Nom du plugin ou de la séquence
+            *args: Arguments positionnels pour la classe parente
+            **kwargs: Arguments nommés pour la classe parente
+        """
         super().__init__(*args, **kwargs)
-        self.plugin_name = plugin_name  # Nom du plugin
-
-        # Vérifier si c'est une séquence
-        if plugin_name.startswith('__sequence__'):
-            self.is_sequence = True
+        self.plugin_name = plugin_name
+        self.is_sequence = plugin_name.startswith('__sequence__')
+        
+        # Charger les infos du plugin ou de la séquence
+        if self.is_sequence:
             self.sequence_file = plugin_name.replace('__sequence__', '')
             self.plugin_info = self._load_sequence_info(self.sequence_file)
         else:
-            self.is_sequence = False
-            self.plugin_info = load_plugin_info(plugin_name)  # Charger les informations du plugin
+            self.plugin_info = load_plugin_info(plugin_name)
 
     def compose(self) -> ComposeResult:
-        """Compose the plugin card"""
-        name = self.plugin_info.get('name', 'Unnamed Plugin')  # Nom du plugin
-        description = self.plugin_info.get('description', '')  # Description du plugin
+        """
+        Compose le contenu visuel de la carte de plugin.
+        
+        Returns:
+            ComposeResult: Résultat de la composition
+        """
+        name = self.plugin_info.get('name', 'Plugin sans nom')
+        description = self.plugin_info.get('description', '')
 
         if self.is_sequence:
-            icon = '⚙️'  # Icône d'engrenage pour les séquences
-            yield Label(f"{icon}  {name}", classes="plugin-name sequence-name")  # Afficher le nom et l'icône de la séquence
+            # Affichage spécifique pour les séquences
+            icon = '⚙️'
+            yield Label(f"{icon}  {name}", classes="plugin-name sequence-name")
+            
             plugins_count = self.plugin_info.get('plugins_count', 0)
-            if len(description)>0:
-                yield Label(f"{description} ({plugins_count} plugins)", classes="plugin-description")  # Afficher la description et le nombre de plugins
+            if description:
+                yield Label(f"{description} ({plugins_count} plugins)", classes="plugin-description")
+            else:
+                yield Label(f"{plugins_count} plugins", classes="plugin-description")
         else:
-            icon = self.plugin_info.get('icon', '📦')  # Icône du plugin
-
-            # Vérifier si le plugin est utilisable plusieurs fois
+            # Affichage standard pour les plugins
+            icon = self.plugin_info.get('icon', '📦')
+            
+            # Ajouter des icônes spécifiques selon les capacités du plugin
             multiple = self.plugin_info.get('multiple', False)
             remote = self.plugin_info.get('remote_execution', False)
-
-
-            # Ajouter une icône spécifique pour les plugins utilisables plusieurs fois
+            
             if multiple:
-                icon = f"{icon}  🔁"  # Ajouter l'icône de recyclage pour indiquer que le plugin est réutilisable
+                icon = f"{icon}  🔁"  # Icône de recyclage pour les plugins réutilisables
             if remote:
-                icon = f"{icon} 🌐"
+                icon = f"{icon} 🌐"  # Icône globe pour exécution distante
 
-            yield Label(f"{icon}  {name}", classes="plugin-name")  # Afficher le nom et l'icône du plugin
-
-            yield Label(description, classes="plugin-description")  # Afficher la description du plugin
+            yield Label(f"{icon}  {name}", classes="plugin-name")
+            
+            if description:
+                yield Label(description, classes="plugin-description")
 
     def on_click(self) -> None:
-        """Handle click to select/deselect plugin"""
-        # Si c'est une séquence, on la traite différemment
+        """
+        Gère les clics sur la carte de plugin.
+        
+        Ce gestionnaire a un comportement différent selon le type de plugin :
+        - Pour les séquences, bascule simplement l'état de sélection
+        - Pour les plugins multiples déjà sélectionnés, ajoute une nouvelle instance
+        - Pour les autres plugins, bascule l'état de sélection
+        """
+        # Traitement spécial pour les séquences
         if self.is_sequence:
             self.selected = not self.selected
             self.update_styles()
             self.app.post_message(self.PluginSelectionChanged(self.plugin_name, self.selected, self))
             return
 
-        # Vérifier si le plugin est multiple
+        # Récupérer les infos du plugin pour vérifier s'il est multiple
         plugin_info = load_plugin_info(self.plugin_name)
-        multiple = plugin_info.get('multiple', False)  # Vérifier si le plugin peut être sélectionné plusieurs fois
+        multiple = plugin_info.get('multiple', False)
 
-        # Si le plugin est multiple et déjà sélectionné, on ajoute une nouvelle instance
+        # Si c'est un plugin multiple déjà sélectionné, ajouter une instance
         if multiple and self.selected:
-            # Envoyer un message spécial pour ajouter une instance
             self.app.post_message(self.AddPluginInstance(self.plugin_name, self))
+            # Ajouter une animation visuelle temporaire
+            self.add_class("instance-added")
+            # Le retirer après un délai (la classe CSS doit définir une transition)
+            self.set_timer(0.5, self.remove_instance_added_animation)
         else:
-            # Sinon, on bascule l'état et on envoie le message approprié
+            # Sinon, basculer l'état de sélection
             self.selected = not self.selected
             self.update_styles()
             self.app.post_message(self.PluginSelectionChanged(self.plugin_name, self.selected, self))
 
-    def update_styles(self):
-        """Update card styles based on selection state"""
-        if self.selected:
-            self.add_class('selected')  # Ajouter la classe CSS 'selected' si le plugin est sélectionné
-        else:
-            self.remove_class('selected')  # Retirer la classe CSS 'selected' si le plugin n'est pas sélectionné
+    def remove_instance_added_animation(self) -> None:
+        """Retire l'animation d'ajout d'instance après un délai."""
+        self.remove_class("instance-added")
 
-    def _load_sequence_info(self, sequence_file: str) -> dict:
-        """Charge les informations d'une séquence"""
+    def update_styles(self) -> None:
+        """
+        Met à jour les styles CSS de la carte selon l'état de sélection.
+        """
+        if self.selected:
+            self.add_class('selected')
+        else:
+            self.remove_class('selected')
+
+    def _load_sequence_info(self, sequence_file: str) -> Dict[str, Any]:
+        """
+        Charge les informations d'une séquence depuis son fichier YAML.
+        
+        Args:
+            sequence_file: Nom du fichier de séquence
+            
+        Returns:
+            Dict[str, Any]: Informations de la séquence
+        """
         try:
+            from .sequence_handler import SequenceHandler
+            
+            # Utiliser SequenceHandler pour charger la séquence
+            sequence_handler = SequenceHandler()
             sequence_path = Path('sequences') / sequence_file
+            
             if not sequence_path.exists():
                 logger.error(f"Fichier de séquence non trouvé : {sequence_path}")
-                return {'name': 'Séquence inconnue', 'description': 'Fichier non trouvé'}
-
-            with open(sequence_path, 'r', encoding='utf-8') as f:
-                sequence = yaml.load(f)
-
-            if not isinstance(sequence, dict):
-                return {'name': 'Séquence invalide', 'description': 'Format incorrect'}
-
+                return {
+                    'name': 'Séquence inconnue', 
+                    'description': 'Fichier non trouvé',
+                    'plugins_count': 0
+                }
+            
+            # Charger la séquence
+            sequence = sequence_handler.load_sequence(sequence_path)
+            
+            if not sequence:
+                return {
+                    'name': 'Séquence invalide', 
+                    'description': 'Format incorrect',
+                    'plugins_count': 0
+                }
+            
             return {
                 'name': sequence.get('name', sequence_file),
                 'description': sequence.get('description', 'Aucune description'),
                 'plugins_count': len(sequence.get('plugins', []))
             }
+            
         except Exception as e:
             logger.error(f"Erreur lors du chargement de la séquence {sequence_file}: {e}")
-            return {'name': 'Erreur', 'description': f'Erreur: {str(e)}'}
-
+            import traceback
+            logger.error(traceback.format_exc())
+            return {
+                'name': 'Erreur', 
+                'description': f'Erreur: {str(e)}',
+                'plugins_count': 0
+            }
 
     class PluginSelectionChanged(Message):
-        """Message sent when plugin selection changes"""
+        """
+        Message envoyé lorsque la sélection d'un plugin change.
+        
+        Attributes:
+            plugin_name: Nom du plugin
+            selected: État de sélection (True=sélectionné, False=désélectionné)
+            source: Widget source du message
+        """
         def __init__(self, plugin_name: str, selected: bool, source: Widget):
             super().__init__()
-            self.plugin_name = plugin_name  # Nom du plugin
-            self.selected = selected  # État de sélection
-            self.source = source  # Source du message (la carte du plugin)
+            self.plugin_name = plugin_name
+            self.selected = selected
+            self.source = source
 
     class AddPluginInstance(Message):
-        """Message spécifique pour ajouter une instance d'un plugin multiple"""
+        """
+        Message spécifique pour ajouter une instance d'un plugin multiple.
+        
+        Attributes:
+            plugin_name: Nom du plugin
+            source: Widget source du message
+        """
         def __init__(self, plugin_name: str, source: Widget):
             super().__init__()
             self.plugin_name = plugin_name

@@ -42,6 +42,7 @@ class Choice(App):
         self.report_manager = None  # Initialisé si besoin
 
         # État de l'application
+        self.total_id = 0
         self.selected_plugins = []   # Liste des tuples (plugin_name, instance_id)
         self.instance_counter = {}   # Compteur d'instances par plugin
         self.plugin_templates = {}   # Templates par plugin
@@ -279,7 +280,9 @@ class Choice(App):
         self.instance_counter[plugin_name] += 1
 
         # Générer l'ID unique de l'instance
-        instance_id = self.instance_counter[plugin_name]
+        self.total_id += 1
+        instance_id = self.total_id
+
 
         # Ajouter à la liste des plugins sélectionnés
         self.selected_plugins.append((plugin_name, instance_id, config))
@@ -287,9 +290,16 @@ class Choice(App):
 
     def _update_selected_plugins_display(self) -> None:
         """Met à jour l'affichage des plugins sélectionnés."""
-        panel = self.query_one("#selected-plugins", SelectedPluginsPanel)
-        panel.update_plugins(self.selected_plugins)
-        logger.debug("Affichage des plugins sélectionnés mis à jour")
+        # Utiliser query au lieu de query_one pour éviter l'erreur si le widget n'est pas trouvé
+        panels = self.query("#selected-plugins")
+        if panels:
+            # Si le panneau est trouvé, mettre à jour l'affichage
+            panel = panels[0] # Prend le premier élément trouvé (normalement il n'y en a qu'un)
+            panel.update_plugins(self.selected_plugins)
+            logger.debug("Affichage des plugins sélectionnés mis à jour")
+        else:
+            # Loguer un avertissement si le panneau n'est pas trouvé, mais ne pas planter
+            logger.warning("Le panneau '#selected-plugins' n'a pas été trouvé lors de la tentative de mise à jour de l'affichage.")
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """
@@ -356,7 +366,8 @@ class Choice(App):
         self.instance_counter[plugin_name] += 1
 
         # Ajouter à la sélection
-        instance_id = self.instance_counter[plugin_name]
+        self.total_id += 1
+        instance_id = self.total_id
         self.selected_plugins.append((plugin_name, instance_id))
         logger.debug(f"Plugin ajouté: {plugin_name} (ID: {instance_id})")
 
@@ -381,6 +392,7 @@ class Choice(App):
 
         # Mettre à jour l'affichage
         self._update_selected_plugins_display()
+        
     def on_plugin_card_add_plugin_instance(self, message: PluginCard.AddPluginInstance) -> None:
         """
         Gère l'ajout d'une instance pour les plugins multiples.
@@ -394,7 +406,8 @@ class Choice(App):
         self.instance_counter[message.plugin_name] += 1
 
         # Ajouter la nouvelle instance
-        instance_id = self.instance_counter[message.plugin_name]
+        self.total_id += 1
+        instance_id = self.total_id
         self.selected_plugins.append((message.plugin_name, instance_id))
         logger.debug(f"Instance supplémentaire ajoutée: {message.plugin_name} (ID: {instance_id})")
 

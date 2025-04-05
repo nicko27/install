@@ -130,37 +130,31 @@ class ConfigContainer(VerticalGroup):
             field_id = field_config.get('id')
             if not field_id:
                 continue
-                
+            
+            # Collecter tous les types de dépendances
+            dependencies = []
+            
             # 1. Dépendance enabled_if (ce champ dépend d'un autre pour son activation)
-            if 'enabled_if' in field_config:
-                dep_field = field_config['enabled_if'].get('field')
-                if dep_field:
-                    # Ce champ dépend de dep_field pour son activation
-                    if dep_field not in self._field_dependencies:
-                        self._field_dependencies[dep_field] = set()
-                    self._field_dependencies[dep_field].add(field_id)
-                    logger.debug(f"Dépendance enabled_if: {field_id} dépend de {dep_field}")
+            if 'enabled_if' in field_config and 'field' in field_config['enabled_if']:
+                dependencies.append(field_config['enabled_if']['field'])
             
             # 2. Dépendance depends_on (ce champ dépend d'un autre pour sa valeur)
             if 'depends_on' in field_config:
-                dep_field = field_config['depends_on']
-                if dep_field:
-                    # Ce champ dépend de dep_field pour sa valeur
-                    if dep_field not in self._field_dependencies:
-                        self._field_dependencies[dep_field] = set()
-                    self._field_dependencies[dep_field].add(field_id)
-                    logger.debug(f"Dépendance depends_on: {field_id} dépend de {dep_field}")
+                dependencies.append(field_config['depends_on'])
             
             # 3. Dépendance dynamic_options (ce champ dépend d'autres pour ses options)
             if 'dynamic_options' in field_config and 'args' in field_config['dynamic_options']:
                 for arg in field_config['dynamic_options']['args']:
                     if 'field' in arg:
-                        dep_field = arg['field']
-                        # Ce champ dépend de dep_field pour ses options
-                        if dep_field not in self._field_dependencies:
-                            self._field_dependencies[dep_field] = set()
-                        self._field_dependencies[dep_field].add(field_id)
-                        logger.debug(f"Dépendance dynamic_options: {field_id} dépend de {dep_field}")
+                        dependencies.append(arg['field'])
+            
+            # Ajouter les dépendances au dictionnaire
+            for dep_field in dependencies:
+                if dep_field:
+                    if dep_field not in self._field_dependencies:
+                        self._field_dependencies[dep_field] = set()
+                    self._field_dependencies[dep_field].add(field_id)
+                    logger.debug(f"Dépendance identifiée: {field_id} dépend de {dep_field}")
         
         logger.debug(f"Analyse des dépendances terminée: {self._field_dependencies}")
 
@@ -241,7 +235,7 @@ class ConfigContainer(VerticalGroup):
             source_field: Champ source dont la valeur a changé
         """
         # Protection contre les appels récursifs
-        if hasattr(self, '_updating_dependencies') and self._updating_dependencies:
+        if self._updating_dependencies:
             logger.debug(f"Mise à jour des dépendances déjà en cours, ignorer l'appel pour {source_field.field_id}")
             return
             
@@ -268,14 +262,8 @@ class ConfigContainer(VerticalGroup):
                     
                 dependent_field = self.fields_by_id[dependent_id]
                 
-                # 1. TRAITEMENT DES CONDITIONS ENABLED_IF
-                self._update_field_enabled_state(dependent_field, source_field)
-                
-                # 2. TRAITEMENT DES OPTIONS DYNAMIQUES
-                self._update_field_dynamic_options(dependent_field, source_field)
-                
-                # 3. TRAITEMENT DES VALEURS DÉPENDANTES
-                self._update_field_dependent_value(dependent_field, source_field)
+                # Mettre à jour tous les aspects du champ dépendant
+                self._update_dependent_field(dependent_field, source_field)
             
             # Supprimer les champs invalidés après la mise à jour
             self._process_fields_to_remove()
@@ -288,6 +276,23 @@ class ConfigContainer(VerticalGroup):
         finally:
             # Toujours réinitialiser le flag
             self._updating_dependencies = False
+
+    def _update_dependent_field(self, dependent_field: Widget, source_field: Widget) -> None:
+        """
+        Met à jour tous les aspects d'un champ dépendant.
+        
+        Args:
+            dependent_field: Champ dépendant à mettre à jour
+            source_field: Champ source dont la valeur a changé
+        """
+        # 1. TRAITEMENT DES CONDITIONS ENABLED_IF
+        self._update_field_enabled_state(dependent_field, source_field)
+        
+        # 2. TRAITEMENT DES OPTIONS DYNAMIQUES
+        self._update_field_dynamic_options(dependent_field, source_field)
+        
+        # 3. TRAITEMENT DES VALEURS DÉPENDANTES
+        self._update_field_dependent_value(dependent_field, source_field)
 
     def _update_field_enabled_state(self, dependent_field: Widget, source_field: Widget) -> None:
         """
@@ -305,15 +310,12 @@ class ConfigContainer(VerticalGroup):
         if dependent_field.enabled_if.get('field') != source_field.field_id:
             return
             
-        source_value = getattr(source_field, 'value', None)
+        source_value = self._get_field_value(source_field)
         required_value = dependent_field.enabled_if.get('value')
         
         # Normaliser les valeurs booléennes si nécessaire
-        if isinstance(required_value, bool) and not isinstance(source_value, bool):
-            if isinstance(source_value, str):
-                source_value = source_value.lower() in ('true', 't', 'yes', 'y', '1')
-            else:
-                source_value = bool(source_value)
+        source_value = self._normalize_boolean_value(source_value)
+        required_value = self._normalize_boolean_value(required_value)
         
         # Déterminer si le champ doit être activé
         should_enable = source_value == required_value
@@ -332,6 +334,38 @@ class ConfigContainer(VerticalGroup):
             
             # Restaurer l'état du widget si disponible
             self._restore_field_state(dependent_field)
+
+    def _get_field_value(self, field: Widget) -> Any:
+        """
+        Récupère la valeur d'un champ de manière sécurisée.
+        
+        Args:
+            field: Champ dont il faut récupérer la valeur
+            
+        Returns:
+            Any: Valeur du champ
+        """
+        if hasattr(field, 'get_value'):
+            return field.get_value()
+        elif hasattr(field, 'value'):
+            return field.value
+        return None
+    
+    def _normalize_boolean_value(self, value: Any) -> Any:
+        """
+        Normalise une valeur booléenne.
+        
+        Args:
+            value: Valeur à normaliser
+            
+        Returns:
+            Any: Valeur normalisée
+        """
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            return value.lower() in ('true', 't', 'yes', 'y', '1')
+        return bool(value)
 
     def _update_field_dynamic_options(self, dependent_field: Widget, source_field: Widget) -> None:
         """

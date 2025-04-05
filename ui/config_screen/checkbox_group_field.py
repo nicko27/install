@@ -20,18 +20,17 @@ class CheckboxGroupField(ConfigField):
         self.checkboxes = {}
         self.options = []
         self.selected_values = []
+        self.raw_data = None
         
         # Initialiser la dépendance si elle est définie dans la configuration
-        if 'depends_on' in field_config:
-            self.depends_on = field_config['depends_on']
+        self.depends_on = field_config.get('depends_on')
+        if self.depends_on:
             logger.debug(f"Champ {self.field_id} dépend de {self.depends_on}")
         
         # Initialiser les valeurs par défaut si elles sont définies
-        if 'default_selected' in field_config:
-            self.default_selected = field_config['default_selected']
+        self.default_selected = field_config.get('default_selected', [])
+        if self.default_selected:
             logger.debug(f"Valeurs par défaut pour {self.field_id}: {self.default_selected}")
-        else:
-            self.default_selected = []
 
     def compose(self) -> ComposeResult:
         # Créer le conteneur pour les checkboxes
@@ -71,157 +70,171 @@ class CheckboxGroupField(ConfigField):
             return self._normalize_options(self.field_config['options'])
 
         if 'dynamic_options' in self.field_config:
-            dynamic_config = self.field_config['dynamic_options']
-            logger.debug(f"Loading dynamic options with config: {dynamic_config}")
-
-            # Determine script path (global or plugin)
-            if dynamic_config.get('global', False):
-                # Script in utils folder
-                script_name = dynamic_config['script']
-                script_path = os.path.join(os.path.dirname(__file__), '..', '..', 'scripts', script_name)
-            else:
-                # Script in plugin folder
-                script_path = os.path.join(os.path.dirname(__file__), '..', '..', 'plugins', self.source_id, dynamic_config['script'])
-
-            logger.debug(f"Loading script from: {script_path}")
-            logger.debug(f"Script exists: {os.path.exists(script_path)}")
-
-            try:
-                # Import the script module
-                sys.path.append(os.path.dirname(script_path))
-                logger.debug(f"Python path: {sys.path}")
-
-                spec = importlib.util.spec_from_file_location("dynamic_script", script_path)
-                if not spec:
-                    logger.error("Failed to create module spec")
-                    return [("Error loading module", "error_loading")]
-
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module)
-
-                # Get the function name
-                func_name = dynamic_config.get('function')
-                if not func_name or not hasattr(module, func_name):
-                    logger.error(f"Function {func_name} not found in script")
-                    return [("Function not found", "function_not_found")]
-
-                logger.debug(f"Using function: {func_name}")
-
-                # Prepare arguments if any
-                args = []
-                kwargs = {}
-
-                if 'args' in dynamic_config:
-                    for arg_config in dynamic_config['args']:
-                        if 'field' in arg_config:
-                            # Get value from another field
-                            field_id = arg_config['field']
-                            if field_id in self.fields_by_id:
-                                field_value = self.fields_by_id[field_id].get_value()
-                                param_name = arg_config.get('param_name')
-                                if param_name:
-                                    kwargs[param_name] = field_value
-                                else:
-                                    args.append(field_value)
-                        elif 'value' in arg_config:
-                            # Static value
-                            param_name = arg_config.get('param_name')
-                            if param_name:
-                                kwargs[param_name] = arg_config['value']
-                            else:
-                                args.append(arg_config['value'])
-
-                logger.debug(f"Calling {func_name} with args={args}, kwargs={kwargs}")
-
-                # Call the function with arguments
-                if args and kwargs:
-                    result = getattr(module, func_name)(*args, **kwargs)
-                elif args:
-                    result = getattr(module, func_name)(*args)
-                elif kwargs:
-                    result = getattr(module, func_name)(**kwargs)
-                else:
-                    result = getattr(module, func_name)()
-
-                logger.debug(f"Result from {func_name}: {result}")
-                
-                # Stocker les données brutes pour une utilisation ultérieure
-                self.raw_data = result
-
-                # Process the result
-                if isinstance(result, tuple) and len(result) == 2:
-                    success, data = result
-
-                    if not success:
-                        logger.error(f"Dynamic options script failed: {data}")
-                        return [("Script error", "script_error")]
-
-                    # If data is a list, process it
-                    if isinstance(data, list):
-                        # Extract value_key and label_key if specified
-                        value_key = dynamic_config.get('value')
-                        label_key = dynamic_config.get('description')
-                        
-                        # Récupérer les clés pour la sélection automatique
-                        auto_select_key = dynamic_config.get('auto_select_key')
-                        auto_select_value = dynamic_config.get('auto_select_value', True)
-                        
-                        options = []
-                        for item in data:
-                            if isinstance(item, dict):
-                                if value_key and label_key and value_key in item and label_key in item:
-                                    value = str(item[value_key])
-                                    options.append((str(item[label_key]), value))
-                                    
-                                    # Vérifier si cet élément doit être sélectionné par défaut
-                                    if auto_select_key and auto_select_key in item and item[auto_select_key] == auto_select_value:
-                                        if value not in self.selected_values:
-                                            self.selected_values.append(value)
-                                            logger.debug(f"Auto-sélection de {value} basée sur {auto_select_key}={auto_select_value}")
-                                            
-                                elif value_key and value_key in item:
-                                    # Use value as label if no label_key specified
-                                    value = str(item[value_key])
-                                    options.append((value, value))
-                                    
-                                    # Vérifier si cet élément doit être sélectionné par défaut
-                                    if auto_select_key and auto_select_key in item and item[auto_select_key] == auto_select_value:
-                                        if value not in self.selected_values:
-                                            self.selected_values.append(value)
-                                            logger.debug(f"Auto-sélection de {value} basée sur {auto_select_key}={auto_select_value}")
-                            else:
-                                # For simple values, use as both label and value
-                                value = str(item)
-                                options.append((value, value))
-                        
-                        # Appliquer les valeurs par défaut définies dans la configuration
-                        if hasattr(self, 'default_selected') and self.default_selected:
-                            for default_value in self.default_selected:
-                                if any(opt[1] == default_value for opt in options) and default_value not in self.selected_values:
-                                    self.selected_values.append(default_value)
-                                    logger.debug(f"Sélection par défaut de {default_value} depuis la configuration")
-
-                        if options:
-                            return options
-                        else:
-                            # Si la liste est vide, retourner None pour que le champ soit supprimé
-                            return None
-
-                    # If it's not a list, return an error
-                    logger.error(f"Expected list result, got {type(data)}")
-                    return None
-
-                # If result is not a tuple, return an error
-                logger.error(f"Expected tuple result (success, data), got {type(result)}")
-                return [("Invalid result format", "invalid_format")]
-
-            except Exception as e:
-                logger.error(f"Error loading dynamic options: {e}")
-                logger.error(traceback.format_exc())
-                return [(f"Error: {str(e)}", "script_exception")]
+            return self._get_dynamic_options()
 
         # Fallback if no options defined
         return [("No options defined", "no_options_defined")]
+        
+    def _get_dynamic_options(self) -> list:
+        """Récupère les options dynamiques depuis un script externe"""
+        dynamic_config = self.field_config['dynamic_options']
+        logger.debug(f"Loading dynamic options with config: {dynamic_config}")
+
+        # Determine script path (global or plugin)
+        if dynamic_config.get('global', False):
+            # Script in utils folder
+            script_name = dynamic_config['script']
+            script_path = os.path.join(os.path.dirname(__file__), '..', '..', 'scripts', script_name)
+        else:
+            # Script in plugin folder
+            script_path = os.path.join(os.path.dirname(__file__), '..', '..', 'plugins', self.source_id, dynamic_config['script'])
+
+        logger.debug(f"Loading script from: {script_path}")
+        logger.debug(f"Script exists: {os.path.exists(script_path)}")
+
+        try:
+            # Import the script module
+            sys.path.append(os.path.dirname(script_path))
+            logger.debug(f"Python path: {sys.path}")
+
+            spec = importlib.util.spec_from_file_location("dynamic_script", script_path)
+            if not spec:
+                logger.error("Failed to create module spec")
+                return [("Error loading module", "error_loading")]
+
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+
+            # Get the function name
+            func_name = dynamic_config.get('function')
+            if not func_name or not hasattr(module, func_name):
+                logger.error(f"Function {func_name} not found in script")
+                return [("Function not found", "function_not_found")]
+
+            logger.debug(f"Using function: {func_name}")
+
+            # Préparer les arguments
+            args, kwargs = self._prepare_function_args(dynamic_config)
+
+            logger.debug(f"Calling {func_name} with args={args}, kwargs={kwargs}")
+
+            # Call the function with arguments
+            if args and kwargs:
+                result = getattr(module, func_name)(*args, **kwargs)
+            elif args:
+                result = getattr(module, func_name)(*args)
+            elif kwargs:
+                result = getattr(module, func_name)(**kwargs)
+            else:
+                result = getattr(module, func_name)()
+
+            logger.debug(f"Result from {func_name}: {result}")
+            
+            # Stocker les données brutes pour une utilisation ultérieure
+            self.raw_data = result
+
+            return self._process_dynamic_result(result, dynamic_config)
+
+        except Exception as e:
+            logger.error(f"Error loading dynamic options: {e}")
+            logger.error(traceback.format_exc())
+            return [(f"Error: {str(e)}", "script_exception")]
+    
+    def _prepare_function_args(self, dynamic_config):
+        """Prépare les arguments pour l'appel de fonction dynamique"""
+        args = []
+        kwargs = {}
+
+        if 'args' in dynamic_config:
+            for arg_config in dynamic_config['args']:
+                if 'field' in arg_config:
+                    # Get value from another field
+                    field_id = arg_config['field']
+                    if field_id in self.fields_by_id:
+                        field_value = self.fields_by_id[field_id].get_value()
+                        param_name = arg_config.get('param_name')
+                        if param_name:
+                            kwargs[param_name] = field_value
+                        else:
+                            args.append(field_value)
+                elif 'value' in arg_config:
+                    # Static value
+                    param_name = arg_config.get('param_name')
+                    if param_name:
+                        kwargs[param_name] = arg_config['value']
+                    else:
+                        args.append(arg_config['value'])
+        
+        return args, kwargs
+    
+    def _process_dynamic_result(self, result, dynamic_config):
+        """Traite le résultat d'une fonction dynamique"""
+        # Process the result
+        if isinstance(result, tuple) and len(result) == 2:
+            success, data = result
+
+            if not success:
+                logger.error(f"Dynamic options script failed: {data}")
+                return [("Script error", "script_error")]
+
+            # If data is a list, process it
+            if isinstance(data, list):
+                # Extract value_key and label_key if specified
+                value_key = dynamic_config.get('value')
+                label_key = dynamic_config.get('description')
+                
+                # Récupérer les clés pour la sélection automatique
+                auto_select_key = dynamic_config.get('auto_select_key')
+                auto_select_value = dynamic_config.get('auto_select_value', True)
+                
+                options = []
+                for item in data:
+                    if isinstance(item, dict):
+                        if value_key and label_key and value_key in item and label_key in item:
+                            value = str(item[value_key])
+                            options.append((str(item[label_key]), value))
+                            
+                            # Vérifier si cet élément doit être sélectionné par défaut
+                            if auto_select_key and auto_select_key in item and item[auto_select_key] == auto_select_value:
+                                if value not in self.selected_values:
+                                    self.selected_values.append(value)
+                                    logger.debug(f"Auto-sélection de {value} basée sur {auto_select_key}={auto_select_value}")
+                                    
+                        elif value_key and value_key in item:
+                            # Use value as label if no label_key specified
+                            value = str(item[value_key])
+                            options.append((value, value))
+                            
+                            # Vérifier si cet élément doit être sélectionné par défaut
+                            if auto_select_key and auto_select_key in item and item[auto_select_key] == auto_select_value:
+                                if value not in self.selected_values:
+                                    self.selected_values.append(value)
+                                    logger.debug(f"Auto-sélection de {value} basée sur {auto_select_key}={auto_select_value}")
+                    else:
+                        # For simple values, use as both label and value
+                        value = str(item)
+                        options.append((value, value))
+                
+                # Appliquer les valeurs par défaut définies dans la configuration
+                if self.default_selected:
+                    for default_value in self.default_selected:
+                        if any(opt[1] == default_value for opt in options) and default_value not in self.selected_values:
+                            self.selected_values.append(default_value)
+                            logger.debug(f"Sélection par défaut de {default_value} depuis la configuration")
+
+                if options:
+                    return options
+                else:
+                    # Si la liste est vide, retourner None pour que le champ soit supprimé
+                    return None
+
+            # If it's not a list, return an error
+            logger.error(f"Expected list result, got {type(data)}")
+            return None
+
+        # If result is not a tuple, return an error
+        logger.error(f"Expected tuple result (success, data), got {type(result)}")
+        return [("Invalid result format", "invalid_format")]
 
     def _normalize_options(self, options: list) -> list:
         """
@@ -249,10 +262,6 @@ class CheckboxGroupField(ConfigField):
                 normalized.append((str(opt), str(opt)))
 
         return normalized
-
-    def on_mount(self) -> None:
-        """Called when the widget is mounted"""
-        # Les événements de checkbox seront gérés automatiquement par la méthode on_checkbox_changed
 
     def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
         """Handle checkbox state changes"""

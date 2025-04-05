@@ -1,37 +1,58 @@
-import os
-from ruamel.yaml import YAML
+from pathlib import Path
+from typing import List, Dict, Any, Tuple, Optional, Set
 from textual.app import ComposeResult
 from textual.containers import Container, VerticalGroup
 from textual.widgets import Label, Button, Static
+from textual.css.query import NoMatches
 
 from .plugin_list_item import PluginListItem
 from .plugin_card import PluginCard
+from .sequence_handler import SequenceHandler
 from ..utils.logging import get_logger
 
 logger = get_logger('selected_plugins_panel')
-yaml = YAML()
 
 class SelectedPluginsPanel(Static):
-    """Panel to display selected plugins and their order"""
+    """
+    Panneau affichant les plugins sélectionnés et leur ordre.
+    
+    Cette classe gère l'affichage des plugins sélectionnés, leur organisation
+    en séquences, et les actions associées (suppression).
+    """
+    
     def __init__(self, *args, **kwargs):
+        """
+        Initialise le panneau des plugins sélectionnés.
+        
+        Args:
+            *args: Arguments positionnels pour la classe parente
+            **kwargs: Arguments nommés pour la classe parente
+        """
         super().__init__(*args, **kwargs)
         self.selected_plugins = []  # Liste des plugins sélectionnés
-        self.sequence_map = {}  # Mapping des plugins appartenant à des séquences
+        self.sequence_map = {}      # Mapping des plugins appartenant à des séquences
+        self.sequence_handler = SequenceHandler()  # Gestionnaire de séquences
 
     def compose(self) -> ComposeResult:
+        """
+        Compose l'interface du panneau.
+        
+        Returns:
+            ComposeResult: Résultat de la composition
+        """
         with VerticalGroup(id="selected-plugins-list"):
-            yield Label("Plugins sélectionnés", id="selected-plugins-list-title")  # Titre du panneau
-            yield Container(id="selected-plugins-list-content")  # Conteneur pour la liste des plugins sélectionnés
+            yield Label("Plugins sélectionnés", id="selected-plugins-list-title")
+            yield Container(id="selected-plugins-list-content")
 
-    def update_plugins(self, plugins: list) -> None:
+    def update_plugins(self, plugins: List) -> None:
         """
         Met à jour l'affichage lorsque les plugins sélectionnés changent.
         
         Args:
-            plugins: Liste des plugins sélectionnés
+            plugins: Liste des plugins sélectionnés (tuples plugin_name, instance_id, [config])
         """
-        self.selected_plugins = plugins  # Mettre à jour la liste des plugins sélectionnés
-        self._clear_content()  # Nettoyer le contenu actuel
+        self.selected_plugins = plugins
+        self._clear_content()
         
         if not plugins:
             self._show_empty_message()
@@ -42,20 +63,31 @@ class SelectedPluginsPanel(Static):
         
         # Créer les éléments de la liste
         self._create_plugin_items(plugins)
+        
+        logger.debug(f"Panneau mis à jour avec {len(plugins)} plugins")
 
     def _clear_content(self) -> None:
-        """Efface le contenu du panneau"""
-        container = self.query_one("#selected-plugins-list-content", Container)
-        container.remove_children()
+        """Efface le contenu du panneau."""
+        try:
+            container = self.query_one("#selected-plugins-list-content", Container)
+            container.remove_children()
+        except NoMatches:
+            logger.error("Container #selected-plugins-list-content non trouvé")
 
     def _show_empty_message(self) -> None:
-        """Affiche un message quand aucun plugin n'est sélectionné"""
-        container = self.query_one("#selected-plugins-list-content", Container)
-        container.mount(Label("Aucun plugin sélectionné", classes="no-plugins"))
+        """Affiche un message quand aucun plugin n'est sélectionné."""
+        try:
+            container = self.query_one("#selected-plugins-list-content", Container)
+            container.mount(Label("Aucun plugin sélectionné", classes="no-plugins"))
+        except NoMatches:
+            logger.error("Container #selected-plugins-list-content non trouvé")
 
-    def _analyze_sequence_relationships(self, plugins: list) -> None:
+    def _analyze_sequence_relationships(self, plugins: List) -> None:
         """
         Analyse les relations de séquence entre les plugins.
+        
+        Cette méthode identifie quels plugins font partie de quelles séquences
+        et construit une carte des relations.
         
         Args:
             plugins: Liste des plugins à analyser
@@ -69,6 +101,10 @@ class SelectedPluginsPanel(Static):
             plugin_name = plugin_data[0]
             instance_id = plugin_data[1]
             
+            if not isinstance(plugin_name, str):
+                logger.warning(f"Type de nom de plugin inattendu à l'index {idx}: {type(plugin_name)}")
+                continue
+                
             if plugin_name.startswith('__sequence__'):
                 sequence_indices[instance_id] = idx
                 logger.debug(f"Séquence détectée: {plugin_name}, ID: {instance_id}, index: {idx}")
@@ -88,7 +124,7 @@ class SelectedPluginsPanel(Static):
                 continue  # Ignorer les séquences elles-mêmes
                 
             plugin_name = plugin_data[0]
-            if plugin_name.startswith('__sequence__'):
+            if not isinstance(plugin_name, str) or plugin_name.startswith('__sequence__'):
                 continue
                 
             # Extraire la configuration si disponible
@@ -109,7 +145,7 @@ class SelectedPluginsPanel(Static):
                     logger.debug(f"Plugin {plugin_name} (index {idx}) identifié comme membre de la séquence {sequence_id}")
                     break
 
-    def _load_sequence_details(self, sequence_name: str) -> dict:
+    def _load_sequence_details(self, sequence_name: str) -> Dict[str, Any]:
         """
         Charge les détails d'une séquence à partir de son fichier YAML.
         
@@ -117,7 +153,7 @@ class SelectedPluginsPanel(Static):
             sequence_name: Nom de la séquence (format __sequence__nom)
             
         Returns:
-            dict: Détails de la séquence ou dictionnaire vide si erreur
+            Dict[str, Any]: Détails de la séquence ou dictionnaire vide si erreur
         """
         try:
             # Extraire le nom du fichier
@@ -125,23 +161,17 @@ class SelectedPluginsPanel(Static):
             if not file_name.endswith('.yml'):
                 file_name = f"{file_name}.yml"
                 
-            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            yaml_path = os.path.join(base_dir, 'sequences', file_name)
-            
-            if not os.path.exists(yaml_path):
-                logger.warning(f"Fichier de séquence non trouvé: {yaml_path}")
-                return {}
-                
-            with open(yaml_path, 'r', encoding='utf-8') as f:
-                sequence_data = yaml.load(f)
-                logger.debug(f"Séquence chargée: {yaml_path}")
-                return sequence_data
+            sequence_path = Path('sequences') / file_name
+            return self.sequence_handler.load_sequence(sequence_path) or {}
                 
         except Exception as e:
             logger.error(f"Erreur lors du chargement de la séquence {sequence_name}: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
             return {}
 
-    def _plugin_matches_sequence(self, plugin_name: str, plugin_config: dict, sequence_plugins: list) -> bool:
+    def _plugin_matches_sequence(self, plugin_name: str, plugin_config: Dict[str, Any], 
+                                sequence_plugins: List) -> bool:
         """
         Vérifie si un plugin correspond à l'un des plugins définis dans une séquence.
         
@@ -154,74 +184,95 @@ class SelectedPluginsPanel(Static):
             bool: True si le plugin correspond à un plugin de la séquence
         """
         for seq_plugin in sequence_plugins:
-            # Vérifier si c'est le même plugin
+            # Cas 1: Format dict avec 'name'
             if isinstance(seq_plugin, dict) and 'name' in seq_plugin:
                 seq_plugin_name = seq_plugin['name']
                 
                 if seq_plugin_name == plugin_name:
-                    # Vérifier également les configurations si disponibles
+                    # Vérifier la configuration si présente
                     if 'config' in seq_plugin and plugin_config:
                         seq_config = seq_plugin['config']
                         
-                        # Une correspondance partielle suffit (le plugin peut avoir des configs supplémentaires)
-                        match = True
+                        # Une correspondance partielle suffit (configs supplémentaires autorisées)
+                        all_keys_match = True
                         for key, value in seq_config.items():
                             if key not in plugin_config or plugin_config[key] != value:
-                                match = False
+                                all_keys_match = False
                                 break
                                 
-                        if match:
+                        if all_keys_match:
                             return True
+                    # Si pas de config dans la séquence ou dans le plugin
                     elif not seq_plugin.get('config') and not plugin_config:
-                        # Les deux n'ont pas de config
                         return True
+                        
+            # Cas 2: Format simple (string)
             elif isinstance(seq_plugin, str) and seq_plugin == plugin_name:
-                # Format simple (juste le nom du plugin)
                 return True
                 
         return False
 
-    def _create_plugin_items(self, plugins: list) -> None:
+    def _create_plugin_items(self, plugins: List) -> None:
         """
         Crée et monte les éléments de liste pour les plugins sélectionnés.
         
         Args:
             plugins: Liste des plugins à afficher
         """
-        container = self.query_one("#selected-plugins-list-content", Container)
-        
+        try:
+            container = self.query_one("#selected-plugins-list-content", Container)
+        except NoMatches:
+            logger.error("Container #selected-plugins-list-content non trouvé")
+            return
+            
         # Créer tous les éléments
         items = []
         for idx, plugin in enumerate(plugins, 1):
-            # Vérifier si le plugin a une configuration
-            if len(plugin) >= 3:
-                plugin_name, instance_id, config = plugin
-                item = PluginListItem((plugin_name, instance_id, config), idx)
-            else:
-                plugin_name, instance_id = plugin[:2]
-                item = PluginListItem((plugin_name, instance_id), idx)
+            item = None
             
-            items.append(item)
+            try:
+                # Créer l'élément avec la configuration appropriée
+                if len(plugin) >= 3:
+                    plugin_name, instance_id, config = plugin
+                    item = PluginListItem((plugin_name, instance_id, config), idx)
+                else:
+                    plugin_name, instance_id = plugin[:2]
+                    item = PluginListItem((plugin_name, instance_id), idx)
+                
+                items.append(item)
+            except Exception as e:
+                logger.error(f"Erreur lors de la création de l'élément {idx}: {e}")
+                import traceback
+                logger.error(traceback.format_exc())
             
         # Marquer les éléments qui font partie de séquences
         for sequence_id, sequence_info in self.sequence_map.items():
             if 'member_indices' in sequence_info:
-                # Trouver l'élément de la séquence elle-même
-                sequence_item = items[sequence_info['start_index']]
-                sequence_item.sequence_id = sequence_id
-                
-                # Marquer tous les membres de la séquence
-                for member_idx in sequence_info['member_indices']:
-                    member_item = items[member_idx]
-                    member_item.set_sequence_attributes(
-                        is_part_of_sequence=True,
-                        sequence_id=sequence_id,
-                        sequence_name=sequence_info['name']
-                    )
+                try:
+                    # Trouver l'élément de la séquence elle-même
+                    sequence_item = items[sequence_info['start_index']]
+                    sequence_item.sequence_id = sequence_id
+                    
+                    # Marquer tous les membres de la séquence
+                    for member_idx in sequence_info['member_indices']:
+                        if 0 <= member_idx < len(items):
+                            member_item = items[member_idx]
+                            member_item.set_sequence_attributes(
+                                is_part_of_sequence=True,
+                                sequence_id=sequence_id,
+                                sequence_name=sequence_info['name']
+                            )
+                except IndexError:
+                    logger.error(f"Index hors limites lors du marquage des membres de séquence: {sequence_id}")
+                except Exception as e:
+                    logger.error(f"Erreur lors du marquage des membres de séquence {sequence_id}: {e}")
                     
         # Monter tous les éléments
         for item in items:
-            container.mount(item)
+            try:
+                container.mount(item)
+            except Exception as e:
+                logger.error(f"Erreur lors du montage de l'élément: {e}")
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """
@@ -236,24 +287,25 @@ class SelectedPluginsPanel(Static):
         button_id = event.button.id
         is_sequence_button = 'sequence-remove-button' in event.button.classes
         
-        if is_sequence_button:
-            # Extraire l'ID de l'instance de séquence
-            try:
+        try:
+            if is_sequence_button:
+                # Extraire l'ID de l'instance de séquence
                 instance_id = int(button_id.replace('remove_seq_', ''))
-                self._remove_sequence_and_members(instance_id)
-            except (ValueError, IndexError) as e:
-                logger.error(f"Erreur lors de l'extraction de l'ID de séquence: {e}")
-        else:
-            # Extraction standard pour les plugins
-            try:
+                await self._remove_sequence_and_members(instance_id)
+            else:
+                # Extraction standard pour les plugins
                 parts = button_id.replace('remove_', '').split('_')
                 instance_id = int(parts[-1])
                 plugin_name = '_'.join(parts[:-1])
-                self._remove_plugin(plugin_name, instance_id)
-            except (ValueError, IndexError) as e:
-                logger.error(f"Erreur lors de l'extraction de l'ID de plugin: {e}")
+                await self._remove_plugin(plugin_name, instance_id)
+        except (ValueError, IndexError) as e:
+            logger.error(f"Erreur lors de l'extraction de l'ID: {e} pour bouton {button_id}")
+        except Exception as e:
+            logger.error(f"Erreur inattendue lors du traitement du bouton {button_id}: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
 
-    def _remove_sequence_and_members(self, sequence_id: int) -> None:
+    async def _remove_sequence_and_members(self, sequence_id: int) -> None:
         """
         Supprime une séquence et tous ses membres.
         
@@ -283,7 +335,6 @@ class SelectedPluginsPanel(Static):
         if sequence_id in self.sequence_map and 'member_indices' in self.sequence_map[sequence_id]:
             for member_idx in self.sequence_map[sequence_id]['member_indices']:
                 indices_to_remove.append(member_idx)
-                
         # Alternativement, trouver les plugins qui suivent jusqu'à la prochaine séquence
         else:
             start_idx = indices_to_remove[0] + 1
@@ -307,9 +358,9 @@ class SelectedPluginsPanel(Static):
         
         # Mettre à jour les cartes de plugins
         if sequence_name:
-            self._update_plugin_cards(sequence_name)
+            await self._update_plugin_cards(sequence_name)
 
-    def _remove_plugin(self, plugin_name: str, instance_id: int) -> None:
+    async def _remove_plugin(self, plugin_name: str, instance_id: int) -> None:
         """
         Supprime un plugin spécifique de la liste.
         
@@ -331,16 +382,22 @@ class SelectedPluginsPanel(Static):
         
         # Vérifier si c'était la dernière instance de ce plugin
         if not any(p[0] == plugin_name for p in self.app.selected_plugins):
-            self._update_plugin_cards(plugin_name)
+            await self._update_plugin_cards(plugin_name)
             
-    def _update_plugin_cards(self, plugin_name: str) -> None:
+    async def _update_plugin_cards(self, plugin_name: str) -> None:
         """
         Met à jour l'état des cartes de plugins.
         
         Args:
             plugin_name: Nom du plugin dont les cartes doivent être mises à jour
         """
-        for card in self.app.query(PluginCard):
-            if card.plugin_name == plugin_name:
-                card.selected = False
-                card.update_styles()
+        try:
+            # Rechercher toutes les cartes correspondant au plugin
+            for card in self.app.query(PluginCard):
+                if card.plugin_name == plugin_name:
+                    card.selected = False
+                    card.update_styles()
+        except Exception as e:
+            logger.error(f"Erreur lors de la mise à jour des cartes pour {plugin_name}: {e}")
+            import traceback
+            logger.error(traceback.format_exc())

@@ -238,10 +238,18 @@ class PluginConfigContainer(ConfigContainer):
             # Si le nombre maximum de tentatives n'est pas atteint, réessayer plus tard
             elif attempts < max_attempts:
                 logger.debug(f"Input toujours pas créé pour {field_id}, nouvelle tentative programmée")
-                # Augmenter le délai à chaque tentative (100ms, 200ms, 400ms, 800ms, 1600ms)
-                delay = 0.1 * (2 ** attempts)
-                field.call_later(lambda f=field, v=value, a=attempts: 
-                               self._apply_field_value_delayed(f, v, a+1, max_attempts), delay)
+                # Assurons-nous que field est un objet qui a la méthode call_later
+                if hasattr(field, 'call_later'):
+                    # Augmenter le délai à chaque tentative (100ms, 200ms, 400ms, 800ms, 1600ms)
+                    delay = 0.1 * (2 ** attempts)
+                    field.call_later(lambda f=field, v=value, a=attempts: 
+                                self._apply_field_value_delayed(f, v, a+1, max_attempts), delay)
+                else:
+                    logger.error(f"L'objet field de type {type(field)} n'a pas la méthode call_later")
+                    # Utiliser une alternative, par exemple appeler directement sans délai
+                    if hasattr(self, 'call_later'):
+                        self.call_later(lambda f=field, v=value, a=attempts: 
+                                    self._apply_field_value_delayed(f, v, a+1, max_attempts), 0.5)
             else:
                 logger.error(f"Échec d'application après {max_attempts} tentatives pour {field_id}")
                 
