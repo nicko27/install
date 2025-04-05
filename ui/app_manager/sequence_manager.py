@@ -15,33 +15,7 @@ logger = get_logger('sequence_manager')
 
 # Tenter d'importer PluginInstance depuis choice_screen
 # Si l'import échoue, créer une classe PluginInstance compatible
-try:
-    from ..choice_screen.choice_screen import PluginInstance
-except ImportError:
-    class PluginInstance:
-        """
-        Classe de compatibilité pour représenter un plugin si l'import échoue.
-        """
-        def __init__(self, name: str, instance_id: int, config: Dict[str, Any] = None, metadata: Dict[str, Any] = None):
-            self.name = name
-            self.instance_id = instance_id
-            self.config = config or {}
-            self.metadata = metadata or {}
-            
-        @property
-        def is_sequence(self) -> bool:
-            """Indique si cette instance est une séquence."""
-            return self.name.startswith('__sequence__')
-            
-        @property
-        def from_sequence(self) -> bool:
-            """Indique si cette instance provient d'une séquence."""
-            return self.metadata.get('source') == 'sequence'
-            
-        @property
-        def unique_key(self) -> str:
-            """Génère une clé unique pour cette instance."""
-            return f"{self.name}_{self.instance_id}"
+from ..choice_screen.choice_screen import PluginInstance
 
 class SequenceManager:
     """
