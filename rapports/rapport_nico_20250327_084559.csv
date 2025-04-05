@@ -1,3 +1,0 @@
-timestamp,machine,sequence,plugin,instance,statut,sortie
-2025-03-27 08:45:59,nico,exécution_directe,delete_printer,0,Erreur,Erreur inconnue (code retour non-zéro)
-2025-03-27 08:45:59,nico,exécution_directe,add_printer,1,Erreur,Erreur inconnue (code retour non-zéro)
