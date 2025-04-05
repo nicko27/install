@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional, Union
 
 from .plugin_utils import load_plugin_info
+from .sequence_handler import SequenceHandler
 from ..utils.logging import get_logger
 
 logger = get_logger('plugin_card')
@@ -137,19 +138,21 @@ class PluginCard(Static):
             Dict[str, Any]: Informations de la séquence
         """
         try:
-            from .sequence_handler import SequenceHandler
-            
             # Utiliser SequenceHandler pour charger la séquence
             sequence_handler = SequenceHandler()
             sequence_path = Path('sequences') / sequence_file
             
             if not sequence_path.exists():
-                logger.error(f"Fichier de séquence non trouvé : {sequence_path}")
-                return {
-                    'name': 'Séquence inconnue', 
-                    'description': 'Fichier non trouvé',
-                    'plugins_count': 0
-                }
+                if not sequence_file.endswith('.yml'):
+                    sequence_path = Path('sequences') / f"{sequence_file}.yml"
+                
+                if not sequence_path.exists():
+                    logger.error(f"Fichier de séquence non trouvé : {sequence_path}")
+                    return {
+                        'name': 'Séquence inconnue', 
+                        'description': 'Fichier non trouvé',
+                        'plugins_count': 0
+                    }
             
             # Charger la séquence
             sequence = sequence_handler.load_sequence(sequence_path)

@@ -1,283 +1,570 @@
-"""
-Écran d'exécution des plugins.
-Ce module fournit l'écran principal pour l'exécution des plugins configurés.
-"""
-
 import os
-import asyncio
-from typing import Dict, Any, Optional
+import sys
+import time
+import subprocess
+import threading
 import traceback
 from pathlib import Path
+from typing import List, Dict, Any, Tuple, Optional, Union
+from datetime import datetime
+from textual.app import App, ComposeResult
+from textual.containers import Horizontal, Vertical, ScrollableContainer
+from textual.widgets import Label, Button, TextLog
+from textual.widget import Widget
 
-from textual.app import ComposeResult
-from textual.screen import Screen
-from textual.widgets import Button
-from textual.message import Message
-
+from ..choice_screen.plugin_utils import get_plugin_folder_name
 from ..utils.logging import get_logger
-from .execution_widget import ExecutionWidget
 
 logger = get_logger('execution_screen')
 
-class ExecutionScreen(Screen):
+class ExecutionScreen(App):
     """
-    Écran contenant le widget d'exécution des plugins.
+    Écran d'exécution des plugins sélectionnés.
     
-    Cet écran coordonne le processus d'exécution des plugins configurés,
-    gère les interactions utilisateur et les transitions entre écrans.
+    Cette classe gère l'exécution séquentielle des plugins sélectionnés
+    et l'affichage des résultats.
     """
-
-    # Définir les raccourcis clavier, notamment ESC pour quitter
+    
     BINDINGS = [
         ("escape", "quit", "Quitter"),
     ]
-
-    # Chemin vers le fichier CSS
-    CSS_PATH = str(Path(__file__).parent / "../styles/execution.tcss")
-
-    def __init__(self, plugins_config: Optional[Dict[str, Any]] = None, 
-                auto_execute: bool = False, 
-                report_manager = None):
+    
+    CSS_PATH = "../styles/execution.tcss"
+    
+    def __init__(
+        self, 
+        plugins: List, 
+        plugins_config: Optional[Dict[str, Dict[str, Any]]] = None,
+        auto_execute: bool = False
+    ):
         """
-        Initialise l'écran avec la configuration des plugins.
+        Initialise l'écran d'exécution.
         
         Args:
-            plugins_config: Dictionnaire de configuration des plugins
-            auto_execute: Si True, lance l'exécution automatiquement
-            report_manager: Gestionnaire de rapports optionnel
+            plugins: Liste des plugins à exécuter (tuples ou PluginInstance)
+            plugins_config: Configuration des plugins par clé unique (par défaut: None)
+            auto_execute: Lancer automatiquement l'exécution (par défaut: False)
         """
         super().__init__()
+        self.plugins = plugins
         self.plugins_config = plugins_config or {}
         self.auto_execute = auto_execute
-        self.report_manager = report_manager
-        self._execution_running = False
-        self._execution_task = None
-        
-        logger.debug(f"ExecutionScreen initialisé avec {len(self.plugins_config)} plugins")
-        logger.debug(f"Mode auto-exécution: {self.auto_execute}")
-        
-    async def on_mount(self) -> None:
-        """
-        Appelé quand l'écran est monté dans l'interface.
-        Initialise l'exécution en mode auto si nécessaire.
-        """
-        try:
-            logger.debug("Montage de l'écran d'exécution")
-            
-            # Créer une tâche asynchrone pour l'initialisation avec un délai
-            # Cela permet à l'interface de s'afficher complètement avant de commencer l'exécution
-            self._init_task = asyncio.create_task(self._delayed_initialization())
-        except Exception as e:
-            logger.error(f"Erreur lors du montage de l'écran d'exécution: {e}")
-            logger.error(traceback.format_exc())
-            self.notify(f"Erreur lors de l'initialisation: {e}", severity="error")
+        self.current_plugin_idx = -1
+        self.execution_thread = None
+        self.execution_running = False
+        self.execution_results = {}
+        logger.debug(f"Initialisation de l'écran d'exécution avec {len(plugins)} plugins")
     
-    async def _delayed_initialization(self) -> None:
-        """
-        Initialise l'écran après un délai pour permettre à l'interface de s'afficher.
-        Cette méthode est appelée via une tâche asynchrone créée dans on_mount.
-        """
-        try:
-            # Attendre que l'interface soit complètement affichée
-            logger.debug("Attente pour permettre à l'interface de s'afficher complètement")
-            await asyncio.sleep(1.0)  # Délai d'1 seconde
-            
-            # Vérifier que l'écran est toujours monté
-            if not self.is_mounted:
-                logger.debug("L'écran n'est plus monté, annulation de l'initialisation")
-                return
-                
-            # Maintenant initialiser l'écran
-            logger.debug("Début de l'initialisation de l'écran après délai")
-            await self.initialize_screen()
-        except Exception as e:
-            logger.error(f"Erreur dans l'initialisation différée: {e}")
-            logger.error(traceback.format_exc())
-            self.notify(f"Erreur lors de l'initialisation: {e}", severity="error")
-    
-    async def initialize_screen(self) -> None:
-        """
-        Initialise l'écran après le montage complet.
-        Configure l'interface selon le mode d'exécution (auto ou manuel).
-        """
-        try:
-            # Récupérer le widget d'exécution
-            widget = self.query_one(ExecutionWidget)
-                
-            if self.auto_execute:
-                # En mode auto, masquer les boutons Démarrer et Retour définitivement
-                try:
-                    start_button = widget.query_one("#start-button")
-                    back_button = widget.query_one("#back-button")
-                    if start_button and back_button:
-                        start_button.add_class("hidden")
-                        back_button.add_class("hidden")
-                        logger.debug("Boutons Démarrer et Retour masqués en mode auto")
-                except Exception as e:
-                    logger.error(f"Erreur lors du masquage des boutons en mode auto: {e}")
-                
-                # Lancer l'exécution automatiquement
-                if widget:
-                    # Forcer un rafraîchissement de l'interface avant de commencer
-                    logger.debug("Rafraîchissement de l'interface avant l'exécution automatique")
-                    self.refresh()
-                    
-                    # Attendre un délai pour s'assurer que l'interface est complètement chargée
-                    await asyncio.sleep(0.5)
-                    
-                    # Vérifier que l'écran est toujours monté
-                    if not self.is_mounted:
-                        logger.debug("L'écran n'est plus monté, annulation de l'exécution automatique")
-                        return
-                    
-                    # Forcer un second rafraîchissement
-                    self.refresh()
-                    await asyncio.sleep(0.1)
-                        
-                    # Démarrer l'exécution
-                    logger.debug("Démarrage de l'exécution automatique")
-                    self._execution_running = True
-                    
-                    try:
-                        # Exécuter directement plutôt que via une tâche
-                        logger.debug("Démarrage direct de l'exécution")
-                        await widget.start_execution(auto_mode=True)
-                        logger.debug("Exécution terminée avec succès")
-                    except asyncio.CancelledError:
-                        logger.info("Exécution automatique annulée par l'utilisateur")
-                        self.notify("Exécution annulée", severity="warning")
-                    except Exception as e:
-                        logger.error(f"Erreur pendant l'exécution: {e}")
-                        logger.error(traceback.format_exc())
-                        self.notify(f"Erreur: {e}", severity="error")
-                    finally:
-                        # S'assurer que le flag d'exécution est remis à False
-                        self._execution_running = False
-        except Exception as e:
-            logger.error(f"Erreur lors de l'initialisation de l'écran: {e}")
-            logger.error(traceback.format_exc())
-            self.notify(f"Erreur lors de l'initialisation: {e}", severity="error")
-    
-    def action_quit(self) -> None:
-        """
-        Gère l'action de quitter l'écran via la touche ESC.
-        Si une exécution est en cours, l'arrête proprement avant de quitter.
-        """
-        try:
-            logger.info("Demande de sortie via touche ESC")
-            
-            # Vérifier si une exécution est en cours
-            if self._execution_running:
-                logger.info("Exécution en cours détectée, lancement de la procédure d'annulation")
-                
-                # Arrêter l'exécution en cours
-                if self._execution_task is not None:
-                    try:
-                        logger.info("Annulation de la tâche d'exécution en cours")
-                        self._execution_task.cancel()
-                    except Exception as e:
-                        logger.warning(f"Erreur lors de l'annulation de la tâche: {e}")
-                
-                # Arrêter également l'exécution dans le widget
-                try:
-                    widget = self.query_one(ExecutionWidget)
-                    if hasattr(widget, 'is_running'):
-                        logger.info("Arrêt de l'exécution dans le widget")
-                        widget.is_running = False
-                except Exception as e:
-                    logger.warning(f"Impossible d'arrêter l'exécution dans le widget: {e}")
-                
-                # Lancer la procédure d'annulation asynchrone
-                asyncio.create_task(self._handle_cancellation())
-                # Notifier l'utilisateur
-                self.notify("Annulation de l'exécution en cours...", severity="warning")
-                return  # Ne pas quitter immédiatement
-                
-            # Si aucune exécution en cours, quitter l'application
-            self.app.exit()
-        except Exception as e:
-            logger.error(f"Erreur lors de la sortie: {e}")
-            logger.error(traceback.format_exc())
-            self.notify(f"Erreur lors de la sortie: {e}", severity="error")
-            # Tenter de quitter même en cas d'erreur
-            try:
-                self.app.pop_screen()
-            except Exception:
-                pass
-    
-    async def on_execution_completed(self) -> None:
-        """
-        Appelé quand l'exécution des plugins est terminée.
-        Peut être surchargé pour des actions supplémentaires.
-        """
-        logger.debug("Exécution terminée")
-        
-        # Générer un rapport si un gestionnaire est disponible
-        if self.report_manager is not None:
-            try:
-                logger.debug("Génération du rapport d'exécution")
-                await self.report_manager.generate_report(self.plugins_config)
-            except Exception as e:
-                logger.error(f"Erreur lors de la génération du rapport: {e}")
-                logger.error(traceback.format_exc())
-                self.notify(f"Erreur lors de la génération du rapport: {e}", severity="error")
-                
-    async def _handle_cancellation(self) -> None:
-        """
-        Gère l'annulation de l'exécution et quitte l'écran après un court délai.
-        """
-        try:
-            # Marquer l'exécution comme terminée
-            self._execution_running = False
-            
-            # Arrêter tous les plugins en cours
-            try:
-                widget = self.query_one(ExecutionWidget)
-                if hasattr(widget, 'is_running'):
-                    logger.info("Arrêt forcé des plugins en cours d'exécution")
-                    widget.is_running = False
-            except Exception as e:
-                logger.warning(f"Impossible d'arrêter les plugins en cours: {e}")
-            
-            # Attendre pour que l'annulation prenne effet
-            logger.debug("Attente de 1 seconde pour permettre l'arrêt complet de l'exécution")
-            await asyncio.sleep(1.0)
-            
-            # Vérifier que l'écran est toujours monté
-            if not self.is_mounted:
-                logger.debug("L'écran n'est plus monté, annulation de la fermeture")
-                return
-            
-            # Quitter l'écran ou l'application selon le contexte
-            if self.auto_execute:
-                logger.info("Mode auto détecté, fermeture de l'application après annulation")
-                self.app.exit()
-            else:
-                logger.info("Annulation de l'exécution terminée, retour à l'écran précédent")
-                self.app.pop_screen()
-        except Exception as e:
-            logger.error(f"Erreur lors de la gestion de l'annulation: {e}")
-            logger.error(traceback.format_exc())
-            # Tenter de quitter l'écran même en cas d'erreur
-            try:
-                self.app.pop_screen()
-            except Exception:
-                pass
-
     def compose(self) -> ComposeResult:
         """
-        Compose l'interface de l'écran.
+        Compose l'interface d'exécution.
         
         Returns:
             ComposeResult: Résultat de la composition
         """
+        with Vertical(id="execution-container"):
+            with Horizontal(id="execution-header"):
+                yield Label("Exécution des plugins", id="execution-title")
+                yield Label("", id="plugin-status")
+            
+            # Journal d'exécution
+            yield TextLog(id="execution-log", highlight=True, wrap=True)
+            
+            # Boutons d'action
+            with Horizontal(id="execution-buttons"):
+                yield Button("Exécuter", id="start-execution", variant="primary")
+                yield Button("Arrêter", id="stop-execution", variant="error", disabled=True)
+                yield Button("Fermer", id="close-execution")
+    
+    def on_mount(self) -> None:
+        """
+        Actions effectuées au montage de l'écran.
+        """
+        logger.debug("Montage de l'écran d'exécution")
+        
+        # Récupérer le journal d'exécution
+        self.log = self.query_one("#execution-log", TextLog)
+        
+        # Mettre à jour le statut
+        self._update_status("Prêt à exécuter")
+        
+        # Si auto_execute est activé, lancer l'exécution
+        if self.auto_execute:
+            self.start_execution()
+    
+    def _update_status(self, status: str) -> None:
+        """
+        Met à jour le statut d'exécution.
+        
+        Args:
+            status: Texte du statut
+        """
+        status_label = self.query_one("#plugin-status", Label)
+        status_label.update(status)
+    
+    def _log_message(self, message: str, level: str = "info") -> None:
+        """
+        Ajoute un message au journal d'exécution.
+        
+        Args:
+            message: Message à ajouter
+            level: Niveau de log (info, warning, error, success)
+        """
+        # Ajouter un préfixe selon le niveau
+        prefix = ""
+        if level == "info":
+            prefix = "[INFO] "
+        elif level == "warning":
+            prefix = "[WARN] "
+        elif level == "error":
+            prefix = "[ERROR] "
+        elif level == "success":
+            prefix = "[SUCCESS] "
+        
+        # Ajouter l'horodatage
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        
+        # Formater le message
+        formatted_message = f"[{timestamp}] {prefix}{message}"
+        
+        # Ajouter au journal
+        self.log.write(formatted_message, level)
+        
+        # Logger également
+        if level == "info":
+            logger.info(message)
+        elif level == "warning":
+            logger.warning(message)
+        elif level == "error":
+            logger.error(message)
+        elif level == "success":
+            logger.info(message)
+    
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
+        """
+        Gère les clics sur les boutons.
+        
+        Args:
+            event: Événement de bouton pressé
+        """
+        button_id = event.button.id
+        
+        if button_id == "start-execution":
+            await self.start_execution()
+        elif button_id == "stop-execution":
+            await self.stop_execution()
+        elif button_id == "close-execution":
+            await self.action_quit()
+    
+    async def start_execution(self) -> None:
+        """
+        Démarre l'exécution des plugins.
+        """
+        if self.execution_running:
+            self._log_message("Exécution déjà en cours", "warning")
+            return
+        
+        # Filtrer les plugins pour ne garder que ceux qui ne sont pas des séquences
+        filtered_plugins = []
+        for plugin in self.plugins:
+            # Vérifier si c'est un tuple ou une instance
+            if isinstance(plugin, tuple):
+                plugin_name = plugin[0]
+                if not plugin_name.startswith('__sequence__'):
+                    filtered_plugins.append(plugin)
+            else:  # Si c'est un PluginInstance
+                if not plugin.is_sequence:
+                    filtered_plugins.append(plugin)
+        
+        # Vérifier s'il reste des plugins à exécuter
+        if not filtered_plugins:
+            self._log_message("Aucun plugin à exécuter", "warning")
+            return
+        
+        # Initialiser l'exécution
+        self.execution_running = True
+        self.current_plugin_idx = -1
+        self.execution_results = {}
+        
+        # Mettre à jour les boutons
+        start_button = self.query_one("#start-execution", Button)
+        stop_button = self.query_one("#stop-execution", Button)
+        start_button.disabled = True
+        stop_button.disabled = False
+        
+        # Démarrer le thread d'exécution
+        self._log_message("Démarrage de l'exécution des plugins", "info")
+        self.execution_thread = threading.Thread(
+            target=self._execute_plugins_thread,
+            args=(filtered_plugins,)
+        )
+        self.execution_thread.daemon = True
+        self.execution_thread.start()
+    
+    def _execute_plugins_thread(self, plugins: List) -> None:
+        """
+        Exécute les plugins dans un thread séparé.
+        
+        Args:
+            plugins: Liste des plugins à exécuter
+        """
         try:
-            # Créer le widget d'exécution avec la configuration des plugins
-            yield ExecutionWidget(self.plugins_config)
+            # Exécuter chaque plugin
+            for i, plugin in enumerate(plugins):
+                # Vérifier si l'exécution a été arrêtée
+                if not self.execution_running:
+                    self._log_message("Exécution arrêtée", "warning")
+                    break
+                
+                # Mettre à jour l'index courant
+                self.current_plugin_idx = i
+                
+                # Extraire les informations du plugin
+                if isinstance(plugin, tuple):
+                    plugin_name = plugin[0]
+                    instance_id = plugin[1]
+                    plugin_config = plugin[2] if len(plugin) > 2 else {}
+                else:  # Si c'est un PluginInstance
+                    plugin_name = plugin.name
+                    instance_id = plugin.instance_id
+                    plugin_config = plugin.config
+                
+                # Créer une clé unique pour ce plugin
+                plugin_key = f"{plugin_name}_{instance_id}"
+                
+                # Récupérer la configuration depuis plugins_config si disponible
+                if plugin_key in self.plugins_config:
+                    plugin_config.update(self.plugins_config[plugin_key])
+                
+                # Mettre à jour le statut
+                self._update_plugin_status(i + 1, len(plugins), plugin_name)
+                
+                # Exécuter le plugin
+                self._log_message(f"Exécution du plugin {plugin_name} (ID: {instance_id})", "info")
+                
+                try:
+                    # Exécuter le plugin et récupérer le résultat
+                    result = self._execute_plugin(plugin_name, plugin_config)
+                    
+                    # Stocker le résultat
+                    self.execution_results[plugin_key] = result
+                    
+                    if result['success']:
+                        self._log_message(f"Plugin {plugin_name} exécuté avec succès", "success")
+                    else:
+                        self._log_message(f"Échec de l'exécution du plugin {plugin_name}: {result['message']}", "error")
+                        
+                        # Arrêter l'exécution en cas d'erreur si auto_execute est activé
+                        if self.auto_execute:
+                            self._log_message("Arrêt de l'exécution suite à une erreur", "warning")
+                            self.execution_running = False
+                            break
+                except Exception as e:
+                    self._log_message(f"Erreur lors de l'exécution du plugin {plugin_name}: {str(e)}", "error")
+                    self._log_message(traceback.format_exc(), "error")
+                    
+                    # Arrêter l'exécution en cas d'erreur si auto_execute est activé
+                    if self.auto_execute:
+                        self._log_message("Arrêt de l'exécution suite à une erreur", "warning")
+                        self.execution_running = False
+                        break
+            
+            # Fin de l'exécution
+            self._log_message("Exécution terminée", "info")
+        
         except Exception as e:
-            logger.error(f"Erreur lors de la composition de l'écran d'exécution: {e}")
-            logger.error(traceback.format_exc())
-            # Affichage de secours en cas d'erreur
-            from textual.widgets import Static
-            yield Static(f"Erreur lors de la création de l'interface: {e}\n\n"
-                         f"Veuillez vérifier les logs pour plus de détails.")
+            self._log_message(f"Erreur lors de l'exécution: {str(e)}", "error")
+            self._log_message(traceback.format_exc(), "error")
+        
+        finally:
+            # Réinitialiser l'état
+            self.execution_running = False
+            
+            # Mettre à jour les boutons (dans le thread principal)
+            def update_buttons():
+                start_button = self.query_one("#start-execution", Button)
+                stop_button = self.query_one("#stop-execution", Button)
+                start_button.disabled = False
+                stop_button.disabled = True
+                self._update_status("Exécution terminée")
+            
+            self.call_from_thread(update_buttons)
+    
+    def _update_plugin_status(self, current: int, total: int, plugin_name: str) -> None:
+        """
+        Met à jour le statut d'exécution du plugin.
+        
+        Args:
+            current: Index du plugin en cours
+            total: Nombre total de plugins
+            plugin_name: Nom du plugin en cours
+        """
+        status_text = f"Exécution {current}/{total}: {plugin_name}"
+        
+        # Mettre à jour dans le thread principal
+        def update_status():
+            self._update_status(status_text)
+        
+        self.call_from_thread(update_status)
+    
+    def _execute_plugin(self, plugin_name: str, plugin_config: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Exécute un plugin spécifique.
+        
+        Args:
+            plugin_name: Nom du plugin à exécuter
+            plugin_config: Configuration du plugin
+            
+        Returns:
+            Dict[str, Any]: Résultat de l'exécution
+        """
+        result = {
+            'success': False,
+            'message': "",
+            'output': "",
+            'start_time': time.time(),
+            'end_time': None,
+            'duration': 0
+        }
+        
+        try:
+            # Obtenir le chemin du dossier du plugin
+            plugin_folder = get_plugin_folder_name(plugin_name)
+            plugin_path = Path('plugins') / plugin_folder
+            
+            # Vérifier si le plugin existe
+            if not plugin_path.exists():
+                result['message'] = f"Le dossier du plugin n'existe pas: {plugin_path}"
+                return result
+            
+            # Déterminer le script d'exécution (Python ou Bash)
+            exec_py_path = plugin_path / 'exec.py'
+            exec_bash_path = plugin_path / 'exec.bash'
+            
+            if exec_py_path.exists():
+                # Exécuter le script Python
+                self._log_message(f"Exécution du script Python: {exec_py_path}", "info")
+                result = self._execute_python_script(exec_py_path, plugin_config)
+            elif exec_bash_path.exists():
+                # Exécuter le script Bash
+                self._log_message(f"Exécution du script Bash: {exec_bash_path}", "info")
+                result = self._execute_bash_script(exec_bash_path, plugin_config)
+            else:
+                result['message'] = f"Aucun script d'exécution trouvé pour le plugin {plugin_name}"
+            
+            # Calculer la durée
+            result['end_time'] = time.time()
+            result['duration'] = result['end_time'] - result['start_time']
+            
+        except Exception as e:
+            result['message'] = str(e)
+            result['end_time'] = time.time()
+            result['duration'] = result['end_time'] - result['start_time']
+            self._log_message(f"Erreur lors de l'exécution du plugin {plugin_name}: {str(e)}", "error")
+            self._log_message(traceback.format_exc(), "error")
+        
+        return result
+    
+    def _execute_python_script(self, script_path: Path, config: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Exécute un script Python.
+        
+        Args:
+            script_path: Chemin du script Python
+            config: Configuration à passer au script
+            
+        Returns:
+            Dict[str, Any]: Résultat de l'exécution
+        """
+        result = {
+            'success': False,
+            'message': "",
+            'output': "",
+            'start_time': time.time(),
+            'end_time': None,
+            'duration': 0
+        }
+        
+        try:
+            # Créer un fichier temporaire pour la configuration
+            config_file = Path('temp_config.yml')
+            with open(config_file, 'w', encoding='utf-8') as f:
+                import yaml
+                yaml.dump(config, f)
+            
+            # Construire la commande
+            python_executable = sys.executable
+            command = [python_executable, str(script_path), str(config_file)]
+            
+            # Exécuter la commande
+            self._log_message(f"Exécution de la commande: {' '.join(command)}", "info")
+            process = subprocess.Popen(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1
+            )
+            
+            # Lire la sortie standard et d'erreur
+            stdout_lines = []
+            stderr_lines = []
+            
+            # Lire la sortie standard
+            for line in process.stdout:
+                line = line.strip()
+                if line:
+                    stdout_lines.append(line)
+                    self._log_message(f"[STDOUT] {line}", "info")
+            
+            # Lire la sortie d'erreur
+            for line in process.stderr:
+                line = line.strip()
+                if line:
+                    stderr_lines.append(line)
+                    self._log_message(f"[STDERR] {line}", "error")
+            
+            # Attendre la fin du processus
+            return_code = process.wait()
+            
+            # Nettoyer le fichier temporaire
+            if config_file.exists():
+                config_file.unlink()
+            
+            # Vérifier le code de retour
+            if return_code == 0:
+                result['success'] = True
+                result['message'] = "Script exécuté avec succès"
+            else:
+                result['message'] = f"Le script a retourné une erreur (code {return_code})"
+            
+            # Stocker la sortie
+            result['output'] = "\n".join(stdout_lines + stderr_lines)
+            
+        except Exception as e:
+            result['message'] = str(e)
+            self._log_message(f"Erreur lors de l'exécution du script Python: {str(e)}", "error")
+            self._log_message(traceback.format_exc(), "error")
+        
+        return result
+    
+    def _execute_bash_script(self, script_path: Path, config: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Exécute un script Bash.
+        
+        Args:
+            script_path: Chemin du script Bash
+            config: Configuration à passer au script
+            
+        Returns:
+            Dict[str, Any]: Résultat de l'exécution
+        """
+        result = {
+            'success': False,
+            'message': "",
+            'output': "",
+            'start_time': time.time(),
+            'end_time': None,
+            'duration': 0
+        }
+        
+        try:
+            # Créer un fichier temporaire pour la configuration
+            config_file = Path('temp_config.yml')
+            with open(config_file, 'w', encoding='utf-8') as f:
+                import yaml
+                yaml.dump(config, f)
+            
+            # Rendre le script exécutable
+            os.chmod(script_path, 0o755)
+            
+            # Construire la commande
+            command = [str(script_path), str(config_file)]
+            
+            # Exécuter la commande
+            self._log_message(f"Exécution de la commande: {' '.join(command)}", "info")
+            process = subprocess.Popen(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1,
+                shell=True
+            )
+            
+            # Lire la sortie standard et d'erreur
+            stdout_lines = []
+            stderr_lines = []
+            
+            # Lire la sortie standard
+            for line in process.stdout:
+                line = line.strip()
+                if line:
+                    stdout_lines.append(line)
+                    self._log_message(f"[STDOUT] {line}", "info")
+            
+            # Lire la sortie d'erreur
+            for line in process.stderr:
+                line = line.strip()
+                if line:
+                    stderr_lines.append(line)
+                    self._log_message(f"[STDERR] {line}", "error")
+            
+            # Attendre la fin du processus
+            return_code = process.wait()
+            
+            # Nettoyer le fichier temporaire
+            if config_file.exists():
+                config_file.unlink()
+            
+            # Vérifier le code de retour
+            if return_code == 0:
+                result['success'] = True
+                result['message'] = "Script exécuté avec succès"
+            else:
+                result['message'] = f"Le script a retourné une erreur (code {return_code})"
+            
+            # Stocker la sortie
+            result['output'] = "\n".join(stdout_lines + stderr_lines)
+            
+        except Exception as e:
+            result['message'] = str(e)
+            self._log_message(f"Erreur lors de l'exécution du script Bash: {str(e)}", "error")
+            self._log_message(traceback.format_exc(), "error")
+        
+        return result
+    
+    async def stop_execution(self) -> None:
+        """
+        Arrête l'exécution des plugins.
+        """
+        if not self.execution_running:
+            self._log_message("Aucune exécution en cours", "warning")
+            return
+        
+        # Arrêter l'exécution
+        self.execution_running = False
+        self._log_message("Arrêt de l'exécution en cours...", "warning")
+        
+        # Mettre à jour les boutons
+        start_button = self.query_one("#start-execution", Button)
+        stop_button = self.query_one("#stop-execution", Button)
+        start_button.disabled = False
+        stop_button.disabled = True
+        
+        # Attendre la fin du thread
+        if self.execution_thread and self.execution_thread.is_alive():
+            self.execution_thread.join(timeout=2.0)
+            if self.execution_thread.is_alive():
+                self._log_message("Le thread d'exécution ne répond pas", "error")
+    
+    async def action_quit(self) -> None:
+        """
+        Quitte l'écran d'exécution.
+        """
+        # Arrêter l'exécution si nécessaire
+        if self.execution_running:
+            await self.stop_execution()
+        
+        # Retourner à l'écran précédent
+        self.app.pop_screen()
