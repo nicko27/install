@@ -20,11 +20,11 @@ logger = get_logger('choice_screen')
 class Choice(App):
     """
     Application principale pour la sélection et la configuration des plugins.
-    
+
     Cette classe gère l'interface de sélection des plugins et des séquences,
     ainsi que le passage à l'écran de configuration.
     """
-    
+
     BINDINGS = [
         ("escape", "quit", "Quitter"),  # Raccourci pour quitter l'application
     ]
@@ -49,14 +49,14 @@ class Choice(App):
         self.auto_execute = False    # Mode exécution automatique
         self.report_file = None      # Fichier pour le rapport d'exécution
         self.report_format = 'csv'   # Format du rapport (csv ou txt)
-        
+
         # Traiter les arguments de ligne de commande
         self._process_command_line_args()
 
     def _process_command_line_args(self) -> None:
         """
         Traite les arguments de ligne de commande.
-        
+
         Format:
         - Le premier argument peut être un fichier de séquence
         - L'option --auto active l'exécution automatique
@@ -64,7 +64,7 @@ class Choice(App):
         """
         if len(sys.argv) <= 1:
             return
-            
+
         # Traiter le premier argument comme un fichier de séquence potentiel
         sequence_path = sys.argv[1]
         if not sequence_path.startswith('--'):
@@ -72,7 +72,7 @@ class Choice(App):
             if sequence_file.exists():
                 logger.info(f"Fichier de séquence détecté: {sequence_path}")
                 self.sequence_file = sequence_file
-                
+
         # Parcourir les autres arguments pour les options
         for arg in sys.argv[1:]:
             if arg == '--auto':
@@ -88,32 +88,32 @@ class Choice(App):
     def compose(self) -> ComposeResult:
         """
         Compose l'interface de sélection des plugins.
-        
+
         Returns:
             ComposeResult: Résultat de la composition
         """
         yield Header()  # En-tête de l'application
-        
+
         with Horizontal(id="main-content"):
             # Colonne gauche: cartes de plugins
             with Vertical(id="plugins-column"):
                 yield Label("Sélectionnez vos plugins", classes="section-title")
                 with ScrollableContainer(id="plugin-cards"):
                     yield from self._create_plugin_cards()
-                    
+
             # Colonne droite: plugins sélectionnés
             yield SelectedPluginsPanel(id="selected-plugins")
-            
+
         # Boutons d'action en bas
         with Horizontal(id="button-container"):
             yield Button("Configurer", id="configure_selected", variant="primary")
-            
+
         yield Footer()
 
     def _create_plugin_cards(self) -> List[PluginCard]:
         """
         Crée les cartes de plugins et de séquences.
-        
+
         Returns:
             List[PluginCard]: Liste des cartes de plugins créées
         """
@@ -123,10 +123,10 @@ class Choice(App):
         try:
             # 1. Récupérer les plugins valides
             valid_plugins = self._discover_valid_plugins(plugins_dir)
-            
+
             # 2. Ajouter les séquences comme plugins spéciaux
             self._add_sequences_to_plugins(valid_plugins)
-            
+
             # 3. Trier et créer les cartes
             valid_plugins.sort(key=lambda x: x[0].lower())
             for display_name, plugin_name in valid_plugins:
@@ -135,13 +135,13 @@ class Choice(App):
             # 4. Si une séquence est spécifiée, la charger
             if self.sequence_file:
                 self._load_sequence(self.sequence_file)
-                
+
                 # Si mode auto-exécution, passer directement à la configuration
                 if self.auto_execute:
                     self.action_configure_selected()
 
             return plugin_cards
-            
+
         except Exception as e:
             logger.error(f"Erreur lors de la découverte des plugins: {e}")
             logger.error(traceback.format_exc())
@@ -150,19 +150,19 @@ class Choice(App):
     def _discover_valid_plugins(self, plugins_dir: Path) -> List[Tuple[str, str]]:
         """
         Découvre les plugins valides dans le répertoire.
-        
+
         Args:
             plugins_dir: Chemin vers le répertoire des plugins
-            
+
         Returns:
             List[Tuple[str, str]]: Liste de tuples (nom_affichage, nom_plugin)
         """
         valid_plugins = []
-        
+
         if not plugins_dir.exists():
             logger.error(f"Répertoire des plugins non trouvé: {plugins_dir}")
             return valid_plugins
-            
+
         for plugin_path in plugins_dir.iterdir():
             if not plugin_path.is_dir():
                 continue
@@ -185,21 +185,21 @@ class Choice(App):
                     logger.debug(f"Plugin valide trouvé: {plugin_path.name}, templates: {len(self.plugin_templates[plugin_path.name])}")
                 except Exception as e:
                     logger.error(f"Erreur lors du chargement du plugin {plugin_path.name}: {e}")
-        
+
         logger.info(f"Plugins valides trouvés: {len(valid_plugins)}")
         return valid_plugins
 
     def _add_sequences_to_plugins(self, valid_plugins: List[Tuple[str, str]]) -> None:
         """
         Ajoute les séquences disponibles à la liste des plugins.
-        
+
         Args:
             valid_plugins: Liste des plugins valides à compléter
         """
         # Récupérer les séquences disponibles
         sequences = self.sequence_handler.get_available_sequences()
         logger.info(f"Séquences disponibles: {len(sequences)}")
-        
+
         # Ajouter chaque séquence à la liste des plugins
         for seq in sequences:
             seq_name = seq['name']
@@ -211,7 +211,7 @@ class Choice(App):
     def _load_sequence(self, sequence_path: Path) -> None:
         """
         Charge une séquence depuis un fichier YAML.
-        
+
         Args:
             sequence_path: Chemin vers le fichier de séquence
         """
@@ -229,10 +229,10 @@ class Choice(App):
             # 2. Ajouter chaque plugin de la séquence
             for plugin_config in sequence['plugins']:
                 self._add_sequence_plugin(plugin_config)
-            
+
             # 3. Mettre à jour l'affichage
             self._update_selected_plugins_display()
-            
+
             logger.info(f"Séquence chargée: {len(sequence['plugins'])} plugins")
 
         except Exception as e:
@@ -242,21 +242,21 @@ class Choice(App):
     def _add_sequence_plugin(self, plugin_config: Dict[str, Any]) -> None:
         """
         Ajoute un plugin de séquence à la liste des plugins sélectionnés.
-        
+
         Args:
             plugin_config: Configuration du plugin dans la séquence
         """
         # Vérifier le format du plugin (dict ou str)
         if isinstance(plugin_config, dict) and 'name' in plugin_config:
             plugin_name = plugin_config['name']
-            
+
             # Extraire la configuration
             config = {}
             if 'config' in plugin_config:
                 config = plugin_config['config']
             elif 'variables' in plugin_config:  # Rétrocompatibilité
                 config = plugin_config['variables']
-                
+
             # Appliquer un template si spécifié
             if 'template' in plugin_config:
                 template_name = plugin_config['template']
@@ -272,15 +272,15 @@ class Choice(App):
         else:
             logger.error(f"Format de plugin invalide dans la séquence: {plugin_config}")
             return
-            
+
         # Incrémenter le compteur d'instance
         if plugin_name not in self.instance_counter:
             self.instance_counter[plugin_name] = 0
         self.instance_counter[plugin_name] += 1
-        
+
         # Générer l'ID unique de l'instance
         instance_id = self.instance_counter[plugin_name]
-        
+
         # Ajouter à la liste des plugins sélectionnés
         self.selected_plugins.append((plugin_name, instance_id, config))
         logger.debug(f"Plugin ajouté depuis la séquence: {plugin_name} (ID: {instance_id})")
@@ -294,12 +294,12 @@ class Choice(App):
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """
         Gère les clics sur les boutons de l'application.
-        
+
         Args:
             event: Événement de bouton pressé
         """
         logger.debug(f"Bouton cliqué: {event.button.id}")
-        
+
         if event.button.id == "configure_selected":
             await self.action_configure_selected()
         elif event.button.id == "quit":
@@ -311,7 +311,7 @@ class Choice(App):
     def on_plugin_card_plugin_selection_changed(self, message: PluginCard.PluginSelectionChanged) -> None:
         """
         Gère les changements de sélection des plugins.
-        
+
         Args:
             message: Message de changement de sélection
         """
@@ -335,7 +335,7 @@ class Choice(App):
     def _add_plugin(self, plugin_name: str, source_card: PluginCard) -> None:
         """
         Ajoute un plugin à la liste des plugins sélectionnés.
-        
+
         Args:
             plugin_name: Nom du plugin à ajouter
             source_card: Carte source de l'événement
@@ -359,33 +359,32 @@ class Choice(App):
         instance_id = self.instance_counter[plugin_name]
         self.selected_plugins.append((plugin_name, instance_id))
         logger.debug(f"Plugin ajouté: {plugin_name} (ID: {instance_id})")
-        
+
         # Mettre à jour l'affichage
         self._update_selected_plugins_display()
 
     def _remove_plugin(self, plugin_name: str) -> None:
         """
         Retire un plugin de la liste des plugins sélectionnés.
-        
+
         Args:
             plugin_name: Nom du plugin à retirer
         """
         # Filtrer pour garder seulement les plugins différents
-        self.selected_plugins = [(p, i) for p, i in self.selected_plugins if p != plugin_name]
-        
+        self.selected_plugins = [plugin_data for plugin_data in self.selected_plugins if plugin_data[0] != plugin_name]
+
         # Réinitialiser le compteur d'instance
         if plugin_name in self.instance_counter:
             del self.instance_counter[plugin_name]
-            
+
         logger.debug(f"Plugin retiré: {plugin_name}")
-        
+
         # Mettre à jour l'affichage
         self._update_selected_plugins_display()
-
     def on_plugin_card_add_plugin_instance(self, message: PluginCard.AddPluginInstance) -> None:
         """
         Gère l'ajout d'une instance pour les plugins multiples.
-        
+
         Args:
             message: Message d'ajout d'instance
         """
@@ -432,15 +431,15 @@ class Choice(App):
             if hasattr(config_screen, 'current_config'):
                 config = config_screen.current_config
                 logger.debug(f"Configuration récupérée: {len(config)} plugins")
-                
+
                 # Mettre à jour les configurations des plugins
                 self._update_plugins_config(config)
-                
+
                 # Sauvegarder la séquence si nécessaire
                 if self.sequence_file:
                     logger.debug(f"Sauvegarde de la séquence: {self.sequence_file}")
                     self._save_sequence(self.sequence_file)
-                
+
                 # En mode auto-exécution, passer à l'exécution
                 if self.auto_execute:
                     logger.debug("Mode auto-exécution: passage à l'exécution")
@@ -457,16 +456,16 @@ class Choice(App):
     def _update_plugins_config(self, config: Dict[str, Any]) -> None:
         """
         Met à jour les configurations des plugins sélectionnés.
-        
+
         Args:
             config: Nouvelles configurations
         """
         updated_plugins = []
-        
+
         # Parcourir tous les plugins sélectionnés
         for i, plugin_data in enumerate(self.selected_plugins):
             plugin_name, instance_id = plugin_data[0], plugin_data[1]
-            
+
             # Récupérer la nouvelle config depuis l'ID unique
             plugin_key = f"{plugin_name}_{instance_id}"
             if plugin_key in config:
@@ -478,20 +477,20 @@ class Choice(App):
                 # Garder l'ancienne config si elle existe
                 updated_plugins.append(plugin_data)
                 logger.debug(f"Pas de nouvelle config pour {plugin_name} (ID: {instance_id})")
-                
+
         # Remplacer la liste des plugins
         self.selected_plugins = updated_plugins
-        
+
         # Mettre à jour l'affichage
         self._update_selected_plugins_display()
 
     def _save_sequence(self, sequence_file: Path) -> bool:
         """
         Sauvegarde la liste des plugins sélectionnés dans un fichier de séquence.
-        
+
         Args:
             sequence_file: Chemin du fichier de séquence
-            
+
         Returns:
             bool: True si la sauvegarde a réussi
         """
@@ -502,15 +501,15 @@ class Choice(App):
                 'description': f"Séquence générée automatiquement {sequence_file.name}",
                 'plugins': []
             }
-            
+
             # Ajouter chaque plugin (sauf les séquences)
             for plugin_data in self.selected_plugins:
                 plugin_name = plugin_data[0]
-                
+
                 # Ignorer les séquences
                 if plugin_name.startswith('__sequence__'):
                     continue
-                    
+
                 # Construire la configuration du plugin
                 if len(plugin_data) >= 3:
                     plugin_config = {
@@ -522,16 +521,16 @@ class Choice(App):
                         'name': plugin_name,
                         'config': {}
                     }
-                    
+
                 sequence_data['plugins'].append(plugin_config)
-                
+
             # Sauvegarder dans le fichier
             with open(sequence_file, 'w', encoding='utf-8') as f:
                 self.sequence_handler.yaml.dump(sequence_data, f)
-                
+
             logger.info(f"Séquence sauvegardée: {sequence_file}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Erreur lors de la sauvegarde de la séquence: {e}")
             logger.error(traceback.format_exc())
@@ -543,7 +542,7 @@ class Choice(App):
         """
         if not self.report_file:
             return
-            
+
         try:
             # TODO: Implémentation du rapport d'exécution
             logger.info(f"Sauvegarde du rapport d'exécution: {self.report_file}")

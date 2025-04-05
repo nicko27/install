@@ -15,7 +15,7 @@ from .plugin_config_container import PluginConfigContainer
 from .text_field import TextField
 from .checkbox_field import CheckboxField
 from .config_manager import ConfigManager
-from .sequence_config_manager import SequenceConfigManager
+from .sequence_config_manager import SequenceConfigManager  
 
 logger = get_logger('config_screen')
 # Configuration de ruamel.yaml pour préserver les commentaires

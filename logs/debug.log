@@ -1,0 +1,281 @@
+2025-04-05 15:14:45,045 - install_ui.main - DEBUG - Répertoire de base de l'application: /media/nico/Drive/pcUtils_internet
+2025-04-05 15:14:45,046 - install_ui.main - DEBUG - sys.path complet: ['/media/nico/Drive/pcUtils_internet', '/usr/lib/python310.zip', '/usr/lib/python3.10', '/usr/lib/python3.10/lib-dynload', '/home/nico/.local/lib/python3.10/site-packages', '/usr/local/lib/python3.10/dist-packages', '/usr/lib/python3/dist-packages']
+2025-04-05 15:14:45,061 - install_ui.main - DEBUG - ruamel.yaml importé avec succès depuis /home/nico/.local/lib/python3.10/site-packages/ruamel/yaml/__init__.py
+2025-04-05 15:14:45,395 - install_ui.choice_screen - DEBUG - Initialisation de l'application Choice
+2025-04-05 15:14:45,395 - sequence_handler - DEBUG - Initialisation du gestionnaire de séquences: sequences
+2025-04-05 15:14:45,396 - template_handler - DEBUG - Dossier des templates : templates
+2025-04-05 15:14:45,396 - template_handler - DEBUG - Fichier de schéma : templates/template_schema.yml
+2025-04-05 15:14:45,396 - asyncio - DEBUG - Using selector: EpollSelector
+2025-04-05 15:14:45,414 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: home_copy
+2025-04-05 15:14:45,414 - install_ui.plugin_utils - DEBUG - Recherche du dossier pour le plugin: home_copy
+2025-04-05 15:14:45,414 - install_ui.plugin_utils - DEBUG - Nom de base extrait: home_copy
+2025-04-05 15:14:45,414 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/home_copy_test
+2025-04-05 15:14:45,414 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/home_copy
+2025-04-05 15:14:45,414 - install_ui.plugin_utils - DEBUG - Dossier trouvé: home_copy
+2025-04-05 15:14:45,414 - install_ui.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/home_copy/settings.yml
+2025-04-05 15:14:45,439 - install_ui.plugin_utils - DEBUG - Paramètres chargés avec succès pour home_copy
+2025-04-05 15:14:45,440 - template_handler - DEBUG - Aucun dossier de templates trouvé pour home_copy
+2025-04-05 15:14:45,440 - install_ui.choice_screen - DEBUG - Plugin valide trouvé: home_copy, templates: 0
+2025-04-05 15:14:45,440 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: add_printer
+2025-04-05 15:14:45,440 - install_ui.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-05 15:14:45,440 - install_ui.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-05 15:14:45,440 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-05 15:14:45,440 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-05 15:14:45,440 - install_ui.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-05 15:14:45,440 - install_ui.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/add_printer/settings.yml
+2025-04-05 15:14:45,450 - install_ui.plugin_utils - DEBUG - Paramètres chargés avec succès pour add_printer
+2025-04-05 15:14:45,450 - template_handler - DEBUG - Aucun dossier de templates trouvé pour add_printer
+2025-04-05 15:14:45,450 - install_ui.choice_screen - DEBUG - Plugin valide trouvé: add_printer, templates: 0
+2025-04-05 15:14:45,450 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: scan_plugin
+2025-04-05 15:14:45,450 - install_ui.plugin_utils - DEBUG - Recherche du dossier pour le plugin: scan_plugin
+2025-04-05 15:14:45,450 - install_ui.plugin_utils - DEBUG - Nom de base extrait: scan_plugin
+2025-04-05 15:14:45,450 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin_test
+2025-04-05 15:14:45,450 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin
+2025-04-05 15:14:45,450 - install_ui.plugin_utils - DEBUG - Dossier trouvé: scan_plugin
+2025-04-05 15:14:45,450 - install_ui.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/scan_plugin/settings.yml
+2025-04-05 15:14:45,458 - install_ui.plugin_utils - DEBUG - Paramètres chargés avec succès pour scan_plugin
+2025-04-05 15:14:45,458 - template_handler - DEBUG - Aucun dossier de templates trouvé pour scan_plugin
+2025-04-05 15:14:45,458 - install_ui.choice_screen - DEBUG - Plugin valide trouvé: scan_plugin, templates: 0
+2025-04-05 15:14:45,458 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: delete_printer
+2025-04-05 15:14:45,458 - install_ui.plugin_utils - DEBUG - Recherche du dossier pour le plugin: delete_printer
+2025-04-05 15:14:45,458 - install_ui.plugin_utils - DEBUG - Nom de base extrait: delete_printer
+2025-04-05 15:14:45,458 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer_test
+2025-04-05 15:14:45,459 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer
+2025-04-05 15:14:45,459 - install_ui.plugin_utils - DEBUG - Dossier trouvé: delete_printer
+2025-04-05 15:14:45,459 - install_ui.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/delete_printer/settings.yml
+2025-04-05 15:14:45,464 - install_ui.plugin_utils - DEBUG - Paramètres chargés avec succès pour delete_printer
+2025-04-05 15:14:45,464 - template_handler - DEBUG - Aucun dossier de templates trouvé pour delete_printer
+2025-04-05 15:14:45,464 - install_ui.choice_screen - DEBUG - Plugin valide trouvé: delete_printer, templates: 0
+2025-04-05 15:14:45,464 - install_ui.choice_screen - INFO - Plugins valides trouvés: 4
+2025-04-05 15:14:45,470 - install_ui.choice_screen - INFO - Séquences disponibles: 1
+2025-04-05 15:14:45,470 - install_ui.choice_screen - DEBUG - Séquence ajoutée: Séquence remplacement imprimante(s) (imp_remp.yml)
+2025-04-05 15:14:45,470 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: add_printer
+2025-04-05 15:14:45,470 - install_ui.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-05 15:14:45,470 - install_ui.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-05 15:14:45,470 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-05 15:14:45,470 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-05 15:14:45,470 - install_ui.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-05 15:14:45,470 - install_ui.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/add_printer/settings.yml
+2025-04-05 15:14:45,479 - install_ui.plugin_utils - DEBUG - Paramètres chargés avec succès pour add_printer
+2025-04-05 15:14:45,479 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: scan_plugin
+2025-04-05 15:14:45,479 - install_ui.plugin_utils - DEBUG - Recherche du dossier pour le plugin: scan_plugin
+2025-04-05 15:14:45,479 - install_ui.plugin_utils - DEBUG - Nom de base extrait: scan_plugin
+2025-04-05 15:14:45,479 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin_test
+2025-04-05 15:14:45,479 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin
+2025-04-05 15:14:45,479 - install_ui.plugin_utils - DEBUG - Dossier trouvé: scan_plugin
+2025-04-05 15:14:45,479 - install_ui.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/scan_plugin/settings.yml
+2025-04-05 15:14:45,486 - install_ui.plugin_utils - DEBUG - Paramètres chargés avec succès pour scan_plugin
+2025-04-05 15:14:45,487 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: home_copy
+2025-04-05 15:14:45,487 - install_ui.plugin_utils - DEBUG - Recherche du dossier pour le plugin: home_copy
+2025-04-05 15:14:45,487 - install_ui.plugin_utils - DEBUG - Nom de base extrait: home_copy
+2025-04-05 15:14:45,487 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/home_copy_test
+2025-04-05 15:14:45,487 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/home_copy
+2025-04-05 15:14:45,487 - install_ui.plugin_utils - DEBUG - Dossier trouvé: home_copy
+2025-04-05 15:14:45,487 - install_ui.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/home_copy/settings.yml
+2025-04-05 15:14:45,501 - install_ui.plugin_utils - DEBUG - Paramètres chargés avec succès pour home_copy
+2025-04-05 15:14:45,501 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: delete_printer
+2025-04-05 15:14:45,501 - install_ui.plugin_utils - DEBUG - Recherche du dossier pour le plugin: delete_printer
+2025-04-05 15:14:45,501 - install_ui.plugin_utils - DEBUG - Nom de base extrait: delete_printer
+2025-04-05 15:14:45,501 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer_test
+2025-04-05 15:14:45,501 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer
+2025-04-05 15:14:45,501 - install_ui.plugin_utils - DEBUG - Dossier trouvé: delete_printer
+2025-04-05 15:14:45,501 - install_ui.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/delete_printer/settings.yml
+2025-04-05 15:14:45,507 - install_ui.plugin_utils - DEBUG - Paramètres chargés avec succès pour delete_printer
+2025-04-05 15:14:48,745 - install_ui.choice_screen - DEBUG - Changement sélection: __sequence__imp_remp.yml -> True
+2025-04-05 15:14:48,751 - sequence_handler - INFO - Séquence chargée et mise en cache: Séquence remplacement imprimante(s)
+2025-04-05 15:14:48,751 - install_ui.choice_screen - INFO - Séquence ajoutée: __sequence__imp_remp.yml
+2025-04-05 15:14:48,751 - install_ui.choice_screen - DEBUG - Plugin ajouté depuis la séquence: delete_printer (ID: 1)
+2025-04-05 15:14:48,751 - install_ui.choice_screen - DEBUG - Plugin ajouté depuis la séquence: add_printer (ID: 1)
+2025-04-05 15:14:48,751 - install_ui.choice_screen - DEBUG - Plugin ajouté depuis la séquence: add_printer (ID: 2)
+2025-04-05 15:14:48,752 - install_ui.selected_plugins_panel - DEBUG - Séquence détectée: __sequence__imp_remp.yml, ID: 0, index: 0
+2025-04-05 15:14:48,758 - install_ui.selected_plugins_panel - DEBUG - Séquence chargée: /media/nico/Drive/pcUtils_internet/sequences/imp_remp.yml
+2025-04-05 15:14:48,758 - install_ui.selected_plugins_panel - DEBUG - Plugin delete_printer (index 1) identifié comme membre de la séquence 0
+2025-04-05 15:14:48,758 - install_ui.selected_plugins_panel - DEBUG - Plugin add_printer (index 2) identifié comme membre de la séquence 0
+2025-04-05 15:14:48,758 - install_ui.selected_plugins_panel - DEBUG - Plugin add_printer (index 3) identifié comme membre de la séquence 0
+2025-04-05 15:14:48,759 - install_ui.plugin_list_item - INFO - Plugin sans config: __sequence__imp_remp.yml
+2025-04-05 15:14:48,759 - install_ui.plugin_list_item - WARNING - Initialisation de PluginListItem: __sequence__imp_remp.yml, is_sequence: True, type: <class 'str'>, startswith: True
+2025-04-05 15:14:48,759 - install_ui.plugin_list_item - DEBUG - Initialisation de __sequence__imp_remp.yml avec is_part_of_sequence=False
+2025-04-05 15:14:48,759 - install_ui.plugin_list_item - DEBUG - Chargement de la séquence: __sequence__imp_remp.yml, nom de fichier: imp_remp.yml
+2025-04-05 15:14:48,759 - install_ui.plugin_list_item - DEBUG - Chemin du fichier YAML: /media/nico/Drive/pcUtils_internet/sequences/imp_remp.yml, existe: True
+2025-04-05 15:14:48,764 - install_ui.plugin_list_item - DEBUG - Informations de séquence chargées: {'name': 'Séquence remplacement imprimante(s)', 'description': 'Séquence pour supprimer une ou des imprimantes puis en installer une', 'shortcut': ['remp_imp', 'ri'], 'plugins': [{'name': 'delete_printer', 'config': {'printer_ip': '192.168.1.223', 'printer_all': False}}, {'name': 'add_printer', 'config': {'printer_ip': '192.168.1.222', 'printer_model': 'EC4200', 'printer_name': 'Premiere', 'printer_a3': False}}, {'name': 'add_printer', 'config': {'printer_ip': '192.168.1.221', 'printer_model': 'KM227', 'printer_name': 'Autre', 'printer_a3': False}}]}
+2025-04-05 15:14:48,764 - install_ui.plugin_list_item - INFO - Nom de séquence trouvé dans le YAML: Séquence remplacement imprimante(s)
+2025-04-05 15:14:48,764 - install_ui.plugin_list_item - WARNING - Informations de séquence chargées pour __sequence__imp_remp.yml: {'name': 'Séquence remplacement imprimante(s)', 'icon': '⚙️ '}
+2025-04-05 15:14:48,764 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: __sequence__imp_remp.yml
+2025-04-05 15:14:48,764 - install_ui.plugin_utils - DEBUG - Plugin __sequence__imp_remp.yml est une séquence, utilisation des infos par défaut
+2025-04-05 15:14:48,764 - install_ui.plugin_list_item - WARNING - Plugin info final pour __sequence__imp_remp.yml: {'name': 'Séquence remplacement imprimante(s)', 'icon': '⚙️ '}
+2025-04-05 15:14:48,764 - install_ui.plugin_list_item - INFO - Plugin avec config: delete_printer, config: {'printer_ip': '192.168.1.223', 'printer_all': False}
+2025-04-05 15:14:48,764 - install_ui.plugin_list_item - WARNING - Initialisation de PluginListItem: delete_printer, is_sequence: False, type: <class 'str'>, startswith: False
+2025-04-05 15:14:48,765 - install_ui.plugin_list_item - DEBUG - Initialisation de delete_printer avec is_part_of_sequence=False
+2025-04-05 15:14:48,765 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: delete_printer
+2025-04-05 15:14:48,765 - install_ui.plugin_utils - DEBUG - Recherche du dossier pour le plugin: delete_printer
+2025-04-05 15:14:48,765 - install_ui.plugin_utils - DEBUG - Nom de base extrait: delete_printer
+2025-04-05 15:14:48,765 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer_test
+2025-04-05 15:14:48,765 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer
+2025-04-05 15:14:48,765 - install_ui.plugin_utils - DEBUG - Dossier trouvé: delete_printer
+2025-04-05 15:14:48,765 - install_ui.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/delete_printer/settings.yml
+2025-04-05 15:14:48,771 - install_ui.plugin_utils - DEBUG - Paramètres chargés avec succès pour delete_printer
+2025-04-05 15:14:48,771 - install_ui.plugin_list_item - WARNING - Plugin info final pour delete_printer: {'name': "Suppression d'imprimante(s)", 'description': "Suppression d'une ou plusieurs imprimantes en fonction de l'IP", 'version': 1.0, 'category': 'Système', 'multiple': True, 'icon': '🖨', 'remote_execution': True, 'sudo': True, 'config_fields': {'printer_all': {'type': 'checkbox', 'label': 'Supprimer toutes les imprimantes', 'default': True, 'required': True}, 'printer_ip': {'type': 'ip', 'label': 'Adresse IP', 'description': "Adresse IP de l'imprimante", 'required': True, 'not_empty': True, 'dynamic_default': {'script': 'get_ip.py', 'function': 'get_local_ip', 'value_key': 'ip', 'path': '@[scripts]'}, 'enabled_if': {'field': 'printer_all', 'value': False}}}}
+2025-04-05 15:14:48,772 - install_ui.plugin_list_item - INFO - Plugin avec config: add_printer, config: {'printer_ip': '192.168.1.222', 'printer_model': 'EC4200', 'printer_name': 'Premiere', 'printer_a3': False}
+2025-04-05 15:14:48,772 - install_ui.plugin_list_item - WARNING - Initialisation de PluginListItem: add_printer, is_sequence: False, type: <class 'str'>, startswith: False
+2025-04-05 15:14:48,772 - install_ui.plugin_list_item - DEBUG - Initialisation de add_printer avec is_part_of_sequence=False
+2025-04-05 15:14:48,772 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: add_printer
+2025-04-05 15:14:48,772 - install_ui.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-05 15:14:48,772 - install_ui.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-05 15:14:48,772 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-05 15:14:48,772 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-05 15:14:48,772 - install_ui.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-05 15:14:48,772 - install_ui.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/add_printer/settings.yml
+2025-04-05 15:14:48,781 - install_ui.plugin_utils - DEBUG - Paramètres chargés avec succès pour add_printer
+2025-04-05 15:14:48,781 - install_ui.plugin_list_item - WARNING - Plugin info final pour add_printer: {'name': "Ajout d'imprimante", 'description': 'Ajouter une imprimante en utilisant les modèles prédéfinis', 'version': 1.0, 'category': 'Système', 'multiple': True, 'ssh_debug': True, 'icon': '🖨', 'remote_execution': True, 'needs_sudo': True, 'ssh_pattern_exceptions': ['models/*', 'settings.yml', 'get_printer_models.py'], 'files_content': {'printer_model_content': 'models/{printer_model}.yml'}, 'config_fields': {'printer_name': {'type': 'text', 'label': "Nom de l'imprimante (sans espaces)", 'required': True, 'validate': 'no_spaces', 'default': 'BT'}, 'printer_model': {'type': 'select', 'label': "Sélectionner le modèle d'imprimante", 'required': True, 'dynamic_options': {'script': 'get_printer_models.py', 'function': 'get_printer_models', 'dict': 'models'}}, 'printer_ip': {'type': 'ip', 'label': 'Adresse IP', 'description': "Adresse IP de l'imprimante", 'required': True, 'not_empty': True, 'dynamic_default': {'script': 'get_ip.py', 'function': 'get_local_ip', 'value_key': 'ip', 'path': '@[scripts]'}}, 'printer_a3': {'type': 'checkbox', 'label': 'Ajoute l(es) imprimante(s) A3'}}}
+2025-04-05 15:14:48,782 - install_ui.plugin_list_item - INFO - Plugin avec config: add_printer, config: {'printer_ip': '192.168.1.221', 'printer_model': 'KM227', 'printer_name': 'Autre', 'printer_a3': False}
+2025-04-05 15:14:48,782 - install_ui.plugin_list_item - WARNING - Initialisation de PluginListItem: add_printer, is_sequence: False, type: <class 'str'>, startswith: False
+2025-04-05 15:14:48,782 - install_ui.plugin_list_item - DEBUG - Initialisation de add_printer avec is_part_of_sequence=False
+2025-04-05 15:14:48,782 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: add_printer
+2025-04-05 15:14:48,782 - install_ui.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-05 15:14:48,782 - install_ui.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-05 15:14:48,782 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-05 15:14:48,782 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-05 15:14:48,782 - install_ui.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-05 15:14:48,782 - install_ui.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/add_printer/settings.yml
+2025-04-05 15:14:48,792 - install_ui.plugin_utils - DEBUG - Paramètres chargés avec succès pour add_printer
+2025-04-05 15:14:48,792 - install_ui.plugin_list_item - WARNING - Plugin info final pour add_printer: {'name': "Ajout d'imprimante", 'description': 'Ajouter une imprimante en utilisant les modèles prédéfinis', 'version': 1.0, 'category': 'Système', 'multiple': True, 'ssh_debug': True, 'icon': '🖨', 'remote_execution': True, 'needs_sudo': True, 'ssh_pattern_exceptions': ['models/*', 'settings.yml', 'get_printer_models.py'], 'files_content': {'printer_model_content': 'models/{printer_model}.yml'}, 'config_fields': {'printer_name': {'type': 'text', 'label': "Nom de l'imprimante (sans espaces)", 'required': True, 'validate': 'no_spaces', 'default': 'BT'}, 'printer_model': {'type': 'select', 'label': "Sélectionner le modèle d'imprimante", 'required': True, 'dynamic_options': {'script': 'get_printer_models.py', 'function': 'get_printer_models', 'dict': 'models'}}, 'printer_ip': {'type': 'ip', 'label': 'Adresse IP', 'description': "Adresse IP de l'imprimante", 'required': True, 'not_empty': True, 'dynamic_default': {'script': 'get_ip.py', 'function': 'get_local_ip', 'value_key': 'ip', 'path': '@[scripts]'}}, 'printer_a3': {'type': 'checkbox', 'label': 'Ajoute l(es) imprimante(s) A3'}}}
+2025-04-05 15:14:48,792 - install_ui.plugin_list_item - WARNING - Attributs de séquence mis à jour pour delete_printer: is_part_of_sequence=True, sequence_id=0, sequence_name=Séquence remplacement imprimante(s)
+2025-04-05 15:14:48,792 - install_ui.plugin_list_item - WARNING - Attributs de séquence mis à jour pour add_printer: is_part_of_sequence=True, sequence_id=0, sequence_name=Séquence remplacement imprimante(s)
+2025-04-05 15:14:48,792 - install_ui.plugin_list_item - WARNING - Attributs de séquence mis à jour pour add_printer: is_part_of_sequence=True, sequence_id=0, sequence_name=Séquence remplacement imprimante(s)
+2025-04-05 15:14:48,794 - install_ui.choice_screen - DEBUG - Affichage des plugins sélectionnés mis à jour
+2025-04-05 15:14:48,794 - install_ui.choice_screen - INFO - Séquence chargée: 3 plugins
+2025-04-05 15:14:48,797 - install_ui.plugin_list_item - DEBUG - Chargement de la séquence: __sequence__imp_remp.yml, nom de fichier: imp_remp.yml
+2025-04-05 15:14:48,797 - install_ui.plugin_list_item - DEBUG - Chemin du fichier YAML: /media/nico/Drive/pcUtils_internet/sequences/imp_remp.yml, existe: True
+2025-04-05 15:14:48,802 - install_ui.plugin_list_item - DEBUG - Informations de séquence chargées: {'name': 'Séquence remplacement imprimante(s)', 'description': 'Séquence pour supprimer une ou des imprimantes puis en installer une', 'shortcut': ['remp_imp', 'ri'], 'plugins': [{'name': 'delete_printer', 'config': {'printer_ip': '192.168.1.223', 'printer_all': False}}, {'name': 'add_printer', 'config': {'printer_ip': '192.168.1.222', 'printer_model': 'EC4200', 'printer_name': 'Premiere', 'printer_a3': False}}, {'name': 'add_printer', 'config': {'printer_ip': '192.168.1.221', 'printer_model': 'KM227', 'printer_name': 'Autre', 'printer_a3': False}}]}
+2025-04-05 15:14:48,802 - install_ui.plugin_list_item - INFO - Nom de séquence trouvé dans le YAML: Séquence remplacement imprimante(s)
+2025-04-05 15:14:48,802 - install_ui.plugin_list_item - INFO - Séquence: __sequence__imp_remp.yml, nom chargé: Séquence remplacement imprimante(s)
+2025-04-05 15:14:48,802 - install_ui.plugin_list_item - INFO - Composition de l'élément __sequence__imp_remp.yml, nom: Séquence remplacement imprimante(s), is_sequence: True, is_part_of_sequence: False, sequence_id: 0
+2025-04-05 15:14:48,802 - install_ui.plugin_list_item - DEBUG - Affichage de la séquence: __sequence__imp_remp.yml avec le nom: Séquence remplacement imprimante(s)
+2025-04-05 15:14:48,805 - install_ui.plugin_list_item - INFO - Composition de l'élément delete_printer, nom: Suppression d'imprimante(s), is_sequence: False, is_part_of_sequence: True, sequence_id: 0
+2025-04-05 15:14:48,805 - install_ui.plugin_list_item - WARNING - Plugin delete_printer identifié comme faisant partie de la séquence Séquence remplacement imprimante(s)
+2025-04-05 15:14:48,807 - install_ui.plugin_list_item - INFO - Composition de l'élément add_printer, nom: Ajout d'imprimante, is_sequence: False, is_part_of_sequence: True, sequence_id: 0
+2025-04-05 15:14:48,807 - install_ui.plugin_list_item - WARNING - Plugin add_printer identifié comme faisant partie de la séquence Séquence remplacement imprimante(s)
+2025-04-05 15:14:48,809 - install_ui.plugin_list_item - INFO - Composition de l'élément add_printer, nom: Ajout d'imprimante, is_sequence: False, is_part_of_sequence: True, sequence_id: 0
+2025-04-05 15:14:48,810 - install_ui.plugin_list_item - WARNING - Plugin add_printer identifié comme faisant partie de la séquence Séquence remplacement imprimante(s)
+2025-04-05 15:14:50,415 - install_ui.choice_screen - DEBUG - Bouton cliqué: remove_seq_0
+2025-04-05 15:14:51,831 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: home_copy
+2025-04-05 15:14:51,831 - install_ui.plugin_utils - DEBUG - Recherche du dossier pour le plugin: home_copy
+2025-04-05 15:14:51,832 - install_ui.plugin_utils - DEBUG - Nom de base extrait: home_copy
+2025-04-05 15:14:51,832 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/home_copy_test
+2025-04-05 15:14:51,832 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/home_copy
+2025-04-05 15:14:51,832 - install_ui.plugin_utils - DEBUG - Dossier trouvé: home_copy
+2025-04-05 15:14:51,833 - install_ui.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/home_copy/settings.yml
+2025-04-05 15:14:51,871 - install_ui.plugin_utils - DEBUG - Paramètres chargés avec succès pour home_copy
+2025-04-05 15:14:51,874 - install_ui.choice_screen - DEBUG - Changement sélection: home_copy -> True
+2025-04-05 15:14:51,874 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: home_copy
+2025-04-05 15:14:51,874 - install_ui.plugin_utils - DEBUG - Recherche du dossier pour le plugin: home_copy
+2025-04-05 15:14:51,874 - install_ui.plugin_utils - DEBUG - Nom de base extrait: home_copy
+2025-04-05 15:14:51,874 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/home_copy_test
+2025-04-05 15:14:51,874 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/home_copy
+2025-04-05 15:14:51,874 - install_ui.plugin_utils - DEBUG - Dossier trouvé: home_copy
+2025-04-05 15:14:51,874 - install_ui.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/home_copy/settings.yml
+2025-04-05 15:14:51,893 - install_ui.plugin_utils - DEBUG - Paramètres chargés avec succès pour home_copy
+2025-04-05 15:14:51,893 - install_ui.choice_screen - DEBUG - Plugin ajouté: home_copy (ID: 1)
+2025-04-05 15:14:51,894 - install_ui.plugin_list_item - INFO - Plugin sans config: home_copy
+2025-04-05 15:14:51,894 - install_ui.plugin_list_item - WARNING - Initialisation de PluginListItem: home_copy, is_sequence: False, type: <class 'str'>, startswith: False
+2025-04-05 15:14:51,894 - install_ui.plugin_list_item - DEBUG - Initialisation de home_copy avec is_part_of_sequence=False
+2025-04-05 15:14:51,894 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: home_copy
+2025-04-05 15:14:51,894 - install_ui.plugin_utils - DEBUG - Recherche du dossier pour le plugin: home_copy
+2025-04-05 15:14:51,894 - install_ui.plugin_utils - DEBUG - Nom de base extrait: home_copy
+2025-04-05 15:14:51,894 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/home_copy_test
+2025-04-05 15:14:51,895 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/home_copy
+2025-04-05 15:14:51,895 - install_ui.plugin_utils - DEBUG - Dossier trouvé: home_copy
+2025-04-05 15:14:51,895 - install_ui.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/home_copy/settings.yml
+2025-04-05 15:14:51,911 - install_ui.plugin_utils - DEBUG - Paramètres chargés avec succès pour home_copy
+2025-04-05 15:14:51,911 - install_ui.plugin_list_item - WARNING - Plugin info final pour home_copy: {'name': 'Sauvegarde de comptes utilisateurs', 'description': 'Sauvegarde de comptes utilisateurs vers un support externe', 'version': 1.0, 'category': 'Système', 'multiple': 'ftrue', 'remote_execution': True, 'icon': '🏠', 'sudo': True, 'config_fields': {'src_dir': {'type': 'directory', 'label': 'Dossier source', 'default': '/home', 'required': True, 'not_empty': True}, 'user_select': {'type': 'checkbox_group', 'label': 'Sélectionner les utilisateurs à copier', 'depends_on': 'src_dir', 'dynamic_options': {'script': 'get_users.py', 'global': True, 'function': 'get_users', 'args': [{'field': 'src_dir', 'param_name': 'home_dir'}], 'value': 'username', 'description': 'description', 'auto_select_key': 'uid', 'auto_select_value': 1000}, 'default_selected': ['nico']}, 'user_all': {'type': 'checkbox', 'label': 'Copier tous le contenu du dossier et ses sous_dossiers', 'default': False}, 'dst_dir': {'type': 'select', 'label': 'Support de destination', 'required': True, 'dynamic_options': {'global': True, 'script': 'get_usb.py', 'function': 'get_usb', 'args': [{'value': False, 'param_name': 'include_system_disk'}, {'value': True, 'param_name': 'only_external'}, {'value': False, 'param_name': 'only_internal'}], 'dict': 'devices', 'value': 'path', 'description': 'description'}}, 'mount_if_needed': {'type': 'checkbox', 'label': 'Monter le périphérique si nécessaire (si non monté)', 'default': True, 'depends_on': 'home_dst_dir'}, 'subdir_path': {'type': 'text', 'label': 'Sous-dossier dans le support (optionnel)', 'placeholder': 'Laisser vide pour copier à la racine', 'depends_on': 'home_dst_dir', 'help_text': "Chemin relatif où copier les données, par exemple: 'backups/utilisateurs'"}, 'machine_dir': {'type': 'checkbox', 'label': 'Créer un dossier avec le nom de machine dans la destination', 'default': True}}}
+2025-04-05 15:14:51,912 - install_ui.choice_screen - DEBUG - Affichage des plugins sélectionnés mis à jour
+2025-04-05 15:14:51,914 - install_ui.plugin_list_item - INFO - Composition de l'élément home_copy, nom: Sauvegarde de comptes utilisateurs, is_sequence: False, is_part_of_sequence: False, sequence_id: None
+2025-04-05 15:14:52,739 - install_ui.choice_screen - DEBUG - Bouton cliqué: remove_home_copy_1
+2025-04-05 15:14:53,954 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: scan_plugin
+2025-04-05 15:14:53,955 - install_ui.plugin_utils - DEBUG - Recherche du dossier pour le plugin: scan_plugin
+2025-04-05 15:14:53,955 - install_ui.plugin_utils - DEBUG - Nom de base extrait: scan_plugin
+2025-04-05 15:14:53,956 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin_test
+2025-04-05 15:14:53,956 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin
+2025-04-05 15:14:53,956 - install_ui.plugin_utils - DEBUG - Dossier trouvé: scan_plugin
+2025-04-05 15:14:53,957 - install_ui.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/scan_plugin/settings.yml
+2025-04-05 15:14:54,006 - install_ui.plugin_utils - DEBUG - Paramètres chargés avec succès pour scan_plugin
+2025-04-05 15:14:54,011 - install_ui.choice_screen - DEBUG - Changement sélection: scan_plugin -> True
+2025-04-05 15:14:54,011 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: scan_plugin
+2025-04-05 15:14:54,011 - install_ui.plugin_utils - DEBUG - Recherche du dossier pour le plugin: scan_plugin
+2025-04-05 15:14:54,012 - install_ui.plugin_utils - DEBUG - Nom de base extrait: scan_plugin
+2025-04-05 15:14:54,012 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin_test
+2025-04-05 15:14:54,012 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin
+2025-04-05 15:14:54,012 - install_ui.plugin_utils - DEBUG - Dossier trouvé: scan_plugin
+2025-04-05 15:14:54,012 - install_ui.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/scan_plugin/settings.yml
+2025-04-05 15:14:54,023 - install_ui.plugin_utils - DEBUG - Paramètres chargés avec succès pour scan_plugin
+2025-04-05 15:14:54,024 - install_ui.choice_screen - DEBUG - Plugin ajouté: scan_plugin (ID: 1)
+2025-04-05 15:14:54,024 - install_ui.plugin_list_item - INFO - Plugin sans config: scan_plugin
+2025-04-05 15:14:54,025 - install_ui.plugin_list_item - WARNING - Initialisation de PluginListItem: scan_plugin, is_sequence: False, type: <class 'str'>, startswith: False
+2025-04-05 15:14:54,025 - install_ui.plugin_list_item - DEBUG - Initialisation de scan_plugin avec is_part_of_sequence=False
+2025-04-05 15:14:54,025 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: scan_plugin
+2025-04-05 15:14:54,025 - install_ui.plugin_utils - DEBUG - Recherche du dossier pour le plugin: scan_plugin
+2025-04-05 15:14:54,025 - install_ui.plugin_utils - DEBUG - Nom de base extrait: scan_plugin
+2025-04-05 15:14:54,025 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin_test
+2025-04-05 15:14:54,026 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin
+2025-04-05 15:14:54,026 - install_ui.plugin_utils - DEBUG - Dossier trouvé: scan_plugin
+2025-04-05 15:14:54,026 - install_ui.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/scan_plugin/settings.yml
+2025-04-05 15:14:54,034 - install_ui.plugin_utils - DEBUG - Paramètres chargés avec succès pour scan_plugin
+2025-04-05 15:14:54,034 - install_ui.plugin_list_item - WARNING - Plugin info final pour scan_plugin: {'name': 'Configuration serveur pour Numerisation', 'description': "Configuration de l'utilisateur scan et droit sur Numerisation", 'version': 1.0, 'category': 'Installation', 'multiple': False, 'icon': '📠', 'sudo': True, 'remote_execution': True, 'config_fields': {'user': {'type': 'text', 'label': 'Utilisateur à configurer', 'description': 'Utilisateur à configurer (sans espaces)', 'default': 'scan', 'required': True}, 'password': {'type': 'text', 'label': "Mot de passe de l'utilisateur", 'description': "Mot de passe de l'utilisateur", 'default': 'scan', 'required': True}, 'confirm': {'type': 'checkbox', 'label': 'Créer le dossier pour la numérisation (si nécessaire) et Appliquer les acls sur le dossier', 'description': 'Créer le dossier pour la numérisation (si nécessaire) et Appliquer les acls sur le dossier', 'default': True, 'required': True}, 'scan_directory': {'type': 'text', 'label': 'Dossier à configurer', 'description': 'Dossier à créer (si besoin) et configurer', 'default': '/partage/commun/Numerisation', 'required': True, 'enabled_if': {'field': 'confirm_config', 'value': True}}}}
+2025-04-05 15:14:54,035 - install_ui.choice_screen - DEBUG - Affichage des plugins sélectionnés mis à jour
+2025-04-05 15:14:54,037 - install_ui.plugin_list_item - INFO - Composition de l'élément scan_plugin, nom: Configuration serveur pour Numerisation, is_sequence: False, is_part_of_sequence: False, sequence_id: None
+2025-04-05 15:14:54,097 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: scan_plugin
+2025-04-05 15:14:54,097 - install_ui.plugin_utils - DEBUG - Recherche du dossier pour le plugin: scan_plugin
+2025-04-05 15:14:54,097 - install_ui.plugin_utils - DEBUG - Nom de base extrait: scan_plugin
+2025-04-05 15:14:54,097 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin_test
+2025-04-05 15:14:54,097 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin
+2025-04-05 15:14:54,097 - install_ui.plugin_utils - DEBUG - Dossier trouvé: scan_plugin
+2025-04-05 15:14:54,098 - install_ui.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/scan_plugin/settings.yml
+2025-04-05 15:14:54,106 - install_ui.plugin_utils - DEBUG - Paramètres chargés avec succès pour scan_plugin
+2025-04-05 15:14:54,109 - install_ui.choice_screen - DEBUG - Changement sélection: scan_plugin -> False
+2025-04-05 15:14:54,109 - install_ui.choice_screen - DEBUG - Plugin retiré: scan_plugin
+2025-04-05 15:14:54,110 - install_ui.choice_screen - DEBUG - Affichage des plugins sélectionnés mis à jour
+2025-04-05 15:14:54,919 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: scan_plugin
+2025-04-05 15:14:54,919 - install_ui.plugin_utils - DEBUG - Recherche du dossier pour le plugin: scan_plugin
+2025-04-05 15:14:54,919 - install_ui.plugin_utils - DEBUG - Nom de base extrait: scan_plugin
+2025-04-05 15:14:54,919 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin_test
+2025-04-05 15:14:54,919 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin
+2025-04-05 15:14:54,919 - install_ui.plugin_utils - DEBUG - Dossier trouvé: scan_plugin
+2025-04-05 15:14:54,920 - install_ui.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/scan_plugin/settings.yml
+2025-04-05 15:14:54,932 - install_ui.plugin_utils - DEBUG - Paramètres chargés avec succès pour scan_plugin
+2025-04-05 15:14:54,936 - install_ui.choice_screen - DEBUG - Changement sélection: scan_plugin -> True
+2025-04-05 15:14:54,936 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: scan_plugin
+2025-04-05 15:14:54,936 - install_ui.plugin_utils - DEBUG - Recherche du dossier pour le plugin: scan_plugin
+2025-04-05 15:14:54,936 - install_ui.plugin_utils - DEBUG - Nom de base extrait: scan_plugin
+2025-04-05 15:14:54,936 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin_test
+2025-04-05 15:14:54,936 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin
+2025-04-05 15:14:54,936 - install_ui.plugin_utils - DEBUG - Dossier trouvé: scan_plugin
+2025-04-05 15:14:54,936 - install_ui.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/scan_plugin/settings.yml
+2025-04-05 15:14:54,945 - install_ui.plugin_utils - DEBUG - Paramètres chargés avec succès pour scan_plugin
+2025-04-05 15:14:54,945 - install_ui.choice_screen - DEBUG - Plugin ajouté: scan_plugin (ID: 1)
+2025-04-05 15:14:54,945 - install_ui.plugin_list_item - INFO - Plugin sans config: scan_plugin
+2025-04-05 15:14:54,945 - install_ui.plugin_list_item - WARNING - Initialisation de PluginListItem: scan_plugin, is_sequence: False, type: <class 'str'>, startswith: False
+2025-04-05 15:14:54,946 - install_ui.plugin_list_item - DEBUG - Initialisation de scan_plugin avec is_part_of_sequence=False
+2025-04-05 15:14:54,946 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: scan_plugin
+2025-04-05 15:14:54,946 - install_ui.plugin_utils - DEBUG - Recherche du dossier pour le plugin: scan_plugin
+2025-04-05 15:14:54,946 - install_ui.plugin_utils - DEBUG - Nom de base extrait: scan_plugin
+2025-04-05 15:14:54,946 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin_test
+2025-04-05 15:14:54,946 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin
+2025-04-05 15:14:54,946 - install_ui.plugin_utils - DEBUG - Dossier trouvé: scan_plugin
+2025-04-05 15:14:54,946 - install_ui.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/scan_plugin/settings.yml
+2025-04-05 15:14:54,955 - install_ui.plugin_utils - DEBUG - Paramètres chargés avec succès pour scan_plugin
+2025-04-05 15:14:54,955 - install_ui.plugin_list_item - WARNING - Plugin info final pour scan_plugin: {'name': 'Configuration serveur pour Numerisation', 'description': "Configuration de l'utilisateur scan et droit sur Numerisation", 'version': 1.0, 'category': 'Installation', 'multiple': False, 'icon': '📠', 'sudo': True, 'remote_execution': True, 'config_fields': {'user': {'type': 'text', 'label': 'Utilisateur à configurer', 'description': 'Utilisateur à configurer (sans espaces)', 'default': 'scan', 'required': True}, 'password': {'type': 'text', 'label': "Mot de passe de l'utilisateur", 'description': "Mot de passe de l'utilisateur", 'default': 'scan', 'required': True}, 'confirm': {'type': 'checkbox', 'label': 'Créer le dossier pour la numérisation (si nécessaire) et Appliquer les acls sur le dossier', 'description': 'Créer le dossier pour la numérisation (si nécessaire) et Appliquer les acls sur le dossier', 'default': True, 'required': True}, 'scan_directory': {'type': 'text', 'label': 'Dossier à configurer', 'description': 'Dossier à créer (si besoin) et configurer', 'default': '/partage/commun/Numerisation', 'required': True, 'enabled_if': {'field': 'confirm_config', 'value': True}}}}
+2025-04-05 15:14:54,955 - install_ui.choice_screen - DEBUG - Affichage des plugins sélectionnés mis à jour
+2025-04-05 15:14:54,960 - install_ui.plugin_list_item - INFO - Composition de l'élément scan_plugin, nom: Configuration serveur pour Numerisation, is_sequence: False, is_part_of_sequence: False, sequence_id: None
+2025-04-05 15:14:55,538 - install_ui.plugin_utils - DEBUG - Chargement des informations pour le plugin: scan_plugin
+2025-04-05 15:14:55,538 - install_ui.plugin_utils - DEBUG - Recherche du dossier pour le plugin: scan_plugin
+2025-04-05 15:14:55,539 - install_ui.plugin_utils - DEBUG - Nom de base extrait: scan_plugin
+2025-04-05 15:14:55,539 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin_test
+2025-04-05 15:14:55,539 - install_ui.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin
+2025-04-05 15:14:55,540 - install_ui.plugin_utils - DEBUG - Dossier trouvé: scan_plugin
+2025-04-05 15:14:55,540 - install_ui.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/scan_plugin/settings.yml
+2025-04-05 15:14:55,569 - install_ui.plugin_utils - DEBUG - Paramètres chargés avec succès pour scan_plugin
+2025-04-05 15:14:55,573 - install_ui.choice_screen - DEBUG - Changement sélection: scan_plugin -> False
+2025-04-05 15:14:55,573 - install_ui.choice_screen - DEBUG - Plugin retiré: scan_plugin
+2025-04-05 15:14:55,575 - install_ui.choice_screen - DEBUG - Affichage des plugins sélectionnés mis à jour
+2025-04-05 15:18:16,882 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x7fb9cc3ca170>
