@@ -5,15 +5,21 @@ from textual.containers import VerticalGroup
 from textual.widgets import Select, Label
 from textual.app import ComposeResult
 from logging import getLogger
+from typing import Dict, Any, List, Optional
+
 from .template_manager import TemplateManager
 
 logger = getLogger('template_field')
 
-
 class TemplateField(VerticalGroup):
-    """Champ de sélection de template"""
+    """
+    Champ de sélection de template pour la configuration des plugins.
+    
+    Permet à l'utilisateur de sélectionner un template prédéfini et de l'appliquer
+    automatiquement aux autres champs de configuration.
+    """
 
-    def __init__(self, plugin_name: str, field_id: str, fields_by_id: dict):
+    def __init__(self, plugin_name: str, field_id: str, fields_by_id: Dict[str, Any]):
         """
         Initialise le champ de sélection de template.
 
@@ -27,177 +33,336 @@ class TemplateField(VerticalGroup):
         self.field_id = field_id
         self.fields_by_id = fields_by_id
         self.template_manager = TemplateManager()
-        logger.debug(f"Initialisation du champ de template pour {plugin_name}")
-        self.templates = self.template_manager.get_plugin_templates(plugin_name)
-        logger.debug(f"Templates chargés : {list(self.templates.keys())}")
         self.add_class("template-field")
+        
+        # Charger les templates disponibles
+        self.templates = self.template_manager.get_plugin_templates(plugin_name)
+        logger.debug(f"Initialisation du champ de template pour {plugin_name} - {len(self.templates)} templates trouvés")
         
         # Initialiser l'ID du select (sera défini dans compose)
         self.select_id = f"template_{self.plugin_name}_{self.field_id}"
-
-
+        
+        # Stocker la sélection actuelle
+        self.current_template = None
 
     def compose(self) -> ComposeResult:
-        """Compose le champ de sélection"""
+        """
+        Compose le champ de sélection de template.
+        
+        Returns:
+            ComposeResult: Résultat de la composition
+        """
         if not self.templates:
             logger.debug(f"Aucun template disponible pour {self.plugin_name}")
+            yield Label("Aucun template disponible", classes="template-label no-templates")
             return
 
-        yield Label("Template de configuration:", classes="template-label")
+        yield Label("Template de configuration :", classes="template-label")
         
         # Créer les options avec nom et description
-        options = [(self.template_manager.get_template_description(self.plugin_name, name), name) 
-                  for name in self.template_manager.get_template_names(self.plugin_name)]
+        options = self._get_template_options()
         
         # Créer le sélecteur avec l'option par défaut si disponible
-        default_template_data = self.template_manager.get_default_template(self.plugin_name)
-        default_template_name = 'default' if default_template_data else None
+        default_template_name = self._get_default_template_name()
         
         # Créer le widget Select avec un ID unique
         select_id = f"template_{self.plugin_name}_{self.field_id}"
         select = Select(
             options=options,
             value=default_template_name,
-            id=select_id
+            id=select_id,
+            classes="template-select"
         )
         
         # Stocker l'ID du select pour pouvoir le récupérer plus tard
         self.select_id = select_id
+        self.current_template = default_template_name
         
         yield select
 
         # Appliquer le template par défaut si présent
         if default_template_name:
-            logger.debug(f"Application du template par défaut pour {self.plugin_name}")
+            logger.debug(f"Application du template par défaut '{default_template_name}' pour {self.plugin_name}")
             self._apply_template(default_template_name)
+
+    def _get_template_options(self) -> List[tuple]:
+        """
+        Génère les options du sélecteur de template.
+        
+        Returns:
+            List[tuple]: Liste de tuples (label, value) pour le widget Select
+        """
+        # Option spéciale pour "pas de template"
+        options = [("-- Aucun template --", "")]
+        
+        # Ajouter les templates disponibles
+        template_names = self.template_manager.get_template_names(self.plugin_name)
+        
+        for name in template_names:
+            # Récupérer une description formatée pour l'affichage
+            description = self._format_template_description(name)
+            options.append((description, name))
+            
+        return options
+        
+    def _format_template_description(self, template_name: str) -> str:
+        """
+        Formate la description d'un template pour l'affichage.
+        
+        Args:
+            template_name: Nom du template
+            
+        Returns:
+            str: Description formatée
+        """
+        template = self.templates.get(template_name, {})
+        
+        # Utiliser le nom formaté et la description si disponible
+        name = template.get('name', template_name)
+        description = template.get('description', '')
+        
+        if description:
+            # Si c'est le template par défaut, l'indiquer
+            if template_name == 'default':
+                return f"{name} (défaut) - {description}"
+            return f"{name} - {description}"
+        
+        # Si pas de description, utiliser juste le nom
+        if template_name == 'default':
+            return f"{name} (défaut)"
+        return name
+
+    def _get_default_template_name(self) -> Optional[str]:
+        """
+        Détermine le template par défaut à sélectionner.
+        
+        Returns:
+            Optional[str]: Nom du template par défaut ou None
+        """
+        # Vérifier si un template "default" existe
+        if 'default' in self.templates:
+            return 'default'
+            
+        # Sinon, utiliser le premier template disponible si la liste n'est pas vide
+        template_names = list(self.templates.keys())
+        if template_names:
+            return template_names[0]
+            
+        # Aucun template disponible
+        return None
 
     def _apply_template(self, template_name: str) -> None:
         """
         Applique un template aux champs de configuration.
-        Si une variable est manquante dans le template, utilise la valeur par défaut du settings.yml.
-
+        
         Args:
             template_name: Nom du template à appliquer
         """
-        logger.info(f"Début de l'application du template {template_name} pour {self.plugin_name}")
+        logger.info(f"Début de l'application du template '{template_name}' pour {self.plugin_name}")
         
+        # Ignorer si aucun template n'est sélectionné
+        if not template_name:
+            logger.debug("Aucun template sélectionné, aucune action effectuée")
+            return
+            
+        # Vérifier que le template existe
         if template_name not in self.templates:
-            logger.warning(f"Template {template_name} non trouvé pour {self.plugin_name}")
+            logger.warning(f"Template '{template_name}' non trouvé pour {self.plugin_name}")
             return
 
+        # Récupérer les variables du template
         template = self.templates[template_name]
-        variables = template['variables']
-        logger.info(f"Variables du template {template_name}: {variables}")
-
-        # Parcourir toutes les variables du template
-        for var_name, var_value in variables.items():
-            # Essayer plusieurs formats d'ID possibles
-            possible_ids = [
-                var_name,  # Juste le nom de la variable
-                f"{self.plugin_name}_{var_name}",  # plugin_name_var_name
-                f"{var_name}"  # var_name seul
-            ]
-            
-            field = None
-            used_id = None
-            
-            # Essayer chaque format d'ID possible
-            for field_id in possible_ids:
-                logger.info(f"Essai avec l'ID: {field_id}")
-                if field_id in self.fields_by_id:
-                    field = self.fields_by_id[field_id]
-                    used_id = field_id
-                    logger.info(f"Champ trouvé avec ID: {field_id}, type: {type(field).__name__}")
-                    break
-            
-            # Si aucun champ n'a été trouvé, passer à la variable suivante
-            if not field:
-                logger.warning(f"Aucun champ trouvé pour la variable {var_name} avec les IDs testés: {possible_ids}")
-                logger.debug(f"Clés disponibles dans fields_by_id: {list(self.fields_by_id.keys())}")
-                continue
-                
-            # Convertir la valeur en chaîne si nécessaire
-            new_value = str(var_value) if not isinstance(var_value, bool) else var_value
-            logger.info(f"Tentative de mise à jour du champ {used_id} avec la valeur: {new_value} (type: {type(new_value).__name__})")
-            
-            try:
-                # Mettre à jour l'attribut value du champ
-                if hasattr(field, 'value'):
-                    old_value = getattr(field, 'value', None)
-                    logger.info(f"Champ {used_id} a un attribut 'value', valeur actuelle: {old_value}")
-                    field.value = new_value
-                    logger.info(f"Attribut value du champ {used_id} mis à jour avec succès: {new_value}")
-                else:
-                    logger.warning(f"Le champ {used_id} n'a pas d'attribut 'value'")
-                    logger.debug(f"Attributs disponibles: {dir(field)}")
-                    continue
-                
-                # Mettre à jour le widget UI correspondant
-                if hasattr(field, 'input'):
-                    field.input.value = new_value
-                    logger.info(f"Widget input du champ {used_id} mis à jour avec succès")
-                elif hasattr(field, 'select'):
-                    # Pour les champs de type select, vérifier si la valeur est dans les options disponibles
-                    if hasattr(field, 'options'):
-                        available_values = [opt[1] for opt in field.options]
-                        if new_value in available_values:
-                            field.select.value = new_value
-                            logger.info(f"Widget select du champ {used_id} mis à jour avec succès avec la valeur {new_value}")
-                        else:
-                            logger.warning(f"La valeur {new_value} n'est pas dans les options disponibles pour {used_id}: {available_values}")
-                    else:
-                        # Si nous n'avons pas accès aux options, essayer quand même de mettre à jour
-                        field.select.value = new_value
-                        logger.info(f"Widget select du champ {used_id} mis à jour avec succès (sans vérification d'options)")
-                elif hasattr(field, 'checkbox'):
-                    field.checkbox.value = bool(new_value)
-                    logger.info(f"Widget checkbox du champ {used_id} mis à jour avec succès")
-                else:
-                    logger.warning(f"Aucun widget trouvé pour le champ {used_id}")
-                    logger.debug(f"Attributs disponibles: {dir(field)}")
-            except Exception as e:
-                logger.error(f"Erreur lors de la mise à jour du champ {used_id}: {e}")
-                logger.error(f"Détails de l'erreur: {type(e).__name__}: {str(e)}")
+        variables = template.get('variables', {})
         
-        logger.info(f"Fin de l'application du template {template_name} pour {self.plugin_name}")
+        if not variables:
+            logger.warning(f"Template '{template_name}' ne contient aucune variable")
+            return
+            
+        logger.info(f"Application de {len(variables)} variables du template '{template_name}'")
+
+        # Liste des champs pour lesquels la mise à jour a réussi/échoué
+        updated_fields = []
+        failed_fields = []
+
+        # Appliquer chaque variable aux champs correspondants
+        for var_name, var_value in variables.items():
+            # Tenter différentes stratégies pour trouver le champ correspondant
+            field = self._find_matching_field(var_name)
+            
+            if field:
+                # Tenter de mettre à jour le champ avec la nouvelle valeur
+                success = self._update_field_value(field, var_value)
+                if success:
+                    updated_fields.append(var_name)
+                else:
+                    failed_fields.append(var_name)
+            else:
+                logger.warning(f"Aucun champ trouvé pour la variable '{var_name}'")
+                failed_fields.append(var_name)
+        
+        # Journal des résultats
+        if updated_fields:
+            logger.info(f"Champs mis à jour avec succès: {', '.join(updated_fields)}")
+        if failed_fields:
+            logger.warning(f"Champs non mis à jour: {', '.join(failed_fields)}")
+
+    def _find_matching_field(self, var_name: str) -> Optional[Any]:
+        """
+        Trouve le champ correspondant à une variable de template.
+        
+        Args:
+            var_name: Nom de la variable
+            
+        Returns:
+            Optional[Any]: Champ trouvé ou None
+        """
+        # Essayer différentes combinaisons pour trouver le champ
+        possible_ids = [
+            var_name,                      # Nom de variable seul
+            f"{self.plugin_name}.{var_name}",  # plugin_name.var_name
+            f"{var_name}"                  # var_name seul (doublon pour clarté)
+        ]
+        
+        for field_id in possible_ids:
+            if field_id in self.fields_by_id:
+                logger.debug(f"Champ trouvé pour variable '{var_name}' avec ID: {field_id}")
+                return self.fields_by_id[field_id]
+                
+        # Recherche par correspondance partielle
+        for field_id, field in self.fields_by_id.items():
+            if hasattr(field, 'variable_name') and field.variable_name == var_name:
+                logger.debug(f"Champ trouvé pour variable '{var_name}' via variable_name dans {field_id}")
+                return field
+                
+        logger.debug(f"Aucun champ trouvé pour variable '{var_name}' (IDs testés: {possible_ids})")
+        return None
+
+    def _update_field_value(self, field: Any, value: Any) -> bool:
+        """
+        Met à jour la valeur d'un champ de configuration.
+        
+        Args:
+            field: Champ à mettre à jour
+            value: Nouvelle valeur
+            
+        Returns:
+            bool: True si la mise à jour a réussi
+        """
+        try:
+            # Méthode 1: Utiliser set_value si disponible (méthode privilégiée)
+            if hasattr(field, 'set_value'):
+                field.set_value(value)
+                logger.debug(f"Valeur mise à jour via set_value(): {value}")
+                return True
+                
+            # Méthode 2: Modifier directement l'attribut value
+            elif hasattr(field, 'value'):
+                field.value = value
+                logger.debug(f"Valeur mise à jour via attribut value: {value}")
+                
+                # Mettre à jour également le widget correspondant
+                self._update_field_widget(field, value)
+                return True
+                
+            else:
+                logger.warning(f"Le champ ne possède ni set_value() ni attribut value")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Erreur lors de la mise à jour du champ: {e}")
+            return False
+
+    def _update_field_widget(self, field: Any, value: Any) -> None:
+        """
+        Met à jour le widget d'un champ avec la nouvelle valeur.
+        
+        Args:
+            field: Champ dont le widget doit être mis à jour
+            value: Nouvelle valeur
+        """
+        try:
+            # Pour les différents types de widgets
+            if hasattr(field, 'input'):
+                field.input.value = str(value) if value is not None else ""
+                logger.debug("Widget input mis à jour")
+                
+            elif hasattr(field, 'select'):
+                # Pour les sélecteurs, vérifier si la valeur est dans les options
+                if hasattr(field, 'options'):
+                    available_values = [opt[1] for opt in field.options]
+                    if str(value) in available_values:
+                        field.select.value = str(value)
+                        logger.debug("Widget select mis à jour")
+                    else:
+                        logger.warning(f"La valeur '{value}' n'est pas dans les options du select")
+                else:
+                    # Sans accès aux options, essayer quand même de mettre à jour
+                    field.select.value = str(value)
+                    logger.debug("Widget select mis à jour (sans vérification d'options)")
+                    
+            elif hasattr(field, 'checkbox'):
+                field.checkbox.value = bool(value)
+                logger.debug("Widget checkbox mis à jour")
+                
+            else:
+                logger.debug("Aucun widget reconnu trouvé pour la mise à jour")
+                
+        except Exception as e:
+            logger.error(f"Erreur lors de la mise à jour du widget: {e}")
 
     async def on_mount(self) -> None:
-        """Méthode appelée lorsque le widget est monté"""
-        # Récupérer le widget Select et s'abonner à son événement Changed
+        """
+        Méthode appelée lorsque le widget est monté dans l'interface.
+        """
+        # Récupérer le widget Select et configurer les gestionnaires d'événements
         try:
             select = self.query_one(f"#{self.select_id}", Select)
             logger.debug(f"Widget Select trouvé avec ID: {self.select_id}")
             
-            # Utiliser on_select_changed directement comme gestionnaire d'événement
+            # Utiliser les deux méthodes complémentaires pour être sûr de capturer l'événement
             select.on_changed = self.on_select_changed
-            
-            # Utiliser également watch comme méthode alternative pour s'assurer que l'événement est capturé
             self.watch(select, "changed", self._on_select_changed_watch)
             
-            logger.debug(f"Événement 'changed' enregistré pour le widget Select avec deux méthodes")
-            
-            # Afficher les IDs des champs disponibles pour le débogage
-            logger.debug(f"Clés disponibles dans fields_by_id: {list(self.fields_by_id.keys())}")
+            logger.debug("Gestionnaires d'événements configurés pour le sélecteur de template")
         except Exception as e:
-            logger.error(f"Erreur lors de l'enregistrement de l'événement: {e}")
-            logger.error(f"Détails de l'erreur: {type(e).__name__}: {str(e)}")
-    
+            logger.error(f"Erreur lors de la configuration des événements: {e}")
+
     def on_select_changed(self, event: Select.Changed) -> None:
-        """Gère le changement de template"""
-        # Vérifier si l'événement a une valeur ou si c'est un objet Select
-        if hasattr(event, 'value') and event.value:
+        """
+        Gère le changement de template sélectionné.
+        
+        Args:
+            event: Événement de changement du Select
+        """
+        # Extraire la valeur de l'événement
+        value = None
+        if hasattr(event, 'value'):
             value = event.value
-        elif hasattr(event, 'control') and event.control.value:
+        elif hasattr(event, 'control') and hasattr(event.control, 'value'):
             value = event.control.value
-        else:
-            logger.warning(f"Événement de changement sans valeur valide: {event}")
+            
+        if value is None:
+            logger.warning("Événement de changement sans valeur valide")
             return
             
-        logger.debug(f"Sélection du template {value} pour {self.plugin_name}")
+        # Ne rien faire si c'est le même template
+        if value == self.current_template:
+            logger.debug(f"Template '{value}' déjà sélectionné, aucune action")
+            return
+            
+        logger.debug(f"Changement de template: '{self.current_template}' -> '{value}'")
+        self.current_template = value
+        
+        # Appliquer le template sélectionné
         self._apply_template(value)
         
     def _on_select_changed_watch(self, event: Select.Changed) -> None:
-        """Méthode alternative pour gérer le changement de template via watch"""
-        logger.debug(f"Événement watch déclenché pour le template: {event}")
+        """
+        Méthode alternative pour gérer le changement via watch.
+        
+        Args:
+            event: Événement de changement du Select
+        """
+        logger.debug(f"Événement watch déclenché pour le template")
         # Déléguer à la méthode principale
         self.on_select_changed(event)

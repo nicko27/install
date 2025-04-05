@@ -8,84 +8,150 @@ logger = get_logger('plugin_utils')
 yaml = YAML()
 
 def get_plugin_folder_name(plugin_name: str) -> str:
-    """Retourne le nom du dossier d'un plugin à partir de son nom"""
-    logger.debug(f"Getting folder name for plugin: {plugin_name}")
+    """
+    Retourne le nom du dossier d'un plugin à partir de son nom.
     
-    # Vérifier si c'est une séquence
+    Args:
+        plugin_name: Nom du plugin ou identifiant avec instance
+        
+    Returns:
+        str: Nom du dossier contenant le plugin
+    """
+    logger.debug(f"Recherche du dossier pour le plugin: {plugin_name}")
+    
+    # Cas spécial: les séquences ne sont pas des plugins standards
     if plugin_name.startswith('__sequence__'):
-        logger.debug(f"  Plugin {plugin_name} is a sequence, returning '_'")
+        logger.debug(f"Plugin {plugin_name} est une séquence, retourne '_'")
         return '_'  # Dossier spécial pour les séquences
 
-    # S'assurer que plugin_name a au moins deux parties séparées par des underscores
-    parts = plugin_name.split('_')
-    if len(parts) < 2:
-        logger.warning(f"  Plugin name {plugin_name} doesn't have expected format (name_type_id)")
-        return plugin_name
-
-    # Extraire le nom de base du plugin (sans l'ID d'instance)
-    base_name = parts[0]
-    # Si le nom a plus de deux parties, utiliser les deux premières
-    if len(parts) >= 2:
-        base_name = parts[0] + '_' + parts[1]
-    test_type = base_name + '_test'
-
-    # Vérifier si la version test existe
-    test_path = os.path.join('plugins', test_type)
-    exists_test = os.path.exists(test_path)
-    logger.debug(f"  Test path: {test_path} (exists: {exists_test})")
-
-    # Vérifier si la version base existe
-    base_path = os.path.join('plugins', base_name)
-    exists_base = os.path.exists(base_path)
-    logger.debug(f"  Base path: {base_path} (exists: {exists_base})")
-
-    if exists_test:
-        logger.debug(f"  Returning test folder name: {test_type}")
-        return test_type
+    # Extraire le nom de base du plugin sans l'ID d'instance
+    base_name = _extract_base_plugin_name(plugin_name)
+    logger.debug(f"Nom de base extrait: {base_name}")
     
-    if exists_base:
-        logger.debug(f"  Returning base folder name: {base_name}")
-        return base_name
+    # Vérifier les dossiers possibles dans l'ordre de priorité
+    possible_folders = [
+        f"{base_name}_test",  # Version test du plugin
+        base_name,            # Version standard du plugin
+        plugin_name           # Nom complet comme fallback
+    ]
     
-    # Si aucun dossier n'existe, essayer d'extraire juste le nom du plugin sans suffixe
-    if '_' in plugin_name:
-        simple_name = plugin_name.split('_')[0]
-        simple_path = os.path.join('plugins', simple_name)
-        if os.path.exists(simple_path):
-            logger.debug(f"  Returning simple folder name: {simple_name}")
-            return simple_name
+    # Parcourir les dossiers possibles et retourner le premier qui existe
+    plugins_base_dir = os.path.join('plugins')
+    for folder in possible_folders:
+        folder_path = os.path.join(plugins_base_dir, folder)
+        logger.debug(f"Vérification du chemin: {folder_path}")
+        
+        if os.path.exists(folder_path):
+            logger.debug(f"Dossier trouvé: {folder}")
+            return folder
     
-    # Dernier recours: retourner le nom tel quel
-    logger.warning(f"  No matching folder found for {plugin_name}, returning as is")
+    # Si aucun dossier correspondant n'est trouvé, retourner le nom tel quel
+    logger.warning(f"Aucun dossier correspondant trouvé pour {plugin_name}, utilisation du nom tel quel")
     return plugin_name
 
-def load_plugin_info(plugin_name: str, default_info=None) -> dict:
-    """Charge les informations d'un plugin depuis son fichier settings.yml"""
-    logger.debug(f"Loading plugin info for: {plugin_name}")
+def _extract_base_plugin_name(plugin_name: str) -> str:
+    """
+    Extrait le nom de base d'un plugin à partir de son identifiant complet.
+    
+    Args:
+        plugin_name: Nom complet du plugin (peut inclure ID d'instance)
+        
+    Returns:
+        str: Nom de base du plugin
+    """
+    # Séparation par underscore
+    parts = plugin_name.split('_')
+    
+    # Si le plugin n'a qu'une partie, c'est déjà le nom de base
+    if len(parts) == 1:
+        return plugin_name
+        
+    # Si le plugin a deux parties ou plus, considérer les deux premières comme base
+    if len(parts) >= 2:
+        # Certains plugins ont un format name_type
+        return f"{parts[0]}_{parts[1]}"
+    
+    # Fallback: retourner la première partie
+    return parts[0]
 
-    # Si c'est une séquence, retourner directement les infos par défaut
+def load_plugin_info(plugin_name: str, default_info=None) -> dict:
+    """
+    Charge les informations d'un plugin depuis son fichier settings.yml.
+    
+    Args:
+        plugin_name: Nom ou identifiant du plugin
+        default_info: Informations par défaut si le chargement échoue
+        
+    Returns:
+        dict: Informations du plugin
+    """
+    logger.debug(f"Chargement des informations pour le plugin: {plugin_name}")
+
+    # Valeurs par défaut si non fournies
+    if default_info is None:
+        default_info = {
+            "name": plugin_name, 
+            "description": "Aucune description disponible", 
+            "icon": "📦"
+        }
+
+    # Cas spécial: les séquences ont un traitement différent
     if plugin_name.startswith('__sequence__'):
-        logger.debug(f"  Plugin {plugin_name} is a sequence, using default info")
-        if default_info is None:
-            default_info = {"name": plugin_name.replace('__sequence__', ''), "icon": "⚙️ "}
+        logger.debug(f"Plugin {plugin_name} est une séquence, utilisation des infos par défaut")
+        if 'name' not in default_info:
+            default_info["name"] = plugin_name.replace('__sequence__', '')
+        if 'icon' not in default_info:
+            default_info["icon"] = "⚙️ "
         return default_info
 
-    if default_info is None:
-        default_info = {"name": plugin_name, "description": "No description available", "icon": "📦"}
-
+    # Trouver le dossier du plugin
     folder_name = get_plugin_folder_name(plugin_name)
     settings_path = os.path.join('plugins', folder_name, 'settings.yml')
 
-    logger.debug(f"  Folder name: {folder_name}")
-    logger.debug(f"  Settings path: {settings_path} (exists: {os.path.exists(settings_path)})")
-
+    logger.debug(f"Recherche des paramètres dans: {settings_path}")
+    
+    # Essayer de charger le fichier settings.yml
     try:
-        with open(settings_path, 'r') as f:
-            settings = yaml.load(f)
-            logger.debug(f"  Successfully loaded settings for {plugin_name}")
-            return settings
+        if os.path.exists(settings_path):
+            with open(settings_path, 'r', encoding='utf-8') as f:
+                settings = yaml.load(f)
+                logger.debug(f"Paramètres chargés avec succès pour {plugin_name}")
+                return settings
+        else:
+            logger.warning(f"Fichier settings.yml non trouvé pour {plugin_name}")
     except Exception as e:
-        logger.error(f"Error loading plugin {plugin_name}: {e}")
+        logger.error(f"Erreur lors du chargement des paramètres de {plugin_name}: {e}")
         import traceback
         logger.error(traceback.format_exc())
-        return default_info
+    
+    # Retourner les informations par défaut en cas d'échec
+    return default_info
+
+def get_plugins_directory() -> str:
+    """
+    Retourne le chemin absolu vers le répertoire des plugins.
+    
+    Returns:
+        str: Chemin absolu vers le répertoire des plugins
+    """
+    # Obtenir le chemin du répertoire actuel et remonter jusqu'au répertoire des plugins
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    # Remonter deux niveaux (ui/choice_screen -> ui -> racine)
+    root_dir = os.path.dirname(os.path.dirname(current_dir))
+    plugins_dir = os.path.join(root_dir, 'plugins')
+    
+    return plugins_dir
+
+def get_plugin_settings_path(plugin_name: str) -> str:
+    """
+    Retourne le chemin absolu vers le fichier settings.yml d'un plugin.
+    
+    Args:
+        plugin_name: Nom ou identifiant du plugin
+        
+    Returns:
+        str: Chemin absolu vers le fichier settings.yml
+    """
+    folder_name = get_plugin_folder_name(plugin_name)
+    plugins_dir = get_plugins_directory()
+    return os.path.join(plugins_dir, folder_name, 'settings.yml')

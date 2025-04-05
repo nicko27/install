@@ -3,6 +3,7 @@ from textual.containers import VerticalGroup, HorizontalGroup
 from textual.widgets import Label, Input, Select, Button, Checkbox
 from textual.reactive import reactive
 from textual.widget import Widget
+from typing import Dict, List, Any, Optional, Set, Type
 
 from .text_field import TextField
 from .directory_field import DirectoryField
@@ -17,16 +18,48 @@ from ..utils.logging import get_logger
 logger = get_logger('config_container')
 
 class ConfigContainer(VerticalGroup):
-    """Base container for configuration fields (both plugins and global configs)"""
-    # Define reactive attributes
-    source_id = reactive("")       # Source identifier (plugin ID or global config ID)
-    title = reactive("")           # Display name/title
-    icon = reactive("")            # Display icon
-    description = reactive("")     # Description
-    is_global = reactive(False)    # Whether this is a global configuration
+    """
+    Conteneur de base pour les champs de configuration.
+    
+    Gère à la fois les configurations de plugins et les configurations globales,
+    avec les dépendances entre champs.
+    """
+    
+    # Définition des attributs réactifs
+    source_id = reactive("")       # Identifiant de la source (plugin ou config globale)
+    title = reactive("")           # Titre d'affichage
+    icon = reactive("")            # Icône d'affichage
+    description = reactive("")     # Description du conteneur
+    is_global = reactive(False)    # Si True, c'est une configuration globale
+
+    # Mapping des types de champs
+    FIELD_TYPES = {
+        'text': TextField,
+        'directory': DirectoryField,
+        'ip': IPField,
+        'checkbox': CheckboxField,
+        'select': SelectField,
+        'checkbox_group': CheckboxGroupField,
+        'password': PasswordField
+    }
 
     def __init__(self, source_id: str, title: str, icon: str, description: str,
-                 fields_by_id: dict, config_fields: list, is_global: bool = False, **kwargs):
+                 fields_by_id: Dict[str, Any], config_fields: List[Dict[str, Any]], 
+                 is_global: bool = False, **kwargs):
+        """
+        Initialise un conteneur de configuration.
+        
+        Args:
+            source_id: Identifiant de la source (plugin ou config globale)
+            title: Titre d'affichage
+            icon: Icône d'affichage
+            description: Description du conteneur
+            fields_by_id: Dictionnaire des champs par ID
+            config_fields: Liste des configurations de champs
+            is_global: Si True, c'est une configuration globale
+            **kwargs: Arguments supplémentaires pour le VerticalGroup
+        """
+        # Ajouter la classe CSS du conteneur
         if "classes" in kwargs:
             if "config-container" not in kwargs["classes"]:
                 kwargs["classes"] += " config-container"
@@ -34,24 +67,37 @@ class ConfigContainer(VerticalGroup):
             kwargs["classes"] = "config-container"
 
         super().__init__(**kwargs)
-        # Set the reactive attributes
+        
+        # Définir les attributs réactifs
         self.source_id = source_id
         self.title = title
         self.icon = icon
         self.description = description
         self.is_global = is_global
-        # Non-reactive attributes
+        
+        # Attributs non réactifs
         self.fields_by_id = fields_by_id
         self.config_fields = config_fields
-
+        
+        # État interne
+        self._updating_dependencies = False  # Flag pour éviter les cycles
+        self._field_dependencies = {}  # Mapping des dépendances entre champs
+        self._fields_to_remove = set()  # Champs à supprimer lors de la prochaine mise à jour
 
     def compose(self) -> ComposeResult:
-        # Title and description
+        """
+        Compose le conteneur avec ses champs de configuration.
+        
+        Returns:
+            ComposeResult: Résultat de la composition
+        """
+        # En-tête: titre et description
         with VerticalGroup(classes="config-header"):
             yield Label(f"{self.icon} {self.title}", classes="config-title")
             if self.description:
                 yield Label(self.description, classes="config-description")
 
+        # Si aucun champ, afficher un message
         if not self.config_fields:
             with VerticalGroup(classes="no-config"):
                 with HorizontalGroup(classes="no-config-content"):
@@ -59,174 +105,317 @@ class ConfigContainer(VerticalGroup):
                     yield Label(f"Rien à configurer pour ce plugin", classes="no-config-label")
                 return
 
+        # Créer les champs de configuration
         with VerticalGroup(classes="config-fields"):
-            # Configuration fields
+            # Préparer l'analyse des dépendances
+            self._analyze_field_dependencies(self.config_fields)
+            
+            # Création des champs
             for field_config in self.config_fields:
-                field_id = field_config.get('id')
-                if not field_id:
-                    logger.warning(f"Field without id in {self.source_id}")
-                    continue
-                field_type = field_config.get('type', 'text')
-                field_class = {
-                    'text': TextField,
-                    'directory': DirectoryField,
-                    'ip': IPField,
-                    'checkbox': CheckboxField,
-                    'select': SelectField,
-                    'checkbox_group': CheckboxGroupField,
-                    'password': PasswordField
-                }.get(field_type, TextField)
+                field = self._create_field(field_config)
+                if field:
+                    yield field
 
-                # Create field with access to other fields and whether it's global
-                field = field_class(self.source_id, field_id, field_config, self.fields_by_id, is_global=self.is_global)
-                self.fields_by_id[field_id] = field
+    def _analyze_field_dependencies(self, config_fields: List[Dict[str, Any]]) -> None:
+        """
+        Analyse les dépendances entre les champs pour optimiser les mises à jour.
+        
+        Args:
+            config_fields: Liste des configurations de champs
+        """
+        self._field_dependencies = {}
+        
+        # Parcourir tous les champs
+        for field_config in config_fields:
+            field_id = field_config.get('id')
+            if not field_id:
+                continue
+                
+            # 1. Dépendance enabled_if (ce champ dépend d'un autre pour son activation)
+            if 'enabled_if' in field_config:
+                dep_field = field_config['enabled_if'].get('field')
+                if dep_field:
+                    # Ce champ dépend de dep_field pour son activation
+                    if dep_field not in self._field_dependencies:
+                        self._field_dependencies[dep_field] = set()
+                    self._field_dependencies[dep_field].add(field_id)
+                    logger.debug(f"Dépendance enabled_if: {field_id} dépend de {dep_field}")
+            
+            # 2. Dépendance depends_on (ce champ dépend d'un autre pour sa valeur)
+            if 'depends_on' in field_config:
+                dep_field = field_config['depends_on']
+                if dep_field:
+                    # Ce champ dépend de dep_field pour sa valeur
+                    if dep_field not in self._field_dependencies:
+                        self._field_dependencies[dep_field] = set()
+                    self._field_dependencies[dep_field].add(field_id)
+                    logger.debug(f"Dépendance depends_on: {field_id} dépend de {dep_field}")
+            
+            # 3. Dépendance dynamic_options (ce champ dépend d'autres pour ses options)
+            if 'dynamic_options' in field_config and 'args' in field_config['dynamic_options']:
+                for arg in field_config['dynamic_options']['args']:
+                    if 'field' in arg:
+                        dep_field = arg['field']
+                        # Ce champ dépend de dep_field pour ses options
+                        if dep_field not in self._field_dependencies:
+                            self._field_dependencies[dep_field] = set()
+                        self._field_dependencies[dep_field].add(field_id)
+                        logger.debug(f"Dépendance dynamic_options: {field_id} dépend de {dep_field}")
+        
+        logger.debug(f"Analyse des dépendances terminée: {self._field_dependencies}")
 
-                # If it's a checkbox or checkbox_group, add an event handler
-                if field_type in ['checkbox', 'checkbox_group']:
-                    field.on_checkbox_changed = self.on_checkbox_changed
+    def _create_field(self, field_config: Dict[str, Any]) -> Optional[Widget]:
+        """
+        Crée un champ de configuration à partir de sa configuration.
+        
+        Args:
+            field_config: Configuration du champ
+            
+        Returns:
+            Optional[Widget]: Champ créé ou None en cas d'erreur
+        """
+        field_id = field_config.get('id')
+        if not field_id:
+            logger.warning(f"Champ sans ID dans {self.source_id}")
+            return None
+            
+        field_type = field_config.get('type', 'text')
+        logger.debug(f"Création du champ {field_id} de type {field_type}")
+        
+        # Déterminer la classe du champ
+        field_class = self.FIELD_TYPES.get(field_type, TextField)
 
-                yield field
+        try:
+            # Créer le champ avec accès aux autres champs
+            field = field_class(
+                self.source_id, 
+                field_id, 
+                field_config, 
+                self.fields_by_id, 
+                is_global=self.is_global
+            )
+            
+            # Enregistrer le champ dans le dictionnaire
+            self.fields_by_id[field_id] = field
+            
+            # Si c'est un champ de type checkbox, ajouter un gestionnaire d'événements
+            if field_type in ['checkbox', 'checkbox_group']:
+                field.on_checkbox_changed = self.on_checkbox_changed
+                
+            return field
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la création du champ {field_id}: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return None
 
     def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
-        """Handle checkbox state changes"""
-        # Find the field that emitted the event
+        """
+        Gère les changements d'état des cases à cocher.
+        
+        Args:
+            event: Événement de changement de la case à cocher
+        """
+        # Extraire l'ID de la case à cocher
         checkbox_id = event.checkbox.id
-        logger.debug(f"Checkbox changed: {checkbox_id} -> {event.value}")
+        logger.debug(f"Checkbox changée: {checkbox_id} -> {event.value}")
 
-        # Parse field ID from checkbox ID
+        # Trouver le champ correspondant
         for field_id, field in self.fields_by_id.items():
             if isinstance(field, CheckboxField) and checkbox_id == f"checkbox_{field.source_id}_{field.field_id}":
-                logger.debug(f"Found matching checkbox field: {field.field_id}")
+                logger.debug(f"Case à cocher trouvée: {field.field_id}")
+                
+                # Mettre à jour la valeur du champ
                 field.value = event.value
                 
-                # Mettre à jour les champs qui dépendent de cette case à cocher
+                # Mettre à jour les champs dépendants
                 self.update_dependent_fields(field)
-
-                # La méthode update_dependent_fields sera appelée pour mettre à jour les champs dépendants
                 break
-    
-    def update_dependent_fields(self, source_field):
-        """Met à jour les champs qui dépendent d'un champ spécifique, avec prévention des cycles de mise à jour"""
-        # Protection contre les appels récursifs en cours de traitement
+
+    def update_dependent_fields(self, source_field: Widget) -> None:
+        """
+        Met à jour les champs qui dépendent d'un champ spécifique.
+        
+        Args:
+            source_field: Champ source dont la valeur a changé
+        """
+        # Protection contre les appels récursifs
         if hasattr(self, '_updating_dependencies') and self._updating_dependencies:
-            logger.debug(f"⚠️ Mise à jour des dépendances déjà en cours, ignorant l'appel pour {source_field.field_id}")
+            logger.debug(f"Mise à jour des dépendances déjà en cours, ignorer l'appel pour {source_field.field_id}")
             return
             
         try:
-            # Marquer le début de la mise à jour pour éviter les cycles
+            # Marquer le début de la mise à jour
             self._updating_dependencies = True
             
-            logger.debug(f"🔄 DÉBUT mise à jour des champs dépendants de {source_field.field_id} (valeur={source_field.value})")
-            # Liste de tous les IDs de champs disponibles pour le log
-            field_ids = sorted([f.field_id for f in self.fields_by_id.values()])
-            logger.debug(f"Champs disponibles: {field_ids}")
+            # Réinitialiser la liste des champs à supprimer
+            self._fields_to_remove = set()
             
-            # 1. Créer une copie de la liste des champs pour l'itération
-            dependent_fields = list(self.fields_by_id.values())
-            fields_to_remove = []
+            # Trouver les champs dépendants directs
+            source_id = getattr(source_field, 'field_id', None)
+            if not source_id or source_id not in self._field_dependencies:
+                logger.debug(f"Aucune dépendance trouvée pour {source_id}")
+                return
+                
+            dependent_ids = self._field_dependencies[source_id]
+            logger.debug(f"Mise à jour des champs dépendant de {source_id}: {dependent_ids}")
             
-            for dependent_field in dependent_fields:
-                # Ignorer le champ source et les champs déjà traités ce cycle
-                if dependent_field.field_id == source_field.field_id or hasattr(dependent_field, '_processed_in_cycle'):
+            # Parcourir les champs dépendants
+            for dependent_id in dependent_ids:
+                if dependent_id not in self.fields_by_id:
                     continue
                     
-                logger.debug(f"🔍 Analyse des dépendances pour {dependent_field.field_id}")
+                dependent_field = self.fields_by_id[dependent_id]
                 
-                # 2. TRAITEMENT DES DÉPENDANCES DEPENDS_ON (options dynamiques)
-                # Ces champs changent leurs options selon la valeur d'un autre champ
-                has_depends_on = hasattr(dependent_field, 'depends_on')
-                depends_on_match = has_depends_on and dependent_field.depends_on == source_field.field_id
+                # 1. TRAITEMENT DES CONDITIONS ENABLED_IF
+                self._update_field_enabled_state(dependent_field, source_field)
                 
-                if depends_on_match and hasattr(dependent_field, 'update_dynamic_options'):
-                    logger.debug(f"✅ Champ avec options dynamiques trouvé: {dependent_field.field_id}")
-                    
-                    # Marquer ce champ comme traité dans ce cycle
-                    dependent_field._processed_in_cycle = True
-                    
-                    # Sauvegarder l'ancienne valeur pour vérifier si elle change
-                    old_value = getattr(dependent_field, 'value', None)
-                    
-                    # Mettre à jour les options dynamiques
-                    dependent_field.update_dynamic_options()
-                    
-                    # Si après mise à jour le champ n'a plus d'options, le marquer pour suppression
-                    has_options = hasattr(dependent_field, 'options')
-                    options_empty = has_options and (dependent_field.options is None or len(dependent_field.options) == 0)
-                    
-                    if options_empty:
-                        logger.debug(f"❌ {dependent_field.field_id} n'a plus d'options valides")
-                        fields_to_remove.append(dependent_field)
-                    elif old_value != dependent_field.value:
-                        logger.debug(f"🔄 La valeur de {dependent_field.field_id} a changé: {old_value} -> {dependent_field.value}")
+                # 2. TRAITEMENT DES OPTIONS DYNAMIQUES
+                self._update_field_dynamic_options(dependent_field, source_field)
                 
-                # 3. TRAITEMENT DES CONDITIONS ENABLED_IF
-                # Ces champs sont activés/désactivés selon la valeur d'un autre champ
-                has_enabled_if = (hasattr(dependent_field, 'enabled_if') and 
-                                  dependent_field.enabled_if and 
-                                  dependent_field.enabled_if.get('field') == source_field.field_id)
-                
-                if has_enabled_if:
-                    # Marquer ce champ comme traité dans ce cycle
-                    dependent_field._processed_in_cycle = True
-                    
-                    field_value = source_field.value
-                    required_value = dependent_field.enabled_if.get('value')
-                    
-                    # Normaliser les valeurs booléennes pour comparaison
-                    if isinstance(required_value, bool) and not isinstance(field_value, bool):
-                        if isinstance(field_value, str):
-                            field_value = field_value.lower() in ('true', 't', 'yes', 'y', '1')
-                        else:
-                            field_value = bool(field_value)
-                    
-                    # Est-ce que le champ doit être activé ou désactivé?
-                    should_enable = field_value == required_value
-                    
-                    if not should_enable:
-                        logger.debug(f"❌ Condition non remplie pour {dependent_field.field_id} (valeur={field_value}, requise={required_value})")
-                        fields_to_remove.append(dependent_field)
-                    else:
-                        logger.debug(f"✅ Condition remplie pour {dependent_field.field_id}")
-                        
-                        # Sauvegarder la valeur actuelle avant réactivation
-                        if hasattr(dependent_field, 'value') and (
-                            not hasattr(dependent_field, '_saved_value') or dependent_field._saved_value is None
-                        ):
-                            dependent_field._saved_value = dependent_field.value
-                        
-                        # Réactiver le widget et restaurer sa valeur
-                        self._restore_field_state(dependent_field)
+                # 3. TRAITEMENT DES VALEURS DÉPENDANTES
+                self._update_field_dependent_value(dependent_field, source_field)
             
-            # 4. SUPPRIMER LES CHAMPS INVALIDÉS de l'interface
-            for field_to_remove in fields_to_remove:
-                logger.debug(f"🗑️ Suppression du champ {field_to_remove.field_id} de l'interface")
-                
-                # Supprimer du dictionnaire des champs
-                if field_to_remove.field_id in self.fields_by_id:
-                    del self.fields_by_id[field_to_remove.field_id]
-                
-                # Supprimer le widget de l'interface
-                if field_to_remove in self.children:
-                    field_to_remove.remove()
-                    
-            logger.debug(f"✓ FIN mise à jour des dépendances pour {source_field.field_id}")
-        
+            # Supprimer les champs invalidés après la mise à jour
+            self._process_fields_to_remove()
+            
         except Exception as e:
-            logger.error(f"❌ ERREUR lors de la mise à jour des dépendances: {e}")
+            logger.error(f"Erreur lors de la mise à jour des dépendances: {e}")
             import traceback
             logger.error(traceback.format_exc())
-        
+            
         finally:
-            # Toujours nettoyer les marqueurs de cycle et le flag de mise à jour
+            # Toujours réinitialiser le flag
             self._updating_dependencies = False
-            # Nettoyer les indicateurs de traitement pour tous les champs
-            for field in self.fields_by_id.values():
-                if hasattr(field, '_processed_in_cycle'):
-                    delattr(field, '_processed_in_cycle')
-    
-    def _restore_field_state(self, field):
-        """Restaure l'état d'un champ désactivé"""
-        logger.debug(f"🔄 Restauration de l'état du champ {field.field_id}")
+
+    def _update_field_enabled_state(self, dependent_field: Widget, source_field: Widget) -> None:
+        """
+        Met à jour l'état d'activation d'un champ selon ses dépendances.
+        
+        Args:
+            dependent_field: Champ dépendant à mettre à jour
+            source_field: Champ source dont la valeur a changé
+        """
+        # Vérifier si le champ a une condition d'activation
+        if not hasattr(dependent_field, 'enabled_if') or not dependent_field.enabled_if:
+            return
+            
+        # Vérifier si la dépendance concerne le champ source
+        if dependent_field.enabled_if.get('field') != source_field.field_id:
+            return
+            
+        source_value = getattr(source_field, 'value', None)
+        required_value = dependent_field.enabled_if.get('value')
+        
+        # Normaliser les valeurs booléennes si nécessaire
+        if isinstance(required_value, bool) and not isinstance(source_value, bool):
+            if isinstance(source_value, str):
+                source_value = source_value.lower() in ('true', 't', 'yes', 'y', '1')
+            else:
+                source_value = bool(source_value)
+        
+        # Déterminer si le champ doit être activé
+        should_enable = source_value == required_value
+        
+        if not should_enable:
+            logger.debug(f"Désactivation du champ {dependent_field.field_id}")
+            dependent_field.disabled = True
+            dependent_field.add_class('disabled')
+            
+            # Si le champ doit aussi être retiré, l'ajouter à la liste
+            self._fields_to_remove.add(dependent_field.field_id)
+        else:
+            logger.debug(f"Activation du champ {dependent_field.field_id}")
+            dependent_field.disabled = False
+            dependent_field.remove_class('disabled')
+            
+            # Restaurer l'état du widget si disponible
+            self._restore_field_state(dependent_field)
+
+    def _update_field_dynamic_options(self, dependent_field: Widget, source_field: Widget) -> None:
+        """
+        Met à jour les options dynamiques d'un champ.
+        
+        Args:
+            dependent_field: Champ dépendant à mettre à jour
+            source_field: Champ source dont la valeur a changé
+        """
+        # Vérifier si le champ a besoin de mettre à jour ses options dynamiques
+        if hasattr(dependent_field, 'update_dynamic_options'):
+            logger.debug(f"Mise à jour des options dynamiques pour {dependent_field.field_id}")
+            dependent_field.update_dynamic_options()
+            
+            # Vérifier si le champ est un GroupCheckboxField et n'a plus d'options
+            if (hasattr(dependent_field, 'options') and 
+                hasattr(dependent_field, 'field_config') and
+                dependent_field.field_config.get('type') == 'checkbox_group'):
+                
+                options_empty = (not dependent_field.options or len(dependent_field.options) == 0)
+                
+                if options_empty:
+                    logger.debug(f"Le champ {dependent_field.field_id} n'a plus d'options, planifié pour suppression")
+                    self._fields_to_remove.add(dependent_field.field_id)
+
+    def _update_field_dependent_value(self, dependent_field: Widget, source_field: Widget) -> None:
+        """
+        Met à jour la valeur d'un champ qui dépend d'un autre.
+        
+        Args:
+            dependent_field: Champ dépendant à mettre à jour
+            source_field: Champ source dont la valeur a changé
+        """
+        # Vérifier si le champ dépend explicitement de la source pour sa valeur
+        depends_on = getattr(dependent_field, 'depends_on', None)
+        
+        if depends_on == source_field.field_id:
+            logger.debug(f"Mise à jour de la valeur de {dependent_field.field_id} qui dépend de {source_field.field_id}")
+            
+            # Récupérer la nouvelle valeur dynamique
+            if hasattr(dependent_field, '_get_default_value'):
+                new_value = dependent_field._get_default_value()
+                logger.debug(f"Nouvelle valeur dynamique pour {dependent_field.field_id}: {new_value}")
+                
+                # Appliquer la nouvelle valeur
+                if hasattr(dependent_field, 'set_value'):
+                    dependent_field.set_value(new_value)
+                else:
+                    dependent_field.value = new_value
+
+    def _process_fields_to_remove(self) -> None:
+        """
+        Traite les champs à supprimer après une mise à jour des dépendances.
+        """
+        if not self._fields_to_remove:
+            return
+            
+        logger.debug(f"Traitement des champs à supprimer: {self._fields_to_remove}")
+        
+        # Supprimer les champs du dictionnaire et de l'interface
+        for field_id in self._fields_to_remove:
+            if field_id in self.fields_by_id:
+                field = self.fields_by_id[field_id]
+                
+                # Supprimer du dictionnaire
+                del self.fields_by_id[field_id]
+                
+                # Supprimer de l'interface
+                if field in self.children:
+                    field.remove()
+                    
+                logger.debug(f"Champ {field_id} supprimé")
+
+    def _restore_field_state(self, field: Widget) -> bool:
+        """
+        Restaure l'état d'un champ qui était désactivé.
+        
+        Args:
+            field: Champ à restaurer
+            
+        Returns:
+            bool: True si la restauration a réussi
+        """
+        logger.debug(f"Restauration de l'état du champ {field.field_id}")
         
         # Rechercher tous les widgets d'interaction à réactiver
         for widget_type in [Input, Select, Button, Checkbox]:
@@ -241,7 +430,7 @@ class ConfigContainer(VerticalGroup):
                 
                 # Restaurer la valeur sauvegardée si disponible
                 if hasattr(field, '_saved_value') and field._saved_value is not None:
-                    logger.debug(f"📝 Restauration de la valeur pour {field.field_id}: {field._saved_value}")
+                    logger.debug(f"Restauration de la valeur pour {field.field_id}: {field._saved_value}")
                     # Utiliser set_value avec update_dependencies=False pour éviter les cycles
                     if hasattr(field, 'set_value'):
                         field.set_value(field._saved_value, update_dependencies=False)
@@ -255,5 +444,5 @@ class ConfigContainer(VerticalGroup):
                 pass
                 
         # Aucun widget interactif trouvé
-        logger.warning(f"⚠️ Aucun widget interactif trouvé pour {field.field_id}")
+        logger.warning(f"Aucun widget interactif trouvé pour {field.field_id}")
         return False

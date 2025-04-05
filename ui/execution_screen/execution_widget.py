@@ -1,14 +1,19 @@
 """
 Widget principal d'exécution de plugins.
+
+Ce module fournit le widget central responsable de l'affichage et de l'exécution
+des plugins configurés, avec gestion des logs et de la progression.
 """
 
-from typing import Dict
+from typing import Dict, List, Any, Optional, Tuple, Set
 import traceback
 import sys
 import os
 import json
+import re
+import asyncio
 
-from textual.app import ComposeResult
+from textual.app import ComposeResult, App
 from textual.containers import Container, Horizontal, ScrollableContainer, Vertical
 from textual.widgets import Button, Checkbox, Label, ProgressBar, Static, Footer, Header
 from textual.reactive import reactive
@@ -26,388 +31,396 @@ from ..ssh_manager.ip_utils import get_target_ips
 logger = get_logger('execution_widget')
 
 class ExecutionWidget(Container):
-    """Widget principal d'exécution des plugins"""
+    """
+    Widget principal d'exécution des plugins.
+    
+    Ce widget coordonne l'affichage et l'exécution de tous les plugins configurés,
+    y compris leur exécution locale ou distante via SSH.
+    """
 
-    # État d'exécution
-    is_running = reactive(False)
-    continue_on_error = reactive(False)
+    # États réactifs
+    is_running = reactive(False)  # État d'exécution
+    continue_on_error = reactive(True)  # Continuer même en cas d'erreur (True par défaut)
     show_logs = reactive(True)  # Logs visibles par défaut
-    back_button_clicked = reactive(False)  # Pour suivre si le bouton retour a été cliqué
+    back_button_clicked = reactive(False)  # Suivi du bouton retour
 
-    def __init__(self, plugins_config: dict = None):
-        """Initialise le widget avec la configuration des plugins"""
+    def __init__(self, plugins_config: Optional[Dict[str, Any]] = None):
+        """
+        Initialise le widget avec la configuration des plugins.
+        
+        Args:
+            plugins_config: Dictionnaire de configuration des plugins
+        """
         super().__init__()
         self.plugins: Dict[str, PluginContainer] = {}
         self.plugins_config = plugins_config or {}
         self._current_plugin = None
         self._total_plugins = 0
         self._executed_plugins = 0
-        self.sequence_name = None   # Nom de la séquence en cours
-        self._app_ref = None  # Référence à l'application, sera définie lors du montage
+        self.sequence_name = None
+        self._app_ref = None  # Référence à l'application, définie lors du montage
 
-        # Extraire le nom de la séquence si présent dans la configuration
+        # Extraire le nom de la séquence si présent
+        self._extract_sequence_name()
+        
+        logger.debug(f"ExecutionWidget initialisé avec {len(self.plugins_config)} plugins")
+        logger.debug(f"Plugins disponibles: {list(self.plugins_config.keys())}")
+
+    def _extract_sequence_name(self) -> None:
+        """Extrait le nom de la séquence depuis la configuration des plugins."""
         for plugin_id, config in self.plugins_config.items():
-            # Récupérer le nom du plugin associé à cet ID
             plugin_name = config.get('plugin_name', '')
             if isinstance(plugin_name, str) and plugin_name.startswith('__sequence__'):
-                # Extraire le nom de la séquence du nom du plugin
                 sequence_file = plugin_name.replace('__sequence__', '')
                 self.sequence_name = sequence_file.replace('.yml', '')
                 logger.debug(f"Séquence détectée: {self.sequence_name}")
                 break
 
-        logger.debug(f"ExecutionWidget initialized with {len(self.plugins_config)} plugins: {list(self.plugins_config.keys())}")
-
-    async def execute_plugin(self, plugin_id: str, config: dict) -> dict:
-        """Exécute un plugin spécifique"""
+    async def execute_plugin(self, plugin_id: str, config: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Exécute un plugin spécifique localement ou via SSH.
+        
+        Args:
+            plugin_id: Identifiant du plugin à exécuter
+            config: Configuration du plugin
+            
+        Returns:
+            Dict[str, Any]: Résultat de l'exécution {success, output}
+        """
         try:
-            # Vérifier si c'est une séquence et ne pas l'exécuter
+            # Vérifier si la configuration est valide
             if not isinstance(config, dict):
-                logger.error(f"Configuration invalide pour le plugin {plugin_id}: {config}")
+                logger.error(f"Configuration invalide pour {plugin_id}: {config}")
                 return {
                     'success': False,
                     'output': f"Erreur: Configuration invalide pour le plugin {plugin_id}"
                 }
             
-            # Extraire les informations de base de la configuration
-            plugin_name = config.get('plugin_name', '')
-            if not plugin_name:
-                # Si pas de nom de plugin, utiliser le dossier du plugin comme nom
-                plugin_name = get_plugin_folder_name(str(plugin_id))
-                logger.debug(f"Utilisation du dossier comme nom de plugin: {plugin_name}")
-                
-            # Récupérer la configuration du plugin
-            plugin_config = {}
-            # Si on a une clé 'config', l'utiliser
-            if 'config' in config:
-                plugin_config = config['config']
-            else:
-                # Sinon, copier toutes les clés sauf celles spéciales
-                special_keys = {'plugin_name', 'instance_id', 'show_name', 'icon', 'remote_execution'}
-                plugin_config = {k: v for k, v in config.items() if k not in special_keys}
-            instance_id = config.get('instance_id', plugin_id)  # Si pas d'instance_id, utiliser plugin_id
+            # Extraire les informations de base
+            plugin_name = self._get_plugin_name(plugin_id, config)
+            plugin_config = self._extract_plugin_config(config)
+            instance_id = config.get('instance_id', plugin_id)
             show_name = config.get('show_name', config.get('name', plugin_name))
             icon = config.get('icon', '📦')
                 
+            # Ignorer les séquences
             if isinstance(plugin_name, str) and plugin_name.startswith('__sequence__'):
-                logger.warning(f"Tentative d'exécution d'une séquence comme plugin: {plugin_name}")
+                logger.warning(f"Tentative d'exécution d'une séquence: {plugin_name}")
                 return {
                     'success': False,
                     'output': f"Erreur: {plugin_name} est une séquence, pas un plugin."
                 }
 
-            # Récupérer le nom du plugin depuis son dossier
+            # Récupérer le dossier du plugin
             folder_name = get_plugin_folder_name(plugin_name)
             logger.debug(f"Dossier du plugin {plugin_name} (ID: {instance_id}): {folder_name}")
-            logger.debug(f"Configuration du plugin {plugin_name}: {plugin_config}")
+            logger.debug(f"Configuration: {plugin_config}")
+            
+            # Déterminer le mode d'exécution (local ou SSH)
             remote_execution = config.get('remote_execution', False)
-
-            # Exécuter le plugin localement ou via SSH selon la configuration
-            if remote_execution:
-                logger.debug(f"Exécution SSH du plugin {plugin_id}")
-                # Créer la configuration complète pour l'exécuteur SSH
-                ssh_config = {
-                    'plugin_name': folder_name,
-                    'instance_id': instance_id,
-                    'config': plugin_config,
-                    'ssh_debug': plugin_config.get('ssh_debug', False)  # Récupérer ssh_debug de la config
-                }
-                executor = SSHExecutor(ssh_config)
-                logger.debug(f"Exécuteur SSH créé pour {plugin_id} avec la configuration: {ssh_config}")
-            else:
-                logger.debug(f"Exécution locale du plugin {plugin_id}")
-                executor = LocalExecutor(self.app if self._app_ref is None else self._app_ref)
-                logger.debug(f"Exécuteur local créé pour {plugin_id}")
-
-            # Vérifier que la méthode execute_plugin existe
-            if not hasattr(executor, 'execute_plugin'):
-                logger.error(f"L'exécuteur {type(executor).__name__} n'a pas de méthode execute_plugin")
-                return {
-                    'success': False,
-                    'output': f"Erreur: L'exécuteur {type(executor).__name__} n'a pas de méthode execute_plugin"
-                }
+            executor = self._create_executor(plugin_id, folder_name, plugin_config, remote_execution)
 
             # Exécuter le plugin
-            try:
-                plugin_widget = self.plugins.get(plugin_id)
-                success, output = await executor.execute_plugin(plugin_widget,folder_name, config)
-                return {
-                    'success': success,
-                    'output': output
-                }
-            except Exception as exec_error:
-                error_msg = str(exec_error)
-                target_ip = getattr(plugin_widget, 'target_ip', None) if plugin_widget else None
-
-                # Log détaillé avec l'IP si disponible
-                if target_ip:
-                    logger.error(f"Erreur lors de l'exécution du plugin {plugin_id} sur {target_ip}: {error_msg}")
-                else:
-                    logger.error(f"Erreur lors de l'exécution du plugin {plugin_id}: {error_msg}")
-
-                logger.error(f"Traceback: {traceback.format_exc()}")
-
-                # Ajouter un message d'erreur dans les logs de l'interface
-                try:
-                    if target_ip:
-                        await LoggerUtils.add_log(
-                            self.app if self._app_ref is None else self._app_ref,
-                            f"Erreur d'exécution du plugin {folder_name}: {error_msg}",
-                            level="error",
-                            target_ip=target_ip
-                        )
-                    else:
-                        await LoggerUtils.add_log(
-                            self.app if self._app_ref is None else self._app_ref,
-                            f"Erreur d'exécution du plugin {folder_name}: {error_msg}",
-                            level="error"
-                        )
-                except Exception as log_error:
-                    logger.error(f"Erreur lors de l'ajout du message d'erreur aux logs: {log_error}")
-
-                # Message d'erreur plus détaillé pour l'utilisateur
-                if target_ip:
-                    output_msg = f"Erreur d'exécution sur {target_ip}: {error_msg}"
-                else:
-                    output_msg = f"Erreur d'exécution: {error_msg}"
-
-                return {
-                    'success': False,
-                    'output': output_msg
-                }
-
+            plugin_widget = self.plugins.get(plugin_id)
+            success, output = await executor.execute_plugin(plugin_widget, folder_name, config)
+            
+            return {
+                'success': success,
+                'output': output
+            }
+            
         except Exception as e:
-            logger.error(f"Erreur exécution plugin {plugin_id}: {e}")
-            import traceback
+            logger.error(f"Erreur lors de l'exécution du plugin {plugin_id}: {e}")
             logger.error(traceback.format_exc())
+            
+            # Ajouter des informations sur l'IP cible en cas d'erreur SSH
+            plugin_widget = self.plugins.get(plugin_id)
+            target_ip = getattr(plugin_widget, 'target_ip', None) if plugin_widget else None
+            
+            # Log avec IP si disponible
+            error_msg = str(e)
+            if target_ip:
+                logger.error(f"Erreur sur {target_ip}: {error_msg}")
+                output_msg = f"Erreur d'exécution sur {target_ip}: {error_msg}"
+            else:
+                output_msg = f"Erreur d'exécution: {error_msg}"
+                
             return {
                 'success': False,
-                'output': f"Erreur: {str(e)}"
+                'output': output_msg
             }
 
-    async def run_plugins(self):
-        """Exécute les plugins de façon séquentielle"""
-        try:
-            # Filtrer les plugins de type séquence
-            filtered_plugins = {}
-            filtered_configs = {}
-            sequence_plugin_ids = []
+    def _get_plugin_name(self, plugin_id: str, config: Dict[str, Any]) -> str:
+        """
+        Détermine le nom du plugin à partir de sa configuration.
+        
+        Args:
+            plugin_id: Identifiant du plugin
+            config: Configuration du plugin
             
-            # D'abord identifier tous les plugins de séquence principaux (pour les conserver)
-            for plugin_id, config in self.plugins_config.items():
-                plugin_name = config.get('plugin_name', '')
-                if isinstance(plugin_name, str) and plugin_name.startswith('__sequence__'):
-                    sequence_plugin_ids.append(plugin_id)
-                    logger.debug(f"Plugin de séquence principal identifié: {plugin_id} -> {plugin_name}")
-            
-            # Créer une liste ordonnée des plugins pour préserver l'ordre d'exécution
-            ordered_plugins = []
-            
-            # Parcourir tous les plugins disponibles
-            for plugin_id, plugin in self.plugins.items():
-                # Ignorer uniquement les plugins de séquence principaux, pas les plugins de la séquence
-                if plugin_id in sequence_plugin_ids:
-                    logger.debug(f"Ignoré plugin de séquence principal: {plugin_id}")
-                    continue
-                    
-                # Vérifier si la configuration correspondante existe
-                if plugin_id in self.plugins_config:
-                    config = self.plugins_config[plugin_id]
-                    
-                    # Ajouter le plugin et sa configuration aux dictionnaires filtrés
-                    filtered_plugins[plugin_id] = plugin
-                    filtered_configs[plugin_id] = config
-                    ordered_plugins.append(plugin_id)
-                    logger.debug(f"Plugin ajouté aux filtres: {plugin_id}")
-                else:
-                    logger.warning(f"Configuration manquante pour le plugin {plugin_id}")
+        Returns:
+            str: Nom du plugin
+        """
+        plugin_name = config.get('plugin_name', '')
+        if not plugin_name:
+            # Si pas de nom, utiliser le dossier comme nom
+            plugin_name = get_plugin_folder_name(str(plugin_id))
+            logger.debug(f"Utilisation du dossier comme nom: {plugin_name}")
+        return plugin_name
 
-            total_plugins = len(filtered_plugins)
-            logger.debug(f"Démarrage de l'exécution de {total_plugins} plugins (après filtrage des séquences)")
-            logger.debug(f"Plugins disponibles: {list(filtered_plugins.keys())}")
-            logger.debug(f"Plugins config: {list(filtered_configs.keys())}")
-            logger.debug(f"Ordre d'exécution des plugins: {ordered_plugins}")
-            logger.debug(f"Contenu détaillé des configurations filtrées: {json.dumps(filtered_configs, default=str, indent=2)}")
+    def _extract_plugin_config(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Extrait la configuration effective du plugin.
+        
+        Args:
+            config: Configuration complète
+            
+        Returns:
+            Dict[str, Any]: Configuration nettoyée
+        """
+        # Si une clé 'config' existe, l'utiliser
+        if 'config' in config:
+            return config['config']
+            
+        # Sinon, copier toutes les clés sauf celles spéciales
+        special_keys = {'plugin_name', 'instance_id', 'show_name', 'icon', 'remote_execution'}
+        return {k: v for k, v in config.items() if k not in special_keys}
+
+    def _create_executor(self, plugin_id: str, folder_name: str, 
+                        plugin_config: Dict[str, Any], remote_execution: bool) -> Any:
+        """
+        Crée l'exécuteur approprié (local ou SSH) pour le plugin.
+        
+        Args:
+            plugin_id: Identifiant du plugin
+            folder_name: Nom du dossier du plugin
+            plugin_config: Configuration du plugin
+            remote_execution: Si True, utilise l'exécution SSH
+            
+        Returns:
+            Any: Exécuteur configuré
+        """
+        if remote_execution:
+            logger.debug(f"Création d'un exécuteur SSH pour {plugin_id}")
+            # Configuration pour l'exécuteur SSH
+            ssh_config = {
+                'plugin_name': folder_name,
+                'instance_id': plugin_id.split('_')[-1] if '_' in plugin_id else plugin_id,
+                'config': plugin_config,
+                'ssh_debug': plugin_config.get('ssh_debug', False)
+            }
+            return SSHExecutor(ssh_config)
+        else:
+            logger.debug(f"Création d'un exécuteur local pour {plugin_id}")
+            return LocalExecutor(self.app if self._app_ref is None else self._app_ref)
+
+    async def run_plugins(self) -> None:
+        """
+        Exécute tous les plugins de façon séquentielle.
+        
+        Cette méthode est le cœur du processus d'exécution, gérant l'ordre,
+        les erreurs et la mise à jour de l'interface.
+        """
+        try:
+            # Préparer l'exécution
+            filtered_plugins, filtered_configs, ordered_plugins = self._prepare_plugins_execution()
+            
+            # Vérification de la préparation
+            if not ordered_plugins:
+                await LoggerUtils.add_log(self, "Aucun plugin à exécuter", level="warning")
+                return
+                
+            total_plugins = len(ordered_plugins)
+            logger.debug(f"Démarrage de l'exécution de {total_plugins} plugins")
             executed = 0
 
-            # Logs complets pour débogage
-            logger.debug("=== Débogage de la séquence ===")
-            logger.debug(f"self.plugins_config COMPLET: {json.dumps(self.plugins_config, default=str, indent=2)}")
-            logger.debug(f"plugins.items() COMPLET: {[key for key in self.plugins.keys()]}")
-            logger.debug(f"plugin_instance_counts DEBUG: {json.dumps({key: self.plugins_config[key].get('instance_id', '?') for key in self.plugins_config}, default=str)}")
-            logger.debug("=== FIN Débogage de la séquence ===")
-            
-            # Ajouter un message de début d'exécution dans les logs
+            # Initialiser l'interface
+            self._initialize_execution_ui()
             await LoggerUtils.add_log(self, f"Démarrage de l'exécution de {total_plugins} plugins", level="info")
 
-            # S'assurer que les logs sont visibles
-            logs_container = self.query_one("#logs-container", ScrollableContainer)
-            if logs_container and "hidden" in logs_container.classes:
-                logs_container.remove_class("hidden")
-                self.show_logs = True
-
-            # Utiliser la liste ordonnée pour préserver l'ordre d'exécution
+            # Exécuter chaque plugin dans l'ordre
             for plugin_id in ordered_plugins:
+                if not self.is_running:
+                    logger.info("Exécution arrêtée par l'utilisateur")
+                    break
+                    
+                # Récupérer le plugin et sa configuration
+                plugin_widget = filtered_plugins[plugin_id]
+                config = filtered_configs[plugin_id]
+                plugin_name = plugin_widget.plugin_name
+                
+                # Mettre à jour l'interface
+                self.set_current_plugin(plugin_name)
+                self.update_global_progress(executed / total_plugins * 100)
+                
                 try:
-                    logger.debug(f"Préparation de l'exécution de {plugin_id}")
-                    plugin_widget = filtered_plugins[plugin_id]
-                    config = filtered_configs[plugin_id]
-                    plugin_name = plugin_widget.plugin_name
-                    self.set_current_plugin(plugin_name)
-
-                    # Initialiser la progression et le statut
-                    try:
-                        plugin_widget.update_progress(0.0, "En cours")
-                    except Exception as e:
-                        logger.warning(f"Impossible de mettre à jour la progression pour {plugin_id}: {e}")
-
+                    # Initialiser la progression
+                    plugin_widget.update_progress(0.0, "En cours")
+                    
                     # Exécuter le plugin
-                    try:
-                        logger.debug(f"Début de l'exécution du plugin {plugin_id} avec config: {config}")
-                        # Mettre à jour la progression globale pour indiquer le début de l'exécution du plugin
-                        self.update_global_progress(executed / total_plugins)
-
-                        result = await self.execute_plugin(plugin_id, config)
-                        logger.debug(f"Résultat brut de l'exécution du plugin {plugin_id}: {result}")
-                        success = result.get('success', False)
-                        output = result.get('output', '')
-                        logger.debug(f"Succès: {success}, Sortie (début): {output[:100]}..." if len(str(output)) > 100 else f"Succès: {success}, Sortie: {output}")
-
-                        # Mettre à jour le statut du plugin
-                        status = "success" if success else "error"
-                        try:
-                            plugin_widget.set_status(status)
-                        except Exception as status_error:
-                            logger.warning(f"Impossible de mettre à jour le statut pour {plugin_id}: {status_error}")
-
-                        # Vérifier que la méthode set_output existe
-                        if hasattr(plugin_widget, 'set_output'):
-                            try:
-                                plugin_widget.set_output(output)
-                            except Exception as output_error:
-                                logger.warning(f"Impossible de définir la sortie pour {plugin_id}: {output_error}")
-                        else:
-                            logger.error(f"Le widget {plugin_id} n'a pas de méthode set_output")
-
-                        # Ajouter un message de log explicite pour l'échec
-                        if not success:
-                            error_message = f"Échec du plugin {plugin_name}: {output}"
-                            logger.error(error_message)
-                            await LoggerUtils.add_log(self, error_message, level="error")
-                            try:
-                                plugin_widget.update_progress(100.0, "Échec")
-                            except Exception as e:
-                                logger.warning(f"Impossible de mettre à jour la progression finale pour {plugin_id}: {e}")
-                        else:
-                            try:
-                                plugin_widget.update_progress(100.0, "Terminé")
-                            except Exception as e:
-                                logger.warning(f"Impossible de mettre à jour la progression finale pour {plugin_id}: {e}")
-                            await LoggerUtils.add_log(self, f"Plugin {plugin_name} exécuté avec succès", level="success")
-                    except Exception as exec_error:
-                        logger.error(f"Erreur lors de l'exécution de {plugin_id}: {str(exec_error)}")
-                        logger.error(f"Traceback complet: {traceback.format_exc()}")
-                        try:
-                            plugin_widget.set_status("error", f"Erreur: {str(exec_error)}")
-                        except Exception as e:
-                            logger.warning(f"Impossible de mettre à jour le statut d'erreur pour {plugin_id}: {e}")
-                        try:
-                            plugin_widget.update_progress(100.0, "Erreur")
-                        except Exception as e:
-                            logger.warning(f"Impossible de mettre à jour la progression d'erreur pour {plugin_id}: {e}")
-                        success = False
-                        output = f"Erreur: {str(exec_error)}"
-
-
-                    executed += 1
-                    self.update_global_progress(executed / total_plugins * 100)
-
-                    # En cas d'erreur, vérifier si on continue
-                    if not success and not self.continue_on_error:
-                        logger.warning(f"Arrêt de l'exécution après erreur sur {plugin_name}")
-                        break
-
+                    logger.debug(f"Exécution du plugin {plugin_id}")
+                    result = await self.execute_plugin(plugin_id, config)
+                    success = result.get('success', False)
+                    output = result.get('output', '')
+                    
+                    # Mise à jour du statut et de la sortie
+                    self._update_plugin_status(plugin_widget, success, output)
+                    
+                    # Log de résultat
+                    if success:
+                        await LoggerUtils.add_log(self, f"Plugin {plugin_name} exécuté avec succès", level="success")
+                    else:
+                        error_message = f"Échec du plugin {plugin_name}: {output}"
+                        await LoggerUtils.add_log(self, error_message, level="error")
+                        
+                        # Si on ne continue pas en cas d'erreur, arrêter l'exécution
+                        if not self.continue_on_error:
+                            logger.warning(f"Arrêt de l'exécution après erreur sur {plugin_name}")
+                            break
+                            
                 except Exception as e:
-                    error_msg = f"Erreur lors de l'exécution de {plugin_id}: {str(e)}"
-                    logger.error(error_msg)
-                    logger.error(f"Traceback complet: {traceback.format_exc()}")
-                    try:
-                        plugin_widget.set_status("erreur")
-                    except Exception as status_error:
-                        logger.warning(f"Impossible de mettre à jour le statut d'erreur pour {plugin_id}: {status_error}")
-                    try:
-                        plugin_widget.set_output(error_msg)
-                    except Exception as output_error:
-                        logger.warning(f"Impossible de définir la sortie d'erreur pour {plugin_id}: {output_error}")
-                    try:
-                        plugin_widget.update_progress(100.0, "Erreur")
-                    except Exception as progress_error:
-                        logger.warning(f"Impossible de mettre à jour la progression d'erreur pour {plugin_id}: {progress_error}")
-
-                    # Continuer l'exécution même en cas d'erreur si l'option est activée
+                    logger.error(f"Erreur lors de l'exécution de {plugin_id}: {e}")
+                    logger.error(traceback.format_exc())
+                    
+                    # Mise à jour du statut du plugin en cas d'erreur
+                    plugin_widget.set_status("error")
+                    plugin_widget.set_output(f"Erreur: {e}")
+                    plugin_widget.update_progress(100.0, "Erreur")
+                    
+                    # Si on ne continue pas en cas d'erreur, arrêter l'exécution
                     if not self.continue_on_error:
                         logger.warning(f"Arrêt de l'exécution après erreur sur {plugin_id}")
                         break
-                    else:
-                        logger.info(f"Poursuite de l'exécution malgré l'erreur sur {plugin_id} (continue_on_error=True)")
+                
+                executed += 1
+                self.update_global_progress(executed / total_plugins * 100)
 
-            # Ajouter un message de fin d'exécution dans les logs
-            # Vérifier si tous les plugins ont été exécutés avec succès
-            all_executed = executed == total_plugins
-
-            # Vérifier si des erreurs ont été détectées dans les plugins
-            has_errors = False
-            for plugin_id, plugin_widget in self.plugins.items():
-                if plugin_widget.status == "erreur":
-                    has_errors = True
-                    break
-
-            # Déterminer si on est en mode SSH (remote_execution)
-            is_remote = False
-            for plugin_id, config in filtered_configs.items():
-                if config.get('remote_execution', False):
-                    is_remote = True
-                    break
-
-            # Ne pas afficher le message final en mode SSH, car il est déjà affiché par SSHExecutor
-            if not is_remote:
-                # Déterminer le niveau de log en fonction de l'exécution et des erreurs
-                if has_errors:
-                    level = "error"
-                elif not all_executed:
-                    level = "warning"
-                else:
-                    level = "success"
-                if executed>1:
-                    texte_plugin="plugins exécutés"
-                else:
-                    texte_plugin="plugin exécuté"
-                # Construire le message
-                message = f"Exécution terminée : {executed}/{total_plugins} {texte_plugin}"
-                if has_errors:
-                    message += " (des erreurs ont été détectées)"
-                elif not all_executed:
-                    message += " (certains plugins n'ont pas été exécutés)"
-
-                await LoggerUtils.add_log(self, message, level=level)
-
+            # Afficher un message de fin d'exécution
+            self._display_execution_summary(executed, total_plugins)
+            
         except Exception as e:
-            logger.error(f"Erreur globale lors de l'exécution : {str(e)}")
-            # Ajouter un message d'erreur dans les logs
-            await LoggerUtils.add_log(self, f"Erreur lors de l'exécution : {str(e)}", level="error")
-            raise
+            logger.error(f"Erreur globale lors de l'exécution: {e}")
+            logger.error(traceback.format_exc())
+            await LoggerUtils.add_log(self, f"Erreur lors de l'exécution: {e}", level="error")
 
-    async def start_execution(self, auto_mode=False):
-        """Démarrage de l'exécution des plugins
+    def _prepare_plugins_execution(self) -> Tuple[Dict[str, Any], Dict[str, Any], List[str]]:
+        """
+        Prépare les plugins pour l'exécution en filtrant les séquences.
+        
+        Returns:
+            Tuple: (plugins_filtrés, configs_filtrées, ordre_exécution)
+        """
+        # Identifier les plugins de séquence
+        filtered_plugins = {}
+        filtered_configs = {}
+        sequence_plugin_ids = []
+        
+        # Identifier les plugins de séquence principaux
+        for plugin_id, config in self.plugins_config.items():
+            plugin_name = config.get('plugin_name', '')
+            if isinstance(plugin_name, str) and plugin_name.startswith('__sequence__'):
+                sequence_plugin_ids.append(plugin_id)
+                logger.debug(f"Séquence principale identifiée: {plugin_id}")
+        
+        # Créer une liste ordonnée pour l'exécution
+        ordered_plugins = []
+        
+        # Filtrer les plugins et créer l'ordre d'exécution
+        for plugin_id, plugin in self.plugins.items():
+            # Ignorer les séquences principales
+            if plugin_id in sequence_plugin_ids:
+                continue
+                
+            # Vérifier si la configuration existe
+            if plugin_id in self.plugins_config:
+                filtered_plugins[plugin_id] = plugin
+                filtered_configs[plugin_id] = self.plugins_config[plugin_id]
+                ordered_plugins.append(plugin_id)
+                logger.debug(f"Plugin ajouté: {plugin_id}")
+            else:
+                logger.warning(f"Configuration manquante pour {plugin_id}")
+        
+        logger.debug(f"Préparation terminée: {len(ordered_plugins)} plugins à exécuter")
+        return filtered_plugins, filtered_configs, ordered_plugins
+
+    def _initialize_execution_ui(self) -> None:
+        """Initialise l'interface pour l'exécution."""
+        # S'assurer que les logs sont visibles
+        logs_container = self.query_one("#logs-container", ScrollableContainer)
+        if logs_container and "hidden" in logs_container.classes:
+            logs_container.remove_class("hidden")
+            self.show_logs = True
+
+    def _update_plugin_status(self, plugin_widget: PluginContainer, 
+                             success: bool, output: str) -> None:
+        """
+        Met à jour le statut et la sortie d'un plugin après exécution.
         
         Args:
-            auto_mode (bool, optional): Indique si l'exécution est en mode auto. Defaults to False.
+            plugin_widget: Widget du plugin
+            success: Résultat de l'exécution
+            output: Sortie de l'exécution
+        """
+        try:
+            # Mettre à jour le statut
+            status = "success" if success else "error"
+            plugin_widget.set_status(status)
+            
+            # Mettre à jour la sortie
+            plugin_widget.set_output(output)
+            
+            # Mettre à jour la progression
+            plugin_widget.update_progress(100.0, "Terminé" if success else "Échec")
+        except Exception as e:
+            logger.error(f"Erreur lors de la mise à jour du statut: {e}")
+
+    async def _display_execution_summary(self, executed: int, total: int) -> None:
+        """
+        Affiche un résumé de l'exécution dans les logs.
+        
+        Args:
+            executed: Nombre de plugins exécutés
+            total: Nombre total de plugins
+        """
+        # Vérifier s'il y a eu des erreurs
+        has_errors = False
+        for plugin_id, plugin_widget in self.plugins.items():
+            if plugin_widget.status == "error":
+                has_errors = True
+                break
+                
+        # Déterminer le niveau de log
+        if has_errors:
+            level = "error"
+        elif executed < total:
+            level = "warning"
+        else:
+            level = "success"
+            
+        # Construire le message
+        texte_plugin = "plugins exécutés" if executed > 1 else "plugin exécuté"
+        message = f"Exécution terminée : {executed}/{total} {texte_plugin}"
+        
+        if has_errors:
+            message += " (des erreurs ont été détectées)"
+        elif executed < total:
+            message += " (certains plugins n'ont pas été exécutés)"
+            
+        await LoggerUtils.add_log(self, message, level=level)
+
+    async def start_execution(self, auto_mode: bool = False) -> None:
+        """
+        Démarre l'exécution des plugins.
+        
+        Args:
+            auto_mode: Si True, l'exécution est lancée automatiquement
         """
         # Vérifier si une exécution est déjà en cours
         if self.is_running:
-            logger.debug("Exécution déjà en cours, ignoré")
+            logger.debug("Une exécution est déjà en cours")
             return
 
+        # Récupérer les boutons
         start_button = self.query_one("#start-button")
         back_button = self.query_one("#back-button")
         if not start_button:
@@ -419,10 +432,10 @@ class ExecutionWidget(Container):
             self.is_running = True
             logger.info("Démarrage de l'exécution")
 
-            # Masquer les boutons Démarrer et Retour pendant l'exécution
+            # Masquer les boutons pendant l'exécution
             start_button.add_class("hidden")
             back_button.add_class("hidden")
-            logger.debug("Boutons Démarrer et Retour masqués")
+            logger.debug("Boutons masqués")
 
             # Réinitialiser l'interface
             self.update_global_progress(0)
@@ -437,110 +450,204 @@ class ExecutionWidget(Container):
             if hasattr(self.app.screen, 'on_execution_completed'):
                 await self.app.screen.on_execution_completed()
 
-            # Réafficher les boutons après l'exécution seulement si on n'est pas en mode auto
+            # Réafficher les boutons après l'exécution si pas en mode auto
             if not auto_mode:
                 start_button.remove_class("hidden")
                 back_button.remove_class("hidden")
-                logger.debug("Boutons Démarrer et Retour réaffichés après exécution")
-            else:
-                logger.debug("Mode auto: boutons Démarrer et Retour laissés masqués après exécution")
+                logger.debug("Boutons réaffichés après exécution")
 
         except Exception as e:
-            logger.error(f"Erreur lors du démarrage de l'exécution : {str(e)}")
-            logger.error(f"Traceback complet: {traceback.format_exc()}")
+            logger.error(f"Erreur lors du démarrage de l'exécution: {e}")
+            logger.error(traceback.format_exc())
+            
+            # Afficher un message d'erreur
             error_msg = Message(
                 type=MessageType.ERROR,
-                content=f"Erreur lors du démarrage : {str(e)}"
+                content=f"Erreur lors du démarrage: {e}"
             )
-            logger.debug(f"Message d'erreur créé avec type={MessageType.ERROR} et content={str(e)}")
             await LoggerUtils.display_message(self, error_msg)
 
             # Réafficher les boutons en cas d'erreur
             start_button.remove_class("hidden")
             back_button.remove_class("hidden")
-            logger.debug("Boutons Démarrer et Retour réaffichés après erreur")
+            
         finally:
             self.is_running = False
-            # Réinitialiser l'état du bouton retour
             self.back_button_clicked = False
-            logger.debug("Réinitialisation de back_button_clicked à False après exécution")
 
-    def update_global_progress(self, progress: float):
-        """Mise à jour de la progression globale"""
-        logger.debug(f"update_global_progress appelé avec progress={progress}")
+    def update_global_progress(self, progress: float) -> None:
+        """
+        Met à jour la barre de progression globale.
+        
+        Args:
+            progress: Valeur de progression (0-100)
+        """
         try:
-            # Try to find the progress bar
+            # Essayer de trouver la barre de progression
             try:
                 progress_bar = self.query_one("#global-progress")
                 if progress_bar:
-                    logger.debug(f"Mise à jour de la barre de progression globale: {progress * 100}%")
-                    progress_bar.update(total=100.0, progress=progress * 100)
-                else:
-                    logger.debug("Barre de progression globale non trouvée par query")
-            except Exception as query_error:
-                # If we can't find it by query, try to access it directly via DOM
-                logger.debug(f"Impossible de trouver la barre de progression par query: {str(query_error)}")
-                # Try to create it if it doesn't exist
+                    progress_bar.update(total=100.0, progress=progress)
+                    logger.debug(f"Progression mise à jour: {progress}%")
+            except Exception as e:
+                logger.debug(f"Barre de progression non trouvée: {e}")
+                
+                # Essayer de la créer si elle n'existe pas
                 button_container = self.query_one("#button-container")
                 if button_container:
-                    # Check if it already exists
-                    existing_bars = [w for w in button_container.children if getattr(w, "id", "") == "global-progress"]
+                    # Vérifier si elle existe déjà
+                    existing_bars = [w for w in button_container.children 
+                                    if getattr(w, "id", "") == "global-progress"]
                     if existing_bars:
-                        existing_bars[0].update(total=100.0, progress=progress * 100)
+                        existing_bars[0].update(total=100.0, progress=progress)
                     else:
-                        logger.debug("Création d'une nouvelle barre de progression")
-                        # Create a new progress bar
+                        # Créer une nouvelle barre
                         from textual.widgets import ProgressBar
                         new_bar = ProgressBar(id="global-progress", show_eta=False)
                         new_bar.total = 100.0
-                        new_bar.progress = progress * 100
+                        new_bar.progress = progress
                         button_container.mount(new_bar)
+                        logger.debug("Nouvelle barre de progression créée")
         except Exception as e:
-            # Log the error but don't crash if the progress bar isn't found
-            logger.error(f"Impossible de mettre à jour la progression: {str(e)}")
+            logger.error(f"Impossible de mettre à jour la progression: {e}")
 
-    def set_current_plugin(self, plugin_name: str):
-        """Met à jour l'affichage du plugin courant et scrolle vers lui"""
+    def set_current_plugin(self, plugin_name: str) -> None:
+        """
+        Met à jour l'affichage du plugin courant et scrolle vers lui.
+        
+        Args:
+            plugin_name: Nom du plugin en cours d'exécution
+        """
         try:
-            # Mettre à jour le label global si possible
+            # Mettre à jour le label global
             try:
                 progress_label = self.query_one("#global-progress-label")
                 if progress_label:
                     progress_label.update(f"Plugin: {plugin_name}")
             except Exception as e:
-                logger.debug(f"Impossible de mettre à jour le label de progression: {str(e)}")
+                logger.debug(f"Label de progression non trouvé: {e}")
 
-            # Trouver le plugin en cours et scroller vers lui
-            try:
-                plugins_list = self.query_one("#plugins-list")
-                if plugins_list and plugin_name != "aucun":
-                    for plugin_id, plugin in self.plugins.items():
-                        if plugin.plugin_name == plugin_name:
-                            # Scroller vers le plugin
-                            plugin.scroll_visible()
-                            break
-            except Exception as e:
-                logger.debug(f"Impossible de scroller vers le plugin {plugin_name}: {str(e)}")
+            # Scroller vers le plugin en cours
+            if plugin_name != "aucun":
+                try:
+                    plugins_list = self.query_one("#plugins-list")
+                    if plugins_list:
+                        for plugin_id, plugin in self.plugins.items():
+                            if plugin.plugin_name == plugin_name:
+                                # Scroller vers le plugin
+                                plugin.scroll_visible()
+                                break
+                except Exception as e:
+                    logger.debug(f"Impossible de scroller vers {plugin_name}: {e}")
         except Exception as e:
-            logger.error(f"Erreur lors de la mise à jour du plugin courant: {str(e)}")
+            logger.error(f"Erreur lors de la mise à jour du plugin courant: {e}")
 
     def action_toggle_logs(self) -> None:
-        """Afficher/Masquer les logs (appelé par le raccourci clavier ou le bouton)"""
+        """Affiche ou masque les logs."""
         LoggerUtils.toggle_logs(self)
 
-    # Méthode pour compatibilité avec loggers existants
-    async def display_log(self, message, level="info"):
-        """Méthode pour compatibilité avec anciens systèmes de logs"""
+    async def display_log(self, message: str, level: str = "info") -> None:
+        """
+        Affiche un message dans les logs (compatibilité avec anciens systèmes).
+        
+        Args:
+            message: Message à afficher
+            level: Niveau du message (info, warning, error, success)
+        """
         await LoggerUtils.add_log(self, message, level)
 
-    def sanitize_id(self, id_string):
-        """Sanitize a string to be used as an ID by removing invalid characters"""
-        # Replace dots, spaces and other invalid characters with underscores
+    def sanitize_id(self, id_string: str) -> str:
+        """
+        Assainit une chaîne pour l'utiliser comme ID en supprimant les caractères invalides.
+        
+        Args:
+            id_string: Chaîne à assainir
+            
+        Returns:
+            str: Chaîne assainie
+        """
         return ''.join(c if c.isalnum() or c in '-_' else '_' for c in id_string)
 
+    def _create_ssh_plugin_containers(self, plugin_id: str, config: Dict[str, Any], 
+                                    plugin_name: str, show_name: str, icon: str) -> List[str]:
+        """
+        Crée des conteneurs pour un plugin SSH avec plusieurs IPs.
+        
+        Args:
+            plugin_id: ID du plugin
+            config: Configuration du plugin
+            plugin_name: Nom du plugin
+            show_name: Nom à afficher
+            icon: Icône du plugin
+            
+        Returns:
+            List[str]: Liste des IDs de conteneurs créés
+        """
+        created_containers = []
+        plugin_config = config.get('config', {})
+        ssh_ips = plugin_config.get('ssh_ips', '')
+        ssh_exception_ips = plugin_config.get('ssh_exception_ips', '')
+        
+        # Si le plugin a plusieurs IPs
+        if ssh_ips and ('*' in ssh_ips or ',' in ssh_ips):
+            # Obtenir la liste des IPs cibles
+            target_ips = get_target_ips(ssh_ips, ssh_exception_ips)
+            logger.debug(f"Plugin SSH {plugin_id} avec {len(target_ips)} IPs: {target_ips}")
+            
+            if target_ips:
+                # Créer un conteneur pour chaque IP
+                for ip in target_ips:
+                    # Créer un ID unique
+                    ip_plugin_id = f"{plugin_id}_{ip.replace('.', '_')}"
+                    
+                    # Vérifier si ce conteneur existe déjà
+                    if ip_plugin_id in self.plugins:
+                        logger.debug(f"Conteneur déjà existant pour {ip_plugin_id}")
+                        continue
+                        
+                    # Assainir l'ID
+                    sanitized_id = self.sanitize_id(ip_plugin_id)
+                    
+                    # Créer le conteneur avec l'IP dans le nom
+                    ip_show_name = f"{show_name} ({ip})"
+                    container = PluginContainer(sanitized_id, plugin_name, ip_show_name, icon)
+                    
+                    # Stocker l'IP cible
+                    container.target_ip = ip
+                    
+                    # Ajouter aux plugins
+                    self.plugins[ip_plugin_id] = container
+                    
+                    # Créer une copie de la configuration pour cette IP
+                    ip_config = config.copy()
+                    self.plugins_config[ip_plugin_id] = ip_config
+                    
+                    logger.debug(f"Conteneur ajouté pour {ip_plugin_id}: {ip_show_name}")
+                    created_containers.append(ip_plugin_id)
+                    
+                    yield container
+            else:
+                # Aucune IP valide, créer un conteneur d'erreur
+                if plugin_id not in self.plugins:
+                    sanitized_id = self.sanitize_id(plugin_id)
+                    container = PluginContainer(sanitized_id, plugin_name, 
+                                              f"{show_name} (Aucune IP valide)", icon)
+                    self.plugins[plugin_id] = container
+                    logger.debug(f"Conteneur d'erreur ajouté pour {plugin_id}")
+                    created_containers.append(plugin_id)
+                    
+                    yield container
+                    
+        return created_containers
+
     def compose(self) -> ComposeResult:
-        """Création de l'interface"""
-        # En-tête - Afficher le nom de la séquence si disponible
+        """
+        Compose l'interface du widget d'exécution.
+        
+        Returns:
+            ComposeResult: Résultat de la composition
+        """
+        # En-tête avec le nom de la séquence si disponible
         header_text = "Exécution des plugins"
         if self.sequence_name:
             header_text = f"Exécution de la séquence: {self.sequence_name}"
@@ -548,36 +655,34 @@ class ExecutionWidget(Container):
 
         # Liste des plugins
         with ScrollableContainer(id="plugins-list"):
-            # Créer les conteneurs de plugins
             logger.debug(f"Création des conteneurs pour {len(self.plugins_config)} plugins")
-            # Garder une trace des IDs de plugins déjà traités
             processed_plugins = set()
             
-            # Faire une copie du dictionnaire pour éviter l'erreur "dictionary changed size during iteration"
+            # Copie du dictionnaire pour éviter les erreurs de taille
             plugins_config_copy = self.plugins_config.copy()
+            
             for plugin_id, config in plugins_config_copy.items():
-                # Ignorer les plugins de type séquence mais conserver leur information
+                # Ignorer les séquences
                 plugin_name = config.get('plugin_name', '')
                 if isinstance(plugin_name, str) and plugin_name.startswith('__sequence__'):
-                    logger.debug(f"Ignoré le plugin de type séquence: {plugin_name}")
+                    logger.debug(f"Ignoré séquence: {plugin_name}")
                     continue
                 
-                # Vérifier si ce plugin a déjà été traité
+                # Vérifier si déjà traité
                 if plugin_id in processed_plugins:
-                    logger.debug(f"Plugin {plugin_id} déjà traité, ignoré")
+                    logger.debug(f"Plugin {plugin_id} déjà traité")
                     continue
+                    
                 processed_plugins.add(plugin_id)
                 
-                # Récupérer le nom du plugin depuis la configuration
+                # Récupérer les informations du plugin
                 if not plugin_name:
                     plugin_name = get_plugin_folder_name(str(plugin_id))
-                    logger.debug(f"Utilisation du dossier comme nom de plugin: {plugin_name}")
-                
-                # Déterminer le nom à afficher
+                    
                 show_name = config.get('name', plugin_name)
-                logger.debug(f"Nom d'affichage pour {plugin_name}: {show_name}")
-                icon=config.get('icon', '📦')
-                # Créer le conteneur pour ce plugin avec un ID unique
+                icon = config.get('icon', '📦')
+                
+                # Créer le conteneur avec ID unique
                 plugin_container = PluginContainer(
                     plugin_id=plugin_id,
                     plugin_name=plugin_name,
@@ -585,122 +690,69 @@ class ExecutionWidget(Container):
                     plugin_icon=icon
                 )
                 
-                # Vérifier que le conteneur a bien été créé avec un ID unique
+                # Vérifier que le conteneur a été créé correctement
                 if plugin_container.id:
-                    # Stocker le conteneur
                     self.plugins[plugin_id] = plugin_container
-                    # Ajouter le conteneur au DOM
                     yield plugin_container
                 else:
-                    logger.error(f"Impossible de créer un conteneur avec un ID unique pour {plugin_id}")
-
-                # Vérifier si c'est un plugin SSH avec plusieurs IPs
+                    logger.error(f"Impossible de créer un conteneur pour {plugin_id}")
+                
+                # Créer des conteneurs supplémentaires pour SSH multi-IPs
                 plugin_config = config.get('config', {})
                 ssh_ips = plugin_config.get('ssh_ips', '')
-                ssh_exception_ips = plugin_config.get('ssh_exception_ips', '')
-
-                # Si c'est un plugin SSH avec des IPs
-                if ssh_ips and '*' in ssh_ips or ',' in ssh_ips:
-                    # Obtenir la liste des IPs cibles
-                    target_ips = get_target_ips(ssh_ips, ssh_exception_ips)
-                    logger.debug(f"Plugin SSH {plugin_id} avec {len(target_ips)} IPs cibles: {target_ips}")
-
-                    if target_ips:
-                        # Créer un conteneur pour chaque IP
-                        for ip in target_ips:
-                            # Créer un ID unique pour ce plugin+IP
-                            ip_plugin_id = f"{plugin_id}_{ip.replace('.', '_')}"
-
-                            # Vérifier si ce conteneur existe déjà
-                            if ip_plugin_id in self.plugins:
-                                logger.debug(f"Conteneur déjà existant pour {ip_plugin_id}, ignoré")
-                                continue
-
-                            sanitized_id = self.sanitize_id(ip_plugin_id)
-
-                            # Créer un conteneur avec l'IP dans le nom
-                            ip_show_name = f"{show_name} ({ip})"
-                            container = PluginContainer(sanitized_id, plugin_name, ip_show_name, icon)
-
-                            # Stocker l'IP cible dans le conteneur pour l'exécution
-                            container.target_ip = ip
-
-                            # Ajouter le conteneur à la liste des plugins
-                            self.plugins[ip_plugin_id] = container
-
-                            # Créer une copie de la configuration pour cette IP spécifique
-                            ip_config = config.copy()
-                            # Ajouter cette configuration à plugins_config pour qu'elle soit disponible lors de l'exécution
-                            self.plugins_config[ip_plugin_id] = ip_config
-
-                            logger.debug(f"Conteneur ajouté pour {ip_plugin_id}: {ip_show_name}")
-
-                            yield container
-                    else:
-                        # Vérifier si un conteneur d'erreur existe déjà
-                        if plugin_id in self.plugins:
-                            logger.debug(f"Conteneur d'erreur déjà existant pour {plugin_id}, ignoré")
-                        else:
-                            # Aucune IP valide, créer un conteneur d'erreur
-                            sanitized_id = self.sanitize_id(plugin_id)
-                            container = PluginContainer(sanitized_id, plugin_name, f"{show_name} (Aucune IP valide)", icon)
-                            self.plugins[plugin_id] = container
-                            logger.debug(f"Conteneur d'erreur ajouté pour {plugin_id}: Aucune IP valide")
-                            yield container
-                else:
-                    # Vérifier si le conteneur existe déjà
-                    if plugin_id in self.plugins:
-                        logger.debug(f"Conteneur déjà existant pour {plugin_id}, ignoré")
-                    else:
-                        # Plugin normal (non-SSH ou SSH avec une seule IP)
+                
+                if ssh_ips and ('*' in ssh_ips or ',' in ssh_ips):
+                    yield from self._create_ssh_plugin_containers(
+                        plugin_id, config, plugin_name, show_name, icon
+                    )
+                elif ssh_ips:
+                    # Plugin SSH avec une seule IP
+                    if plugin_id not in self.plugins:
                         sanitized_id = self.sanitize_id(plugin_id)
                         container = PluginContainer(sanitized_id, plugin_name, show_name, icon)
-
-                        # Si c'est un plugin SSH avec une seule IP, stocker l'IP
-                        if ssh_ips and not ('*' in ssh_ips or ',' in ssh_ips):
-                            container.target_ip = ssh_ips.strip()
-                            
-                        # Stocker le conteneur et le retourner
+                        container.target_ip = ssh_ips.strip()
                         self.plugins[plugin_id] = container
-                        logger.debug(f"Conteneur ajouté pour {plugin_id}: {plugin_name}")
+                        logger.debug(f"Conteneur SSH simple ajouté pour {plugin_id}")
                         yield container
 
-
-
-        # Zone des logs (visible par défaut)
+        # Zone des logs
         with Horizontal(id="logs"):
             with ScrollableContainer(id="logs-container", classes=""):
                 yield Static("", id="logs-text")
 
+        # Boutons et contrôles
         with Horizontal(id="button-container"):
             yield Button("Retour", id="back-button", variant="error")
             yield Checkbox("Continuer en cas d'erreur", id="continue-on-error", value=True)
             yield Label("Progression globale", id="global-progress-label")
-            # Ensure the progress bar is properly initialized with default values
+            # Initialiser la barre de progression avec des valeurs par défaut
             progress_bar = ProgressBar(id="global-progress", show_eta=False)
             progress_bar.total = 100.0
             progress_bar.progress = 0.0
             yield progress_bar
-            # Masquer le bouton démarrer par défaut
+            # Bouton de démarrage
             yield Button("Démarrer", id="start-button", variant="primary")
 
         yield Footer()
 
     async def on_mount(self) -> None:
-        """Appelé au montage initial du widget"""
+        """
+        Appelé au montage initial du widget.
+        Initialise l'interface et les références.
+        """
         # Récupérer la référence à l'application
-        # Dans Textual, self.app est déjà disponible, on la stocke dans notre variable
         self._app_ref = self.app
-        logger.debug(f"ExecutionWidget on_mount: app={self._app_ref}")
+        logger.debug(f"ExecutionWidget monté, app={self._app_ref}")
 
-        # Appeler initialize_ui après le rafraîchissement du DOM
-        # call_after_refresh ne retourne pas un awaitable, donc pas de await
+        # Initialiser l'interface après rafraîchissement
         self.call_after_refresh(self.initialize_ui)
 
-    async def initialize_ui(self):
-        """Initialise l'interface après que le DOM soit complètement monté"""
+    async def initialize_ui(self) -> None:
+        """
+        Initialise l'interface après le montage complet du DOM.
+        """
         try:
-            # Initialisation basique
+            # Initialisation de base
             self.update_global_progress(0)
             self.set_current_plugin("aucun")
 
@@ -710,34 +762,42 @@ class ExecutionWidget(Container):
                 logs_container.remove_class("hidden")
                 self.show_logs = True
 
-            # Gérer l'affichage du bouton démarrer en fonction de l'état de back_button_clicked
+            # Gérer l'affichage du bouton démarrer
             start_button = self.query_one("#start-button")
-            if start_button:
-                if self.back_button_clicked and "hidden" in start_button.classes:
-                    # Si le bouton retour a été cliqué, afficher le bouton démarrer
-                    start_button.remove_class("hidden")
-                    logger.debug("Bouton démarrer affiché (back_button_clicked=True)")
+            if start_button and self.back_button_clicked:
+                start_button.remove_class("hidden")
+                logger.debug("Bouton démarrer affiché")
 
-            # Ajouter un message initial dans les logs
-            await LoggerUtils.add_log(self, "Initialisation de l'interface terminée", level="info")
+            # Message initial dans les logs
+            await LoggerUtils.add_log(self, "Interface initialisée, prêt pour l'exécution", level="info")
 
-            # Initialiser l'état de la checkbox
+            # Initialiser les options
             self.continue_on_error = True  # True par défaut
 
-            # Initialiser l'affichage des logs
+            # Vider les logs
             await LoggerUtils.clear_logs(self)
         except Exception as e:
-            logger.error(f"Erreur lors de l'initialisation de l'UI: {str(e)}")
-
+            logger.error(f"Erreur lors de l'initialisation de l'interface: {e}")
+            logger.error(traceback.format_exc())
 
     async def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
-        """Gestion du changement d'état de la checkbox"""
+        """
+        Gère le changement d'état des cases à cocher.
+        
+        Args:
+            event: Événement de changement
+        """
         if event.checkbox.id == "continue-on-error":
             self.continue_on_error = event.value
-            logger.debug(f"Option 'continuer en cas d'erreur' changée à: {self.continue_on_error}")
+            logger.debug(f"Option 'continuer en cas d'erreur' changée: {self.continue_on_error}")
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
-        """Gestion des clics sur les boutons"""
+        """
+        Gère les clics sur les boutons.
+        
+        Args:
+            event: Événement de bouton pressé
+        """
         button_id = event.button.id
         logger.debug(f"Clic sur le bouton {button_id}")
 
@@ -747,113 +807,132 @@ class ExecutionWidget(Container):
 
         try:
             if button_id == "start-button" and not event.button.disabled:
-                # Démarrer l'exécution sans manipuler les classes ici (déplacé vers start_execution)
+                # Démarrer l'exécution
                 await self.start_execution()
             elif button_id == "back-button":
                 # Marquer que le bouton retour a été cliqué
                 self.back_button_clicked = True
-                logger.debug("Bouton retour cliqué, activation du bouton démarrer")
-
-                # Import ici pour éviter les imports circulaires
-                from ..config_screen.config_screen import PluginConfig
-                from ..config_screen.config_manager import ConfigManager
-
-                # Extraire les infos de plugin_id
-                plugin_instances = []
-                for plugin_id in self.plugins_config.keys():
-                    # Récupérer la configuration du plugin
-                    config = self.plugins_config.get(plugin_id, {})
-                    if not isinstance(config, dict):
-                        logger.error(f"Configuration invalide pour le plugin {plugin_id}")
-                        continue
-
-                    # Ignorer les séquences
-                    plugin_name = config.get('plugin_name', '')
-                    if isinstance(plugin_name, str) and plugin_name.startswith('__sequence__'):
-                        continue
-
-                    try:
-                        # Récupérer le dossier du plugin
-                        folder_name = get_plugin_folder_name(plugin_name)
-                        # Utiliser l'instance ID de la configuration
-                        instance_id = config.get('instance_id', 0)
-                        # Ajouter le tuple (nom_plugin, instance_id)
-                        plugin_instances.append((folder_name, instance_id))
-                        logger.debug(f"Plugin ajouté pour retour: {folder_name}_{instance_id}")
-                    except Exception as e:
-                        logger.error(f"Erreur lors de l'extraction des infos pour {plugin_id}: {e}")
-
-                # Créer l'écran de configuration
-                config_screen = PluginConfig(plugin_instances)
-
-                # Convertir le format de configuration pour qu'il soit compatible avec PluginConfig
-                corrected_config = {}
-                for plugin_id, plugin_data in self.plugins_config.items():
-                    # Ignorer les séquences
-                    if plugin_id.startswith('__sequence__'):
-                        continue
-
-                    try:
-                        # Si c'est déjà au bon format, l'utiliser directement
-                        if isinstance(plugin_data, dict) and 'config' in plugin_data:
-                            corrected_config[plugin_id] = plugin_data
-                            logger.debug(f"Config au bon format pour {plugin_id}")
-                        else:
-                            # Sinon, construire la structure attendue
-                            plugin_name = plugin_id.split('_')[0]
-                            instance_id = int(plugin_id.split('_')[-1])
-
-                            # Déterminer les attributs du plugin
-                            plugin_folder = get_plugin_folder_name(plugin_id)
-                            settings_path = os.path.join(
-                                os.path.dirname(__file__), '..', '..', 'plugins',
-                                plugin_folder, 'settings.yml'
-                            )
-
-                            plugin_settings = {}
-                            try:
-                                with open(settings_path, 'r', encoding='utf-8') as f:
-                                    from ruamel.yaml import YAML
-                                    yaml = YAML()
-                                    plugin_settings = yaml.load(f)
-                            except Exception as e:
-                                logger.error(f"Erreur lors du chargement des paramètres pour {plugin_id}: {e}")
-
-                            remote_execution = plugin_data.get('remote_execution', False)
-
-                            corrected_config[plugin_id] = {
-                                'plugin_name': plugin_name,
-                                'instance_id': instance_id,
-                                'name': plugin_settings.get('name', plugin_name),
-                                'show_name': plugin_settings.get('name', plugin_name),
-                                'icon': plugin_settings.get('icon', '📦'),
-                                'config': plugin_data,
-                                'remote_execution': remote_execution
-                            }
-                            logger.debug(f"Config reconstruite pour {plugin_id}")
-                    except Exception as e:
-                        logger.error(f"Erreur lors de la conversion de config pour {plugin_id}: {e}")
-
-                # Préserver la configuration convertie
-                config_screen.current_config = corrected_config
-                logger.debug(f"Configuration préservée: {len(corrected_config)} plugins")
-
-                # Indiquer que nous revenons de l'écran d'exécution pour charger la configuration
-                config_screen.returning_from_execution = True
-
-                # Revenir à l'écran de configuration
-                self.app.switch_screen(config_screen)
+                logger.debug("Retour à l'écran de configuration")
+                
+                await self._return_to_config_screen()
             elif button_id == "toggle-logs-button":
-                # Afficher/Masquer les logs
+                # Afficher/masquer les logs
                 self.action_toggle_logs()
-            elif button_id == "quit-button":
-                self.app.exit()
-
         except Exception as e:
-            logger.error(f"Erreur lors du traitement du clic sur {button_id} : {str(e)}")
-            # En cas d'erreur sur le bouton start, on le réactive
+            logger.error(f"Erreur lors du traitement du clic sur {button_id}: {e}")
+            logger.error(traceback.format_exc())
+            # En cas d'erreur, réactiver le bouton
             if button_id == "start-button":
                 event.button.disabled = False
-                logger.debug("Bouton réactivé après erreur")
-            # Propager l'erreur pour le traitement global
-            raise
+            
+    async def _return_to_config_screen(self) -> None:
+        """
+        Retourne à l'écran de configuration en préservant les configurations.
+        """
+        try:
+            # Import ici pour éviter les imports circulaires
+            from ..config_screen.config_screen import PluginConfig
+
+            # Extraire les infos de plugin pour l'écran de configuration
+            plugin_instances = []
+            
+            for plugin_id in self.plugins_config.keys():
+                # Récupérer la configuration
+                config = self.plugins_config.get(plugin_id, {})
+                if not isinstance(config, dict):
+                    continue
+
+                # Ignorer les séquences
+                plugin_name = config.get('plugin_name', '')
+                if isinstance(plugin_name, str) and plugin_name.startswith('__sequence__'):
+                    continue
+
+                try:
+                    # Récupérer le dossier du plugin
+                    folder_name = get_plugin_folder_name(plugin_name)
+                    # Utiliser l'instance ID de la configuration
+                    instance_id = config.get('instance_id', 0)
+                    # Ajouter le tuple (nom_plugin, instance_id)
+                    plugin_instances.append((folder_name, instance_id))
+                    logger.debug(f"Plugin ajouté pour retour: {folder_name}_{instance_id}")
+                except Exception as e:
+                    logger.error(f"Erreur lors de l'extraction des infos pour {plugin_id}: {e}")
+
+            # Créer l'écran de configuration
+            config_screen = PluginConfig(plugin_instances)
+
+            # Préparer les configurations pour l'écran de config
+            corrected_config = self._prepare_configs_for_return(self.plugins_config)
+            
+            # Préserver la configuration
+            config_screen.current_config = corrected_config
+            logger.debug(f"Configuration préservée: {len(corrected_config)} plugins")
+
+            # Indiquer qu'on revient de l'écran d'exécution
+            config_screen.returning_from_execution = True
+
+            # Revenir à l'écran de configuration
+            self.app.switch_screen(config_screen)
+        except Exception as e:
+            logger.error(f"Erreur lors du retour à l'écran de configuration: {e}")
+            logger.error(traceback.format_exc())
+            self.notify("Erreur lors du retour à la configuration", severity="error")
+            
+    def _prepare_configs_for_return(self, plugins_config: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Prépare les configurations pour le retour à l'écran de configuration.
+        
+        Args:
+            plugins_config: Configurations des plugins
+            
+        Returns:
+            Dict[str, Any]: Configurations corrigées
+        """
+        corrected_config = {}
+        
+        for plugin_id, plugin_data in plugins_config.items():
+            # Ignorer les séquences
+            if isinstance(plugin_id, str) and plugin_id.startswith('__sequence__'):
+                continue
+
+            try:
+                # Si déjà au bon format, l'utiliser directement
+                if isinstance(plugin_data, dict) and 'config' in plugin_data:
+                    corrected_config[plugin_id] = plugin_data
+                else:
+                    # Reconstruire la structure
+                    parts = plugin_id.split('_')
+                    plugin_name = parts[0]
+                    instance_id = int(parts[-1]) if parts[-1].isdigit() else 0
+
+                    # Récupérer les paramètres du plugin
+                    plugin_folder = get_plugin_folder_name(plugin_name)
+                    settings_path = os.path.join(
+                        os.path.dirname(__file__), '..', '..', 'plugins',
+                        plugin_folder, 'settings.yml'
+                    )
+
+                    plugin_settings = {}
+                    try:
+                        with open(settings_path, 'r', encoding='utf-8') as f:
+                            from ruamel.yaml import YAML
+                            yaml = YAML()
+                            plugin_settings = yaml.load(f)
+                    except Exception as e:
+                        logger.error(f"Erreur lors du chargement des paramètres pour {plugin_id}: {e}")
+
+                    remote_execution = plugin_data.get('remote_execution', False)
+
+                    corrected_config[plugin_id] = {
+                        'plugin_name': plugin_name,
+                        'instance_id': instance_id,
+                        'name': plugin_settings.get('name', plugin_name),
+                        'show_name': plugin_settings.get('name', plugin_name),
+                        'icon': plugin_settings.get('icon', '📦'),
+                        'config': plugin_data,
+                        'remote_execution': remote_execution
+                    }
+            except Exception as e:
+                logger.error(f"Erreur lors de la correction de config pour {plugin_id}: {e}")
+                
+        return corrected_config
