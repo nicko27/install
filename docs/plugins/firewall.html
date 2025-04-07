@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentation: plugins_utils/firewall.py</title>
+  <link rel="stylesheet" href="docs_style.css">
+  <style>
+    /* Style additionnel pour les avertissements forts */
+    .destructive-warning {
+      color: #dc3545;
+      /* Rouge vif */
+      background-color: #f8d7da;
+      border: 1px solid #f1aeb5;
+      font-weight: 700;
+      /* Gras */
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+      border-radius: 4px;
+    }
+
+    .destructive-warning::before {
+      content: "🚨 ATTENTION: ";
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <h1 class="main-title">Documentation: <code>plugins_utils/firewall.py</code></h1>
+
+    <p class="module-description">
+      Ce module fournit des utilitaires pour gérer le pare-feu système via UFW (Uncomplicated Firewall).
+      Il utilise la commande <code>ufw</code>.
+    </p>
+    <p class="dependency-warning">
+      Ce module nécessite que <code>ufw</code> soit installé et configuré sur le système cible.
+    </p>
+
+    <nav class="toc">
+      <h3 class="toc-title">Accès Rapide aux Méthodes</h3>
+      <ul class="toc-list">
+        <li class="toc-item"><a href="#is_active" class="toc-link">is_active</a></li>
+        <li class="toc-item"><a href="#enable" class="toc-link">enable</a></li>
+        <li class="toc-item"><a href="#disable" class="toc-link">disable</a></li>
+        <li class="toc-item"><a href="#reset" class="toc-link">reset</a></li>
+        <li class="toc-item"><a href="#get_status" class="toc-link">get_status</a></li>
+        <li class="toc-item"><a href="#allow" class="toc-link">allow</a></li>
+        <li class="toc-item"><a href="#deny" class="toc-link">deny</a></li>
+        <li class="toc-item"><a href="#reject" class="toc-link">reject</a></li>
+        <li class="toc-item"><a href="#limit" class="toc-link">limit</a></li>
+        <li class="toc-item"><a href="#delete_rule" class="toc-link">delete_rule</a></li>
+        <li class="toc-item"><a href="#set_default_policy" class="toc-link">set_default_policy</a></li>
+        <li class="toc-item"><a href="#reload" class="toc-link">reload</a></li>
+      </ul>
+    </nav>
+
+    <h2 class="section-title">Classe Principale</h2>
+
+    <section class="method-section">
+      <h3 class="method-title" id="FirewallCommands"><code>FirewallCommands(PluginUtilsBase)</code></h3>
+      <p class="description">
+        Classe pour gérer le pare-feu UFW.
+        Hérite de <code>PluginUtilsBase</code> pour l'exécution des commandes et la journalisation.
+      </p>
+    </section>
+
+    <h2 class="section-title">Méthodes Principales</h2>
+
+    <section class="method-section">
+      <h4 class="method-title" id="is_active"><code>is_active() -> bool</code></h4>
+      <p class="description">Vérifie si UFW est actif via <code>ufw status</code>.</p>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si UFW est actif, False
+        sinon.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="enable"><code>enable() -> bool</code></h4>
+      <p class="description">Active le pare-feu UFW via <code>yes | ufw enable</code> (répond 'y' à la confirmation).
+      </p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si l'activation a réussi.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="disable"><code>disable() -> bool</code></h4>
+      <p class="description">Désactive le pare-feu UFW via <code>ufw disable</code>.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la désactivation a
+        réussi (ou si déjà inactif).
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="reset"><code>reset() -> bool</code></h4>
+      <p class="description">Réinitialise UFW à ses paramètres par défaut via <code>yes | ufw reset</code>.</p>
+      <p class="destructive-warning">Opération dangereuse ! Supprime toutes les règles et désactive UFW.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la réinitialisation a
+        réussi.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="get_status"><code>get_status(numbered: bool = True) -> Optional[str]</code></h4>
+      <p class="description">Récupère le statut et les règles UFW via <code>ufw status [numbered|verbose]</code>.</p>
+      <p class="sudo-warning">Peut nécessiter des privilèges root pour afficher toutes les informations.</p>
+      <dl class="param-list">
+        <dt>numbered</dt>
+        <dd><span class="param-type">(bool)</span>: Si True (défaut), affiche les règles numérotées (utile pour la
+          suppression). Si False, utilise 'verbose'.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">Optional[str]</span> - La sortie texte de la
+        commande 'ufw status' ou None si erreur.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="allow"><code>allow(rule: str) -> bool</code></h4>
+      <p class="description">Ajoute une règle 'allow' via <code>ufw allow ...</code>.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <dl class="param-list">
+        <dt>rule</dt>
+        <dd><span class="param-type">(str)</span>: La règle UFW complète (ex: '22/tcp', 'from 192.168.1.100 to any port
+          80', 'Apache Full'). La chaîne est découpée en arguments.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si succès (ou si la règle
+        existait déjà).
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="deny"><code>deny(rule: str) -> bool</code></h4>
+      <p class="description">Ajoute une règle 'deny' via <code>ufw deny ...</code>.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <dl class="param-list">
+        <dt>rule</dt>
+        <dd><span class="param-type">(str)</span>: La règle UFW complète.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si succès (ou si la règle
+        existait déjà).
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="reject"><code>reject(rule: str) -> bool</code></h4>
+      <p class="description">Ajoute une règle 'reject' via <code>ufw reject ...</code>.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <dl class="param-list">
+        <dt>rule</dt>
+        <dd><span class="param-type">(str)</span>: La règle UFW complète.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si succès (ou si la règle
+        existait déjà).
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="limit"><code>limit(rule: str) -> bool</code></h4>
+      <p class="description">Ajoute une règle 'limit' (limite les connexions depuis une IP) via
+        <code>ufw limit ...</code>.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <dl class="param-list">
+        <dt>rule</dt>
+        <dd><span class="param-type">(str)</span>: La règle UFW complète (typiquement un port ou service, ex:
+          'ssh/tcp').</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si succès (ou si la règle
+        existait déjà).
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="delete_rule"><code>delete_rule(rule_or_number: Union[str, int]) -> bool</code></h4>
+      <p class="description">Supprime une règle UFW par son numéro ou sa spécification via
+        <code>yes | ufw delete ...</code>.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <dl class="param-list">
+        <dt>rule_or_number</dt>
+        <dd><span class="param-type">(Union[str, int])</span>: Le numéro de la règle (obtenu via
+          <code>get_status(numbered=True)</code>) ou la spécification complète de la règle (ex: 'allow 22/tcp').</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la suppression a
+        réussi ou si la règle n'existait pas.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="set_default_policy">
+        <code>set_default_policy(policy: str, direction: str = 'incoming') -> bool</code></h4>
+      <p class="description">Définit la politique par défaut pour un trafic donné via <code>ufw default ...</code>.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <dl class="param-list">
+        <dt>policy</dt>
+        <dd><span class="param-type">(str)</span>: Politique à appliquer ('allow', 'deny', 'reject').</dd>
+        <dt>direction</dt>
+        <dd><span class="param-type">(str)</span>: Direction du trafic ('incoming', 'outgoing', 'routed'). Défaut:
+          'incoming'.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si succès.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="reload"><code>reload() -> bool</code></h4>
+      <p class="description">Recharge la configuration UFW sans interrompre les connexions existantes via
+        <code>ufw reload</code>.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si le rechargement a
+        réussi.
+      </div>
+    </section>
+
+  </div>
+</body>
+
+</html>

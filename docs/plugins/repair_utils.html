@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentation: plugins_utils/repair_utils.py</title>
+  <link rel="stylesheet" href="docs_style.css">
+  <style>
+    /* Style additionnel pour les avertissements forts */
+    .destructive-warning {
+      color: #dc3545;
+      /* Rouge vif */
+      background-color: #f8d7da;
+      border: 1px solid #f1aeb5;
+      font-weight: 700;
+      /* Gras */
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+      border-radius: 4px;
+    }
+
+    .destructive-warning::before {
+      content: "🚨 ATTENTION: ";
+    }
+
+    /* Style additionnel pour les avertissements de dépendance */
+    .dependency-warning {
+      color: #856404;
+      /* Jaune/brun */
+      background-color: #fff3cd;
+      /* Jaune clair */
+      border: 1px solid #ffeeba;
+      /* Jaune moyen */
+      border-radius: 4px;
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .dependency-warning::before {
+      content: "⚠️ Prérequis: ";
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <h1 class="main-title">Documentation: <code>plugins_utils/repair_utils.py</code></h1>
+
+    <p class="module-description">
+      Ce module fournit des utilitaires pour effectuer des actions de réparation système courantes.
+      Il combine des fonctionnalités d'autres modules utilitaires comme <code>AptCommands</code>,
+      <code>DpkgCommands</code>, <code>LogCommands</code>, et <code>ServiceCommands</code>.
+    </p>
+    <p class="dependency-warning">
+      Nécessite que les modules utilitaires sous-jacents (Apt, Dpkg, Log, Services, Network)
+      soient disponibles et fonctionnels. La plupart des opérations nécessitent des privilèges root.
+    </p>
+
+    <nav class="toc">
+      <h3 class="toc-title">Accès Rapide aux Méthodes</h3>
+      <ul class="toc-list">
+        <li class="toc-item"><a href="#apt_fix_broken_install" class="toc-link">apt_fix_broken_install</a></li>
+        <li class="toc-item"><a href="#dpkg_configure_pending" class="toc-link">dpkg_configure_pending</a></li>
+        <li class="toc-item"><a href="#force_log_rotation" class="toc-link">force_log_rotation</a></li>
+        <li class="toc-item"><a href="#clear_temp_files" class="toc-link">clear_temp_files</a></li>
+        <li class="toc-item"><a href="#restart_networking" class="toc-link">restart_networking</a></li>
+        <li class="toc-item"><a href="#restart_dns_resolver" class="toc-link">restart_dns_resolver</a></li>
+      </ul>
+    </nav>
+
+    <h2 class="section-title">Classe Principale</h2>
+
+    <section class="method-section">
+      <h3 class="method-title" id="RepairCommands"><code>RepairCommands(PluginUtilsBase)</code></h3>
+      <p class="description">
+        Classe pour exécuter des actions de réparation système courantes.
+        Hérite de <code>PluginUtilsBase</code> et utilise d'autres commandes utilitaires.
+      </p>
+    </section>
+
+    <h2 class="section-title">Méthodes Principales</h2>
+
+    <section class="method-section">
+      <h4 class="method-title" id="apt_fix_broken_install"><code>apt_fix_broken_install() -> bool</code></h4>
+      <p class="description">Tente de réparer les dépendances APT cassées via <code>AptCommands.fix_broken()</code>
+        (équivalent à <code>apt --fix-broken install</code>).</p>
+      <p class="dependency-warning">Nécessite le module <code>AptCommands</code>.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la réparation a réussi
+        ou si rien n'était cassé.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="dpkg_configure_pending"><code>dpkg_configure_pending() -> bool</code></h4>
+      <p class="description">Tente de configurer tous les paquets décompressés mais non configurés via
+        <code>dpkg --configure -a</code>.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la commande s'est
+        exécutée avec succès.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="force_log_rotation">
+        <code>force_log_rotation(config_file: Optional[str] = None) -> bool</code></h4>
+      <p class="description">Force l'exécution de logrotate via <code>LogCommands.force_logrotate()</code>.</p>
+      <p class="dependency-warning">Nécessite le module <code>LogCommands</code>.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <dl class="param-list">
+        <dt>config_file</dt>
+        <dd><span class="param-type">(Optional[str])</span>: Chemin optionnel vers un fichier de configuration logrotate
+          spécifique. Si None, utilise la configuration système globale.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si succès.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="clear_temp_files"><code>clear_temp_files(...) -> bool</code></h4>
+      <p class="description">Nettoie les fichiers temporaires dans des répertoires spécifiés via
+        <code>find ... -delete</code>.</p>
+      <p class="destructive-warning">Utiliser avec prudence. Par défaut en mode simulation (<code>dry_run=True</code>).
+      </p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <div class="method-signature">
+        <pre><code>clear_temp_files(
+    directories: Optional[List[str]] = None,
+    older_than_days: int = 7,
+    patterns: Optional[List[str]] = None,
+    dry_run: bool = True
+) -> bool</code></pre>
+      </div>
+      <dl class="param-list">
+        <dt>directories</dt>
+        <dd><span class="param-type">(Optional[List[str]])</span>: Liste de répertoires à nettoyer. Défaut: ['/tmp',
+          '/var/tmp'].</dd>
+        <dt>older_than_days</dt>
+        <dd><span class="param-type">(int)</span>: Supprimer les fichiers plus vieux que N jours (mtime). Défaut: 7.
+        </dd>
+        <dt>patterns</dt>
+        <dd><span class="param-type">(Optional[List[str]])</span>: Liste de motifs de noms de fichiers à cibler (ex:
+          ['*.tmp', 'sess_*']). Si None, cible tous les fichiers ('*').</dd>
+        <dt>dry_run</dt>
+        <dd><span class="param-type">(bool)</span>: Si True (défaut), simule seulement la suppression (affiche les
+          fichiers). Si False, supprime réellement.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si l'opération (ou la
+        simulation) a réussi.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="restart_networking">
+        <code>restart_networking(force_network_manager: bool = False) -> bool</code></h4>
+      <p class="description">Tente de redémarrer le service réseau principal (NetworkManager, systemd-networkd, ou
+        networking) via <code>ServiceCommands</code>.</p>
+      <p class="destructive-warning">Peut couper la connexion SSH si exécuté à distance !</p>
+      <p class="dependency-warning">Nécessite les modules <code>ServiceCommands</code> et <code>NetworkCommands</code>.
+      </p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <dl class="param-list">
+        <dt>force_network_manager</dt>
+        <dd><span class="param-type">(bool)</span>: Si True, tente de redémarrer NetworkManager même s'il n'est pas
+          détecté comme gestionnaire principal. Défaut: False.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si un service réseau a
+        été redémarré avec succès.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="restart_dns_resolver"><code>restart_dns_resolver() -> bool</code></h4>
+      <p class="description">Tente de redémarrer le service de résolution DNS local (typiquement
+        <code>systemd-resolved</code>) via <code>ServiceCommands</code>.</p>
+      <p class="dependency-warning">Nécessite le module <code>ServiceCommands</code>.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si un service de
+        résolution a été redémarré avec succès.
+      </div>
+    </section>
+
+  </div>
+</body>
+
+</html>

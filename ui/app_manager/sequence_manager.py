@@ -6,16 +6,11 @@ charger des séquences, notamment par leur raccourci.
 """
 
 from pathlib import Path
-from typing import Dict, Any, Tuple, Optional, List, Union, Type
-import importlib.util
+from typing import Dict, Any, Tuple, Optional, List, Union
 from ruamel.yaml import YAML
 from ..utils.logging import get_logger
 
 logger = get_logger('sequence_manager')
-
-# Tenter d'importer PluginInstance depuis choice_screen
-# Si l'import échoue, créer une classe PluginInstance compatible
-from ..choice_screen.choice_screen import PluginInstance
 
 class SequenceManager:
     """
@@ -154,31 +149,6 @@ class SequenceManager:
                     logger.error(f"Champs requis manquants dans la séquence {sequence_path}")
                     return None
                     
-                # Ajouter une description par défaut si nécessaire
-                if 'description' not in sequence:
-                    sequence['description'] = f"Séquence {sequence['name']}"
-                    
-                # Standardiser le format des plugins
-                for i, plugin in enumerate(sequence['plugins']):
-                    # Convertir les chaînes simples en dictionnaires
-                    if isinstance(plugin, str):
-                        sequence['plugins'][i] = {"name": plugin, "config": {}}
-                    # S'assurer que les dictionnaires ont les clés requises
-                    elif isinstance(plugin, dict):
-                        if 'name' not in plugin:
-                            logger.warning(f"Plugin sans nom dans la séquence {sequence_path}, index {i}")
-                            plugin['name'] = f"plugin_{i}"
-                        # Standardiser la clé 'config'
-                        if 'config' not in plugin:
-                            # Migrer 'variables' vers 'config' si nécessaire
-                            if 'variables' in plugin:
-                                plugin['config'] = plugin['variables']
-                                del plugin['variables']
-                            else:
-                                plugin['config'] = {}
-                    else:
-                        logger.warning(f"Format de plugin non reconnu dans la séquence {sequence_path}, index {i}")
-                
                 # Mettre en cache
                 cls._sequence_cache[str(sequence_path)] = sequence
                 logger.debug(f"Séquence chargée et mise en cache: {sequence_path}")
@@ -258,27 +228,6 @@ class SequenceManager:
             # Créer le dossier parent si nécessaire
             sequence_path.parent.mkdir(parents=True, exist_ok=True)
             
-            # Standardiser les plugins avant la sauvegarde
-            for i, plugin in enumerate(sequence_data['plugins']):
-                # Convertir PluginInstance en dictionnaire
-                if hasattr(plugin, 'name') and hasattr(plugin, 'config'):
-                    sequence_data['plugins'][i] = {
-                        'name': plugin.name,
-                        'config': plugin.config
-                    }
-                # Convertir les chaînes simples en dictionnaires
-                elif isinstance(plugin, str):
-                    sequence_data['plugins'][i] = {'name': plugin, 'config': {}}
-                # S'assurer que les dictionnaires ont la clé 'config'
-                elif isinstance(plugin, dict) and 'name' in plugin:
-                    if 'config' not in plugin:
-                        # Migrer 'variables' vers 'config' si nécessaire
-                        if 'variables' in plugin:
-                            plugin['config'] = plugin['variables']
-                            del plugin['variables']
-                        else:
-                            plugin['config'] = {}
-            
             # Sauvegarder dans le fichier
             with open(sequence_path, 'w', encoding='utf-8') as f:
                 cls._yaml.dump(sequence_data, f)
@@ -286,7 +235,7 @@ class SequenceManager:
             # Mettre à jour le cache
             cls._sequence_cache[str(sequence_path)] = sequence_data
             
-            # Mettre à jour le cache des raccourcis si nécessaire
+            # Invalider le cache des raccourcis (puisque les raccourcis peuvent avoir changé)
             if 'shortcut' in sequence_data:
                 shortcuts = sequence_data['shortcut']
                 if isinstance(shortcuts, str):
@@ -303,69 +252,6 @@ class SequenceManager:
             import traceback
             logger.error(traceback.format_exc())
             return False
-            
-    @classmethod
-    def sequence_to_plugin_instances(cls, sequence_path: Union[str, Path], base_instance_id: int = 0) -> List[PluginInstance]:
-        """
-        Convertit une séquence en liste d'instances de plugins.
-        
-        Args:
-            sequence_path: Chemin vers le fichier de séquence
-            base_instance_id: ID de base pour les instances (par défaut: 0)
-            
-        Returns:
-            List[PluginInstance]: Liste des instances de plugins
-        """
-        instances = []
-        next_id = base_instance_id
-        
-        # Charger la séquence
-        sequence = cls.load_sequence(sequence_path)
-        if not sequence:
-            logger.error(f"Impossible de charger la séquence: {sequence_path}")
-            return instances
-            
-        # Convertir le chemin en objet Path
-        if isinstance(sequence_path, str):
-            sequence_path = Path(sequence_path)
-            
-        # Créer une instance pour la séquence elle-même
-        sequence_name = f"__sequence__{sequence_path.name}"
-        sequence_instance = PluginInstance(
-            name=sequence_name,
-            instance_id=next_id,
-            metadata={'source': 'file'}
-        )
-        instances.append(sequence_instance)
-        next_id += 1
-        
-        # Créer des instances pour chaque plugin
-        for plugin_config in sequence['plugins']:
-            # Extraire le nom et la configuration
-            if isinstance(plugin_config, dict) and 'name' in plugin_config:
-                plugin_name = plugin_config['name']
-                config = plugin_config.get('config', {})
-            elif isinstance(plugin_config, str):
-                plugin_name = plugin_config
-                config = {}
-            else:
-                logger.warning(f"Format de plugin non reconnu dans la séquence: {plugin_config}")
-                continue
-                
-            # Créer l'instance
-            plugin_instance = PluginInstance(
-                name=plugin_name,
-                instance_id=next_id,
-                config=config,
-                metadata={
-                    'source': 'sequence',
-                    'sequence_id': base_instance_id
-                }
-            )
-            instances.append(plugin_instance)
-            next_id += 1
-            
-        return instances
             
     @classmethod
     def clear_cache(cls) -> None:

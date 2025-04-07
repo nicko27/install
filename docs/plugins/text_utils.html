@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentation: plugins_utils/text_utils.py</title>
+  <link rel="stylesheet" href="docs_style.css">
+</head>
+
+<body>
+  <div class="container">
+
+    <h1 class="main-title">Documentation: <code>plugins_utils/text_utils.py</code></h1>
+
+    <p class="module-description">
+      Ce module fournit des utilitaires pour les opérations courantes sur les chaînes de caractères et le texte.
+      Il propose des fonctions pour le parsing simple (clé-valeur, tableaux), la recherche regex avancée
+      et le nettoyage de texte (ex: pour les noms de fichiers).
+    </p>
+
+    <nav class="toc">
+      <h3 class="toc-title">Accès Rapide aux Méthodes</h3>
+      <ul class="toc-list">
+        <li class="toc-item"><a href="#parse_key_value" class="toc-link">parse_key_value</a></li>
+        <li class="toc-item"><a href="#parse_table" class="toc-link">parse_table</a></li>
+        <li class="toc-item"><a href="#extract_sections" class="toc-link">extract_sections</a></li>
+        <li class="toc-item"><a href="#advanced_regex_search" class="toc-link">advanced_regex_search</a></li>
+        <li class="toc-item"><a href="#sanitize_filename" class="toc-link">sanitize_filename</a></li>
+      </ul>
+    </nav>
+
+    <h2 class="section-title">Classe Principale</h2>
+
+    <section class="method-section">
+      <h3 class="method-title" id="TextUtils"><code>TextUtils(PluginUtilsBase)</code></h3>
+      <p class="description">
+        Classe pour les opérations courantes sur le texte.
+        Hérite de <code>PluginUtilsBase</code> principalement pour la journalisation.
+      </p>
+    </section>
+
+    <h2 class="section-title">Méthodes Principales</h2>
+
+    <section class="method-section">
+      <h4 class="method-title" id="parse_key_value"><code>parse_key_value(...) -> Dict[str, str]</code></h4>
+      <p class="description">Parse un texte multiligne contenant des paires clé-valeur.</p>
+      <div class="method-signature">
+        <pre><code>parse_key_value(
+    text: str,
+    delimiter_pattern: str = r'\s*[:=]\s*',
+    comment_char: Optional[str] = '#',
+    strip_quotes: bool = True,
+    lower_keys: bool = False
+) -> Dict[str, str]</code></pre>
+      </div>
+      <dl class="param-list">
+        <dt>text</dt>
+        <dd><span class="param-type">(str)</span>: La chaîne de caractères à parser.</dd>
+        <dt>delimiter_pattern</dt>
+        <dd><span class="param-type">(str)</span>: Regex définissant le(s) délimiteur(s) entre clé et valeur. Défaut:
+          <code>r'\s*[:=]\s*'</code>.</dd>
+        <dt>comment_char</dt>
+        <dd><span class="param-type">(Optional[str])</span>: Caractère indiquant un commentaire (si None, pas de
+          gestion). Défaut: '#'.</dd>
+        <dt>strip_quotes</dt>
+        <dd><span class="param-type">(bool)</span>: Si True (défaut), supprime les guillemets simples ou doubles
+          entourant les valeurs.</dd>
+        <dt>lower_keys</dt>
+        <dd><span class="param-type">(bool)</span>: Si True, convertit les clés en minuscules. Défaut: False.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">Dict[str, str]</span> - Dictionnaire des
+        paires clé-valeur trouvées.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="parse_table"><code>parse_table(...) -> List[Dict[str, str]]</code></h4>
+      <p class="description">Parse un texte tabulaire en une liste de dictionnaires. Utilise la dernière ligne d'en-tête
+        pour les clés.</p>
+      <div class="method-signature">
+        <pre><code>parse_table(
+    text: str,
+    delimiter_pattern: str = r'\s+',
+    header_lines: int = 1,
+    comment_char: Optional[str] = '#',
+    min_columns: int = 1
+) -> List[Dict[str, str]]</code></pre>
+      </div>
+      <dl class="param-list">
+        <dt>text</dt>
+        <dd><span class="param-type">(str)</span>: La chaîne de caractères contenant le tableau.</dd>
+        <dt>delimiter_pattern</dt>
+        <dd><span class="param-type">(str)</span>: Regex pour séparer les colonnes. Défaut: <code>r'\s+'</code> (un ou
+          plusieurs espaces).</dd>
+        <dt>header_lines</dt>
+        <dd><span class="param-type">(int)</span>: Nombre de lignes d'en-tête à ignorer/utiliser. Défaut: 1.</dd>
+        <dt>comment_char</dt>
+        <dd><span class="param-type">(Optional[str])</span>: Caractère indiquant une ligne de commentaire à ignorer.
+          Défaut: '#'.</dd>
+        <dt>min_columns</dt>
+        <dd><span class="param-type">(int)</span>: Nombre minimum de colonnes attendues pour une ligne de données
+          valide. Défaut: 1.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">List[Dict[str, str]]</span> - Liste de
+        dictionnaires, où chaque dictionnaire représente une ligne de données. Les clés sont dérivées de l'en-tête
+        (nettoyées). Retourne une liste vide si le parsing échoue ou si aucune donnée n'est trouvée.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="extract_sections"><code>extract_sections(...) -> Dict[str, str]</code></h4>
+      <p class="description">Extrait des sections d'un texte basé sur un motif regex de début de section. Chaque section
+        s'étend jusqu'au prochain motif de début ou la fin du texte.</p>
+      <div class="method-signature">
+        <pre><code>extract_sections(
+    text: str,
+    section_start_pattern: str,
+    include_start_line: bool = False,
+    strip_content: bool = True
+) -> Dict[str, str]</code></pre>
+      </div>
+      <dl class="param-list">
+        <dt>text</dt>
+        <dd><span class="param-type">(str)</span>: Le texte complet à analyser.</dd>
+        <dt>section_start_pattern</dt>
+        <dd><span class="param-type">(str)</span>: Regex pour identifier le début d'une section. Le groupe de capture 1
+          (s'il existe) sera utilisé comme clé, sinon la ligne de début complète (nettoyée).</dd>
+        <dt>include_start_line</dt>
+        <dd><span class="param-type">(bool)</span>: Inclure la ligne de début dans le contenu de la section. Défaut:
+          False.</dd>
+        <dt>strip_content</dt>
+        <dd><span class="param-type">(bool)</span>: Si True (défaut), supprime les espaces vides au début/fin du contenu
+          de section.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">Dict[str, str]</span> - Dictionnaire où les
+        clés sont les identifiants de section et les valeurs sont le contenu textuel de chaque section.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="advanced_regex_search">
+        <code>advanced_regex_search(...) -> Union[Optional[Dict[str, str]], List[Dict[str, str]], None]</code></h4>
+      <p class="description">Effectue une recherche regex avancée et retourne les résultats structurés, en associant les
+        groupes capturés à des noms.</p>
+      <div class="method-signature">
+        <pre><code>advanced_regex_search(
+    text: str,
+    pattern: Union[str, Pattern],
+    group_names: Optional[List[str]] = None,
+    find_all: bool = True
+) -> Union[Optional[Dict[str, str]], List[Dict[str, str]], None]</code></pre>
+      </div>
+      <dl class="param-list">
+        <dt>text</dt>
+        <dd><span class="param-type">(str)</span>: Texte dans lequel chercher.</dd>
+        <dt>pattern</dt>
+        <dd><span class="param-type">(Union[str, Pattern])</span>: Expression régulière (chaîne ou objet
+          <code>re.Pattern</code> compilé).</dd>
+        <dt>group_names</dt>
+        <dd><span class="param-type">(Optional[List[str]])</span>: Liste optionnelle de noms à assigner aux groupes de
+          capture (doit correspondre au nombre de groupes).</dd>
+        <dt>find_all</dt>
+        <dd><span class="param-type">(bool)</span>: Si True (défaut), retourne toutes les correspondances. Si False,
+          retourne seulement la première.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">Union[Optional[Dict], List[Dict],
+          None]</span> -
+        Si <code>find_all=True</code>: Liste de dictionnaires, chaque dict représentant une correspondance avec les
+        groupes ('full_match', 'start_pos', 'end_pos', et groupes nommés/numérotés).
+        Si <code>find_all=False</code>: Dictionnaire de la première correspondance ou None.
+        None si une erreur de regex survient.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="sanitize_filename">
+        <code>sanitize_filename(filename: str, replacement: str = '_') -> str</code></h4>
+      <p class="description">Nettoie une chaîne pour l'utiliser comme nom de fichier valide. Remplace les caractères non
+        alphanumériques (sauf '.', '-', '_') par un caractère de remplacement.</p>
+      <dl class="param-list">
+        <dt>filename</dt>
+        <dd><span class="param-type">(str)</span>: Nom de fichier potentiel.</dd>
+        <dt>replacement</dt>
+        <dd><span class="param-type">(str)</span>: Caractère utilisé pour remplacer les caractères invalides. Défaut:
+          '_'.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">str</span> - Nom de fichier nettoyé.
+      </div>
+    </section>
+
+  </div>
+</body>
+
+</html>

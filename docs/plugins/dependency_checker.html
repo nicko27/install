@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation: plugins_utils/dependency_checker.py</title>
+    <link rel="stylesheet" href="docs_style.css">
+    <style>
+        /* Style additionnel pour les avertissements de dépendance */
+        .dependency-warning {
+            color: #856404; /* Jaune/brun */
+            background-color: #fff3cd; /* Jaune clair */
+            border: 1px solid #ffeeba; /* Jaune moyen */
+            border-radius: 4px;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .dependency-warning::before {
+            content: "⚠️ Prérequis: ";
+        }
+         /* Style pour les statuts OK/WARNING/ERROR */
+        .status-ok { color: #198754; font-weight: 600; } /* Vert */
+        .status-warning { color: #ffc107; font-weight: 600; } /* Jaune */
+        .status-error { color: #dc3545; font-weight: 600; } /* Rouge */
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <h1 class="main-title">Documentation: <code>plugins_utils/dependency_checker.py</code></h1>
+
+        <p class="module-description">
+            Ce module fournit des utilitaires pour vérifier les dépendances et prérequis d'un plugin
+            avant son exécution. Il permet de vérifier la présence de commandes externes,
+            de paquets système (via <code>AptCommands</code>), de modules Python, de fichiers ou de répertoires.
+        </p>
+         <p class="dependency-warning">
+            La vérification des paquets système nécessite que le module <code>AptCommands</code>
+            soit disponible et fonctionnel.
+        </p>
+
+        <nav class="toc">
+            <h3 class="toc-title">Accès Rapide aux Méthodes</h3>
+            <ul class="toc-list">
+                <li class="toc-item"><a href="#check_command" class="toc-link">check_command</a></li>
+                <li class="toc-item"><a href="#check_package" class="toc-link">check_package</a></li>
+                <li class="toc-item"><a href="#check_python_module" class="toc-link">check_python_module</a></li>
+                <li class="toc-item"><a href="#check_file_exists" class="toc-link">check_file_exists</a></li>
+                <li class="toc-item"><a href="#check_directory_exists" class="toc-link">check_directory_exists</a></li>
+                <li class="toc-item"><a href="#check_all" class="toc-link">check_all</a></li>
+            </ul>
+        </nav>
+
+        <h2 class="section-title">Classe Principale</h2>
+
+        <section class="method-section">
+            <h3 class="method-title" id="DependencyChecker"><code>DependencyChecker(PluginUtilsBase)</code></h3>
+            <p class="description">
+                Classe pour vérifier les prérequis d'exécution d'un plugin.
+                Hérite de <code>PluginUtilsBase</code> pour l'exécution des commandes (<code>which</code>) et la journalisation.
+                Utilise <code>AptCommands</code> (si disponible) pour vérifier les paquets.
+            </p>
+        </section>
+
+        <h2 class="section-title">Méthodes Principales</h2>
+
+        <section class="method-section">
+            <h4 class="method-title" id="check_command"><code>check_command(command_name: str) -> bool</code></h4>
+            <p class="description">Vérifie si une commande externe est disponible dans le PATH via <code>which</code>.</p>
+            <dl class="param-list">
+                <dt>command_name</dt><dd><span class="param-type">(str)</span>: Nom de la commande à vérifier.</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la commande est trouvée, False sinon.
+            </div>
+        </section>
+
+        <section class="method-section">
+            <h4 class="method-title" id="check_package"><code>check_package(package_name: str, min_version: Optional[str] = None) -> bool</code></h4>
+            <p class="description">Vérifie si un paquet système (Debian/Ubuntu) est installé et satisfait optionnellement une version minimale, en utilisant <code>AptCommands</code>.</p>
+             <p class="dependency-warning">
+                Nécessite le module <code>AptCommands</code>.
+            </p>
+           <dl class="param-list">
+                <dt>package_name</dt><dd><span class="param-type">(str)</span>: Nom du paquet (ex: 'openssh-server').</dd>
+                <dt>min_version</dt><dd><span class="param-type">(Optional[str])</span>: Version minimale requise (ex: '1:8.2p1-4'). Si None, seule l'installation est vérifiée.</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si le paquet est installé et satisfait la version minimale (si spécifiée). False si non installé, si la version est insuffisante, ou si <code>AptCommands</code> n'est pas disponible.
+            </div>
+        </section>
+
+        <section class="method-section">
+            <h4 class="method-title" id="check_python_module"><code>check_python_module(module_name: str) -> bool</code></h4>
+            <p class="description">Vérifie si un module Python peut être importé via <code>importlib.util.find_spec</code>.</p>
+            <dl class="param-list">
+                <dt>module_name</dt><dd><span class="param-type">(str)</span>: Nom du module (ex: 'requests', 'ldap').</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si le module est trouvable par l'interpréteur Python courant.
+            </div>
+        </section>
+
+        <section class="method-section">
+            <h4 class="method-title" id="check_file_exists"><code>check_file_exists(path: Union[str, Path], check_is_file: bool = True) -> bool</code></h4>
+            <p class="description">Vérifie l'existence d'un fichier via <code>os.path</code>.</p>
+            <dl class="param-list">
+                <dt>path</dt><dd><span class="param-type">(Union[str, Path])</span>: Chemin complet du fichier.</dd>
+                <dt>check_is_file</dt><dd><span class="param-type">(bool)</span>: Si True (défaut), vérifie aussi que c'est un fichier et non un dossier.</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si le fichier existe (et est un fichier si <code>check_is_file=True</code>).
+            </div>
+        </section>
+
+        <section class="method-section">
+            <h4 class="method-title" id="check_directory_exists"><code>check_directory_exists(path: Union[str, Path], check_is_dir: bool = True) -> bool</code></h4>
+            <p class="description">Vérifie l'existence d'un répertoire via <code>os.path</code>.</p>
+            <dl class="param-list">
+                <dt>path</dt><dd><span class="param-type">(Union[str, Path])</span>: Chemin complet du répertoire.</dd>
+                <dt>check_is_dir</dt><dd><span class="param-type">(bool)</span>: Si True (défaut), vérifie aussi que c'est un répertoire.</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si le répertoire existe (et est un répertoire si <code>check_is_dir=True</code>).
+            </div>
+        </section>
+
+        <section class="method-section">
+            <h4 class="method-title" id="check_all"><code>check_all(...) -> Dict[str, Any]</code></h4>
+            <p class="description">Exécute une série de vérifications de dépendances et retourne un rapport résumé.</p>
+            <div class="method-signature"><pre><code>check_all(
+    commands: Optional[List[str]] = None,
+    packages: Optional[Union[List[str], Dict[str, Optional[str]]]] = None,
+    python_modules: Optional[List[str]] = None,
+    files: Optional[List[str]] = None,
+    directories: Optional[List[str]] = None
+) -> Dict[str, Any]</code></pre></div>
+            <dl class="param-list">
+                <dt>commands</dt><dd><span class="param-type">(Optional[List[str]])</span>: Liste de noms de commandes à vérifier.</dd>
+                <dt>packages</dt><dd><span class="param-type">(Optional[Union[List[str], Dict[str, Optional[str]]]])</span>: Liste de noms de paquets OU dictionnaire {nom_paquet: version_min}.</dd>
+                <dt>python_modules</dt><dd><span class="param-type">(Optional[List[str]])</span>: Liste de noms de modules Python à vérifier.</dd>
+                <dt>files</dt><dd><span class="param-type">(Optional[List[str]])</span>: Liste de chemins de fichiers dont l'existence doit être vérifiée.</dd>
+                <dt>directories</dt><dd><span class="param-type">(Optional[List[str]])</span>: Liste de chemins de répertoires dont l'existence doit être vérifiée.</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">Dict[str, Any]</span> - Dictionnaire résumant les résultats avec les clés :
+                <ul>
+                    <li><code>overall_status</code>: '<span class="status-ok">OK</span>' ou '<span class="status-error">MISSING_DEPENDENCIES</span>' ou '<span class="status-error">ERROR</span>' (si vérification paquet impossible).</li>
+                    <li><code>missing</code>: Dictionnaire listant les éléments manquants par catégorie ('commands', 'packages', etc.).</li>
+                    <li><code>details</code>: Dictionnaire contenant le statut booléen détaillé pour chaque élément vérifié.</li>
+                </ul>
+            </div>
+        </section>
+
+    </div>
+</body>
+</html>

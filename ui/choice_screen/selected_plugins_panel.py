@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Any, Tuple, Optional, List, Union
+from typing import List, Dict, Any, Tuple, Optional, Set
 from textual.app import ComposeResult
 from textual.containers import Container, VerticalGroup
 from textual.widgets import Label, Button, Static
@@ -29,7 +29,7 @@ class SelectedPluginsPanel(Static):
             **kwargs: Arguments nommés pour la classe parente
         """
         super().__init__(*args, **kwargs)
-        self.selected_plugins = []  # Liste des plugins sélectionnés (tuples)
+        self.selected_plugins = []  # Liste des plugins sélectionnés
         self.sequence_map = {}      # Mapping des plugins appartenant à des séquences
         self.sequence_handler = SequenceHandler()  # Gestionnaire de séquences
 
@@ -49,7 +49,7 @@ class SelectedPluginsPanel(Static):
         Met à jour l'affichage lorsque les plugins sélectionnés changent.
         
         Args:
-            plugins: Liste des plugins sélectionnés (tuples)
+            plugins: Liste des plugins sélectionnés (tuples plugin_name, instance_id, [config])
         """
         self.selected_plugins = plugins
         self._clear_content()
@@ -90,10 +90,11 @@ class SelectedPluginsPanel(Static):
         et construit une carte des relations.
         
         Args:
-            plugins: Liste des plugins à analyser (tuples)
+            plugins: Liste des plugins à analyser
         """
-        # Réinitialiser le mapping
+        # Réinitialiser le mapping et le set des plugins de séquence déjà associés
         self.sequence_map = {}
+        self._matched_sequence_plugins = set()
         
         # Identifier les séquences dans la liste
         sequence_indices = {}  # {sequence_id: index_dans_liste}
@@ -118,26 +119,32 @@ class SelectedPluginsPanel(Static):
                         'start_index': idx
                     }
         
-        # Pour chaque plugin, vérifier s'il appartient à une séquence en utilisant les métadonnées
+        # Pour chaque plugin, vérifier s'il appartient à une séquence
         for idx, plugin_data in enumerate(plugins):
-            # Ignorer les séquences elles-mêmes
             if idx in sequence_indices.values():
+                continue  # Ignorer les séquences elles-mêmes
+                
+            plugin_name = plugin_data[0]
+            if not isinstance(plugin_name, str) or plugin_name.startswith('__sequence__'):
                 continue
                 
-            # Vérifier si le plugin a des métadonnées
-            metadata = {}
-            if len(plugin_data) >= 4:
-                metadata = plugin_data[3]
+            # Extraire la configuration si disponible
+            plugin_config = {}
+            if len(plugin_data) >= 3:
+                plugin_config = plugin_data[2]
                 
-            # Vérifier si le plugin fait partie d'une séquence
-            if isinstance(metadata, dict) and metadata.get('source') == 'sequence':
-                sequence_id = metadata.get('sequence_id')
-                if sequence_id in self.sequence_map:
-                    if 'member_indices' not in self.sequence_map[sequence_id]:
-                        self.sequence_map[sequence_id]['member_indices'] = []
+            # Pour chaque séquence, vérifier si ce plugin fait partie de ses plugins
+            for sequence_id, sequence_info in self.sequence_map.items():
+                sequence_start_idx = sequence_info['start_index']
+                
+                # Un plugin fait partie d'une séquence s'il suit la séquence et correspond à un de ses plugins
+                if idx > sequence_start_idx and self._plugin_matches_sequence(plugin_name, plugin_config, sequence_info['plugins']):
+                    if 'member_indices' not in sequence_info:
+                        sequence_info['member_indices'] = []
                     
-                    self.sequence_map[sequence_id]['member_indices'].append(idx)
-                    logger.debug(f"Plugin {plugin_data[0]} (index {idx}) identifié comme membre de la séquence {sequence_id}")
+                    sequence_info['member_indices'].append(idx)
+                    logger.debug(f"Plugin {plugin_name} (index {idx}) identifié comme membre de la séquence {sequence_id}")
+                    break
 
     def _load_sequence_details(self, sequence_name: str) -> Dict[str, Any]:
         """
@@ -164,12 +171,88 @@ class SelectedPluginsPanel(Static):
             logger.error(traceback.format_exc())
             return {}
 
+    def _plugin_matches_sequence(self, plugin_name: str, plugin_config: Dict[str, Any], 
+                                sequence_plugins: List) -> bool:
+        """
+        Vérifie si un plugin correspond à l'un des plugins définis dans une séquence.
+        
+        Args:
+            plugin_name: Nom du plugin à vérifier
+            plugin_config: Configuration du plugin
+            sequence_plugins: Liste des plugins dans la séquence
+            
+        Returns:
+            bool: True si le plugin correspond à un plugin de la séquence
+        """
+        # Garder une trace des plugins de séquence déjà associés
+        # pour éviter d'associer plusieurs instances réelles à la même instance de séquence
+        if not hasattr(self, '_matched_sequence_plugins'):
+            self._matched_sequence_plugins = set()
+            
+        for i, seq_plugin in enumerate(sequence_plugins):
+            # Générer un identifiant unique pour cette entrée de séquence
+            seq_entry_id = f"{i}"
+            
+            # Cas 1: Format dict avec 'name'
+            if isinstance(seq_plugin, dict) and 'name' in seq_plugin:
+                seq_plugin_name = seq_plugin['name']
+                
+                # Vérifier si le nom du plugin correspond
+                if seq_plugin_name == plugin_name:
+                    # Créer un identifiant unique pour cette entrée de séquence basé sur son nom et sa config
+                    seq_config = {}
+                    if 'config' in seq_plugin:
+                        seq_config = seq_plugin['config']
+                        seq_entry_id = f"{seq_plugin_name}_{i}_{str(seq_config)}"
+                    elif 'variables' in seq_plugin:  # Rétrocompatibilité
+                        seq_config = seq_plugin['variables']
+                        seq_entry_id = f"{seq_plugin_name}_{i}_{str(seq_config)}"
+                    else:
+                        seq_entry_id = f"{seq_plugin_name}_{i}"
+                    
+                    # Vérifier si cette entrée de séquence a déjà été associée
+                    if seq_entry_id in self._matched_sequence_plugins:
+                        continue
+                    
+                    # Vérifier la configuration si présente
+                    if seq_config and plugin_config:
+                        # Une correspondance partielle suffit (configs supplémentaires autorisées)
+                        all_keys_match = True
+                        for key, value in seq_config.items():
+                            if key not in plugin_config or plugin_config[key] != value:
+                                all_keys_match = False
+                                break
+                                
+                        if all_keys_match:
+                            # Marquer cette entrée comme associée
+                            self._matched_sequence_plugins.add(seq_entry_id)
+                            return True
+                    # Si pas de config dans la séquence ou dans le plugin
+                    elif not seq_config and not plugin_config:
+                        # Marquer cette entrée comme associée
+                        self._matched_sequence_plugins.add(seq_entry_id)
+                        return True
+                        
+            # Cas 2: Format simple (string)
+            elif isinstance(seq_plugin, str) and seq_plugin == plugin_name:
+                seq_entry_id = f"{seq_plugin}_{i}"
+                
+                # Vérifier si cette entrée de séquence a déjà été associée
+                if seq_entry_id in self._matched_sequence_plugins:
+                    continue
+                    
+                # Marquer cette entrée comme associée
+                self._matched_sequence_plugins.add(seq_entry_id)
+                return True
+                
+        return False
+
     def _create_plugin_items(self, plugins: List) -> None:
         """
         Crée et monte les éléments de liste pour les plugins sélectionnés.
         
         Args:
-            plugins: Liste des plugins à afficher (tuples)
+            plugins: Liste des plugins à afficher
         """
         try:
             container = self.query_one("#selected-plugins-list-content", Container)
@@ -179,12 +262,18 @@ class SelectedPluginsPanel(Static):
             
         # Créer tous les éléments
         items = []
-        for idx, plugin_tuple in enumerate(plugins, 1):
+        for idx, plugin in enumerate(plugins, 1):
             item = None
             
             try:
-                # Créer l'élément pour ce plugin
-                item = PluginListItem(plugin_tuple, idx)
+                # Créer l'élément avec la configuration appropriée
+                if len(plugin) >= 3:
+                    plugin_name, instance_id, config = plugin
+                    item = PluginListItem((plugin_name, instance_id, config), idx)
+                else:
+                    plugin_name, instance_id = plugin[:2]
+                    item = PluginListItem((plugin_name, instance_id), idx)
+                
                 items.append(item)
             except Exception as e:
                 logger.error(f"Erreur lors de la création de l'élément {idx}: {e}")
@@ -258,31 +347,53 @@ class SelectedPluginsPanel(Static):
         Args:
             sequence_id: ID de l'instance de la séquence
         """
-        # Trouver tous les plugins à supprimer
+        indices_to_remove = []
+        
+        # Trouver la séquence
         sequence_found = False
         sequence_name = None
-        plugins_to_remove = []
         
-        # 1. Trouver la séquence elle-même
-        for plugin in self.app.selected_plugins:
-            plugin_name = plugin[0] if isinstance(plugin, tuple) else plugin.name
-            instance_id = plugin[1] if isinstance(plugin, tuple) else plugin.instance_id
+        for idx, plugin_data in enumerate(self.app.selected_plugins):
+            plugin_name, instance_id = plugin_data[0], plugin_data[1]
             
-            # Si c'est la séquence
             if instance_id == sequence_id and plugin_name.startswith('__sequence__'):
                 sequence_found = True
                 sequence_name = plugin_name
+                indices_to_remove.append(idx)
                 break
-        
+                
         if not sequence_found:
             logger.error(f"Séquence non trouvée pour l'ID: {sequence_id}")
             return
-        
-        # 2. Appeler la méthode de l'application pour supprimer la séquence et ses membres
-        if hasattr(self.app, '_remove_sequence_and_members'):
-            await self.app._remove_sequence_and_members(sequence_id)
+            
+        # Trouver les membres de la séquence
+        if sequence_id in self.sequence_map and 'member_indices' in self.sequence_map[sequence_id]:
+            for member_idx in self.sequence_map[sequence_id]['member_indices']:
+                indices_to_remove.append(member_idx)
+        # Alternativement, trouver les plugins qui suivent jusqu'à la prochaine séquence
         else:
-            logger.error("La méthode _remove_sequence_and_members n'existe pas dans l'application")
+            start_idx = indices_to_remove[0] + 1
+            while start_idx < len(self.app.selected_plugins):
+                plugin_name = self.app.selected_plugins[start_idx][0]
+                if plugin_name.startswith('__sequence__'):
+                    break
+                indices_to_remove.append(start_idx)
+                start_idx += 1
+                
+        # Trier les indices en ordre décroissant pour supprimer de la fin vers le début
+        indices_to_remove.sort(reverse=True)
+        
+        # Supprimer les plugins
+        for idx in indices_to_remove:
+            if 0 <= idx < len(self.app.selected_plugins):
+                self.app.selected_plugins.pop(idx)
+                
+        # Mettre à jour l'affichage
+        self.update_plugins(self.app.selected_plugins)
+        
+        # Mettre à jour les cartes de plugins
+        if sequence_name:
+            await self._update_plugin_cards(sequence_name)
 
     async def _remove_plugin(self, plugin_name: str, instance_id: int) -> None:
         """
@@ -292,11 +403,21 @@ class SelectedPluginsPanel(Static):
             plugin_name: Nom du plugin à supprimer
             instance_id: ID de l'instance à supprimer
         """
-        # Appeler la méthode de l'application pour supprimer le plugin
-        if hasattr(self.app, '_remove_plugin'):
-            await self.app._remove_plugin(plugin_name)
-        else:
-            logger.error("La méthode _remove_plugin n'existe pas dans l'application")
+        # Créer une nouvelle liste sans le plugin spécifié
+        new_selected_plugins = [
+            p for p in self.app.selected_plugins 
+            if not (p[0] == plugin_name and p[1] == instance_id)
+        ]
+        
+        # Mettre à jour la liste
+        self.app.selected_plugins = new_selected_plugins
+        
+        # Mettre à jour l'affichage
+        self.update_plugins(self.app.selected_plugins)
+        
+        # Vérifier si c'était la dernière instance de ce plugin
+        if not any(p[0] == plugin_name for p in self.app.selected_plugins):
+            await self._update_plugin_cards(plugin_name)
             
     async def _update_plugin_cards(self, plugin_name: str) -> None:
         """

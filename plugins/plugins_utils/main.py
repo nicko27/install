@@ -25,7 +25,7 @@ def main(log,plugin):
             raise ValueError("Aucune configuration fournie. Utilisez -c/--config ou passez un JSON en argument.")
 
         # Initialiser le logger
-        log.plugin_name = config.get("plugin_name", "add_printer")
+        log.plugin_name = config.get("plugin_name", "")
         log.instance_id = config.get("instance_id", 0)
         if config.get("ssh_mode", False):
             log.ssh_mode = True

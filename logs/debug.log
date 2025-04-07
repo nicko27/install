@@ -1,0 +1,90 @@
+2025-04-07 14:56:54,148 - pcUtils.main - DEBUG - Répertoire de base de l'application: /media/nico/Drive/pcUtils_internet
+2025-04-07 14:56:54,149 - pcUtils.main - DEBUG - sys.path complet: ['/media/nico/Drive/pcUtils_internet', '/usr/lib/python310.zip', '/usr/lib/python3.10', '/usr/lib/python3.10/lib-dynload', '/home/nico/.local/lib/python3.10/site-packages', '/usr/local/lib/python3.10/dist-packages', '/usr/lib/python3/dist-packages']
+2025-04-07 14:56:54,166 - pcUtils.main - DEBUG - ruamel.yaml importé avec succès depuis /home/nico/.local/lib/python3.10/site-packages/ruamel/yaml/__init__.py
+2025-04-07 14:56:54,585 - pcUtils.argument_parser - DEBUG - Arguments de ligne de commande: Namespace(auto=False, sequence=None, shortcut=None, plugin=None, config=None, params=None, verbose=0, quiet=False, log_file=None)
+2025-04-07 14:56:54,585 - pcUtils.app_manager - DEBUG - Initialisation du gestionnaire d'application
+2025-04-07 14:56:54,585 - pcUtils.app_manager - INFO - Démarrage en mode normal (interface complète)
+2025-04-07 14:56:54,687 - pcUtils.choice_screen - DEBUG - Initialisation de l'application Choice
+2025-04-07 14:56:54,688 - pcUtils.sequence_handler - DEBUG - Initialisation du gestionnaire de séquences: sequences
+2025-04-07 14:56:54,688 - template_handler - DEBUG - Initialisation du gestionnaire de templates
+2025-04-07 14:56:54,688 - asyncio - DEBUG - Using selector: EpollSelector
+2025-04-07 14:56:54,714 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: home_copy
+2025-04-07 14:56:54,715 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: home_copy
+2025-04-07 14:56:54,715 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: home_copy
+2025-04-07 14:56:54,715 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/home_copy_test
+2025-04-07 14:56:54,715 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/home_copy
+2025-04-07 14:56:54,715 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: home_copy
+2025-04-07 14:56:54,715 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/home_copy/settings.yml
+2025-04-07 14:56:54,756 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour home_copy
+2025-04-07 14:56:54,756 - template_handler - DEBUG - Aucun dossier de templates trouvé pour home_copy
+2025-04-07 14:56:54,756 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: home_copy, templates: 0
+2025-04-07 14:56:54,757 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: add_printer
+2025-04-07 14:56:54,757 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-07 14:56:54,757 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-07 14:56:54,757 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-07 14:56:54,757 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-07 14:56:54,757 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-07 14:56:54,757 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/add_printer/settings.yml
+2025-04-07 14:56:54,773 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour add_printer
+2025-04-07 14:56:54,773 - template_handler - DEBUG - Aucun dossier de templates trouvé pour add_printer
+2025-04-07 14:56:54,774 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: add_printer, templates: 0
+2025-04-07 14:56:54,774 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: scan_plugin
+2025-04-07 14:56:54,774 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: scan_plugin
+2025-04-07 14:56:54,774 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: scan_plugin
+2025-04-07 14:56:54,774 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin_test
+2025-04-07 14:56:54,774 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin
+2025-04-07 14:56:54,774 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: scan_plugin
+2025-04-07 14:56:54,774 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/scan_plugin/settings.yml
+2025-04-07 14:56:54,789 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour scan_plugin
+2025-04-07 14:56:54,790 - template_handler - DEBUG - Aucun dossier de templates trouvé pour scan_plugin
+2025-04-07 14:56:54,790 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: scan_plugin, templates: 0
+2025-04-07 14:56:54,790 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: delete_printer
+2025-04-07 14:56:54,790 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: delete_printer
+2025-04-07 14:56:54,790 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: delete_printer
+2025-04-07 14:56:54,790 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer_test
+2025-04-07 14:56:54,790 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer
+2025-04-07 14:56:54,790 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: delete_printer
+2025-04-07 14:56:54,790 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/delete_printer/settings.yml
+2025-04-07 14:56:54,801 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour delete_printer
+2025-04-07 14:56:54,801 - template_handler - DEBUG - Aucun dossier de templates trouvé pour delete_printer
+2025-04-07 14:56:54,801 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: delete_printer, templates: 0
+2025-04-07 14:56:54,802 - pcUtils.choice_screen - INFO - Plugins valides trouvés: 4
+2025-04-07 14:56:54,812 - pcUtils.choice_screen - INFO - Séquences disponibles: 1
+2025-04-07 14:56:54,813 - pcUtils.choice_screen - DEBUG - Séquence ajoutée: Séquence remplacement imprimante(s) (imp_remp.yml)
+2025-04-07 14:56:54,813 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: add_printer
+2025-04-07 14:56:54,813 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-07 14:56:54,813 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-07 14:56:54,813 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-07 14:56:54,813 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-07 14:56:54,813 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-07 14:56:54,813 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/add_printer/settings.yml
+2025-04-07 14:56:54,831 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour add_printer
+2025-04-07 14:56:54,831 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: scan_plugin
+2025-04-07 14:56:54,831 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: scan_plugin
+2025-04-07 14:56:54,831 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: scan_plugin
+2025-04-07 14:56:54,832 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin_test
+2025-04-07 14:56:54,832 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin
+2025-04-07 14:56:54,832 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: scan_plugin
+2025-04-07 14:56:54,832 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/scan_plugin/settings.yml
+2025-04-07 14:56:54,851 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour scan_plugin
+2025-04-07 14:56:54,852 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: home_copy
+2025-04-07 14:56:54,852 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: home_copy
+2025-04-07 14:56:54,852 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: home_copy
+2025-04-07 14:56:54,852 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/home_copy_test
+2025-04-07 14:56:54,852 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/home_copy
+2025-04-07 14:56:54,852 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: home_copy
+2025-04-07 14:56:54,852 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/home_copy/settings.yml
+2025-04-07 14:56:54,885 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour home_copy
+2025-04-07 14:56:54,885 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: delete_printer
+2025-04-07 14:56:54,885 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: delete_printer
+2025-04-07 14:56:54,885 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: delete_printer
+2025-04-07 14:56:54,885 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer_test
+2025-04-07 14:56:54,885 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer
+2025-04-07 14:56:54,886 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: delete_printer
+2025-04-07 14:56:54,886 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/delete_printer/settings.yml
+2025-04-07 14:56:54,897 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour delete_printer
+2025-04-07 14:56:54,897 - pcUtils.sequence_handler - DEBUG - Initialisation du gestionnaire de séquences: sequences
+2025-04-07 14:56:54,906 - pcUtils.sequence_handler - INFO - Séquence chargée et mise en cache: Séquence remplacement imprimante(s)
+2025-04-07 14:56:54,907 - pcUtils.sequence_handler - DEBUG - Initialisation du gestionnaire de séquences: sequences
+2025-04-07 15:59:13,081 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x7422ec5e29e0>

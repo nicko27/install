@@ -1,689 +1,305 @@
+# install/plugins/plugins_utils/dpkg.py
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Module utilitaire pour la gestion avancée des paquets Debian via dpkg.
 Permet de gérer les sélections de paquets, les préréponses debconf et les opérations avancées sur dpkg.
 """
 
-from .commands import Commands
+# Import de la classe de base et des types
+from .plugin_utils_base import PluginUtilsBase
 import os
 import re
 import tempfile
 import time
 from typing import Union, Optional, List, Dict, Any, Tuple
 
+# Import conditionnel pour AptCommands (utilisé pour installer debconf-utils)
+try:
+    from .apt import AptCommands
+    APT_AVAILABLE_FOR_DPKG = True
+except ImportError:
+    APT_AVAILABLE_FOR_DPKG = False
+    class AptCommands: pass # Factice
 
-class DpkgCommands(Commands):
+class DpkgCommands(PluginUtilsBase):
     """
     Classe avancée pour gérer dpkg, debconf et les sélections de paquets.
-    Hérite de la classe Commands pour la gestion des commandes système.
+    Hérite de PluginUtilsBase pour l'exécution de commandes et la progression.
     """
 
     def __init__(self, logger=None, target_ip=None):
         """
-        Initialise le gestionnaire dpkg.
+        Initialise le gestionnaire de commandes dpkg et debconf.
 
         Args:
-            logger: Instance de PluginLogger à utiliser
-            target_ip: Adresse IP cible pour les logs (optionnel, pour les exécutions SSH)
+            logger: Instance de PluginLogger (optionnel).
+            target_ip: IP cible pour les logs (optionnel).
         """
         super().__init__(logger, target_ip)
-        self._package_selections = []
-        self._debconf_selections = []
+        # Stockage interne des sélections en attente
+        self._package_selections: Dict[str, str] = {} # {package: status}
+        self._debconf_selections: Dict[Tuple[str, str], Tuple[str, str]] = {} # {(pkg, quest): (type, val)}
+        # Instance d'AptCommands pour installer debconf-utils si besoin
+        self._apt_cmd = AptCommands(logger, target_ip) if APT_AVAILABLE_FOR_DPKG else None
+        if not APT_AVAILABLE_FOR_DPKG:
+             self.log_warning("Module AptCommands non trouvé. L'installation automatique de debconf-utils sera désactivée.")
+        # Vérifier la présence des commandes
+        self._check_commands()
 
-    def add_package_selection(self, package, status="install"):
+    def _check_commands(self):
+        """Vérifie si les commandes dpkg et debconf sont disponibles."""
+        cmds = ['dpkg', 'dpkg-query', 'debconf-set-selections', 'debconf-get-selections', 'dpkg-reconfigure']
+        missing = []
+        for cmd in cmds:
+            success, _, _ = self.run(['which', cmd], check=False, no_output=True, error_as_warning=True)
+            if not success:
+                missing.append(cmd)
+        if missing:
+            self.log_warning(f"Commandes dpkg/debconf potentiellement manquantes: {', '.join(missing)}. "
+                             f"Installer 'dpkg', 'debconf-utils'.")
+
+    # --- Méthodes de Gestion des Sélections Dpkg ---
+
+    def add_package_selection(self, package: str, status: str = "install"):
         """
-        Ajoute une sélection de paquet individuelle à la liste cumulative.
+        Ajoute ou met à jour une sélection de paquet individuelle dans la liste cumulative interne.
 
         Args:
-            package: Nom du paquet
-            status: Statut souhaité (install, hold, deinstall, purge)
-
-        Returns:
-            bool: True si l'ajout a réussi
+            package: Nom du paquet.
+            status: Statut souhaité ('install', 'hold', 'deinstall', 'purge').
         """
-        selection = f"{package} {status}"
-        self.log_debug(f"Ajout de la sélection de paquet: {selection}")
+        valid_statuses = ["install", "hold", "deinstall", "purge"]
+        status_lower = status.lower()
+        if status_lower not in valid_statuses:
+             self.log_warning(f"Statut de sélection dpkg invalide '{status}' pour {package}. Utilisation de 'install'.")
+             status_lower = "install"
+        self.log_debug(f"Ajout/Mise à jour sélection dpkg: {package} -> {status_lower}")
+        self._package_selections[package] = status_lower
 
-        # Vérifier si cette sélection existe déjà
-        for i, existing in enumerate(self._package_selections):
-            if existing.startswith(f"{package} "):
-                # Remplacer l'existant
-                self._package_selections[i] = selection
-                self.log_debug(f"Remplacement de la sélection existante pour {package}")
-                return True
-
-        # Ajouter la nouvelle sélection
-        self._package_selections.append(selection)
-        return True
-
-    def add_package_selections(self, selections, from_file=False):
+    def add_package_selections(self, selections: str):
         """
-        Ajoute des sélections de paquets à la liste cumulative.
+        Ajoute des sélections de paquets depuis une chaîne multiligne à la liste cumulative interne.
 
         Args:
-            selections: Chaîne contenant les sélections ou chemin vers un fichier si from_file=True
-            from_file: Si True, selections est un chemin vers un fichier de sélections
-
-        Returns:
-            bool: True si l'opération a réussi, False sinon
+            selections: Chaîne contenant les sélections (une par ligne: "package status").
         """
-        self.log_info("Ajout de sélections de paquets à la liste cumulative")
-
-        # Charger les sélections
-        if from_file:
-            if not os.path.exists(selections):
-                self.log_error(f"Le fichier de sélections {selections} n'existe pas")
-                return False
-
-            self.log_info(f"Chargement des sélections depuis le fichier: {selections}")
-            try:
-                with open(selections, 'r') as f:
-                    selections_text = f.read()
-            except Exception as e:
-                self.log_error(f"Erreur lors de la lecture du fichier de sélections: {str(e)}")
-                return False
-        else:
-            selections_text = selections
-
-        # Traiter chaque ligne
-        lines = selections_text.splitlines()
+        self.log_info("Ajout de sélections de paquets dpkg depuis une chaîne...")
         count = 0
-
-        for line in lines:
+        for line in selections.splitlines():
             line = line.strip()
             if not line or line.startswith('#'):
                 continue
 
-            parts = line.split(None, 1)  # Séparer le nom du paquet et son statut
-            if len(parts) != 2:
-                self.log_warning(f"Format invalide pour la sélection: {line}")
-                continue
+            parts = line.split(None, 1) # Split seulement sur le premier espace
+            if len(parts) == 2:
+                package, status = parts
+                self.add_package_selection(package.strip(), status.strip())
+                count += 1
+            else:
+                 self.log_warning(f"Format invalide pour la sélection dpkg ignorée: {line}")
+        self.log_info(f"{count} sélections de paquets dpkg ajoutées/mises à jour en mémoire.")
 
-            package, status = parts
-            self.add_package_selection(package, status)
-            count += 1
-
-        self.log_info(f"{count} sélections de paquets ajoutées à la liste cumulative")
-        return True
+    def load_package_selections_from_file(self, filepath: str) -> bool:
+        """Charge les sélections depuis un fichier et les ajoute à la liste cumulative interne."""
+        self.log_info(f"Chargement des sélections de paquets dpkg depuis: {filepath}")
+        # La lecture du fichier peut nécessiter sudo
+        success_read, content, stderr_read = self.run(['cat', filepath], check=False, needs_sudo=True, no_output=True)
+        if not success_read:
+             if "no such file" in stderr_read.lower():
+                  self.log_error(f"Le fichier de sélections dpkg '{filepath}' n'existe pas.")
+             else:
+                  self.log_error(f"Impossible de lire le fichier de sélections dpkg '{filepath}'. Stderr: {stderr_read}")
+             return False
+        try:
+            self.add_package_selections(content)
+            return True
+        except Exception as e:
+            self.log_error(f"Erreur lors du traitement du contenu du fichier de sélections '{filepath}': {e}")
+            return False
 
     def clear_package_selections(self):
+        """Efface toutes les sélections de paquets dpkg en attente (en mémoire)."""
+        self.log_info("Effacement des sélections de paquets dpkg en attente.")
+        self._package_selections = {}
+
+    def apply_package_selections(self, task_id: Optional[str] = None) -> bool:
         """
-        Efface toutes les sélections de paquets cumulatives.
+        Applique toutes les sélections de paquets en attente via `dpkg --set-selections`.
+        La liste interne est vidée après une application réussie.
+
+        Args:
+            task_id: ID de tâche pour la progression (optionnel).
 
         Returns:
-            bool: True
-        """
-        self.log_info("Effacement de toutes les sélections de paquets cumulatives")
-        self._package_selections = []
-        return True
-
-    def apply_package_selections(self):
-        """
-        Applique toutes les sélections de paquets cumulatives.
-
-        Returns:
-            bool: True si l'opération a réussi, False sinon
+            bool: True si l'opération a réussi.
         """
         if not self._package_selections:
-            self.log_warning("Aucune sélection de paquet à appliquer")
+            self.log_warning("Aucune sélection de paquet dpkg en attente à appliquer.")
             return True
 
-        self.log_info(f"Application de {len(self._package_selections)} sélections de paquets")
+        count = len(self._package_selections)
+        self.log_info(f"Application de {count} sélections de paquets dpkg...")
+        current_task_id = task_id or f"dpkg_set_selections_{int(time.time())}"
+        self.start_task(1, description="Application via dpkg --set-selections", task_id=current_task_id)
 
-        # Créer un fichier temporaire pour les sélections
-        with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
-            temp_path = temp_file.name
-            for selection in self._package_selections:
-                temp_file.write(f"{selection}\n")
+        # Construire la chaîne pour stdin
+        selections_str = "\n".join(f"{pkg}\t{status}" for pkg, status in self._package_selections.items()) + "\n"
+        self.log_debug(f"Contenu envoyé à dpkg --set-selections:\n{selections_str}")
 
-        # Appliquer les sélections
-        try:
-            success, stdout, stderr = self.run_as_root(['bash', '-c', f"cat {temp_path} | dpkg --set-selections"])
+        # Appeler dpkg --set-selections via stdin
+        cmd = ['dpkg', '--set-selections']
+        success, stdout, stderr = self.run(cmd, input_data=selections_str, check=False, needs_sudo=True)
+        self.update_task() # Termine l'étape
 
-            if success:
-                self.log_success(f"Sélections de paquets appliquées avec succès")
-            else:
-                self.log_error("Échec de l'application des sélections de paquets")
-                if stderr:
-                    self.log_error(f"Erreur: {stderr}")
+        if success:
+             self.log_success(f"{count} sélections de paquets dpkg appliquées avec succès.")
+             self.clear_package_selections() # Vider après succès
+             self.complete_task(success=True)
+             return True
+        else:
+             self.log_error("Échec de l'application des sélections de paquets dpkg.")
+             if stderr: self.log_error(f"Stderr: {stderr}")
+             if stdout: self.log_info(f"Stdout: {stdout}") # stdout peut contenir des infos utiles
+             self.complete_task(success=False, message="Échec dpkg --set-selections")
+             return False
 
-            # Supprimer le fichier temporaire
-            os.unlink(temp_path)
-            return success
+    # --- Méthodes Debconf ---
 
-        except Exception as e:
-            self.log_error(f"Erreur lors de l'application des sélections: {str(e)}")
-            if os.path.exists(temp_path):
-                os.unlink(temp_path)
+    def _ensure_debconf_utils(self) -> bool:
+        """Vérifie si debconf-utils est installé, et tente de l'installer sinon."""
+        # Vérifier si la commande debconf-set-selections existe
+        success_which, _, _ = self.run(['which', 'debconf-set-selections'], check=False, no_output=True, error_as_warning=True)
+        if success_which:
+            return True
+
+        self.log_warning("Le paquet 'debconf-utils' semble manquant...")
+        if not self._apt_cmd:
+             self.log_error("Impossible de tenter l'installation de 'debconf-utils' car AptCommands n'est pas disponible.")
+             return False
+
+        self.log_info("Tentative d'installation de 'debconf-utils' via AptCommands...")
+        # Utiliser l'instance AptCommands pour l'installation
+        install_success = self._apt_cmd.install('debconf-utils', auto_fix=True)
+        if not install_success:
+            self.log_error("Impossible d'installer 'debconf-utils', les opérations debconf échoueront.")
             return False
+        self.log_info("'debconf-utils' installé avec succès.")
+        # Re-vérifier la commande après installation
+        recheck_success, _, _ = self.run(['which', 'debconf-set-selections'], check=False, no_output=True, error_as_warning=True)
+        return recheck_success
 
-    def get_package_selections(self, package_pattern=None, save_to_file=None):
+    def add_debconf_selection(self, package: str, question: str, q_type: str, value: str):
         """
-        Obtient les sélections de paquets actuelles via dpkg-get-selections.
+        Ajoute ou met à jour une pré-réponse debconf individuelle dans la liste cumulative interne.
 
         Args:
-            package_pattern: Motif pour filtrer les paquets (optionnel)
-            save_to_file: Chemin du fichier où sauvegarder les sélections (optionnel)
-
-        Returns:
-            str: Sélections de paquets ou None si erreur
+            package: Nom du paquet.
+            question: Nom de la question debconf (ex: 'shared/accepted-oracle-license-v1-1').
+            q_type: Type de la question (string, boolean, select, password, note, text, etc.).
+            value: Valeur de la réponse (ex: 'true', 'password', 'Yes').
         """
-        cmd = ['dpkg', '--get-selections']
+        key = (package, question)
+        # Nettoyer les arguments
+        pkg_clean = package.strip()
+        quest_clean = question.strip()
+        type_clean = q_type.strip()
+        val_clean = value.strip() # Ne pas convertir en booléen ici, garder la chaîne
 
-        if package_pattern:
-            cmd.append(package_pattern)
-            self.log_info(f"Récupération des sélections pour les paquets correspondant à: {package_pattern}")
-        else:
-            self.log_info("Récupération de toutes les sélections de paquets")
+        self.log_debug(f"Ajout/Mise à jour debconf: {pkg_clean} {quest_clean} {type_clean} '{val_clean}'")
+        self._debconf_selections[(pkg_clean, quest_clean)] = (type_clean, val_clean)
 
-        success, stdout, stderr = self.run(cmd, no_output=True)
-
-        if not success:
-            self.log_error("Échec de la récupération des sélections de paquets")
-            if stderr:
-                self.log_error(f"Erreur: {stderr}")
-            return None
-
-        # Sauvegarder dans un fichier si demandé
-        if save_to_file:
-            try:
-                with open(save_to_file, "w") as f:
-                    f.write(stdout)
-                self.log_success(f"Sélections de paquets sauvegardées dans: {save_to_file}")
-            except Exception as e:
-                self.log_error(f"Échec de la sauvegarde des sélections dans {save_to_file}: {str(e)}")
-
-        selections_count = len(stdout.splitlines())
-        self.log_info(f"Récupération de {selections_count} sélections de paquets terminée")
-        return stdout
-
-    def add_debconf_selection(self, package, question, type, value):
-        """
-        Ajoute une préréponse debconf individuelle à la liste cumulative.
-
-        Args:
-            package: Nom du paquet
-            question: Question debconf
-            type: Type de la question (select, string, boolean, etc.)
-            value: Valeur à définir
-
-        Returns:
-            bool: True si l'ajout a réussi
-        """
-        selection = f"{package} {question} {type} {value}"
-        self.log_debug(f"Ajout de la préréponse debconf: {selection}")
-
-        # Vérifier si cette sélection existe déjà
-        for i, existing in enumerate(self._debconf_selections):
-            if existing.startswith(f"{package} {question} "):
-                # Remplacer l'existante
-                self._debconf_selections[i] = selection
-                self.log_debug(f"Remplacement de la préréponse existante pour {package} {question}")
-                return True
-
-        # Ajouter la nouvelle sélection
-        self._debconf_selections.append(selection)
-        return True
-
-    def add_debconf_selections(self, selections, from_file=False):
-        """
-        Ajoute des préréponses debconf à la liste cumulative.
-
-        Args:
-            selections: Chaîne contenant les préréponses ou chemin vers un fichier si from_file=True
-            from_file: Si True, selections est un chemin vers un fichier de préréponses
-
-        Returns:
-            bool: True si l'opération a réussi, False sinon
-        """
-        self.log_info("Ajout de préréponses debconf à la liste cumulative")
-
-        # Charger les préréponses
-        if from_file:
-            if not os.path.exists(selections):
-                self.log_error(f"Le fichier de préréponses {selections} n'existe pas")
-                return False
-
-            self.log_info(f"Chargement des préréponses depuis le fichier: {selections}")
-            try:
-                with open(selections, 'r') as f:
-                    selections_text = f.read()
-            except Exception as e:
-                self.log_error(f"Erreur lors de la lecture du fichier de préréponses: {str(e)}")
-                return False
-        else:
-            selections_text = selections
-
-        # Traiter chaque ligne
-        lines = selections_text.splitlines()
+    def add_debconf_selections(self, selections: str):
+        """Ajoute des pré-réponses debconf depuis une chaîne multiligne à la liste cumulative interne."""
+        self.log_info("Ajout de pré-réponses debconf depuis une chaîne...")
         count = 0
-
-        for line in lines:
+        for line in selections.splitlines():
             line = line.strip()
             if not line or line.startswith('#'):
                 continue
+            # Format: package question type value (séparés par espaces)
+            parts = line.split(None, 3) # Split max 3 fois pour garder la valeur entière
+            if len(parts) == 4:
+                pkg, quest, q_type, val = parts
+                self.add_debconf_selection(pkg, quest, q_type, val)
+                count += 1
+            else:
+                 self.log_warning(f"Format invalide pour la pré-réponse debconf ignorée: {line}")
+        self.log_info(f"{count} pré-réponses debconf ajoutées/mises à jour en mémoire.")
 
-            parts = line.split(None, 3)  # Diviser en package, question, type, valeur
-            if len(parts) != 4:
-                self.log_warning(f"Format invalide pour la préréponse debconf: {line}")
-                continue
+    def load_debconf_selections_from_file(self, filepath: str) -> bool:
+        """Charge les pré-réponses debconf depuis un fichier et les ajoute à la liste interne."""
+        self.log_info(f"Chargement des pré-réponses debconf depuis: {filepath}")
+        # Vérifier debconf-utils avant de lire
+        if not self._ensure_debconf_utils(): return False
 
-            package, question, type, value = parts
-            self.add_debconf_selection(package, question, type, value)
-            count += 1
-
-        self.log_info(f"{count} préréponses debconf ajoutées à la liste cumulative")
-        return True
+        # Lire le fichier (peut nécessiter sudo)
+        success_read, content, stderr_read = self.run(['cat', filepath], check=False, needs_sudo=True, no_output=True)
+        if not success_read:
+             if "no such file" in stderr_read.lower():
+                  self.log_error(f"Le fichier de pré-réponses debconf '{filepath}' n'existe pas.")
+             else:
+                  self.log_error(f"Impossible de lire le fichier de pré-réponses debconf '{filepath}'. Stderr: {stderr_read}")
+             return False
+        try:
+            self.add_debconf_selections(content)
+            return True
+        except Exception as e:
+            self.log_error(f"Erreur lors du traitement du contenu du fichier debconf '{filepath}': {e}")
+            return False
 
     def clear_debconf_selections(self):
+        """Efface toutes les pré-réponses debconf en attente (en mémoire)."""
+        self.log_info("Effacement des pré-réponses debconf en attente.")
+        self._debconf_selections = {}
+
+    def apply_debconf_selections(self, task_id: Optional[str] = None) -> bool:
         """
-        Efface toutes les préréponses debconf cumulatives.
+        Applique toutes les pré-réponses debconf en attente via `debconf-set-selections`.
+        La liste interne est vidée après une application réussie.
+
+        Args:
+            task_id: ID de tâche pour la progression (optionnel).
 
         Returns:
-            bool: True
-        """
-        self.log_info("Effacement de toutes les préréponses debconf cumulatives")
-        self._debconf_selections = []
-        return True
-
-    def apply_debconf_selections(self):
-        """
-        Applique toutes les préréponses debconf cumulatives.
-
-        Returns:
-            bool: True si l'opération a réussi, False sinon
+            bool: True si l'opération a réussi.
         """
         if not self._debconf_selections:
-            self.log_warning("Aucune préréponse debconf à appliquer")
+            self.log_warning("Aucune pré-réponse debconf en attente à appliquer.")
             return True
 
-        self.log_info(f"Application de {len(self._debconf_selections)} préréponses debconf")
+        # S'assurer que debconf-utils est là
+        if not self._ensure_debconf_utils(): return False
 
-        # Vérifier que debconf-utils est installé
-        success, stdout, _ = self.run(['which', 'debconf-set-selections'], no_output=True)
-        if not success:
-            self.log_warning("Le programme debconf-set-selections n'est pas disponible, tentative d'installation de debconf-utils")
-            success, _, _ = self.run_as_root(['apt-get', 'install', '-y', 'debconf-utils'])
-            if not success:
-                self.log_error("Impossible d'installer debconf-utils, nécessaire pour appliquer les préréponses")
-                return False
+        count = len(self._debconf_selections)
+        self.log_info(f"Application de {count} pré-réponses debconf...")
+        current_task_id = task_id or f"debconf_set_selections_{int(time.time())}"
+        self.start_task(1, description="Application via debconf-set-selections", task_id=current_task_id)
 
-        # Créer un fichier temporaire pour les préréponses
-        with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
-            temp_path = temp_file.name
-            for selection in self._debconf_selections:
-                temp_file.write(f"{selection}\n")
+        # Construire la chaîne pour stdin
+        selections_str = ""
+        for (pkg, quest), (q_type, value) in self._debconf_selections.items():
+             # Format: package question type value
+             selections_str += f"{pkg} {quest} {q_type} {value}\n"
+        self.log_debug(f"Contenu envoyé à debconf-set-selections:\n{selections_str}")
 
-        # Appliquer les préréponses
-        try:
-            success, stdout, stderr = self.run_as_root(['debconf-set-selections', temp_path])
-
-            if success:
-                self.log_success(f"Préréponses debconf appliquées avec succès")
-            else:
-                self.log_error("Échec de l'application des préréponses debconf")
-                if stderr:
-                    self.log_error(f"Erreur: {stderr}")
-
-            # Supprimer le fichier temporaire
-            os.unlink(temp_path)
-            return success
-
-        except Exception as e:
-            self.log_error(f"Erreur lors de l'application des préréponses: {str(e)}")
-            if os.path.exists(temp_path):
-                os.unlink(temp_path)
-            return False
-
-    def get_debconf_selections(self, package_pattern=None, save_to_file=None):
-        """
-        Obtient les préréponses debconf actuelles.
-
-        Args:
-            package_pattern: Motif pour filtrer les paquets (optionnel)
-            save_to_file: Chemin du fichier où sauvegarder les préréponses (optionnel)
-
-        Returns:
-            str: Préréponses debconf ou None si erreur
-        """
-        self.log_info("Récupération des préréponses debconf")
-
-        # Vérifier que debconf-utils est installé
-        success, stdout, _ = self.run(['which', 'debconf-get-selections'], no_output=True)
-        if not success:
-            self.log_warning("Le programme debconf-get-selections n'est pas disponible, tentative d'installation de debconf-utils")
-            success, _, _ = self.run_as_root(['apt-get', 'install', '-y', 'debconf-utils'])
-            if not success:
-                self.log_error("Impossible d'installer debconf-utils, nécessaire pour récupérer les préréponses")
-                return None
-
-        if package_pattern:
-            # Utiliser grep pour filtrer les résultats
-            self.log_info(f"Récupération des préréponses pour les paquets correspondant à: {package_pattern}")
-            success, stdout, stderr = self.run(['bash', '-c', f"debconf-get-selections | grep '{package_pattern}'"], no_output=True)
-        else:
-            self.log_info("Récupération de toutes les préréponses debconf")
-            success, stdout, stderr = self.run(['debconf-get-selections'], no_output=True)
-
-        if not success:
-            self.log_error("Échec de la récupération des préréponses debconf")
-            if stderr:
-                self.log_error(f"Erreur: {stderr}")
-            return None
-
-        # Sauvegarder dans un fichier si demandé
-        if save_to_file:
-            try:
-                with open(save_to_file, "w") as f:
-                    f.write(stdout)
-                self.log_success(f"Préréponses debconf sauvegardées dans: {save_to_file}")
-            except Exception as e:
-                self.log_error(f"Échec de la sauvegarde des préréponses dans {save_to_file}: {str(e)}")
-
-        selections_count = len(stdout.splitlines())
-        self.log_info(f"Récupération de {selections_count} préréponses debconf terminée")
-        return stdout
-
-    def set_debconf_selection(self, package, question, type, value):
-        """
-        Définit directement une préréponse debconf individuelle et l'applique immédiatement.
-
-        Args:
-            package: Nom du paquet
-            question: Question debconf
-            type: Type de la question (select, string, boolean, etc.)
-            value: Valeur à définir
-
-        Returns:
-            bool: True si l'opération a réussi, False sinon
-        """
-        selection = f"{package} {question} {type} {value}"
-        self.log_info(f"Définition de la préréponse debconf: {selection}")
-
-        # Vérifier que debconf-utils est installé
-        success, stdout, _ = self.run(['which', 'debconf-set-selections'], no_output=True)
-        if not success:
-            self.log_warning("Le programme debconf-set-selections n'est pas disponible, tentative d'installation de debconf-utils")
-            success, _, _ = self.run_as_root(['apt-get', 'install', '-y', 'debconf-utils'])
-            if not success:
-                self.log_error("Impossible d'installer debconf-utils, nécessaire pour définir les préréponses")
-                return False
-
-        # Créer un fichier temporaire pour la préréponse
-        with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
-            temp_path = temp_file.name
-            temp_file.write(f"{selection}\n")
-
-        # Appliquer la préréponse
-        try:
-            success, stdout, stderr = self.run_as_root(['debconf-set-selections', temp_path])
-
-            if success:
-                self.log_success(f"Préréponse debconf définie avec succès")
-            else:
-                self.log_error("Échec de la définition de la préréponse debconf")
-                if stderr:
-                    self.log_error(f"Erreur: {stderr}")
-
-            # Supprimer le fichier temporaire
-            os.unlink(temp_path)
-            return success
-
-        except Exception as e:
-            self.log_error(f"Erreur lors de la définition de la préréponse: {str(e)}")
-            if os.path.exists(temp_path):
-                os.unlink(temp_path)
-            return False
-
-    def reconfigure_package(self, package_name, priority="high"):
-        """
-        Reconfigure un paquet déjà installé.
-
-        Args:
-            package_name: Nom du paquet à reconfigurer
-            priority: Priorité des questions à poser (low, medium, high, critical)
-
-        Returns:
-            bool: True si la reconfiguration a réussi, False sinon
-        """
-        self.log_info(f"Reconfiguration du paquet {package_name} (priorité: {priority})")
-
-        # Vérifier si le paquet est installé
-        success, stdout, _ = self.run(['dpkg', '-s', package_name], no_output=True)
-        if not success or "Status: install ok installed" not in stdout:
-            self.log_error(f"Le paquet {package_name} n'est pas installé")
-            return False
-
-        # Reconfigurer le paquet
-        cmd = ['dpkg-reconfigure', f'--priority={priority}']
-
-        # Ajouter l'option non-interactive si des préréponses ont été définies
-        if self._debconf_selections:
-            cmd.append('--frontend=noninteractive')
-
-        cmd.append(package_name)
-
-        success, stdout, stderr = self.run_as_root(cmd)
+        # Appeler debconf-set-selections via stdin
+        cmd = ['debconf-set-selections']
+        success, stdout, stderr = self.run(cmd, input_data=selections_str, check=False, needs_sudo=True)
+        self.update_task() # Termine l'étape
 
         if success:
-            self.log_success(f"Reconfiguration de {package_name} réussie")
+             self.log_success(f"{count} pré-réponses debconf appliquées avec succès.")
+             self.clear_debconf_selections() # Vider après succès
+             self.complete_task(success=True)
+             return True
         else:
-            self.log_error(f"Échec de la reconfiguration de {package_name}")
-            if stderr:
-                self.log_error(f"Erreur: {stderr}")
+             self.log_error("Échec de l'application des pré-réponses debconf.")
+             if stderr: self.log_error(f"Stderr: {stderr}")
+             if stdout: self.log_info(f"Stdout: {stdout}")
+             self.complete_task(success=False, message="Échec debconf-set-selections")
+             return False
 
-        return success
+    # --- Autres opérations Dpkg ---
+    # Des méthodes pour dpkg-reconfigure, dpkg -s, dpkg -L pourraient être ajoutées ici.
 
-    def get_package_status(self, package_name):
-        """
-        Obtient des informations détaillées sur le statut d'un paquet.
-
-        Args:
-            package_name: Nom du paquet
-
-        Returns:
-            dict: Informations sur le paquet ou None si erreur
-        """
-        self.log_debug(f"Récupération du statut du paquet {package_name}")
-        success, stdout, _ = self.run(['dpkg', '-s', package_name], no_output=True)
-
-        if not success:
-            self.log_debug(f"Le paquet {package_name} n'est pas installé")
-            return None
-
-        # Parser la sortie
-        info = {}
-        current_key = None
-        multiline_value = []
-
-        for line in stdout.splitlines():
-            if not line.strip():
-                # Ligne vide, terminer la valeur multiline si nécessaire
-                if current_key and multiline_value:
-                    info[current_key] = "\n".join(multiline_value)
-                    multiline_value = []
-                continue
-
-            if line.startswith(" ") and current_key:
-                # Continuation d'une valeur multiline
-                multiline_value.append(line.strip())
-            elif ":" in line:
-                # Nouvelle clé
-                key, value = line.split(":", 1)
-                key = key.strip()
-                value = value.strip()
-                current_key = key
-
-                if multiline_value:
-                    info[current_key] = "\n".join(multiline_value)
-                    multiline_value = []
-
-                info[key] = value
-
-        # Traiter la dernière valeur multiline si nécessaire
-        if current_key and multiline_value:
-            info[current_key] = "\n".join(multiline_value)
-
-        return info
-
-    def get_package_files(self, package_name):
-        """
-        Obtient la liste des fichiers installés par un paquet.
-
-        Args:
-            package_name: Nom du paquet
-
-        Returns:
-            list: Liste des fichiers ou liste vide si le paquet n'est pas installé
-        """
-        self.log_debug(f"Récupération des fichiers du paquet {package_name}")
-        success, stdout, _ = self.run(['dpkg', '-L', package_name], no_output=True)
-
-        if not success:
-            self.log_debug(f"Le paquet {package_name} n'est pas installé")
-            return []
-
-        files = [line.strip() for line in stdout.splitlines() if line.strip()]
-        self.log_debug(f"Le paquet {package_name} contient {len(files)} fichiers")
-        return files
-
-    def get_package_config_files(self, package_name):
-        """
-        Obtient la liste des fichiers de configuration d'un paquet.
-
-        Args:
-            package_name: Nom du paquet
-
-        Returns:
-            list: Liste des fichiers de configuration ou liste vide si erreur
-        """
-        self.log_debug(f"Récupération des fichiers de configuration du paquet {package_name}")
-        success, stdout, _ = self.run(['dpkg', '-s', package_name], no_output=True)
-
-        if not success:
-            self.log_debug(f"Le paquet {package_name} n'est pas installé")
-            return []
-
-        config_files = []
-        for line in stdout.splitlines():
-            if line.startswith("Conffiles:"):
-                # Le format est: Conffiles:
-                #  /etc/file1 hash1
-                #  /etc/file2 hash2
-                continue
-            elif line.startswith(" "):
-                parts = line.strip().split()
-                if len(parts) >= 2:
-                    config_files.append(parts[0])
-            elif config_files:
-                # Fin de la section Conffiles
-                break
-
-        self.log_debug(f"Le paquet {package_name} contient {len(config_files)} fichiers de configuration")
-        return config_files
-
-    def purge_package_config(self, package_name):
-        """
-        Purge les fichiers de configuration d'un paquet déjà désinstallé.
-
-        Args:
-            package_name: Nom du paquet
-
-        Returns:
-            bool: True si l'opération a réussi, False sinon
-        """
-        self.log_info(f"Purge des fichiers de configuration du paquet {package_name}")
-
-        # Vérifier le statut du paquet
-        status = self.get_package_status(package_name)
-
-        if status is None:
-            self.log_warning(f"Le paquet {package_name} n'est pas installé ou reconnu")
-            # Tenter de le purger quand même
-            success, stdout, stderr = self.run_as_root(['dpkg', '--purge', package_name])
-            return success
-
-        if status.get("Status", "") == "install ok installed":
-            self.log_warning(f"Le paquet {package_name} est encore installé, désinstallation et purge")
-            success, stdout, stderr = self.run_as_root(['dpkg', '--purge', package_name])
-        else:
-            self.log_info(f"Purge des fichiers de configuration du paquet {package_name}")
-            success, stdout, stderr = self.run_as_root(['dpkg', '--purge', package_name])
-
-        if success:
-            self.log_success(f"Purge des fichiers de configuration de {package_name} réussie")
-        else:
-            self.log_error(f"Échec de la purge des fichiers de configuration de {package_name}")
-            if stderr:
-                self.log_error(f"Erreur: {stderr}")
-
-        return success
-
-    def force_install_deb(self, deb_file, ignore_deps=False, force_confold=True):
-        """
-        Installe un fichier .deb avec options avancées, en ignorant les dépendances si demandé.
-
-        Args:
-            deb_file: Chemin vers le fichier .deb
-            ignore_deps: Si True, ignore les problèmes de dépendances (--force-depends)
-            force_confold: Si True, conserve les anciens fichiers de configuration
-
-        Returns:
-            bool: True si l'installation a réussi, False sinon
-        """
-        if not os.path.exists(deb_file):
-            self.log_error(f"Le fichier {deb_file} n'existe pas")
-            return False
-
-        self.log_info(f"Installation forcée du fichier .deb: {deb_file}")
-
-        # Construire les options dpkg
-        cmd = ['dpkg', '--install']
-
-        if ignore_deps:
-            cmd.append('--force-depends')
-
-        if force_confold:
-            cmd.append('--force-confold')
-
-        cmd.append(deb_file)
-
-        success, stdout, stderr = self.run_as_root(cmd)
-
-        if success:
-            self.log_success(f"Installation forcée de {deb_file} réussie")
-        else:
-            self.log_error(f"Échec de l'installation forcée de {deb_file}")
-            if stderr:
-                self.log_error(f"Erreur: {stderr}")
-
-        return success
-
-    def dpkg_dselect_upgrade(self):
-        """
-        Effectue un dselect-upgrade pour appliquer les sélections de paquets.
-
-        Returns:
-            bool: True si l'opération a réussi, False sinon
-        """
-        self.log_info("Exécution de dselect-upgrade pour appliquer les sélections de paquets")
-
-        # Mettre à jour les informations du paquet
-        self.log_info("Mise à jour des informations des paquets")
-        success, stdout, stderr = self.run_as_root(['apt-get', 'update'])
-
-        if not success:
-            self.log_warning("Avertissement lors de la mise à jour des informations des paquets")
-
-        # Exécuter dselect-upgrade
-        self.log_info("Exécution de dselect-upgrade")
-        success, stdout, stderr = self.run_as_root(['apt-get', 'dselect-upgrade', '-y'])
-
-        if success:
-            self.log_success("dselect-upgrade exécuté avec succès")
-        else:
-            self.log_error("Échec de l'exécution de dselect-upgrade")
-            if stderr:
-                self.log_error(f"Erreur: {stderr}")
-
-        return success

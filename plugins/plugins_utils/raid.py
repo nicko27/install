@@ -1,1049 +1,590 @@
+# install/plugins/plugins_utils/raid.py
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-Module utilitaire pour la gestion avancée des tableaux RAID sous Linux.
+Module utilitaire pour la gestion avancée des tableaux RAID logiciels Linux (mdadm).
 Permet de créer, gérer, surveiller et réparer les dispositifs RAID.
 """
 
-from .commands import Commands
+# Import de la classe de base et des types
+from .plugin_utils_base import PluginUtilsBase
 import os
 import re
 import time
 import tempfile
+from pathlib import Path
 from typing import Union, Optional, List, Dict, Any, Tuple
 
-
-class RaidCommands(Commands):
+class RaidCommands(PluginUtilsBase):
     """
     Classe pour gérer les tableaux RAID Linux (mdadm).
-    Hérite de la classe Commands pour la gestion des commandes système.
+    Hérite de PluginUtilsBase pour l'exécution de commandes et la progression.
     """
-    
+
     def __init__(self, logger=None, target_ip=None):
         """
-        Initialise le gestionnaire RAID.
+        Initialise le gestionnaire de commandes RAID.
 
         Args:
-            logger: Instance de PluginLogger à utiliser
-            target_ip: Adresse IP cible pour les logs (optionnel, pour les exécutions SSH)
+            logger: Instance de PluginLogger (optionnel).
+            target_ip: IP cible pour les logs (optionnel).
         """
         super().__init__(logger, target_ip)
+        self._mdadm_path = self._find_mdadm()
 
-    def create_raid_array(self, raid_level, devices, array_name=None, spare_devices=None, chunk_size=None, metadata=None):
+    def _find_mdadm(self) -> Optional[str]:
+        """Trouve le chemin de l'exécutable mdadm."""
+        # Vérifier les emplacements courants
+        for path in ['/sbin/mdadm', '/usr/sbin/mdadm', '/bin/mdadm', '/usr/bin/mdadm']:
+            success, _, _ = self.run(['test', '-x', path], check=False, no_output=True, error_as_warning=True)
+            if success:
+                self.log_debug(f"Exécutable mdadm trouvé: {path}")
+                return path
+        # Si non trouvé, essayer 'which'
+        success_which, path_which, _ = self.run(['which', 'mdadm'], check=False, no_output=True, error_as_warning=True)
+        if success_which and path_which.strip():
+            path_str = path_which.strip()
+            self.log_debug(f"Exécutable mdadm trouvé via which: {path_str}")
+            return path_str
+
+        self.log_error("Exécutable 'mdadm' introuvable. Les opérations RAID échoueront. Installer le paquet 'mdadm'.")
+        return None
+
+    def _run_mdadm(self, args: List[str], check: bool = False, needs_sudo: bool = True, **kwargs) -> Tuple[bool, str, str]:
+        """Exécute une commande mdadm avec gestion sudo."""
+        if not self._mdadm_path:
+            return False, "", "Exécutable mdadm non trouvé."
+        cmd = [self._mdadm_path] + args
+        # La plupart des commandes mdadm nécessitent root
+        return self.run(cmd, check=check, needs_sudo=needs_sudo, **kwargs)
+
+    def _get_available_md_device(self) -> str:
+        """Trouve le prochain nom de périphérique /dev/mdX disponible."""
+        md_num = 0
+        while True:
+            dev_path = f"/dev/md{md_num}"
+            # Utiliser une commande pour vérifier l'existence du bloc device
+            # Pas besoin de sudo pour 'test -b' généralement
+            success, _, _ = self.run(['test', '-b', dev_path], check=False, no_output=True, error_as_warning=True, needs_sudo=False)
+            if not success:
+                self.log_debug(f"Prochain périphérique md disponible: {dev_path}")
+                return dev_path
+            md_num += 1
+            if md_num > 128: # Limite de sécurité raisonnable
+                self.log_error("Impossible de trouver un périphérique /dev/mdX disponible (limite atteinte?).")
+                raise RuntimeError("Limite de périphériques md atteinte")
+
+    def create_raid_array(self,
+                          raid_level: Union[int, str],
+                          devices: List[str],
+                          array_path: Optional[str] = None,
+                          spare_devices: Optional[List[str]] = None,
+                          chunk_size: Optional[int] = None, # en KB
+                          metadata: str = "1.2", # Défaut moderne
+                          force: bool = False,
+                          assume_clean: bool = False,
+                          task_id: Optional[str] = None) -> Optional[str]:
         """
-        Crée un nouveau tableau RAID.
+        Crée un nouveau tableau RAID via `mdadm --create`.
 
         Args:
-            raid_level: Niveau RAID (0, 1, 4, 5, 6, 10)
-            devices: Liste des périphériques à utiliser
-            array_name: Nom de l'array (optionnel, md0 par défaut)
-            spare_devices: Liste des périphériques de secours (optionnel)
-            chunk_size: Taille de chunk en KB (optionnel)
-            metadata: Version des métadonnées (optionnel)
+            raid_level: Niveau RAID (0, 1, 4, 5, 6, 10).
+            devices: Liste des chemins des périphériques à inclure (ex: /dev/sda1).
+            array_path: Chemin du périphérique RAID à créer (ex: /dev/md0). Si None, auto-détecté.
+            spare_devices: Liste des périphériques de secours (optionnel).
+            chunk_size: Taille de chunk en KiloOctets (optionnel).
+            metadata: Version des métadonnées (ex: "1.2", "0.90"). Défaut: "1.2".
+            force: Forcer la création même si des superblocks existent (`--force`).
+            assume_clean: Supposer que les disques sont synchronisés (`--assume-clean`, accélère RAID1/10).
+            task_id: ID de tâche pour la progression (optionnel).
 
         Returns:
-            bool: True si la création a réussi, False sinon
+            Chemin du périphérique RAID créé (ex: /dev/md0) ou None si échec.
+            La fonction attend la fin de la synchro initiale et met à jour mdadm.conf.
         """
-        if not devices or len(devices) < 2:
-            self.log_error("Au moins deux périphériques sont nécessaires pour créer un RAID")
-            return False
+        spare_devices = spare_devices or []
+        # Valider le nombre de disques
+        min_disks = self._min_devices_for_level(raid_level)
+        if not devices or len(devices) < min_disks:
+            self.log_error(f"Nombre insuffisant de périphériques ({len(devices)}) pour RAID {raid_level}. Minimum requis: {min_disks}.")
+            return None
 
-        # Déterminer le nom du tableau
-        if not array_name:
-            # Trouver le prochain md disponible
-            md_num = 0
-            while os.path.exists(f"/dev/md{md_num}"):
-                md_num += 1
-            array_name = f"md{md_num}"
-        elif not array_name.startswith("md"):
-            array_name = f"md{array_name}"
+        # Déterminer le chemin du tableau
+        target_array_path = array_path
+        if not target_array_path:
+            try:
+                target_array_path = self._get_available_md_device()
+            except RuntimeError as e:
+                self.log_error(str(e))
+                return None
+        elif not target_array_path.startswith('/dev/md'):
+            self.log_error(f"Chemin de tableau invalide: {target_array_path}. Doit commencer par /dev/md.")
+            return None
 
-        # Construire la commande
-        cmd = ['mdadm', '--create', f"/dev/{array_name}", f"--level={raid_level}", f"--raid-devices={len(devices)}"]
-
-        # Options supplémentaires
-        if chunk_size:
-            cmd.append(f"--chunk={chunk_size}")
-
-        if metadata:
-            cmd.append(f"--metadata={metadata}")
-
-        # Ajouter les périphériques
-        cmd.extend(devices)
-
-        # Ajouter les disques de secours si spécifiés
+        array_name = os.path.basename(target_array_path)
+        self.log_info(f"Création du tableau RAID {raid_level} '{array_name}' sur {target_array_path}")
+        self.log_info(f"  Périphériques: {', '.join(devices)}")
         if spare_devices:
-            cmd.append(f"--spare-devices={len(spare_devices)}")
-            cmd.extend(spare_devices)
+            self.log_info(f"  Secours: {', '.join(spare_devices)}")
 
-        self.log_info(f"Création du tableau RAID {raid_level} '{array_name}' avec les périphériques: {', '.join(devices)}")
+        current_task_id = task_id or f"raid_create_{array_name}_{int(time.time())}"
+        # Étapes: 1 (commande create) + 1 (attente sync/rebuild) + 1 (update conf)
+        self.start_task(3, description=f"Création RAID {array_name} - Étape 1/3: Commande mdadm", task_id=current_task_id)
 
-        # Exécuter la commande avec --run pour forcer la création même en cas de superblocks
-        cmd.append("--run")
-        success, stdout, stderr = self.run_as_root(cmd)
+        # Construire la commande mdadm --create
+        cmd = ['--create', target_array_path, f'--level={raid_level}', f'--raid-devices={len(devices)}']
+        if spare_devices:
+            cmd.append(f'--spare-devices={len(spare_devices)}')
+        if chunk_size:
+            cmd.append(f'--chunk={chunk_size}')
+        if metadata:
+            cmd.append(f'--metadata={metadata}')
+        if assume_clean:
+             # Attention: à utiliser seulement si on est sûr que les données sont identiques (ex: nouveaux disques)
+             self.log_warning("Utilisation de --assume-clean : suppose les disques synchronisés.")
+             cmd.append('--assume-clean')
 
+        cmd.extend(devices)
+        cmd.extend(spare_devices)
+
+        # Exécuter avec --run pour démarrer immédiatement après création
+        cmd.append('--run')
+        # Ajouter --force si demandé explicitement
+        if force:
+            cmd.append('--force')
+            self.log_info("  Option --force activée.")
+
+        # Exécuter la commande mdadm --create
+        # Utiliser un timeout très long ou None, car la création peut prendre du temps
+        # check=False pour analyser stderr en cas d'erreur (ex: superblocs existants)
+        create_success, stdout_create, stderr_create = self._run_mdadm(cmd, check=False, timeout=None)
+
+        # Gérer le cas où la création échoue à cause de superblocs existants sans --force
+        if not create_success and not force and \
+           re.search(r'(blocks found on|contains a .* filesystem|member device)', stderr_create, re.IGNORECASE):
+            self.log_warning("Superblocs ou systèmes de fichiers existants détectés. Relance avec --force.")
+            cmd_force = cmd + ['--force'] # Ajouter --force à la commande précédente
+            create_success, stdout_create, stderr_create = self._run_mdadm(cmd_force, check=False, timeout=None)
+
+        # Si toujours en échec après la relance potentielle
+        if not create_success:
+            self.log_error(f"Échec de la création du tableau RAID '{array_name}'.")
+            self.log_error(f"Stderr: {stderr_create}")
+            if stdout_create: self.log_info(f"Stdout: {stdout_create}")
+            self.complete_task(success=False, message="Échec création mdadm")
+            return None
+
+        self.log_success(f"Commande de création pour {array_name} réussie.")
+        self.update_task(description=f"Création RAID {array_name} - Étape 2/3: Attente Synchro")
+
+        # Attendre la fin de la synchro/reconstruction initiale
+        # (mdadm --create --run retourne souvent avant la fin)
+        sync_success = self.wait_for_raid_sync(target_array_path, task_id=current_task_id) # Utilise le même task_id
+        if not sync_success:
+             self.log_warning(f"La synchronisation initiale de {array_name} a échoué ou a dépassé le timeout.")
+             # Continuer quand même pour mettre à jour la conf ? Ou retourner échec ? Retourner échec.
+             self.complete_task(success=False, message="Échec/Timeout synchro RAID")
+             return None
+
+        self.update_task(description=f"Création RAID {array_name} - Étape 3/3: Mise à jour config")
+        # Mettre à jour mdadm.conf pour l'assemblage au démarrage
+        conf_updated = self._update_mdadm_conf()
+        if not conf_updated:
+             self.log_warning("La mise à jour de mdadm.conf a échoué, le RAID pourrait ne pas être assemblé au démarrage.")
+
+        self.complete_task(success=True, message=f"RAID {array_name} créé")
+        return target_array_path
+
+    def stop_raid_array(self, array_path: str) -> bool:
+        """
+        Arrête (désactive) un tableau RAID via `mdadm --stop`.
+        Le tableau ne doit pas être monté ou utilisé.
+
+        Args:
+            array_path: Chemin du périphérique RAID à arrêter (ex: /dev/md0).
+
+        Returns:
+            bool: True si succès (ou si déjà arrêté).
+        """
+        array_name = os.path.basename(array_path)
+        self.log_info(f"Arrêt du tableau RAID: {array_name} ({array_path})")
+
+        # Vérifier si le tableau existe (en tant que block device)
+        if not self._check_array_exists(array_path):
+             # _check_array_exists loggue déjà l'erreur
+             return False # Ne pas essayer d'arrêter un device inexistant
+
+        # Vérifier si monté (optionnel, mais recommandé)
+        try:
+             from .storage import StorageCommands # Import local
+             storage = StorageCommands(self.logger, self.target_ip)
+             if storage.is_mounted(array_path):
+                  self.log_error(f"Impossible d'arrêter {array_name}: le périphérique est monté.")
+                  return False
+        except ImportError:
+             self.log_warning("Module StorageCommands non trouvé, impossible de vérifier si le RAID est monté.")
+        except Exception as e_mount_check:
+             self.log_warning(f"Erreur lors de la vérification du montage de {array_path}: {e_mount_check}")
+
+        # Exécuter mdadm --stop
+        success, stdout, stderr = self._run_mdadm(['--stop', array_path], check=False)
         if success:
-            self.log_success(f"Tableau RAID {raid_level} '{array_name}' créé avec succès")
-
-            # Mise à jour de mdadm.conf pour la persistance
-            self._update_mdadm_conf()
-
+            self.log_success(f"Tableau RAID '{array_name}' arrêté.")
             return True
         else:
-            # Si l'erreur mentionne des superblocks, essayer avec --force
-            if "appears to contain an ext2fs" in stderr or "superblock" in stderr:
-                self.log_warning("Détection de superblocks sur les périphériques, tentative avec --force")
-                cmd.append("--force")
-                force_success, _, force_stderr = self.run_as_root(cmd)
-
-                if force_success:
-                    self.log_success(f"Tableau RAID {raid_level} '{array_name}' créé avec succès (avec --force)")
-                    self._update_mdadm_conf()
-                    return True
-                else:
-                    self.log_error(f"Échec de la création du tableau RAID (même avec --force): {force_stderr}")
-                    return False
+            # Gérer l'erreur "not active" ou "No such file" comme un succès potentiel
+            if re.search(r'(not active|no such file or directory)', stderr, re.IGNORECASE):
+                 self.log_warning(f"Le tableau RAID '{array_name}' n'était déjà pas actif.")
+                 return True
+            # Gérer l'erreur "device or resource busy"
+            elif "device or resource busy" in stderr.lower():
+                 self.log_error(f"Échec de l'arrêt: Le périphérique {array_name} est occupé (probablement monté).")
             else:
-                self.log_error(f"Échec de la création du tableau RAID: {stderr}")
-                return False
-
-    def stop_raid_array(self, array_name):
-        """
-        Arrête un tableau RAID.
-
-        Args:
-            array_name: Nom du tableau RAID à arrêter
-
-        Returns:
-            bool: True si l'arrêt a réussi, False sinon
-        """
-        # Normaliser le nom du tableau
-        if not array_name.startswith("/dev/"):
-            if not array_name.startswith("md"):
-                array_name = f"md{array_name}"
-            array_path = f"/dev/{array_name}"
-        else:
-            array_path = array_name
-            array_name = os.path.basename(array_path)
-
-        # Vérifier si le tableau existe
-        if not os.path.exists(array_path):
-            self.log_error(f"Le tableau RAID '{array_name}' n'existe pas")
+                 self.log_error(f"Échec de l'arrêt du tableau RAID '{array_name}'. Stderr: {stderr}")
             return False
 
-        # Vérifier si le tableau est monté
-        if self._is_mounted(array_path):
-            self.log_warning(f"Le tableau RAID '{array_name}' est monté. Tentative de démontage.")
-            umount_cmd = ['umount', array_path]
-            umount_success, _, umount_stderr = self.run_as_root(umount_cmd)
-
-            if not umount_success:
-                self.log_error(f"Impossible de démonter '{array_path}': {umount_stderr}")
-                return False
-
-        self.log_info(f"Arrêt du tableau RAID '{array_name}'")
-
-        # Arrêter le tableau
-        cmd = ['mdadm', '--stop', array_path]
-        success, stdout, stderr = self.run_as_root(cmd)
-
-        if success:
-            self.log_success(f"Tableau RAID '{array_name}' arrêté avec succès")
-            return True
-        else:
-            self.log_error(f"Échec de l'arrêt du tableau RAID '{array_name}': {stderr}")
-            return False
-
-    def add_device_to_raid(self, array_name, device):
-        """
-        Ajoute un périphérique à un tableau RAID.
-
-        Args:
-            array_name: Nom du tableau RAID
-            device: Périphérique à ajouter
-
-        Returns:
-            bool: True si l'ajout a réussi, False sinon
-        """
-        # Normaliser le nom du tableau
-        if not array_name.startswith("/dev/"):
-            if not array_name.startswith("md"):
-                array_name = f"md{array_name}"
-            array_path = f"/dev/{array_name}"
-        else:
-            array_path = array_name
-            array_name = os.path.basename(array_path)
-
-        # Vérifier si le tableau existe
-        if not os.path.exists(array_path):
-            self.log_error(f"Le tableau RAID '{array_name}' n'existe pas")
-            return False
-
-        self.log_info(f"Ajout du périphérique '{device}' au tableau RAID '{array_name}'")
-
-        # Ajouter le périphérique
-        cmd = ['mdadm', '--add', array_path, device]
-        success, stdout, stderr = self.run_as_root(cmd)
-
-        if success:
-            self.log_success(f"Périphérique '{device}' ajouté avec succès au tableau RAID '{array_name}'")
-            return True
-        else:
-            self.log_error(f"Échec de l'ajout du périphérique '{device}': {stderr}")
-            return False
-
-    def remove_device_from_raid(self, array_name, device, fail_first=True):
-        """
-        Retire un périphérique d'un tableau RAID.
-
-        Args:
-            array_name: Nom du tableau RAID
-            device: Périphérique à retirer
-            fail_first: Si True, marque d'abord le périphérique comme défaillant
-
-        Returns:
-            bool: True si le retrait a réussi, False sinon
-        """
-        # Normaliser le nom du tableau
-        if not array_name.startswith("/dev/"):
-            if not array_name.startswith("md"):
-                array_name = f"md{array_name}"
-            array_path = f"/dev/{array_name}"
-        else:
-            array_path = array_name
-            array_name = os.path.basename(array_path)
-
-        # Vérifier si le tableau existe
-        if not os.path.exists(array_path):
-            self.log_error(f"Le tableau RAID '{array_name}' n'existe pas")
-            return False
-
-        # Marquer le périphérique comme défaillant d'abord si demandé
-        if fail_first:
-            self.log_info(f"Marquage du périphérique '{device}' comme défaillant dans le tableau RAID '{array_name}'")
-            fail_cmd = ['mdadm', '--fail', array_path, device]
-            fail_success, _, fail_stderr = self.run_as_root(fail_cmd)
-
-            if not fail_success:
-                self.log_warning(f"Impossible de marquer le périphérique '{device}' comme défaillant: {fail_stderr}")
-                # Continuer quand même avec le retrait
-
-        self.log_info(f"Retrait du périphérique '{device}' du tableau RAID '{array_name}'")
-
-        # Retirer le périphérique
-        cmd = ['mdadm', '--remove', array_path, device]
-        success, stdout, stderr = self.run_as_root(cmd)
-
-        if success:
-            self.log_success(f"Périphérique '{device}' retiré avec succès du tableau RAID '{array_name}'")
-            return True
-        else:
-            self.log_error(f"Échec du retrait du périphérique '{device}': {stderr}")
-            return False
-
-    def check_raid_status(self, array_name=None):
+    def check_raid_status(self, array_path: Optional[str] = None) -> Union[Dict[str, Any], List[Dict[str, Any]], None]:
         """
         Vérifie l'état d'un ou tous les tableaux RAID.
 
         Args:
-            array_name: Nom du tableau RAID (optionnel, tous si None)
+            array_path: Chemin du périphérique RAID spécifique (ex: /dev/md0).
+                        Si None, lit `/proc/mdstat` pour tous les arrays.
 
         Returns:
-            dict or list: Informations sur l'état du RAID
+            - Si `array_path` fourni: Dictionnaire détaillé parsé depuis `mdadm --detail` ou None si erreur.
+            - Si `array_path` est None: Liste de dictionnaires parsés depuis `/proc/mdstat`
+              (peut être enrichie avec `mdadm --detail`) ou None si erreur de lecture `/proc/mdstat`.
         """
-        if array_name:
-            # Normaliser le nom du tableau
-            if not array_name.startswith("/dev/"):
-                if not array_name.startswith("md"):
-                    array_name = f"md{array_name}"
-                array_path = f"/dev/{array_name}"
-            else:
-                array_path = array_name
-                array_name = os.path.basename(array_path)
+        if array_path:
+            array_name = os.path.basename(array_path)
+            self.log_info(f"Vérification de l'état du tableau RAID '{array_name}' ({array_path})")
+            if not self._check_array_exists(array_path): return None
 
-            # Vérifier si le tableau existe
-            if not os.path.exists(array_path):
-                self.log_error(f"Le tableau RAID '{array_name}' n'existe pas")
-                return None
-
-            self.log_info(f"Vérification de l'état du tableau RAID '{array_name}'")
-
-            # Obtenir l'état détaillé
-            cmd = ['mdadm', '--detail', array_path]
-            success, stdout, stderr = self.run_as_root(cmd, no_output=True)
-
+            # Utiliser --detail pour un array spécifique
+            success, stdout, stderr = self._run_mdadm(['--detail', array_path], check=False, no_output=True)
             if not success:
-                self.log_error(f"Échec de la récupération des détails du tableau RAID '{array_name}': {stderr}")
+                # Gérer le cas où l'array n'est pas actif
+                if "does not appear to be an md device" in stderr or "No such file or directory" in stderr:
+                     self.log_warning(f"Le périphérique '{array_path}' n'est pas un array mdadm actif.")
+                     return {'device': array_path, 'state': 'inactive'}
+                self.log_error(f"Échec de la récupération des détails de {array_name}. Stderr: {stderr}")
                 return None
-
-            # Parser la sortie
-            raid_info = self._parse_mdadm_detail(stdout)
-            return raid_info
+            return self._parse_mdadm_detail(stdout)
         else:
-            # Vérifier tous les tableaux RAID
-            self.log_info("Vérification de tous les tableaux RAID")
-
-            # Obtenir la liste des tableaux
-            cmd = ['cat', '/proc/mdstat']
-            success, stdout, stderr = self.run(cmd, no_output=True)
-
+            # Lire /proc/mdstat pour tous les arrays
+            self.log_info("Vérification de l'état de tous les tableaux RAID actifs (/proc/mdstat)")
+            # Pas besoin de sudo pour lire /proc/mdstat
+            success, stdout, stderr = self.run(['cat', '/proc/mdstat'], check=False, no_output=True, needs_sudo=False)
             if not success:
-                self.log_error(f"Échec de la récupération de l'état des tableaux RAID: {stderr}")
-                return []
+                self.log_error(f"Impossible de lire /proc/mdstat. Stderr: {stderr}")
+                return None
+            return self._parse_mdstat(stdout)
 
-            # Parser la sortie de /proc/mdstat
-            raids = self._parse_mdstat(stdout)
-
-            # Obtenir les détails pour chaque tableau
-            for raid in raids:
-                detail_cmd = ['mdadm', '--detail', f"/dev/{raid['name']}"]
-                detail_success, detail_stdout, _ = self.run_as_root(detail_cmd, no_output=True)
-
-                if detail_success:
-                    details = self._parse_mdadm_detail(detail_stdout)
-                    raid.update(details)
-
-            return raids
-
-    def repair_raid_array(self, array_name, scan=True, assume_clean=False):
+    def wait_for_raid_sync(self, array_path: str, timeout: int = 3600, task_id: Optional[str] = None) -> bool:
         """
-        Tente de réparer un tableau RAID défaillant.
+        Attend la fin de la synchronisation/reconstruction/reshape d'un array
+        en surveillant `/proc/mdstat`. Met à jour une tâche de progression si `task_id` est fourni.
 
         Args:
-            array_name: Nom du tableau RAID à réparer
-            scan: Si True, effectue un scan pour détecter les composants
-            assume_clean: Si True, suppose que les périphériques sont synchronisés
+            array_path: Chemin du périphérique RAID (ex: /dev/md0).
+            timeout: Temps maximum d'attente en secondes. Défaut: 3600 (1 heure).
+            task_id: ID de tâche existant à mettre à jour avec la progression en pourcentage (0-100).
+                     Si None, aucune progression n'est rapportée par cette fonction.
 
         Returns:
-            bool: True si la réparation a réussi, False sinon
+            bool: True si la synchronisation est terminée dans le délai imparti, False sinon.
         """
-        # Normaliser le nom du tableau
-        if not array_name.startswith("/dev/"):
-            if not array_name.startswith("md"):
-                array_name = f"md{array_name}"
-            array_path = f"/dev/{array_name}"
-        else:
-            array_path = array_name
-            array_name = os.path.basename(array_path)
+        array_name = os.path.basename(array_path)
+        self.log_info(f"Attente de la fin de la synchronisation/reconstruction pour {array_name}...")
+        start_time = time.monotonic()
+        last_pct_reported = -1
 
-        self.log_warning(f"Tentative de réparation du tableau RAID '{array_name}'")
+        while True:
+            elapsed = time.monotonic() - start_time
+            if elapsed > timeout:
+                self.log_error(f"Timeout ({timeout}s) dépassé en attendant la synchronisation de {array_name}.")
+                # Mettre à jour la tâche à 100% avec un message d'erreur ? Ou laisser tel quel ?
+                if task_id: self.update_task(description=f"Timeout Synchro {array_name}", task_id=task_id)
+                return False
 
-        # Vérifier l'état actuel
-        status = self.check_raid_status(array_name)
-        if not status:
-            self.log_error(f"Impossible d'obtenir l'état du tableau RAID '{array_name}'")
-            return False
+            # Lire /proc/mdstat pour vérifier l'état
+            success, mdstat_out, _ = self.run(['cat', '/proc/mdstat'], check=False, no_output=True, error_as_warning=True, needs_sudo=False)
+            if not success:
+                 self.log_warning("Impossible de lire /proc/mdstat pour vérifier la synchro. Réessai dans 10s.")
+                 time.sleep(10)
+                 continue
 
-        # Si le tableau est déjà en bon état, pas besoin de réparation
-        if status.get('state', '').lower() == 'clean' or status.get('state', '').lower() == 'active':
-            self.log_info(f"Le tableau RAID '{array_name}' est en bon état, aucune réparation nécessaire")
-            return True
+            sync_line = None
+            in_array_section = False
+            # Trouver la section de l'array concerné et la ligne de synchro
+            for line in mdstat_out.splitlines():
+                line_strip = line.strip()
+                if line_strip.startswith(f"{array_name} :"):
+                    in_array_section = True
+                elif in_array_section and line_strip.startswith("md"): # Début d'un autre array
+                    in_array_section = False
+                    break # Sortir si on passe à un autre array
+                elif in_array_section and ("recovery" in line or "resync" in line or "reshape" in line or "check" in line):
+                    sync_line = line_strip
+                    break # Trouvé la ligne de synchro/recovery/check
 
-        # Si le scan est demandé, tenter de détecter les composants
-        if scan:
-            self.log_info("Recherche des composants du tableau RAID")
-            scan_cmd = ['mdadm', '--scan', '--assemble', array_path]
-            scan_success, _, scan_stderr = self.run_as_root(scan_cmd)
+            if sync_line:
+                # Extraire le pourcentage
+                match = re.search(r'=\s*([\d\.]+)%', sync_line)
+                percentage = -1.0
+                if match:
+                    try:
+                        percentage = float(match.group(1))
+                    except ValueError: pass
 
-            if scan_success:
-                self.log_success(f"Tableau RAID '{array_name}' assemblé avec succès")
+                # Mettre à jour la progression si un task_id est fourni et le pourcentage a changé
+                if task_id and int(percentage) > last_pct_reported:
+                    current_step = int(percentage) # Barre de 0 à 100
+                    # Extraire le temps restant si possible
+                    time_match = re.search(r'finish=([\d\.]+)min', sync_line)
+                    eta = f"ETA: {time_match.group(1)}min" if time_match else ""
+                    # Mettre à jour la description de la tâche
+                    self.update_task(advance=0, # Ne pas avancer l'étape globale ici
+                                     description=f"Synchro {array_name}: {percentage:.1f}% {eta}",
+                                     task_id=task_id)
+                    # Mettre à jour la barre visuelle si activée
+                    if self.use_visual_bars:
+                         self.logger.update_bar(task_id, current_step, 100, post_text=f"{percentage:.1f}% {eta}")
+                    last_pct_reported = int(percentage)
 
-                # Vérifier l'état après assemblage
-                status = self.check_raid_status(array_name)
-                if status and (status.get('state', '').lower() == 'clean' or status.get('state', '').lower() == 'active'):
-                    return True
+                self.log_debug(f"Progression synchro {array_name}: {sync_line}")
+                # Continuer d'attendre
+                time.sleep(5) # Intervalle de vérification
             else:
-                self.log_warning(f"Échec de l'assemblage automatique: {scan_stderr}")
+                # Aucune ligne de synchro/recovery/reshape/check trouvée pour cet array
+                self.log_info(f"Synchronisation/Reconstruction de {array_name} terminée (ou non en cours).")
+                # Mettre à jour la tâche à 100% si elle était suivie
+                if task_id:
+                     self.update_task(advance=0, description=f"Synchro {array_name}: Terminé", task_id=task_id)
+                     if self.use_visual_bars:
+                          self.logger.update_bar(task_id, 100, 100, post_text="Terminé")
+                return True # Terminé
 
-        # Arrêter le tableau s'il est actif mais dégradé
-        stop_cmd = ['mdadm', '--stop', array_path]
-        self.run_as_root(stop_cmd)
+    # --- Méthodes Privées ---
 
-        # Tenter d'assembler avec --force
-        self.log_info("Tentative d'assemblage forcé du tableau RAID")
-        assemble_cmd = ['mdadm', '--assemble', '--force', array_path]
-        assemble_success, _, assemble_stderr = self.run_as_root(assemble_cmd)
-
-        if not assemble_success:
-            self.log_error(f"Échec de l'assemblage forcé: {assemble_stderr}")
-
-            # Dernière tentative: recréer le tableau avec --run
-            if 'devices' in status and status['devices']:
-                devices = [dev['device'] for dev in status['devices'] if dev['state'] != 'removed']
-
-                if devices:
-                    self.log_warning("Tentative de dernière chance: re-création du tableau")
-
-                    # Obtenir le niveau RAID
-                    raid_level = status.get('raid_level', '5')  # Niveau 5 par défaut si non trouvé
-
-                    # Recréer le tableau
-                    create_cmd = ['mdadm', '--create', '--force', '--run', array_path,
-                                 f"--level={raid_level}", f"--raid-devices={len(devices)}"]
-
-                    if assume_clean:
-                        create_cmd.append('--assume-clean')
-
-                    create_cmd.extend(devices)
-
-                    create_success, _, create_stderr = self.run_as_root(create_cmd)
-
-                    if create_success:
-                        self.log_success(f"Tableau RAID '{array_name}' recréé avec succès")
-                        self._update_mdadm_conf()
-                        return True
-                    else:
-                        self.log_error(f"Échec de la re-création du tableau: {create_stderr}")
-                        return False
-                else:
-                    self.log_error("Aucun périphérique valide trouvé pour recréer le tableau")
-                    return False
-            else:
-                self.log_error("Informations insuffisantes sur les périphériques pour tenter une réparation")
-                return False
-        else:
-            self.log_success(f"Tableau RAID '{array_name}' assemblé avec succès")
-
-            # Démarrer la reconstruction si nécessaire
-            self.log_info("Vérification de l'état et démarrage de la reconstruction si nécessaire")
-
-            # Forcer une vérification
-            check_cmd = ['echo', 'check', '>', f"/sys/block/{array_name}/md/sync_action"]
-            self.run_as_root(['bash', '-c', ' '.join(check_cmd)])
-
-            return True
-
-    def rebuild_raid_array(self, array_name, rebuild_device, assume_clean=False):
-        """
-        Lance la reconstruction d'un périphérique dans un tableau RAID.
-
-        Args:
-            array_name: Nom du tableau RAID
-            rebuild_device: Périphérique à reconstruire
-            assume_clean: Si True, suppose que les données sont synchronisées
-
-        Returns:
-            bool: True si le démarrage de la reconstruction a réussi, False sinon
-        """
-        # Normaliser le nom du tableau
-        if not array_name.startswith("/dev/"):
-            if not array_name.startswith("md"):
-                array_name = f"md{array_name}"
-            array_path = f"/dev/{array_name}"
-        else:
-            array_path = array_name
-            array_name = os.path.basename(array_path)
-
-        # Vérifier si le tableau existe
-        if not os.path.exists(array_path):
-            self.log_error(f"Le tableau RAID '{array_name}' n'existe pas")
+    def _check_array_exists(self, array_path: str) -> bool:
+        """Vérifie si un périphérique bloc md existe."""
+        success, _, _ = self.run(['test', '-b', array_path], check=False, no_output=True, error_as_warning=True, needs_sudo=False)
+        if not success:
+            self.log_error(f"Le tableau RAID '{os.path.basename(array_path)}' ({array_path}) n'existe pas ou n'est pas un périphérique bloc.")
             return False
-
-        self.log_info(f"Démarrage de la reconstruction du périphérique '{rebuild_device}' dans le tableau RAID '{array_name}'")
-
-        # Ajouter le périphérique au tableau
-        cmd = ['mdadm', '--add', array_path, rebuild_device]
-
-        if assume_clean:
-            # Si on suppose que les données sont synchronisées, utiliser la fonction re-add
-            cmd = ['mdadm', '--re-add', array_path, rebuild_device]
-
-        success, stdout, stderr = self.run_as_root(cmd)
-
-        if success:
-            self.log_success(f"Reconstruction du périphérique '{rebuild_device}' démarrée avec succès")
-
-            # Vérifier l'état de la reconstruction
-            self._check_raid_rebuild_progress(array_name)
-
-            return True
-        else:
-            self.log_error(f"Échec du démarrage de la reconstruction: {stderr}")
-            return False
-
-    def get_raid_devices(self, array_name):
-        """
-        Obtient la liste des périphériques d'un tableau RAID.
-
-        Args:
-            array_name: Nom du tableau RAID
-
-        Returns:
-            list: Liste des périphériques avec leur état
-        """
-        # Normaliser le nom du tableau
-        if not array_name.startswith("/dev/"):
-            if not array_name.startswith("md"):
-                array_name = f"md{array_name}"
-            array_path = f"/dev/{array_name}"
-        else:
-            array_path = array_name
-            array_name = os.path.basename(array_path)
-
-        # Vérifier si le tableau existe
-        if not os.path.exists(array_path):
-            self.log_error(f"Le tableau RAID '{array_name}' n'existe pas")
-            return []
-
-        self.log_info(f"Récupération des périphériques du tableau RAID '{array_name}'")
-
-        # Obtenir les détails du tableau
-        status = self.check_raid_status(array_name)
-        if not status or 'devices' not in status:
-            self.log_error(f"Impossible d'obtenir les informations sur les périphériques du tableau '{array_name}'")
-            return []
-
-        return status['devices']
-
-    def grow_raid_array(self, array_name, new_devices=None, new_level=None, new_layout=None):
-        """
-        Étend ou modifie un tableau RAID existant.
-
-        Args:
-            array_name: Nom du tableau RAID
-            new_devices: Liste des nouveaux périphériques à ajouter (optionnel)
-            new_level: Nouveau niveau RAID (optionnel)
-            new_layout: Nouvelle disposition (left-symmetric, etc.) (optionnel)
-
-        Returns:
-            bool: True si la modification a réussi, False sinon
-        """
-        # Normaliser le nom du tableau
-        if not array_name.startswith("/dev/"):
-            if not array_name.startswith("md"):
-                array_name = f"md{array_name}"
-            array_path = f"/dev/{array_name}"
-        else:
-            array_path = array_name
-            array_name = os.path.basename(array_path)
-
-        # Vérifier si le tableau existe
-        if not os.path.exists(array_path):
-            self.log_error(f"Le tableau RAID '{array_name}' n'existe pas")
-            return False
-
-        # Obtenir l'état actuel du tableau
-        status = self.check_raid_status(array_name)
-        if not status:
-            self.log_error(f"Impossible d'obtenir l'état du tableau RAID '{array_name}'")
-            return False
-
-        # Vérifier si les modifications sont possibles
-        current_level = status.get('raid_level')
-        if new_level and not self._check_raid_conversion(current_level, new_level):
-            self.log_error(f"La conversion du niveau RAID {current_level} vers {new_level} n'est pas supportée")
-            return False
-
-        # Ajouter de nouveaux périphériques si spécifiés
-        if new_devices:
-            self.log_info(f"Ajout de {len(new_devices)} nouveaux périphériques au tableau RAID '{array_name}'")
-
-            # Obtenir le nombre actuel de périphériques
-            current_devices = len([d for d in status.get('devices', []) if d['state'] != 'spare'])
-
-            # Ajouter chaque périphérique comme spare
-            for device in new_devices:
-                add_cmd = ['mdadm', '--add', array_path, device]
-                add_success, _, add_stderr = self.run_as_root(add_cmd)
-
-                if not add_success:
-                    self.log_error(f"Échec de l'ajout du périphérique '{device}': {add_stderr}")
-                    return False
-
-            # Reconfigurer le tableau avec les nouveaux périphériques
-            grow_cmd = ['mdadm', '--grow', array_path, f"--raid-devices={current_devices + len(new_devices)}"]
-            grow_success, _, grow_stderr = self.run_as_root(grow_cmd)
-
-            if not grow_success:
-                self.log_error(f"Échec de la reconfiguration du tableau: {grow_stderr}")
-                return False
-
-            self.log_success(f"Tableau RAID '{array_name}' étendu avec {len(new_devices)} nouveaux périphériques")
-
-        # Changer le niveau RAID si spécifié
-        if new_level:
-            self.log_info(f"Conversion du tableau RAID '{array_name}' du niveau {current_level} vers {new_level}")
-
-            level_cmd = ['mdadm', '--grow', array_path, f"--level={new_level}"]
-
-            if new_layout:
-                level_cmd.append(f"--layout={new_layout}")
-
-            level_success, _, level_stderr = self.run_as_root(level_cmd)
-
-            if not level_success:
-                self.log_error(f"Échec de la conversion du niveau RAID: {level_stderr}")
-                return False
-
-            self.log_success(f"Tableau RAID '{array_name}' converti au niveau {new_level}")
-
-        # Suivre la progression de la reconstruction
-        self._check_raid_rebuild_progress(array_name, interval=5, max_checks=5)
-
-        # Mettre à jour mdadm.conf
-        self._update_mdadm_conf()
-
         return True
 
-    def monitor_raid_health(self, email=None, silent=False):
-        """
-        Vérifie l'état de santé de tous les tableaux RAID et envoie un rapport.
+    def _min_devices_for_level(self, level: Union[int, str]) -> int:
+        """Retourne le nombre minimum de disques pour un niveau RAID."""
+        level_str = str(level).lower().replace('raid','')
+        if level_str == '0': return 1 # mdadm permet RAID0 avec 1 disque
+        if level_str == '1': return 2
+        if level_str == '4': return 2 # Techniquement 3 recommandé (2 data + 1 parité)
+        if level_str == '5': return 3
+        if level_str == '6': return 4
+        if level_str == '10': return 2 # Minimum 2 pour un miroir, 4 pour miroir de stripes
+        self.log_warning(f"Niveau RAID inconnu: {level_str}, suppose minimum 2 disques.")
+        return 2
 
-        Args:
-            email: Adresse email pour recevoir le rapport (optionnel)
-            silent: Si True, n'affiche pas les messages pour les tableaux en bon état
-
-        Returns:
-            tuple: (bool, str) - Succès et message de rapport
-        """
-        self.log_info("Vérification de l'état de santé de tous les tableaux RAID")
-
-        # Vérifier tous les tableaux RAID
-        raids = self.check_raid_status()
-
-        if not raids:
-            message = "Aucun tableau RAID trouvé sur le système"
-            self.log_info(message)
-            return True, message
-
-        # Analyser l'état de chaque tableau
-        report = []
-        has_issues = False
-
-        for raid in raids:
-            raid_name = raid.get('name', 'Unknown')
-            raid_state = raid.get('state', 'Unknown').lower()
-
-            if raid_state in ['clean', 'active']:
-                if not silent:
-                    report.append(f"[OK] Tableau RAID {raid_name}: État {raid_state}")
-            else:
-                has_issues = True
-                report.append(f"[ALERTE] Tableau RAID {raid_name}: État {raid_state} - ATTENTION!")
-
-            # Vérifier l'état des périphériques
-            if 'devices' in raid:
-                for dev in raid['devices']:
-                    dev_state = dev.get('state', 'Unknown').lower()
-                    dev_name = dev.get('device', 'Unknown')
-
-                    if dev_state not in ['active', 'in_sync']:
-                        has_issues = True
-                        report.append(f"[ALERTE] Périphérique {dev_name} dans {raid_name}: État {dev_state} - ATTENTION!")
-                    elif not silent:
-                        report.append(f"[OK] Périphérique {dev_name} dans {raid_name}: État {dev_state}")
-
-        # Résumé
-        if has_issues:
-            summary = f"ALERTE: Problèmes détectés sur {len(raids)} tableau(x) RAID"
-            self.log_warning(summary)
-        else:
-            summary = f"OK: Tous les {len(raids)} tableau(x) RAID sont en bon état"
-            self.log_success(summary)
-
-        report.insert(0, summary)
-        report_text = "\n".join(report)
-
-        # Envoyer par email si demandé
-        if email and has_issues:
-            self.log_info(f"Envoi du rapport d'état RAID à {email}")
-            try:
-                mail_cmd = ['mail', '-s', f"ALERTE RAID: {summary}", email]
-                mail_success, _, _ = self.run(mail_cmd, input_data=report_text)
-
-                if not mail_success:
-                    self.log_warning(f"Échec de l'envoi du rapport par email à {email}")
-            except Exception as e:
-                self.log_warning(f"Erreur lors de l'envoi du rapport par email: {str(e)}")
-
-        return True, report_text
-
-    def configure_raid_monitoring(self, email=None, interval='daily', enable=True):
-        """
-        Configure une surveillance automatique des tableaux RAID.
-
-        Args:
-            email: Adresse email pour recevoir les alertes (optionnel)
-            interval: Intervalle entre les vérifications ('hourly', 'daily', 'weekly')
-            enable: Si True, active la surveillance, sinon la désactive
-
-        Returns:
-            bool: True si la configuration a réussi, False sinon
-        """
-        self.log_info(f"Configuration de la surveillance RAID ({interval})")
-
-        # Créer un script de vérification
-        script_path = "/etc/cron.d/raid_monitor.sh"
-
-        if enable:
-            script_content = "#!/bin/bash\n\n"
-
-            # Vérifier l'état des tableaux RAID
-            script_content += "# Vérification des tableaux RAID\n"
-            script_content += "RAID_STATE=$(cat /proc/mdstat)\n\n"
-
-            # Analyser l'état
-            script_content += "# Vérifier les problèmes\n"
-            script_content += "if echo \"$RAID_STATE\" | grep -E 'degraded|recovery|resync'; then\n"
-            script_content += "  ISSUES=1\n"
-            script_content += "  SUBJECT=\"ALERTE: Problème détecté sur les tableaux RAID\"\n"
-            script_content += "else\n"
-            script_content += "  ISSUES=0\n"
-            script_content += "  SUBJECT=\"OK: Tableaux RAID en bon état\"\n"
-            script_content += "fi\n\n"
-
-            # Envoyer un rapport par email si spécifié
-            if email:
-                script_content += f"# Envoyer un rapport par email\n"
-                script_content += f"if [ $ISSUES -eq 1 ] || [ \"$1\" = \"--force\" ]; then\n"
-                script_content += f"  (echo \"État des tableaux RAID:\" && echo \"\" && cat /proc/mdstat && echo \"\" && echo \"Détails des tableaux:\" && mdadm --detail --scan) | mail -s \"$SUBJECT\" {email}\n"
-                script_content += f"fi\n\n"
-
-            # Créer le script de surveillance
-            try:
-                with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
-                    temp_path = temp_file.name
-                    temp_file.write(script_content)
-
-                # Déplacer le script vers l'emplacement final
-                mv_cmd = ['mv', temp_path, script_path]
-                mv_success, _, mv_stderr = self.run_as_root(mv_cmd)
-
-                if not mv_success:
-                    self.log_error(f"Échec de la création du script de surveillance: {mv_stderr}")
-                    return False
-
-                # Rendre le script exécutable
-                chmod_cmd = ['chmod', '+x', script_path]
-                self.run_as_root(chmod_cmd)
-
-                # Configurer le cron selon l'intervalle spécifié
-                cron_path = ""
-                if interval == 'hourly':
-                    cron_path = "/etc/cron.hourly/raid_monitor"
-                elif interval == 'daily':
-                    cron_path = "/etc/cron.daily/raid_monitor"
-                elif interval == 'weekly':
-                    cron_path = "/etc/cron.weekly/raid_monitor"
-                else:
-                    self.log_error(f"Intervalle invalide: {interval}")
-                    return False
-
-                # Créer le lien symbolique vers le script
-                ln_cmd = ['ln', '-sf', script_path, cron_path]
-                ln_success, _, ln_stderr = self.run_as_root(ln_cmd)
-
-                if not ln_success:
-                    self.log_error(f"Échec de la création du lien cron: {ln_stderr}")
-                    return False
-
-                self.log_success(f"Surveillance RAID configurée avec succès (intervalle: {interval})")
-                return True
-
-            except Exception as e:
-                self.log_error(f"Erreur lors de la configuration de la surveillance RAID: {str(e)}")
-                return False
-        else:
-            # Désactiver la surveillance
-            try:
-                # Supprimer les liens cron
-                for cron_dir in ['hourly', 'daily', 'weekly']:
-                    cron_path = f"/etc/cron.{cron_dir}/raid_monitor"
-                    if os.path.exists(cron_path):
-                        rm_cmd = ['rm', cron_path]
-                        self.run_as_root(rm_cmd)
-
-                # Supprimer le script
-                if os.path.exists(script_path):
-                    rm_cmd = ['rm', script_path]
-                    self.run_as_root(rm_cmd)
-
-                self.log_success("Surveillance RAID désactivée avec succès")
-                return True
-
-            except Exception as e:
-                self.log_error(f"Erreur lors de la désactivation de la surveillance RAID: {str(e)}")
-                return False
-
-    def _check_raid_rebuild_progress(self, array_name, interval=5, max_checks=3):
-        """
-        Vérifie la progression de la reconstruction d'un tableau RAID.
-
-        Args:
-            array_name: Nom du tableau RAID
-            interval: Intervalle entre les vérifications en secondes
-            max_checks: Nombre maximum de vérifications
-
-        Returns:
-            None
-        """
-        # Normaliser le nom du tableau
-        if array_name.startswith("/dev/"):
-            array_name = os.path.basename(array_name)
-
-        if not array_name.startswith("md"):
-            array_name = f"md{array_name}"
-
-        self.log_info(f"Suivi de la progression de la reconstruction du tableau RAID '{array_name}'")
-
-        for i in range(max_checks):
-            # Lire l'état de la reconstruction
-            cmd = ['cat', '/proc/mdstat']
-            success, stdout, _ = self.run(cmd, no_output=True)
-
-            if success:
-                # Parse /proc/mdstat pour trouver la progression
-                for line in stdout.splitlines():
-                    if array_name in line and "recovery" in line:
-                        # Exemple: "[=>...................]  recovery = 5.2% (51200/1020160) finish=3.1min speed=5224K/sec"
-                        match = re.search(r'recovery = ([0-9.]+)%.*finish=([0-9.]+)(min|sec)', line)
-                        if match:
-                            percentage = match.group(1)
-                            time_left = match.group(2)
-                            time_unit = match.group(3)
-
-                            self.log_info(f"Reconstruction en cours: {percentage}% terminé, temps restant: {time_left}{time_unit}")
-                            break
-                    elif array_name in line and "resync" in line:
-                        # Exemple: "[=>...................]  resync = 5.2% (51200/1020160) finish=3.1min speed=5224K/sec"
-                        match = re.search(r'resync = ([0-9.]+)%.*finish=([0-9.]+)(min|sec)', line)
-                        if match:
-                            percentage = match.group(1)
-                            time_left = match.group(2)
-                            time_unit = match.group(3)
-
-                            self.log_info(f"Resynchronisation en cours: {percentage}% terminé, temps restant: {time_left}{time_unit}")
-                            break
-
-            if i < max_checks - 1:
-                time.sleep(interval)
-
-        self.log_info(f"La reconstruction du tableau RAID '{array_name}' se poursuit en arrière-plan")
-
-    def _parse_mdstat(self, mdstat_output):
-        """
-        Parse la sortie de /proc/mdstat pour obtenir des informations sur les tableaux RAID.
-
-        Args:
-            mdstat_output: Sortie de /proc/mdstat
-
-        Returns:
-            list: Liste des tableaux RAID avec leurs informations
-        """
-        raids = []
-        current_raid = None
-
-        for line in mdstat_output.splitlines():
-            line = line.strip()
-
-            # Nouvelle entrée de tableau RAID
-            if line.startswith('md'):
-                if current_raid:
-                    raids.append(current_raid)
-
-                # Extraire le nom et l'état
-                parts = line.split(':', 1)
-                if len(parts) >= 2:
-                    current_raid = {
-                        'name': parts[0],
-                        'status': parts[1].strip()
-                    }
-
-                    # Extraire le niveau RAID et les périphériques
-                    match = re.search(r'raid([0-9]+)', line)
-                    if match:
-                        current_raid['raid_level'] = match.group(1)
-
-                    current_raid['devices'] = []
-
-            # Ligne de périphériques
-            elif current_raid and line and not line.startswith('unused'):
-                # Exemple: "sda1[0] sdb1[1] sdc1[2]"
-                devices = re.findall(r'([a-zA-Z0-9/]+)\[[0-9]+\]', line)
-                for device in devices:
-                    current_raid['devices'].append({
-                        'device': f"/dev/{device}",
-                        'state': 'active'  # Par défaut, sera mis à jour avec --detail
-                    })
-
-            # Ligne d'état
-            elif current_raid and ('recovery' in line or 'resync' in line):
-                current_raid['recovery_status'] = line.strip()
-
-        # Ajouter le dernier tableau
-        if current_raid:
-            raids.append(current_raid)
-
-        return raids
-
-    def _parse_mdadm_detail(self, detail_output):
-        """
-        Parse la sortie de mdadm --detail pour obtenir des informations détaillées sur un tableau RAID.
-
-        Args:
-            detail_output: Sortie de mdadm --detail
-
-        Returns:
-            dict: Informations détaillées sur le tableau RAID
-        """
-        raid_info = {
-            'devices': []
+    def _parse_mdadm_detail(self, detail_output: str) -> Dict[str, Any]:
+        """Parse la sortie de mdadm --detail."""
+        info: Dict[str, Any] = {'devices': []}
+        device_section = False
+        key_map = { # Mapper les noms verbeux en clés normalisées
+            'Version': 'metadata_version', 'Creation Time': 'creation_time',
+            'Raid Level': 'raid_level', 'Array Size': 'array_size',
+            'Used Dev Size': 'used_dev_size', 'Raid Devices': 'raid_devices',
+            'Total Devices': 'total_devices', 'Persistence': 'persistence',
+            'Update Time': 'update_time', 'State': 'state',
+            'Active Devices': 'active_devices', 'Working Devices': 'working_devices',
+            'Failed Devices': 'failed_devices', 'Spare Devices': 'spare_devices',
+            'Layout': 'layout', 'Chunk Size': 'chunk_size',
+            'Consistency Policy': 'consistency_policy', 'Name': 'name', 'UUID': 'uuid',
+            'Events': 'events',
+            # Pour la section device
+            'Number': 'number', 'Major': 'major', 'Minor': 'minor',
+            'RaidDevice': 'raid_device_slot', 'State': 'device_state', # Renommer pour éviter conflit
         }
-
-        current_section = None
 
         for line in detail_output.splitlines():
-            line = line.strip()
-
-            if not line:
+            line_strip = line.strip()
+            if not line_strip:
+                device_section = False # Fin de section potentielle
                 continue
 
-            # Fin de la section des périphériques
-            if current_section == 'devices' and not line.startswith('    '):
-                current_section = None
-
-            # Détection de la section des périphériques
-            if line.startswith('Number   Major   Minor'):
-                current_section = 'devices'
+            # Détecter le début de la section des devices
+            if line_strip.startswith('Number') and 'Major' in line_strip and 'Minor' in line_strip:
+                device_section = True
                 continue
 
-            # Analyse des périphériques
-            if current_section == 'devices' and line.startswith('    '):
-                # Exemple: "   0       8        1    active sync   /dev/sda1"
-                parts = line.split()
-                if len(parts) >= 5:
-                    device = {
-                        'number': parts[0],
-                        'major': parts[1],
-                        'minor': parts[2],
-                        'state': ' '.join(parts[3:-1]),
-                        'device': parts[-1]
-                    }
-                    raid_info['devices'].append(device)
-            else:
-                # Autres informations clés (en dehors des périphériques)
-                if ':' in line:
-                    key, value = line.split(':', 1)
-                    key = key.strip().lower().replace(' ', '_')
-                    value = value.strip()
+            if device_section:
+                # Format: Number Major Minor RaidDevice State Device
+                parts = line_strip.split()
+                if len(parts) >= 5: # Au moins 5 colonnes attendues
+                    try:
+                        device_info = {
+                            'number': int(parts[0]),
+                            'major': int(parts[1]),
+                            'minor': int(parts[2]),
+                            'raid_device_slot': int(parts[3]),
+                            'device_state': " ".join(parts[4:-1]), # L'état peut contenir des espaces
+                            'device': parts[-1] # Le chemin est toujours le dernier
+                        }
+                        info['devices'].append(device_info)
+                    except (ValueError, IndexError):
+                         self.log_warning(f"Impossible de parser la ligne device mdadm: '{line_strip}'")
+            elif ':' in line_strip:
+                # Parser les informations générales clé: valeur
+                key, value = line_strip.split(':', 1)
+                key_strip = key.strip()
+                value_strip = value.strip()
+                # Utiliser le mapping ou une clé normalisée
+                key_norm = key_map.get(key_strip, key_strip.lower().replace(' ', '_').replace('-', '_'))
+                # Essayer de convertir les tailles en octets
+                if key_norm.endswith('_size') and '(' in value_strip:
+                     size_match = re.match(r'(\d+)\s*\((\d+\.\d+)\s*(\w+)B\)', value_strip)
+                     if size_match:
+                          info[key_norm + '_bytes'] = int(size_match.group(1)) * 1024 # Taille en Ko * 1024
+                          info[key_norm + '_gib'] = float(size_match.group(2)) # Taille en GiB/MiB
+                          info[key_norm + '_unit'] = size_match.group(3) + 'B'
+                          info[key_norm] = value_strip # Garder aussi la chaîne originale
+                     else:
+                          info[key_norm] = value_strip
+                # Convertir les nombres si possible
+                elif value_strip.isdigit():
+                     info[key_norm] = int(value_strip)
+                else:
+                     info[key_norm] = value_strip
+        return info
 
-                    # Convertir certaines valeurs
-                    if key in ['raid_level']:
-                        # Extraire le niveau numérique (RAID-5 -> 5)
-                        match = re.search(r'raid([0-9]+)', value.lower())
-                        if match:
-                            value = match.group(1)
+    def _parse_mdstat(self, mdstat_output: str) -> List[Dict[str, Any]]:
+        """Parse la sortie de /proc/mdstat."""
+        arrays = []
+        current_array: Optional[Dict[str, Any]] = None
+        lines = mdstat_output.splitlines()
+        i = 0
+        while i < len(lines):
+            line = lines[i].strip()
+            i += 1
+            if line.startswith('Personalities :'): continue
+            if line.startswith('unused devices:'): continue
+            if not line: continue
 
-                    raid_info[key] = value
+            # Début d'un nouvel array: mdX : active raidY sdb1[1] sda1[0]
+            match_md = re.match(r'^(md\d+)\s*:\s*(active|inactive|clean|degraded|recovering|resyncing|reshape)\s*(?:(raid\d+|linear|multipath|faulty)\s*)?(.*)', line)
+            if match_md:
+                # Sauvegarder l'array précédent s'il existe
+                if current_array: arrays.append(current_array)
 
-        return raid_info
+                name, state, level, devices_str = match_md.groups()
+                current_array = {'name': name, 'state': state, 'raid_level': level.replace('raid','') if level else None, 'devices': [], 'status_line': line}
+                # Parser les devices sur la même ligne
+                dev_matches = re.findall(r'(\w+\[\d+\](?:\(.\))?)', devices_str) # Ex: sda1[0](F)
+                for dev_match in dev_matches:
+                    dev_name_match = re.match(r'(\w+)\[\d+\]', dev_match) # Ex: sda1
+                    dev_state_match = re.search(r'\((.)\)', dev_match) # Ex: (F)
+                    if dev_name_match:
+                        dev_state = 'active' # Par défaut
+                        if dev_state_match:
+                             state_code = dev_state_match.group(1)
+                             if state_code == 'F': dev_state = 'faulty'
+                             if state_code == 'S': dev_state = 'spare'
+                        # Construire le chemin /dev/XXX (suppose que c'est un nom de base comme sda1, nvme0n1p1)
+                        device_path = f"/dev/{dev_name_match.group(1)}"
+                        current_array['devices'].append({'device': device_path, 'state': dev_state})
 
-    def _check_raid_conversion(self, from_level, to_level):
-        """
-        Vérifie si une conversion de niveau RAID est possible.
+            # Ligne de configuration (blocks, level, chunk size)
+            elif current_array and re.match(r'^\d+\s+blocks', line):
+                current_array['config_line'] = line
+                # Essayer d'extraire la taille et le chunk
+                size_match = re.search(r'(\d+)\s+blocks', line)
+                if size_match: current_array['size_blocks'] = int(size_match.group(1))
+                chunk_match = re.search(r'(\d+k)\s+chunks', line)
+                if chunk_match: current_array['chunk_size'] = chunk_match.group(1)
 
-        Args:
-            from_level: Niveau RAID actuel
-            to_level: Niveau RAID cible
+            # Ligne de statut de bitmap ou synchro/recovery
+            elif current_array and (line.startswith('[') or 'bitmap:' in line or 'resync =' in line or 'recovery =' in line or 'reshape =' in line or 'check =' in line):
+                current_array['sync_line'] = line
+                # Essayer d'extraire le pourcentage et l'ETA
+                pct_match = re.search(r'=\s*([\d\.]+)%', line)
+                if pct_match: current_array['sync_percent'] = float(pct_match.group(1))
+                eta_match = re.search(r'finish=([\d\.]+)min', line)
+                if eta_match: current_array['sync_eta_min'] = float(eta_match.group(1))
+                speed_match = re.search(r'speed=(\d+K/sec)', line)
+                if speed_match: current_array['sync_speed'] = speed_match.group(1)
 
-        Returns:
-            bool: True si la conversion est possible, False sinon
-        """
-        # Conversions supportées
-        # Basé sur les capacités de mdadm (https://raid.wiki.kernel.org/index.php/RAID_Reshaping)
-        conversions = {
-            '0': ['1', '5', '10'],
-            '1': ['0', '5', '10'],
-            '4': ['0', '5', '6'],
-            '5': ['0', '6'],
-            '6': ['5']
-        }
+        # Ajouter le dernier array parsé
+        if current_array: arrays.append(current_array)
 
-        # Normaliser les niveaux (enlever "raid" si présent)
-        if str(from_level).lower().startswith('raid'):
-            from_level = from_level[4:]
+        # Optionnel: Enrichir avec les détails mdadm pour chaque array trouvé
+        # for arr in arrays:
+        #     details = self.check_raid_status(f"/dev/{arr['name']}")
+        #     if details: arr.update(details) # Fusionner les détails
 
-        if str(to_level).lower().startswith('raid'):
-            to_level = to_level[4:]
+        self.log_info(f"{len(arrays)} array(s) RAID trouvés dans /proc/mdstat.")
+        return arrays
 
-        # Vérifier si la conversion est supportée
-        return str(from_level) in conversions and str(to_level) in conversions.get(str(from_level), [])
-
-    def _update_mdadm_conf(self):
-        """
-        Met à jour le fichier de configuration mdadm.conf avec les tableaux actuels.
-
-        Returns:
-            bool: True si la mise à jour a réussi, False sinon
-        """
-        self.log_info("Mise à jour du fichier mdadm.conf")
-
-        # Sauvegarder le fichier existant
+    def _update_mdadm_conf(self) -> bool:
+        """Met à jour /etc/mdadm/mdadm.conf ou /etc/mdadm.conf via `mdadm --detail --scan`."""
+        self.log_info("Mise à jour de la configuration mdadm (/etc/mdadm/mdadm.conf)")
+        # Déterminer le chemin du fichier de conf
         conf_path = "/etc/mdadm/mdadm.conf"
-        if not os.path.exists(os.path.dirname(conf_path)):
-            # Chercher d'autres emplacements possibles
-            for alt_path in ["/etc/mdadm.conf", "/etc/md.conf"]:
-                if os.path.exists(alt_path):
-                    conf_path = alt_path
-                    break
-
+        alt_path = "/etc/mdadm.conf"
+        target_conf_path = None
         if os.path.exists(conf_path):
-            backup_path = f"{conf_path}.bak"
-            cp_cmd = ['cp', conf_path, backup_path]
-            self.run_as_root(cp_cmd)
+             target_conf_path = conf_path
+        elif os.path.exists(alt_path):
+             target_conf_path = alt_path
+        else:
+             # Si aucun n'existe, créer celui dans /etc/mdadm/
+             target_conf_path = conf_path
+             self.log_info(f"Fichier {target_conf_path} non trouvé, il sera créé.")
+             mdadm_dir = os.path.dirname(target_conf_path)
+             if not os.path.exists(mdadm_dir):
+                  # Créer le dossier avec sudo
+                  self.run(['mkdir', '-p', mdadm_dir], check=False, needs_sudo=True)
 
-        # Générer la nouvelle configuration
-        scan_cmd = ['mdadm', '--detail', '--scan']
-        scan_success, scan_stdout, scan_stderr = self.run_as_root(scan_cmd, no_output=True)
+        # Sauvegarde de l'ancien fichier si existant
+        if os.path.exists(target_conf_path):
+            backup_path = f"{target_conf_path}.bak_{int(time.time())}"
+            self.log_info(f"Sauvegarde de la configuration existante dans {backup_path}")
+            # Utiliser cp -a via self.run pour gérer sudo et préserver les permissions
+            cp_success, _, cp_stderr = self.run(['cp', '-a', target_conf_path, backup_path], check=False, needs_sudo=True)
+            if not cp_success:
+                 self.log_warning(f"Échec de la sauvegarde de {target_conf_path}: {cp_stderr}")
+
+        # Générer la nouvelle configuration via mdadm --detail --scan
+        # Exécuter avec sudo car peut nécessiter de lire les superblocs
+        scan_success, scan_stdout, scan_stderr = self._run_mdadm(['--detail', '--scan'], check=False, no_output=True, needs_sudo=True)
 
         if not scan_success:
-            self.log_error(f"Échec de la génération de la configuration RAID: {scan_stderr}")
+            self.log_error(f"Impossible de générer la configuration mdadm via '--detail --scan'. Stderr: {scan_stderr}")
             return False
 
-        # Écrire la nouvelle configuration
-        conf_content = "# Généré automatiquement par le script de gestion RAID\n"
-        conf_content += "# Consultez mdadm.conf(5) pour plus d'informations\n\n"
+        # Construire le contenu final du fichier
+        conf_content = f"# mdadm.conf generated by pcUtils plugin on {time.strftime('%Y-%m-%d %H:%M:%S')}\n"
+        conf_content += "# See mdadm.conf(5) for more information.\n\n"
+        # Ajouter la directive DEVICE (importante)
         conf_content += "DEVICE partitions\n\n"
-        conf_content += scan_stdout
+        # Ajouter la sortie de scan qui contient les lignes ARRAY
+        conf_content += scan_stdout.strip() + "\n\n"
+        # Ajouter une ligne MAILADDR si configuré (à implémenter si besoin)
+        # conf_content += "MAILADDR admin@example.com\n"
 
-        try:
-            with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
-                temp_path = temp_file.name
-                temp_file.write(conf_content)
+        # Écrire la nouvelle configuration en utilisant _write_file_content pour gérer sudo/backup
+        from .config_files import ConfigFileCommands # Import local
+        cfg_writer = ConfigFileCommands(self.logger, self.target_ip)
+        # Ne pas faire de backup ici car on l'a déjà fait au début
+        success_write = cfg_writer._write_file_content(target_conf_path, conf_content, backup=False)
 
-            # Déplacer le fichier temporaire vers l'emplacement final
-            mv_cmd = ['mv', temp_path, conf_path]
-            mv_success, _, mv_stderr = self.run_as_root(mv_cmd)
-
-            if not mv_success:
-                self.log_error(f"Échec de la mise à jour de {conf_path}: {mv_stderr}")
-                return False
-
-            self.log_success(f"Fichier {conf_path} mis à jour avec succès")
+        if success_write:
+            self.log_success(f"Fichier {target_conf_path} mis à jour avec succès.")
+            # Recommander la mise à jour de l'initramfs
+            self.log_info("Il est fortement recommandé de mettre à jour l'initramfs (ex: update-initramfs -u) pour assurer l'assemblage au démarrage.")
             return True
-
-        except Exception as e:
-            self.log_error(f"Erreur lors de la mise à jour de {conf_path}: {str(e)}")
+        else:
+            self.log_error(f"Échec de l'écriture dans {target_conf_path}.")
             return False
 
-    def _is_mounted(self, device):
-        """
-        Vérifie si un périphérique est monté.
-
-        Args:
-            device: Chemin du périphérique
-
-        Returns:
-            bool: True si le périphérique est monté, False sinon
-        """
-        cmd = ['mount']
-        success, stdout, _ = self.run(cmd, no_output=True)
-
-        if not success:
-            return False
-
-        for line in stdout.splitlines():
-            parts = line.split()
-            if len(parts) >= 3 and parts[0] == device:
-                return True
-
-        return False

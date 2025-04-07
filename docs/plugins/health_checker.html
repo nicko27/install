@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentation: plugins_utils/health_checker.py</title>
+  <link rel="stylesheet" href="docs_style.css">
+  <style>
+    /* Style additionnel pour les avertissements de dépendance */
+    .dependency-warning {
+      color: #856404;
+      /* Jaune/brun */
+      background-color: #fff3cd;
+      /* Jaune clair */
+      border: 1px solid #ffeeba;
+      /* Jaune moyen */
+      border-radius: 4px;
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .dependency-warning::before {
+      content: "⚠️ Prérequis: ";
+    }
+
+    /* Style pour les statuts OK/WARNING/ERROR */
+    .status-ok {
+      color: #198754;
+      font-weight: 600;
+    }
+
+    /* Vert */
+    .status-warning {
+      color: #ffc107;
+      font-weight: 600;
+    }
+
+    /* Jaune */
+    .status-error {
+      color: #dc3545;
+      font-weight: 600;
+    }
+
+    /* Rouge */
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <h1 class="main-title">Documentation: <code>plugins_utils/health_checker.py</code></h1>
+
+    <p class="module-description">
+      Ce module fournit des utilitaires pour effectuer des vérifications de l'état général du système.
+      Il vérifie l'espace disque, la mémoire, la charge CPU, la connectivité, les services critiques,
+      les erreurs <code>dmesg</code>, etc. Il s'appuie sur d'autres modules de <code>plugins_utils</code>
+      (StorageCommands, NetworkCommands, ServiceCommands).
+    </p>
+    <p class="dependency-warning">
+      Nécessite que les modules <code>StorageCommands</code>, <code>NetworkCommands</code>,
+      et <code>ServiceCommands</code> soient disponibles et fonctionnels pour une vérification complète.
+      Certaines vérifications peuvent nécessiter des privilèges root.
+    </p>
+
+    <nav class="toc">
+      <h3 class="toc-title">Accès Rapide aux Méthodes</h3>
+      <ul class="toc-list">
+        <li class="toc-item"><a href="#check_disk_space" class="toc-link">check_disk_space</a></li>
+        <li class="toc-item"><a href="#check_memory_usage" class="toc-link">check_memory_usage</a></li>
+        <li class="toc-item"><a href="#check_cpu_load" class="toc-link">check_cpu_load</a></li>
+        <li class="toc-item"><a href="#check_network_connectivity" class="toc-link">check_network_connectivity</a></li>
+        <li class="toc-item"><a href="#check_critical_services" class="toc-link">check_critical_services</a></li>
+        <li class="toc-item"><a href="#check_dmesg_errors" class="toc-link">check_dmesg_errors</a></li>
+        <li class="toc-item"><a href="#run_all_checks" class="toc-link">run_all_checks</a></li>
+      </ul>
+    </nav>
+
+    <h2 class="section-title">Classe Principale</h2>
+
+    <section class="method-section">
+      <h3 class="method-title" id="HealthChecker"><code>HealthChecker(PluginUtilsBase)</code></h3>
+      <p class="description">
+        Classe pour effectuer des vérifications de santé système.
+        Hérite de <code>PluginUtilsBase</code> et utilise d'autres commandes utilitaires.
+      </p>
+    </section>
+
+    <h2 class="section-title">Méthodes Principales</h2>
+
+    <section class="method-section">
+      <h4 class="method-title" id="check_disk_space"><code>check_disk_space(...) -> List[Dict[str, Any]]</code></h4>
+      <p class="description">Vérifie l'espace disque utilisé sur les systèmes de fichiers montés via
+        <code>StorageCommands.get_disk_usage()</code>.</p>
+      <div class="method-signature">
+        <pre><code>check_disk_space(
+    threshold_percent: int = DEFAULT_DISK_THRESHOLD_PERCENT,
+    paths: Optional[List[str]] = None
+) -> List[Dict[str, Any]]</code></pre>
+      </div>
+      <dl class="param-list">
+        <dt>threshold_percent</dt>
+        <dd><span class="param-type">(int)</span>: Seuil d'utilisation (en %) au-delà duquel une alerte est générée.
+          Défaut: 90.</dd>
+        <dt>paths</dt>
+        <dd><span class="param-type">(Optional[List[str]])</span>: Liste de points de montage spécifiques à vérifier
+          (None pour tous).</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">List[Dict[str, Any]]</span> - Liste de
+        dictionnaires pour les FS dépassant le seuil. Chaque dict contient 'filesystem', 'size', 'used', 'avail',
+        'use_pct', 'mounted_on'. Retourne une liste avec un dict d'erreur si <code>StorageCommands</code> n'est pas
+        disponible.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="check_memory_usage">
+        <code>check_memory_usage(threshold_percent: int = DEFAULT_MEMORY_THRESHOLD_PERCENT) -> Optional[Dict[str, Any]]</code>
+      </h4>
+      <p class="description">Vérifie l'utilisation de la mémoire RAM et Swap en lisant <code>/proc/meminfo</code>.</p>
+      <dl class="param-list">
+        <dt>threshold_percent</dt>
+        <dd><span class="param-type">(int)</span>: Seuil d'utilisation (en %) au-delà duquel une alerte ('WARNING') est
+          générée. Défaut: 90.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">Optional[Dict[str, Any]]</span> -
+        Dictionnaire avec l'état (<span class="status-ok">OK</span>, <span class="status-warning">WARNING</span>, <span
+          class="status-error">ERROR</span>) et les détails ('ram_total_kb', 'ram_available_kb', 'ram_used_kb',
+        'ram_used_pct', 'swap_total_kb', 'swap_free_kb', 'swap_used_kb', 'swap_used_pct', 'message'), ou None si erreur
+        majeure.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="check_cpu_load">
+        <code>check_cpu_load(threshold_factor: float = DEFAULT_LOAD_THRESHOLD_FACTOR) -> Optional[Dict[str, Any]]</code>
+      </h4>
+      <p class="description">Vérifie la charge moyenne du CPU (load average) en lisant <code>/proc/loadavg</code> et
+        compare au nombre de coeurs CPU.</p>
+      <dl class="param-list">
+        <dt>threshold_factor</dt>
+        <dd><span class="param-type">(float)</span>: Facteur multiplicateur pour le seuil d'alerte. Une alerte
+          ('WARNING') est générée si loadavg (1m, 5m ou 15m) dépasse <code>threshold_factor * nombre_de_coeurs</code>.
+          Défaut: 2.0.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">Optional[Dict[str, Any]]</span> -
+        Dictionnaire avec l'état (<span class="status-ok">OK</span>, <span class="status-warning">WARNING</span>, <span
+          class="status-error">ERROR</span>) et les valeurs ('load_1m', 'load_5m', 'load_15m', 'cpu_cores', 'threshold',
+        'message'), ou None si erreur majeure.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="check_network_connectivity">
+        <code>check_network_connectivity(hosts_to_ping: Optional[List[str]] = None) -> bool</code></h4>
+      <p class="description">Vérifie la connectivité réseau de base en pinguant des hôtes essentiels via
+        <code>NetworkCommands.ping()</code>.</p>
+      <p class="dependency-warning">
+        Nécessite le module <code>NetworkCommands</code>.
+      </p>
+      <dl class="param-list">
+        <dt>hosts_to_ping</dt>
+        <dd><span class="param-type">(Optional[List[str]])</span>: Liste d'hôtes/IPs à pinguer. Si None, essaie de
+          pinguer la passerelle par défaut et 8.8.8.8.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si tous les hôtes
+        essentiels testés répondent.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="check_critical_services">
+        <code>check_critical_services(service_names: List[str]) -> bool</code></h4>
+      <p class="description">Vérifie si une liste de services système critiques sont actifs via
+        <code>ServiceCommands.is_active()</code>.</p>
+      <p class="dependency-warning">
+        Nécessite le module <code>ServiceCommands</code>.
+      </p>
+      <dl class="param-list">
+        <dt>service_names</dt>
+        <dd><span class="param-type">(List[str])</span>: Liste des noms de services à vérifier.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si tous les services
+        spécifiés sont actifs.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="check_dmesg_errors">
+        <code>check_dmesg_errors(patterns: Optional[List[str]] = None, time_since: str = "1 hour ago") -> List[str]</code>
+      </h4>
+      <p class="description">Recherche les erreurs/warnings récents dans la sortie de <code>dmesg -T</code>.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <dl class="param-list">
+        <dt>patterns</dt>
+        <dd><span class="param-type">(Optional[List[str]])</span>: Liste d'expressions régulières supplémentaires à
+          rechercher (en plus des erreurs/warnings par défaut comme 'error', 'fail', 'warn', 'critical').</dd>
+        <dt>time_since</dt>
+        <dd><span class="param-type">(str)</span>: Ne chercher que les messages depuis ce moment (ex: '10 min ago',
+          'yesterday'). Défaut: '1 hour ago'.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">List[str]</span> - Liste des lignes
+        d'erreur/warning trouvées.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="run_all_checks"><code>run_all_checks(...) -> Dict[str, Any]</code></h4>
+      <p class="description">Exécute une série de vérifications de santé configurables et retourne un rapport résumé.
+      </p>
+      <div class="method-signature">
+        <pre><code>run_all_checks(
+    disk_threshold: int = DEFAULT_DISK_THRESHOLD_PERCENT,
+    mem_threshold: int = DEFAULT_MEMORY_THRESHOLD_PERCENT,
+    load_factor: float = DEFAULT_LOAD_THRESHOLD_FACTOR,
+    ping_hosts: Optional[List[str]] = None,
+    critical_services: Optional[List[str]] = None,
+    dmesg_since: str = "1 hour ago"
+) -> Dict[str, Any]</code></pre>
+      </div>
+      <dl class="param-list">
+        <dt>disk_threshold</dt>
+        <dd><span class="param-type">(int)</span>: Seuil pour l'alerte d'espace disque.</dd>
+        <dt>mem_threshold</dt>
+        <dd><span class="param-type">(int)</span>: Seuil pour l'alerte mémoire.</dd>
+        <dt>load_factor</dt>
+        <dd><span class="param-type">(float)</span>: Facteur pour l'alerte de charge CPU.</dd>
+        <dt>ping_hosts</dt>
+        <dd><span class="param-type">(Optional[List[str]])</span>: Hôtes à pinguer pour la connectivité.</dd>
+        <dt>critical_services</dt>
+        <dd><span class="param-type">(Optional[List[str]])</span>: Services dont l'état actif doit être vérifié.</dd>
+        <dt>dmesg_since</dt>
+        <dd><span class="param-type">(str)</span>: Période pour la recherche d'erreurs dmesg.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">Dict[str, Any]</span> - Dictionnaire
+        contenant les résultats de chaque vérification effectuée (clés: 'disk_space', 'memory_usage', etc.) et une clé
+        'overall_status' indiquant <span class="status-ok">OK</span> ou <span
+          class="status-warning">WARNING/ERROR</span>.
+      </div>
+    </section>
+
+  </div>
+</body>
+
+</html>

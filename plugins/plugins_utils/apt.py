@@ -1,1586 +1,677 @@
+# install/plugins/plugins_utils/apt.py
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Module utilitaire pour la gestion complète des paquets Debian/Ubuntu avec apt.
 Offre des fonctionnalités avancées pour installer, désinstaller, rechercher et gérer
 les paquets et dépôts du système avec affichage de la progression.
 """
 
-from .commands import Commands
+# Import de la classe de base et des types
+from .plugin_utils_base import PluginUtilsBase
 import os
 import re
 import time
-from typing import Union, Optional, List, Dict, Any, Tuple
+from pathlib import Path
+from typing import Union, Optional, List, Dict, Any, Tuple, Set
 
-
-class AptCommands(Commands):
+class AptCommands(PluginUtilsBase):
     """
-    Classe avancée pour gérer les paquets via apt/apt-get/dpkg.
-    Hérite de la classe Commands pour la gestion des commandes système.
+    Classe avancée pour gérer les paquets via apt/apt-get.
+    Hérite de PluginUtilsBase pour l'exécution de commandes et la progression.
     """
 
-    def update(self, allow_fail=False):
+    def __init__(self, logger=None, target_ip=None):
+        """
+        Initialise le gestionnaire de commandes apt.
+
+        Args:
+            logger: Instance de PluginLogger (optionnel).
+            target_ip: IP cible pour les logs (optionnel).
+        """
+        super().__init__(logger, target_ip)
+        # Environnement standard pour les commandes apt pour éviter les prompts interactifs
+        self._apt_env = os.environ.copy()
+        self._apt_env["DEBIAN_FRONTEND"] = "noninteractive"
+        # Vérifier la présence des commandes
+        self._check_commands()
+
+    def _check_commands(self):
+        """Vérifie si les commandes apt nécessaires sont disponibles."""
+        cmds = ['apt-get', 'apt-cache', 'dpkg-query', 'gpg', 'curl', 'tee', 'mkdir', 'rm']
+        missing = []
+        for cmd in cmds:
+            success, _, _ = self.run(['which', cmd], check=False, no_output=True, error_as_warning=True)
+            if not success:
+                missing.append(cmd)
+        if missing:
+            self.log_warning(f"Commandes potentiellement manquantes pour AptCommands: {', '.join(missing)}. "
+                             f"Installer 'apt', 'dpkg', 'gnupg', 'curl', 'coreutils'.")
+
+    def update(self, allow_fail: bool = False, task_id: Optional[str] = None) -> bool:
         """
         Met à jour la liste des paquets disponibles via apt-get update.
 
         Args:
             allow_fail: Si True, renvoie True même si des erreurs non critiques surviennent
+                        (ex: clés GPG manquantes, dépôts indisponibles). Défaut: False.
+            task_id: ID de tâche pour la progression (optionnel).
 
         Returns:
-            bool: True si la mise à jour a réussi, False sinon
+            bool: True si la mise à jour a réussi (ou partiellement réussi si allow_fail=True), False sinon.
         """
-        self.log_info("Mise à jour de la liste des paquets")
-        self.set_total_steps(1)
-        self.next_step("Exécution de apt-get update")
+        self.log_info("Mise à jour de la liste des paquets (apt update)")
+        # Utiliser un ID de tâche unique si non fourni
+        current_task_id = task_id or f"apt_update_{int(time.time())}"
+        # Démarrer une tâche avec une seule étape pour cette commande
+        self.start_task(1, description="Exécution apt update", task_id=current_task_id)
 
-        success, _, stderr = self.run_as_root(['apt-get', 'update'])
+        cmd = ['apt-get', 'update']
+        # Exécute sans check=True pour pouvoir analyser stderr en cas d'échec partiel
+        # no_output=False pour voir la sortie en temps réel si possible via le logger de base
+        success, stdout, stderr = self.run(cmd, check=False, env=self._apt_env, no_output=False, real_time_output=True)
+        # Marquer l'étape comme terminée
+        self.update_task(description="apt update terminé")
 
-        # Gérer les erreurs courantes comme les clés manquantes
-        if not success and allow_fail:
-            if "NO_PUBKEY" in stderr or "KEYEXPIRED" in stderr:
-                self.log_warning("Problèmes de clés détectés dans les dépôts, mais continuer quand même")
-                return True
+        # Gérer les erreurs courantes comme les clés manquantes ou dépôts indisponibles
+        warning_issued = False
+        final_success = success # Succès initial de la commande
 
-            if "Some index files failed to download" in stderr:
-                self.log_warning("Certains fichiers d'index n'ont pas pu être téléchargés, mais continuer quand même")
-                return True
+        if not success:
+            # Analyser stderr pour déterminer si l'échec est acceptable avec allow_fail=True
+            if allow_fail:
+                if "NO_PUBKEY" in stderr or "KEYEXPIRED" in stderr:
+                    self.log_warning("Problèmes de clés GPG détectés dans les dépôts, mais continuer quand même.")
+                    warning_issued = True
+                    final_success = True # Considérer comme un succès partiel
+                elif re.search(r'(Failed to fetch|Unable to fetch|Could not resolve)', stderr, re.IGNORECASE):
+                    self.log_warning("Certains dépôts n'ont pas pu être atteints, mais continuer quand même.")
+                    warning_issued = True
+                    final_success = True # Considérer comme un succès partiel
 
-        if success:
-            self.log_success("Mise à jour des sources terminée avec succès")
-        else:
-            self.log_error("Échec de la mise à jour des sources")
+            # Si l'échec n'est pas acceptable ou si allow_fail=False
+            if not final_success:
+                 self.log_error(f"Échec critique de 'apt-get update'. Stderr:\n{stderr}")
 
-        return success
+        # Log final basé sur le statut
+        if final_success and not warning_issued:
+             self.log_success("Mise à jour des sources terminée avec succès.")
+        elif warning_issued: # Implique final_success = True
+             self.log_warning("Mise à jour des sources terminée avec des avertissements.")
 
-    def upgrade(self, dist_upgrade=False, full_upgrade=False, only_security=False, simulate=False, autoremove=True):
+        # Compléter la tâche de progression avec le statut final
+        self.complete_task(success=final_success)
+        return final_success
+
+    def upgrade(self,
+                dist_upgrade: bool = False,
+                full_upgrade: bool = False,
+                simulate: bool = False,
+                autoremove: bool = True,
+                task_id: Optional[str] = None) -> bool:
         """
-        Met à jour les paquets installés via apt-get upgrade avec options avancées.
+        Met à jour les paquets installés via apt-get upgrade/dist-upgrade ou apt full-upgrade.
 
         Args:
-            dist_upgrade: Si True, utilise dist-upgrade (prioritaire sur full_upgrade)
-            full_upgrade: Si True, utilise full-upgrade (apt)
-            only_security: Si True, met à jour uniquement les paquets de sécurité
-            simulate: Si True, simule l'opération sans l'effectuer réellement
-            autoremove: Si True, supprime les paquets inutilisés après la mise à jour
+            dist_upgrade: Si True, utilise `apt-get dist-upgrade` (prioritaire sur full_upgrade).
+            full_upgrade: Si True, utilise `apt full-upgrade` (apt).
+            simulate: Si True, simule l'opération sans l'effectuer réellement.
+            autoremove: Si True (défaut), supprime les paquets inutilisés après la mise à jour.
+            task_id: ID de tâche pour la progression (optionnel).
 
         Returns:
-            bool: True si la mise à jour a réussi, False sinon
+            bool: True si la mise à jour (et l'autoremove si activé) a réussi.
         """
-        # Détermine le type de mise à jour
+        # Déterminer le type de mise à jour et la commande à utiliser
         if dist_upgrade:
-            upgrade_type = "complète (dist-upgrade)"
-            cmd_type = "dist-upgrade"
+             upgrade_type_log = "complète (dist-upgrade)"
+             cmd_verb = "dist-upgrade"
+             apt_cmd = 'apt-get'
         elif full_upgrade:
-            upgrade_type = "complète (full-upgrade)"
-            cmd_type = "full-upgrade"
+             upgrade_type_log = "complète (full-upgrade)"
+             cmd_verb = "full-upgrade"
+             apt_cmd = 'apt' # Préférer 'apt' pour full-upgrade
         else:
-            upgrade_type = "standard"
-            cmd_type = "upgrade"
+             upgrade_type_log = "standard (upgrade)"
+             cmd_verb = "upgrade"
+             apt_cmd = 'apt-get'
 
-        # Simulation ou exécution
-        action = "Simulation" if simulate else "Exécution"
+        action_log = "Simulation" if simulate else "Exécution"
+        log_prefix = f"{action_log} de la mise à jour {upgrade_type_log}"
+        self.log_info(log_prefix)
 
-        # Définir les étapes
-        steps = 3  # mise à jour sources + analyse + mise à jour
-        if autoremove and not simulate:
-            steps += 1
-        self.set_total_steps(steps)
+        current_task_id = task_id or f"apt_upgrade_{int(time.time())}"
+        # Étapes: 1 (update) + 1 (upgrade) + 1 (autoremove si activé et non simulation)
+        total_steps = 2 + (1 if autoremove and not simulate else 0)
+        self.start_task(total_steps, description=f"{log_prefix} - Étape 1/ {total_steps}: Mise à jour des sources", task_id=current_task_id)
 
-        # Étape 1: Mise à jour des sources
-        self.next_step(f"Mise à jour des sources apt")
+        # Étape 1: Mise à jour des sources (permettre l'échec partiel)
         update_success = self.update(allow_fail=True)
         if not update_success:
-            self.log_warning("Des erreurs sont survenues lors de la mise à jour des sources")
+            # Même si allow_fail=True, si update échoue complètement, on arrête
+            self.log_error("Échec critique de la mise à jour des sources. Impossible de continuer la mise à jour des paquets.")
+            self.complete_task(success=False, message="Échec mise à jour sources")
+            return False
+        self.update_task(description=f"{log_prefix} - Étape 2/{total_steps}: Exécution {cmd_verb}")
 
-        # Étape 2: Analyse des paquets à mettre à jour
-        self.next_step(f"Analyse des paquets à mettre à jour")
-        cmd = ['apt-get']
+        # Construire la commande upgrade/dist-upgrade/full-upgrade
+        cmd = [apt_cmd, cmd_verb]
+        # Options pour forcer la configuration par défaut ou ancienne en cas de conflit
+        cmd.extend(['-o', 'Dpkg::Options::=--force-confdef', '-o', 'Dpkg::Options::=--force-confold'])
+        cmd.append('-y') # Assume yes par défaut en mode non interactif
 
-        if cmd_type == "full-upgrade":
-            cmd[0] = 'apt'  # apt full-upgrade au lieu de apt-get
-
-        cmd.append(cmd_type)
-
-        # Ajouter les options
         if simulate:
-            cmd.append('--simulate')
-        else:
-            cmd.append('-y')
+             cmd.append('--simulate')
 
-        # Mise à jour sécurité uniquement
-        temp_security_file = None
-        if only_security:
-            # Créer un fichier de liste de sources temporaire
-            temp_security_file = "/tmp/security-sources.list"
-            with open(temp_security_file, "w") as f:
-                f.write("# Sources de sécurité uniquement\n")
+        # Exécuter la commande upgrade
+        # Utiliser un timeout long, check=False pour gérer l'autoremove ensuite
+        upgrade_success, stdout, stderr = self.run(cmd, env=self._apt_env, check=False, timeout=3600, real_time_output=True)
+        self.update_task(description=f"{log_prefix} - {cmd_verb} terminé")
 
-                # Lire les sources actuelles et filtrer celles de sécurité
-                success, stdout, _ = self.run(['cat', '/etc/apt/sources.list'], no_output=True)
-                if success:
-                    for line in stdout.splitlines():
-                        if "security" in line and not line.strip().startswith("#"):
-                            f.write(line + "\n")
+        # Étape 3: Autoremove si succès et demandé
+        autoremove_success = True
+        if upgrade_success and not simulate and autoremove:
+            self.update_task(description=f"{log_prefix} - Étape 3/{total_steps}: Nettoyage (autoremove)")
+            autoremove_success = self.autoremove(simulate=simulate) # Passer simulate ici aussi
+        elif autoremove and not simulate:
+             # Avancer l'étape même si on ne fait pas l'autoremove (car upgrade a échoué)
+             self.update_task()
 
-                # Vérifier aussi dans sources.list.d
-                if os.path.exists("/etc/apt/sources.list.d"):
-                    for file in os.listdir("/etc/apt/sources.list.d"):
-                        if file.endswith(".list"):
-                            success, stdout, _ = self.run(['cat', f'/etc/apt/sources.list.d/{file}'], no_output=True)
-                            if success:
-                                for line in stdout.splitlines():
-                                    if "security" in line and not line.strip().startswith("#"):
-                                        f.write(line + "\n")
+        # Statut final
+        final_success = upgrade_success and autoremove_success
+        final_message = f"{log_prefix} {'terminée' if final_success else 'échouée'}"
+        self.complete_task(success=final_success, message=final_message)
 
-            # Ajouter l'option pour utiliser la liste temporaire
-            cmd.extend(['-o', f'Dir::Etc::SourceList={temp_security_file}'])
-            upgrade_type += " (sécurité uniquement)"
+        if not upgrade_success:
+            self.log_error(f"Échec de '{' '.join(cmd)}'. Stderr:\n{stderr}")
+        if not autoremove_success:
+             self.log_warning("Échec de l'étape autoremove.")
 
-        # Étape 3: Exécution de la mise à jour
-        self.next_step(f"{action} de la mise à jour {upgrade_type}")
-        self.log_info(f"Mise à jour {upgrade_type} des paquets")
-        success, stdout, stderr = self.run_as_root(cmd)
+        return final_success
 
-        # Supprimer le fichier temporaire si créé
-        if only_security and temp_security_file and os.path.exists(temp_security_file):
-            os.remove(temp_security_file)
-
-        # Si succès et pas en mode simulation, exécuter autoremove si demandé
-        if success and not simulate and autoremove:
-            self.next_step("Suppression des paquets inutilisés")
-            self.autoremove()
-
-        if success:
-            if not simulate:
-                self.log_success(f"Mise à jour {upgrade_type} terminée avec succès")
-            else:
-                self.log_info(f"Simulation de mise à jour {upgrade_type} terminée")
-        else:
-            self.log_error(f"Échec de la mise à jour {upgrade_type}")
-
-        return success
-
-    def install(self, package_names, version=None, reinstall=False, auto_fix=True, from_file=False,
-                no_recommends=False, no_suggests=False, assume_yes=True, assume_no=False,
-                force_confold=False, force_confdef=False, simulate=False, force=False):
+    def install(self,
+                package_names: Union[str, List[str]],
+                version: Optional[str] = None,
+                reinstall: bool = False,
+                auto_fix: bool = True,
+                no_recommends: bool = False,
+                simulate: bool = False,
+                force_conf: bool = True, # Utiliser -o Dpkg::Options... par défaut
+                task_id: Optional[str] = None) -> bool:
         """
         Installe un ou plusieurs paquets avec options avancées et affichage de progression.
 
         Args:
-            package_names: Nom du paquet ou liste de paquets à installer
-            version: Version spécifique à installer
-            reinstall: Réinstaller le paquet même s'il est déjà installé
-            auto_fix: Tenter de réparer les dépendances cassées si nécessaire
-            from_file: Si True, package_names est un chemin vers un fichier de paquets
-            no_recommends: Ne pas installer les paquets recommandés
-            no_suggests: Ne pas installer les paquets suggérés
-            assume_yes: Répondre oui automatiquement aux questions
-            assume_no: Répondre non automatiquement aux questions (prioritaire sur assume_yes)
-            force_confold: Conserver l'ancienne version des fichiers de configuration
-            force_confdef: Utiliser les valeurs par défaut des fichiers de configuration
-            simulate: Simuler l'installation sans l'effectuer
-            force: Forcer l'installation même en cas de problèmes
+            package_names: Nom du paquet ou liste de paquets.
+            version: Version spécifique à installer (pour un seul paquet).
+            reinstall: Réinstaller même si déjà installé (`--reinstall`).
+            auto_fix: Tenter `apt --fix-broken install` si des dépendances sont cassées.
+            no_recommends: Ne pas installer les paquets recommandés (`--no-install-recommends`).
+            simulate: Simuler sans installer (`--simulate`).
+            force_conf: Utiliser `-o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold`.
+                        Défaut: True. Mettre à False pour laisser dpkg demander.
+            task_id: ID de tâche pour la progression (optionnel).
 
         Returns:
-            bool: True si l'installation a réussi, False sinon
+            bool: True si l'installation a réussi (et la réparation si tentée).
         """
-        # Convertir en liste si nécessaire
-        if isinstance(package_names, list):
-            packages = package_names
-        elif from_file:
-            # Pour une installation depuis un fichier, nous ne connaissons pas le nombre
-            # exact de paquets à l'avance
-            packages = ["(multiples paquets depuis fichier)"]
-        else:
+        if isinstance(package_names, str):
             packages = [package_names]
-
-        # Déterminer le mode d'opération
-        action = "Simulation de l'installation" if simulate else "Installation"
-
-        # Afficher clairement ce que nous allons installer
-        package_str = ", ".join(packages)
-        self.log_info(f"{action} de: {package_str}")
-        if version:
-            self.log_info(f"Version spécifiée: {version}")
-        if reinstall:
-            self.log_info("Mode: Réinstallation forcée")
-
-        # Options
-        options_list = []
-        if no_recommends:
-            options_list.append("Sans paquets recommandés")
-        if no_suggests:
-            options_list.append("Sans paquets suggérés")
-        if force:
-            options_list.append("Installation forcée (downgrades/changements critiques)")
-        if assume_yes and not assume_no:
-            options_list.append("Confirmation automatique (yes)")
-        if assume_no:
-            options_list.append("Rejet automatique (no)")
-        if force_confold:
-            options_list.append("Conserver les anciens fichiers de configuration")
-        if force_confdef:
-            options_list.append("Utiliser les valeurs par défaut des fichiers de configuration")
-
-        if options_list:
-            self.log_info(f"Options: {', '.join(options_list)}")
-
-        # Construire la commande d'installation avec les options
-        self.log_info("Préparation de la commande d'installation...")
-
-        # Options de l'environnement pour dpkg (fichiers de configuration)
-        env_options = {}
-        dpkg_options = []
-
-        if force_confold:
-            dpkg_options.append("confold")
-        if force_confdef:
-            dpkg_options.append("confdef")
-
-        if dpkg_options:
-            env_options["DEBIAN_FRONTEND"] = "noninteractive"
-            env_option_str = " ".join([f"--force-{opt}" for opt in dpkg_options])
-            env_options["DPKG_OPTIONS"] = f"--force-confdef --force-confold"
-            self.log_info(f"Options dpkg: {env_option_str}")
-
-        # Début de la commande apt-get
-        cmd = ['apt-get']
-
-        # Ajout des options environnement si nécessaires
-        if env_options:
-            # Nous devrons utiliser un wrapper bash pour passer les variables d'environnement
-            env_prefix = []
-            for key, value in env_options.items():
-                env_prefix.append(f"{key}='{value}'")
-
-        # Options apt-get
-        if reinstall:
-            cmd.append('--reinstall')
-
-        if no_recommends:
-            cmd.append('--no-install-recommends')
-
-        if no_suggests:
-            cmd.append('--no-install-suggests')
-
-        if simulate:
-            cmd.append('--simulate')
-        elif assume_yes and not assume_no:
-            cmd.append('-y')
-        elif assume_no:
-            cmd.append('--assume-no')
-
-        if force:
-            cmd.extend(['--allow-downgrades', '--allow-remove-essential', '--allow-change-held-packages'])
-
-        cmd.append('install')
-
-        # Afficher la progression en pourcentage approximatif
-        total_steps = 5
-        current_step = 0
-
-        # Étape 1: Initialisation
-        current_step += 1
-        progress = int(current_step / total_steps * 100)
-        self.log_info(f"[Progression: {progress}%] Préparation de l'installation...")
-
-        # Gérer les paquets
-        if from_file:
-            # Installer depuis un fichier
-            if not os.path.exists(package_names):
-                self.log_error(f"Le fichier de paquets {package_names} n'existe pas")
-                return False
-
-            self.log_info(f"Installation des paquets depuis le fichier {package_names}")
-
-            # Étape 2: Lecture du fichier
-            current_step += 1
-            progress = int(current_step / total_steps * 100)
-            self.log_info(f"[Progression: {progress}%] Lecture du fichier de paquets...")
-
-            # Compter le nombre approximatif de paquets
-            try:
-                with open(package_names, 'r') as f:
-                    num_packages = sum(1 for line in f if line.strip() and not line.strip().startswith('#'))
-                    self.log_info(f"Nombre de paquets à installer depuis le fichier: {num_packages}")
-            except Exception as e:
-                self.log_warning(f"Impossible de compter les paquets: {str(e)}")
-
-            # Étape 3: Installation
-            current_step += 1
-            progress = int(current_step / total_steps * 100)
-            self.log_info(f"[Progression: {progress}%] Installation des paquets du fichier en cours...")
-
-            # Construire la commande avec xargs
-            base_cmd = ['xargs', '-a', package_names, 'apt-get', 'install']
-
-            # Ajouter options selon configuration
-            if assume_yes and not assume_no:
-                base_cmd.append('-y')
-            elif assume_no:
-                base_cmd.append('--assume-no')
-
-            # Afficher et exécuter la commande
-            full_cmd = ' '.join(base_cmd)
-            self.log_info(f"Exécution de: {full_cmd}")
-
-            # Exécution en tenant compte des variables d'environnement si nécessaire
-            if env_options:
-                # Créer une commande bash qui définit les variables puis exécute apt-get
-                env_vars = ' '.join([f"{k}='{v}'" for k, v in env_options.items()])
-                bash_cmd = ['bash', '-c', f"{env_vars} {full_cmd}"]
-                success, stdout, stderr = self.run_as_root(bash_cmd)
-            else:
-                success, stdout, stderr = self.run_as_root(base_cmd)
         else:
-            # Ajouter la version si spécifiée
-            if version and len(packages) == 1:
-                packages[0] = f"{packages[0]}={version}"
+            packages = list(package_names) # Assurer que c'est une liste mutable
 
-            # Ajouter les paquets à la commande
-            cmd.extend(packages)
+        if not packages:
+             self.log_warning("Aucun paquet spécifié pour l'installation.")
+             return True # Ou False selon la sémantique désirée
 
-            # Étape 2: Affichage de la commande
-            current_step += 1
-            progress = int(current_step / total_steps * 100)
-            self.log_info(f"[Progression: {progress}%] Exécution de la commande d'installation...")
+        action = "Simulation d'installation" if simulate else "Installation"
+        package_str = ", ".join(packages)
+        log_prefix = f"{action} de: {package_str}"
+        self.log_info(log_prefix)
 
-            # Afficher la commande complète
-            full_cmd = ' '.join(cmd)
-            self.log_info(f"Exécution de: {full_cmd}")
+        # Gérer la version spécifique
+        target_packages = []
+        if version and len(packages) == 1:
+             self.log_info(f"Version spécifiée: {version}")
+             target_packages.append(f"{packages[0]}={version}")
+        elif version:
+             self.log_warning("La spécification de version n'est supportée que pour un seul paquet à la fois.")
+             target_packages = packages # Installer la version candidate
+        else:
+             target_packages = packages
 
-            # Étape 3: Installation
-            current_step += 1
-            progress = int(current_step / total_steps * 100)
-            self.log_info(f"[Progression: {progress}%] Installation en cours...")
+        current_task_id = task_id or f"apt_install_{target_packages[0].split('=')[0]}_{int(time.time())}"
+        # Estimation grossière: 1 étape par paquet + 1 pour la commande + 1 si auto_fix
+        total_steps = len(target_packages) + 1 + (1 if auto_fix else 0)
+        self.start_task(total_steps, description=f"{log_prefix} - Étape 1/{total_steps}: Préparation", task_id=current_task_id)
 
-            # Exécution en tenant compte des variables d'environnement si nécessaire
-            if env_options:
-                # Créer une commande bash qui définit les variables puis exécute apt-get
-                env_vars = ' '.join([f"{k}='{v}'" for k, v in env_options.items()])
-                bash_cmd = ['bash', '-c', f"{env_vars} {full_cmd}"]
-                success, stdout, stderr = self.run_as_root(bash_cmd, print_command=True)
-            else:
-                # Exécuter la commande d'installation
-                success, stdout, stderr = self.run_as_root(cmd, print_command=True)
+        cmd = ['apt-get', 'install']
+        cmd.append('-y') # Assume yes pour le mode non interactif
 
-        # Étape 4: Vérification du résultat
-        current_step += 1
-        progress = int(current_step / total_steps * 100)
+        # Ajouter les options dpkg pour forcer la configuration si demandé
+        if force_conf:
+             cmd.extend(['-o', 'Dpkg::Options::=--force-confdef', '-o', 'Dpkg::Options::=--force-confold'])
+             self.log_info("Options dpkg: --force-confold, --force-confdef activées.")
 
-        # Traitement des erreurs et réparation si nécessaire
-        if not success and auto_fix:
-            if "broken packages" in stderr or "dependency problems" in stderr:
-                self.log_warning(f"[Progression: {progress}%] Problème de dépendances détecté, tentative de réparation...")
+        if reinstall: cmd.append('--reinstall')
+        if no_recommends: cmd.append('--no-install-recommends')
+        if simulate: cmd.append('--simulate')
 
-                # Commande de réparation
-                fix_cmd = ['apt-get', 'install', '-f']
-                if assume_yes and not assume_no:
-                    fix_cmd.append('-y')
-                elif assume_no:
-                    fix_cmd.append('--assume-no')
+        cmd.extend(target_packages)
 
-                fix_full_cmd = ' '.join(fix_cmd)
-                self.log_info(f"Exécution de: {fix_full_cmd}")
+        # Exécuter la commande d'installation
+        self.update_task(description=f"{log_prefix} - Étape 2/{total_steps}: Exécution apt-get install")
+        # Utiliser check=False pour gérer auto_fix ensuite
+        # Utiliser real_time_output pour voir la progression d'apt
+        install_success, stdout, stderr = self.run(cmd, env=self._apt_env, check=False, real_time_output=True, timeout=3600)
+        # Mettre à jour la progression après la commande principale
+        # Avancer d'un nombre d'étapes égal au nombre de paquets traités (estimation)
+        self.update_task(advance=len(target_packages), description=f"{log_prefix} - Installation terminée")
 
-                # Exécution de la réparation
-                if env_options:
-                    # Avec variables d'environnement
-                    env_vars = ' '.join([f"{k}='{v}'" for k, v in env_options.items()])
-                    bash_fix_cmd = ['bash', '-c', f"{env_vars} {fix_full_cmd}"]
-                    fix_success, _, _ = self.run_as_root(bash_fix_cmd, print_command=True)
-                else:
-                    # Sans variables d'environnement
-                    fix_success, _, _ = self.run_as_root(fix_cmd, print_command=True)
+        # Gérer auto_fix
+        fix_attempted = False
+        if not install_success and auto_fix:
+            # Vérifier si l'erreur est liée aux dépendances
+            if re.search(r'(unmet depend|broken package|held broken)', stderr, re.IGNORECASE):
+                self.update_task(description=f"{log_prefix} - Étape 3/{total_steps}: Tentative de réparation")
+                fix_attempted = True
+                self.log_warning("Problème de dépendances détecté, tentative de réparation avec 'apt --fix-broken install'")
+                fix_success = self.fix_broken(simulate=simulate)
+                # Pas de mise à jour de la progression ici, fix_broken a sa propre tâche
 
                 if fix_success:
-                    self.log_success("Réparation des dépendances réussie")
-                    self.log_info(f"[Progression: {progress}%] Nouvelle tentative d'installation...")
-
+                    self.log_info("Réparation réussie, nouvelle tentative d'installation...")
                     # Nouvelle tentative d'installation
-                    if from_file:
-                        if env_options:
-                            env_vars = ' '.join([f"{k}='{v}'" for k, v in env_options.items()])
-                            bash_cmd = ['bash', '-c', f"{env_vars} {full_cmd}"]
-                            success, _, stderr = self.run_as_root(bash_cmd)
-                        else:
-                            success, _, stderr = self.run_as_root(base_cmd)
-                    else:
-                        if env_options:
-                            env_vars = ' '.join([f"{k}='{v}'" for k, v in env_options.items()])
-                            bash_cmd = ['bash', '-c', f"{env_vars} {full_cmd}"]
-                            success, _, stderr = self.run_as_root(bash_cmd, print_command=True)
-                        else:
-                            success, _, stderr = self.run_as_root(cmd, print_command=True)
+                    self.update_task(description=f"{log_prefix} - Étape 3/{total_steps}: Ré-exécution apt-get install")
+                    install_success, stdout, stderr = self.run(cmd, env=self._apt_env, check=False, real_time_output=True, timeout=3600)
+                    self.update_task(advance=len(target_packages), description=f"{log_prefix} - Ré-installation terminée")
                 else:
-                    self.log_error("Échec de la réparation des dépendances")
-
-        # Étape 5: Finalisation
-        current_step += 1
-        progress = int(current_step / total_steps * 100)
-        self.log_info(f"[Progression: {progress}%] Finalisation de l'installation...")
-
-        # Afficher le résultat final
-        if success:
-            if not simulate:
-                self.log_success(f"Installation réussie pour: {package_str}")
+                     self.log_error("Échec de la réparation des dépendances.")
+                     install_success = False # Confirmer l'échec
             else:
-                self.log_info(f"Simulation d'installation terminée pour: {package_str}")
-        else:
-            self.log_error(f"Échec de l'installation pour: {package_str}")
-            if stderr:
-                # Extraire les messages d'erreur importants
-                error_lines = [line for line in stderr.splitlines() if "E:" in line or "error" in line.lower()]
-                for line in error_lines:
-                    self.log_error(f"Erreur: {line.strip()}")
+                 # Erreur non liée aux dépendances, avancer l'étape si auto_fix était prévu
+                 if auto_fix: self.update_task()
+        elif auto_fix:
+             # Avancer la dernière étape si auto_fix était prévu mais non nécessaire
+             self.update_task()
 
-        return success
 
-    def uninstall(self, package_names, purge=False, auto_remove=True, simulate=False):
+        final_message = f"{log_prefix} {'réussie' if install_success else 'échouée'}"
+        self.complete_task(success=install_success, message=final_message)
+
+        if not install_success:
+            self.log_error(f"Échec de '{' '.join(cmd)}'.")
+            if stderr: self.log_error(f"Stderr:\n{stderr}")
+            # stdout peut aussi contenir des infos utiles sur l'échec
+            if stdout: self.log_info(f"Stdout:\n{stdout}")
+
+        return install_success
+
+    def uninstall(self,
+                  package_names: Union[str, List[str]],
+                  purge: bool = False,
+                  auto_remove: bool = True,
+                  simulate: bool = False,
+                  task_id: Optional[str] = None) -> bool:
         """
         Désinstalle un ou plusieurs paquets.
 
         Args:
-            package_names: Nom du paquet ou liste de paquets à désinstaller
-            purge: Si True, supprime également les fichiers de configuration
-            auto_remove: Si True, supprime les dépendances inutilisées
-            simulate: Si True, simule l'opération sans l'effectuer
+            package_names: Nom du paquet ou liste de paquets.
+            purge: Si True, supprime aussi les fichiers de configuration (`purge`).
+            auto_remove: Si True (défaut), supprime les dépendances inutilisées après.
+            simulate: Simuler sans désinstaller.
+            task_id: ID de tâche pour la progression (optionnel).
 
         Returns:
-            bool: True si la désinstallation a réussi, False sinon
+            bool: True si l'opération a réussi.
         """
-        # Convertir en liste si nécessaire
-        if isinstance(package_names, list):
-            packages = package_names
-        else:
+        if isinstance(package_names, str):
             packages = [package_names]
+        else:
+            packages = list(package_names)
 
-        action = "Simulation de la désinstallation" if simulate else "Désinstallation"
+        if not packages:
+             self.log_warning("Aucun paquet spécifié pour la désinstallation.")
+             return True
+
+        action = "Simulation de désinstallation" if simulate else "Désinstallation"
         action_type = "complète (purge)" if purge else "standard"
-
-        # Définir les étapes
-        steps = 1  # désinstallation
-        if auto_remove and not simulate:
-            steps += 1  # nettoyage
-        self.set_total_steps(steps)
-
-        # Étape 1: Désinstallation des paquets
         package_str = ", ".join(packages)
-        self.next_step(f"{action} {action_type} des paquets: {package_str}")
+        log_prefix = f"{action} {action_type} de {package_str}"
+        self.log_info(log_prefix)
+
+        current_task_id = task_id or f"apt_remove_{packages[0]}_{int(time.time())}"
+        # Étapes: 1 (remove/purge) + 1 (autoremove si activé et non simulation)
+        total_steps = 1 + (1 if auto_remove and not simulate else 0)
+        self.start_task(total_steps, description=f"{log_prefix} - Étape 1/{total_steps}: Désinstallation", task_id=current_task_id)
 
         cmd = ['apt-get']
-
-        if simulate:
-            cmd.append('--simulate')
-        else:
-            cmd.append('-y')
-
         cmd.append('purge' if purge else 'remove')
+        cmd.append('-y') # Assume yes
+        if simulate:
+             cmd.append('--simulate')
         cmd.extend(packages)
 
-        self.log_info(f"{action} {action_type} des paquets: {package_str}")
-        success, _, _ = self.run_as_root(cmd)
+        # Exécuter la commande remove/purge
+        remove_success, stdout, stderr = self.run(cmd, env=self._apt_env, check=False, real_time_output=True)
+        self.update_task(description=f"{log_prefix} - Désinstallation terminée")
 
-        # Exécuter autoremove si demandé
-        if success and auto_remove and not simulate:
-            self.next_step("Suppression des paquets inutilisés")
-            self.autoremove()
+        # Autoremove
+        autoremove_success = True
+        if remove_success and not simulate and auto_remove:
+            self.update_task(description=f"{log_prefix} - Étape 2/{total_steps}: Nettoyage (autoremove)")
+            autoremove_success = self.autoremove(simulate=simulate)
+        elif auto_remove and not simulate:
+             # Avancer l'étape même si remove a échoué
+             self.update_task()
 
-        if success:
-            if not simulate:
-                self.log_success(f"Désinstallation réussie pour: {package_str}")
-            else:
-                self.log_info(f"Simulation de désinstallation terminée pour: {package_str}")
-        else:
-            self.log_error(f"Échec de la désinstallation pour: {package_str}")
+        final_success = remove_success and autoremove_success
+        final_message = f"{log_prefix} {'terminée' if final_success else 'échouée'}"
+        self.complete_task(success=final_success, message=final_message)
 
-        return success
+        if not remove_success:
+            self.log_error(f"Échec de '{' '.join(cmd)}'. Stderr:\n{stderr}")
+        if not autoremove_success:
+             self.log_warning("Échec de l'étape autoremove.")
 
-    def is_installed(self, package_name, min_version=None, max_version=None):
+        return final_success
+
+    def autoremove(self, purge: bool = False, simulate: bool = False) -> bool:
         """
-        Vérifie si un paquet est installé avec contrainte de version optionnelle.
+        Supprime les paquets qui ne sont plus nécessaires via `apt-get autoremove`.
 
         Args:
-            package_name: Nom du paquet à vérifier
-            min_version: Version minimale requise (optionnel)
-            max_version: Version maximale requise (optionnel)
+            purge: Si True, supprime également les fichiers de configuration (`--purge`).
+            simulate: Si True, simule l'opération sans l'effectuer.
 
         Returns:
-            bool: True si le paquet est installé et satisfait les contraintes de version
-        """
-        self.log_debug(f"Vérification de l'installation du paquet {package_name}")
-        success, stdout, _ = self.run(['dpkg-query', '-W', '-f=${Status} ${Version}', package_name], no_output=True)
-
-        if not success or "install ok installed" not in stdout:
-            self.log_debug(f"Le paquet {package_name} n'est pas installé")
-            return False
-
-        # Si pas de contrainte de version, c'est bon
-        if not min_version and not max_version:
-            self.log_debug(f"Le paquet {package_name} est installé")
-            return True
-
-        # Extraire la version installée
-        parts = stdout.split()
-        if len(parts) < 4:
-            self.log_error(f"Format de sortie inattendu pour dpkg-query: {stdout}")
-            return False
-
-        installed_version = parts[3]
-
-        # Vérifier les contraintes de version
-        if min_version:
-            if not self._compare_versions(installed_version, min_version, '>='):
-                self.log_debug(f"Le paquet {package_name} est installé mais la version {installed_version} est inférieure à {min_version}")
-                return False
-
-        if max_version:
-            if not self._compare_versions(installed_version, max_version, '<='):
-                self.log_debug(f"Le paquet {package_name} est installé mais la version {installed_version} est supérieure à {max_version}")
-                return False
-
-        self.log_debug(f"Le paquet {package_name} version {installed_version} est installé et satisfait les contraintes de version")
-        return True
-
-    def _compare_versions(self, ver1, ver2, operator):
-        """
-        Compare deux versions de paquets selon l'opérateur spécifié.
-
-        Args:
-            ver1: Première version
-            ver2: Seconde version
-            operator: Opérateur de comparaison ('>', '<', '>=', '<=', '=')
-
-        Returns:
-            bool: Résultat de la comparaison
-        """
-        success, _, _ = self.run(['dpkg', '--compare-versions', ver1, operator, ver2], no_output=True)
-        return success
-
-    def get_version(self, package_name, candidate=False):
-        """
-        Obtient la version installée ou candidate d'un paquet.
-
-        Args:
-            package_name: Nom du paquet
-            candidate: Si True, retourne la version candidate au lieu de la version installée
-
-        Returns:
-            str: Version du paquet ou None si le paquet n'est pas disponible
-        """
-        if candidate:
-            self.log_debug(f"Récupération de la version candidate du paquet {package_name}")
-            success, stdout, _ = self.run(['apt-cache', 'policy', package_name], no_output=True)
-
-            if success:
-                for line in stdout.splitlines():
-                    if "Candidate:" in line:
-                        version = line.split(":", 1)[1].strip()
-                        if version != "(none)":
-                            self.log_debug(f"Version candidate de {package_name}: {version}")
-                            return version
-
-                self.log_debug(f"Aucune version candidate trouvée pour {package_name}")
-                return None
-        else:
-            if not self.is_installed(package_name):
-                return None
-
-            self.log_debug(f"Récupération de la version installée du paquet {package_name}")
-            success, stdout, _ = self.run(['dpkg-query', '-W', '-f=${Version}', package_name], no_output=True)
-
-            if success:
-                version = stdout.strip()
-                self.log_debug(f"Version installée de {package_name}: {version}")
-                return version
-
-        return None
-
-    def get_architecture(self):
-        """
-        Obtient l'architecture du système.
-
-        Returns:
-            str: Architecture du système (ex: amd64, arm64, etc.)
-        """
-        self.log_debug("Récupération de l'architecture du système")
-        success, stdout, _ = self.run(['dpkg', '--print-architecture'], no_output=True)
-
-        if success:
-            arch = stdout.strip()
-            self.log_debug(f"Architecture du système: {arch}")
-            return arch
-
-        return None
-
-    def add_repository(self, repo_line, keyring=None, key_url=None, signed_by=None, trusted=False, custom_filename=None):
-        """
-        Ajoute un dépôt APT au système avec contrôle précis du fichier cible.
-
-        Args:
-            repo_line: Ligne de dépôt à ajouter
-            keyring: Chemin vers le fichier keyring à utiliser (optionnel)
-            key_url: URL de la clé GPG à ajouter (optionnel)
-            signed_by: Chemin vers le fichier de clé pour signed-by (optionnel)
-            trusted: Si True, marque le dépôt comme trusted
-            custom_filename: Nom de fichier personnalisé dans sources.list.d (optionnel)
-
-        Returns:
-            bool: True si l'ajout a réussi, False sinon
-        """
-        # Définir les étapes
-        steps = 1  # ajout dépôt
-        if key_url:
-            steps += 1  # ajout clé
-        self.set_total_steps(steps)
-
-        # Déterminer le nom du fichier source
-        if custom_filename:
-            if not custom_filename.endswith('.list'):
-                repo_name = custom_filename
-                sources_path = f"/etc/apt/sources.list.d/{custom_filename}.list"
-            else:
-                repo_name = custom_filename[:-5]  # enlever l'extension .list
-                sources_path = f"/etc/apt/sources.list.d/{custom_filename}"
-        else:
-            # Construire le nom du fichier source automatiquement
-            match = re.search(r'https?://([^/]+)/?', repo_line)
-            if match:
-                repo_name = match.group(1).replace('.', '-')
-            else:
-                repo_name = "custom-repo-" + str(int(time.time()))
-
-            sources_path = f"/etc/apt/sources.list.d/{repo_name}.list"
-
-        # Modifier la ligne de dépôt si nécessaire
-        if keyring:
-            repo_line += f" [signed-by={keyring}]"
-        elif signed_by:
-            repo_line += f" [signed-by={signed_by}]"
-        elif trusted:
-            repo_line += " [trusted=yes]"
-
-        self.next_step(f"Ajout du dépôt APT dans {sources_path}: {repo_line}")
-
-        # Ajouter la clé GPG si fournie
-        if key_url:
-            self.log_info(f"Téléchargement et ajout de la clé GPG depuis {key_url}")
-            key_success = False
-
-            # Méthode 1: Télécharger et ajouter directement (moderne)
-            try:
-                key_file = f"/etc/apt/trusted.gpg.d/{repo_name}.gpg"
-                self.log_info(f"Téléchargement de la clé vers {key_file}")
-                dl_cmd = ['wget', '-qO-', key_url]
-                dearmor_cmd = ['gpg', '--dearmor', '-o', key_file]
-
-                # Exécuter les commandes en chaîne
-                wget_success, key_data, _ = self.run(dl_cmd, no_output=True)
-                if wget_success and key_data:
-                    gpg_success, _, _ = self.run_as_root(dearmor_cmd, input_data=key_data)
-                    key_success = gpg_success
-            except Exception as e:
-                self.log_warning(f"Erreur avec la méthode moderne: {str(e)}")
-
-            # Méthode 2: Utiliser apt-key (déprécié mais toujours fonctionnel sur certains systèmes)
-            if not key_success:
-                self.log_warning("Essai avec apt-key (déprécié)")
-                key_cmd = f"wget -qO- {key_url} | apt-key add -"
-                key_success, _, _ = self.run_as_root(['bash', '-c', key_cmd])
-
-            # Méthode 3: Télécharger temporairement puis convertir
-            if not key_success:
-                self.log_warning("Essai avec téléchargement temporaire")
-                temp_key = "/tmp/temp-repo-key.gpg"
-                dl_success, _, _ = self.run(['wget', '-qO', temp_key, key_url])
-
-                if dl_success:
-                    gpg_success, _, _ = self.run_as_root(['gpg', '--dearmor', '-o',
-                                            f"/etc/apt/trusted.gpg.d/{repo_name}.gpg",
-                                            temp_key])
-                    key_success = gpg_success
-
-                    # Supprimer le fichier temporaire
-                    if os.path.exists(temp_key):
-                        os.remove(temp_key)
-
-            if not key_success:
-                self.log_error(f"Échec de l'ajout de la clé GPG pour le dépôt {repo_name}")
-                return False
-
-        # Vérifier si le fichier existe déjà
-        file_exists = os.path.exists(sources_path)
-
-        if file_exists:
-            # Si le fichier existe, vérifier s'il faut ajouter ou remplacer la ligne
-            success, stdout, _ = self.run(['cat', sources_path], no_output=True)
-            if success:
-                lines = stdout.splitlines()
-                found = False
-                for i, line in enumerate(lines):
-                    if repo_line.split()[0] in line and repo_line.split()[1] in line:
-                        found = True
-                        lines[i] = repo_line
-                        break
-
-                if found:
-                    # Mise à jour d'une ligne existante
-                    content = "\n".join(lines)
-                    write_cmd = f"echo '{content}' > {sources_path}"
-                else:
-                    # Ajout d'une nouvelle ligne
-                    write_cmd = f"echo '{repo_line}' >> {sources_path}"
-            else:
-                # Impossible de lire le fichier, réécrire complètement
-                write_cmd = f"echo '{repo_line}' > {sources_path}"
-        else:
-            # Création d'un nouveau fichier
-            write_cmd = f"echo '{repo_line}' > {sources_path}"
-
-        # Écrire dans le fichier source
-        self.log_info(f"Écriture de la configuration du dépôt dans {sources_path}")
-        write_success, _, _ = self.run_as_root(['bash', '-c', write_cmd])
-
-        if not write_success:
-            self.log_error(f"Échec de l'écriture du fichier source {sources_path}")
-            return False
-
-        self.log_success(f"Dépôt ajouté avec succès dans {sources_path}")
-        return True
-
-    def remove_repository(self, repo_identifier, file_path=None, all_occurrences=False):
-        """
-        Supprime un dépôt APT du système avec recherche intelligente du fichier.
-
-        Args:
-            repo_identifier: Identifiant du dépôt (nom du fichier, contenu ou '*' pour tout supprimer)
-            file_path: Nom du fichier dans sources.list.d ou chemin complet du fichier
-            all_occurrences: Si True, supprime toutes les occurrences du dépôt dans tous les fichiers
-
-        Returns:
-            bool: True si la suppression a réussi, False sinon
-        """
-        self.set_total_steps(1)  # suppression
-        self.next_step(f"Recherche et suppression du dépôt: {repo_identifier}")
-
-        # Déterminer le chemin du fichier
-        full_file_path = None
-        if file_path:
-            # Vérifier si c'est un chemin complet
-            if file_path.startswith('/'):
-                full_file_path = file_path
-            else:
-                # Supposer que c'est un nom de fichier dans sources.list.d
-                if not file_path.endswith('.list'):
-                    file_path = f"{file_path}.list"
-                full_file_path = f"/etc/apt/sources.list.d/{file_path}"
-
-        # Cas 1: Chemin du fichier fourni
-        if full_file_path:
-            self.log_info(f"Vérification du fichier: {full_file_path}")
-
-            if os.path.exists(full_file_path):
-                if repo_identifier == '*':
-                    # Suppression complète du fichier
-                    self.log_info(f"Suppression complète du fichier {full_file_path}")
-                    success, _, _ = self.run_as_root(['rm', full_file_path])
-
-                    if success:
-                        self.log_success(f"Fichier de dépôt {full_file_path} supprimé avec succès")
-                        return True
-                    else:
-                        self.log_error(f"Échec de la suppression du fichier {full_file_path}")
-                        return False
-                else:
-                    # Modification du fichier pour supprimer uniquement certaines lignes
-                    self.log_info(f"Modification du fichier {full_file_path} pour supprimer les lignes contenant '{repo_identifier}'")
-                    success, stdout, _ = self.run(['cat', full_file_path], no_output=True)
-
-                    if success:
-                        # Créer un fichier temporaire sans les lignes contenant l'identifiant
-                        temp_file = "/tmp/repo.list.tmp"
-                        removed_count = 0
-                        with open(temp_file, "w") as f:
-                            for line in stdout.splitlines():
-                                line_stripped = line.strip()
-                                if not line_stripped or line_stripped.startswith('#'):
-                                    # Garder les lignes vides et commentaires
-                                    f.write(line + "\n")
-                                elif repo_identifier not in line:
-                                    # Garder les lignes sans l'identifiant
-                                    f.write(line + "\n")
-                                else:
-                                    # Supprimer les lignes avec l'identifiant
-                                    removed_count += 1
-
-                        if removed_count > 0:
-                            # Remplacer le fichier source par la version modifiée
-                            replace_success, _, _ = self.run_as_root(['mv', temp_file, full_file_path])
-
-                            if replace_success:
-                                self.log_success(f"Dépôt supprimé de {full_file_path} ({removed_count} lignes)")
-                                return True
-                            else:
-                                self.log_error(f"Échec de la mise à jour du fichier {full_file_path}")
-                                if os.path.exists(temp_file):
-                                    os.remove(temp_file)
-                                return False
-                        else:
-                            # Aucune ligne supprimée, supprimer le fichier temporaire
-                            os.remove(temp_file)
-                            self.log_warning(f"Aucune ligne contenant '{repo_identifier}' n'a été trouvée dans {full_file_path}")
-                            return True
-            else:
-                self.log_error(f"Le fichier {full_file_path} n'existe pas")
-                return False
-
-        # Cas 2: recherche par nom de fichier dans sources.list.d si repo_identifier se termine par .list
-        if repo_identifier.endswith('.list') and not all_occurrences:
-            sources_path = f"/etc/apt/sources.list.d/{repo_identifier}"
-            if os.path.exists(sources_path):
-                self.log_info(f"Suppression du fichier source {sources_path}")
-                success, _, _ = self.run_as_root(['rm', sources_path])
-
-                if success:
-                    self.log_success(f"Dépôt {repo_identifier} supprimé avec succès")
-                    return True
-                else:
-                    self.log_error(f"Échec de la suppression du fichier source {sources_path}")
-                    return False
-
-        # Cas 3: Recherche dans tous les fichiers .list du répertoire sources.list.d
-        found = False
-        sources_dir = "/etc/apt/sources.list.d"
-        if os.path.exists(sources_dir):
-            self.log_info(f"Recherche de '{repo_identifier}' dans le répertoire {sources_dir}")
-            modified_files = 0
-
-            for file in os.listdir(sources_dir):
-                if file.endswith('.list'):
-                    file_path = os.path.join(sources_dir, file)
-                    success, stdout, _ = self.run(['cat', file_path], no_output=True)
-
-                    if success and repo_identifier in stdout:
-                        if all_occurrences:
-                            # Modification du fichier pour retirer les lignes contenant l'identifiant
-                            temp_file = "/tmp/repo.list.tmp"
-                            removed_count = 0
-                            with open(temp_file, "w") as f:
-                                for line in stdout.splitlines():
-                                    line_stripped = line.strip()
-                                    if not line_stripped or line_stripped.startswith('#'):
-                                        # Garder les lignes vides et commentaires
-                                        f.write(line + "\n")
-                                    elif repo_identifier not in line:
-                                        # Garder les lignes sans l'identifiant
-                                        f.write(line + "\n")
-                                    else:
-                                        # Supprimer les lignes avec l'identifiant
-                                        removed_count += 1
-
-                            if removed_count > 0:
-                                self.log_info(f"Suppression de {removed_count} lignes contenant '{repo_identifier}' dans {file_path}")
-                                replace_success, _, _ = self.run_as_root(['mv', temp_file, file_path])
-
-                                if replace_success:
-                                    self.log_success(f"Dépôt modifié: {file_path}")
-                                    modified_files += 1
-                                    found = True
-                                else:
-                                    self.log_error(f"Échec de la mise à jour du fichier {file_path}")
-                                    if os.path.exists(temp_file):
-                                        os.remove(temp_file)
-                            else:
-                                # Aucune ligne supprimée, supprimer le fichier temporaire
-                                if os.path.exists(temp_file):
-                                    os.remove(temp_file)
-                        else:
-                            # Suppression complète du fichier (si pas all_occurrences)
-                            self.log_info(f"Dépôt trouvé dans {file_path}, suppression du fichier")
-                            rm_success, _, _ = self.run_as_root(['rm', file_path])
-                            if rm_success:
-                                self.log_success(f"Dépôt supprimé via {file_path}")
-                                found = True
-                                # On a trouvé et supprimé un fichier, on peut s'arrêter
-                                break
-                            else:
-                                self.log_error(f"Échec de la suppression du fichier {file_path}")
-
-            if all_occurrences and modified_files > 0:
-                self.log_success(f"Dépôt '{repo_identifier}' supprimé de {modified_files} fichiers")
-
-        # Cas 4: Recherche dans le fichier sources.list principal si rien n'a été trouvé ou all_occurrences
-        sources_path = "/etc/apt/sources.list"
-        if os.path.exists(sources_path) and (all_occurrences or not found):
-            self.log_info(f"Recherche de '{repo_identifier}' dans {sources_path}")
-            success, stdout, _ = self.run(['cat', sources_path], no_output=True)
-
-            if success and repo_identifier in stdout:
-                # Créer un fichier temporaire sans les lignes contenant l'identifiant
-                temp_file = "/tmp/sources.list.tmp"
-                removed_count = 0
-                with open(temp_file, "w") as f:
-                    for line in stdout.splitlines():
-                        line_stripped = line.strip()
-                        if not line_stripped or line_stripped.startswith('#'):
-                            # Garder les lignes vides et commentaires
-                            f.write(line + "\n")
-                        elif repo_identifier not in line:
-                            # Garder les lignes sans l'identifiant
-                            f.write(line + "\n")
-                        else:
-                            # Supprimer les lignes avec l'identifiant
-                            removed_count += 1
-
-                if removed_count > 0:
-                    # Remplacer le fichier sources.list
-                    self.log_info(f"Dépôt trouvé dans {sources_path}, modification du fichier ({removed_count} lignes)")
-                    success, _, _ = self.run_as_root(['mv', temp_file, sources_path])
-
-                    if success:
-                        self.log_success(f"Dépôt supprimé de {sources_path}")
-                        found = True
-                    else:
-                        self.log_error(f"Échec de la mise à jour du fichier {sources_path}")
-                        if os.path.exists(temp_file):
-                            os.remove(temp_file)
-                else:
-                    # Aucune ligne supprimée, supprimer le fichier temporaire
-                    if os.path.exists(temp_file):
-                        os.remove(temp_file)
-
-        if found:
-            return True
-        else:
-            self.log_warning(f"Aucun dépôt correspondant à '{repo_identifier}' n'a été trouvé")
-            return False
-
-    def search(self, pattern, installed_only=False, names_only=False, full_details=False):
-        """
-        Recherche des paquets correspondant à un motif.
-
-        Args:
-            pattern: Motif de recherche
-            installed_only: Si True, recherche uniquement parmi les paquets installés
-            names_only: Si True, retourne uniquement les noms de paquets
-            full_details: Si True, retourne tous les détails disponibles
-
-        Returns:
-            list: Liste des paquets trouvés
-        """
-        self.log_info(f"Recherche de paquets correspondant à '{pattern}'")
-
-        if installed_only:
-            cmd = ['dpkg', '--list']
-        else:
-            cmd = ['apt-cache', 'search', pattern]
-
-        success, stdout, _ = self.run(cmd, no_output=True)
-
-        if not success:
-            self.log_error(f"Échec de la recherche de paquets")
-            return []
-
-        results = []
-
-        if installed_only:
-            for line in stdout.splitlines():
-                if line.startswith('ii '):
-                    parts = line.split()
-                    if len(parts) >= 2 and pattern.lower() in parts[1].lower():
-                        if names_only:
-                            results.append(parts[1])
-                        elif full_details:
-                            pkg_info = {
-                                'name': parts[1],
-                                'version': parts[2],
-                                'architecture': parts[3] if len(parts) > 3 else '',
-                                'description': ' '.join(parts[4:]) if len(parts) > 4 else ''
-                            }
-                            results.append(pkg_info)
-                        else:
-                            results.append({
-                                'name': parts[1],
-                                'version': parts[2]
-                            })
-        else:
-            for line in stdout.splitlines():
-                if " - " in line:
-                    name, description = line.split(" - ", 1)
-
-                    if names_only:
-                        results.append(name.strip())
-                    elif full_details:
-                        # Obtenir plus de détails via apt-cache show
-                        pkg_success, pkg_stdout, _ = self.run(['apt-cache', 'show', name.strip()], no_output=True)
-
-                        if pkg_success:
-                            pkg_info = {
-                                'name': name.strip(),
-                                'description': description.strip(),
-                                'version': '',
-                                'architecture': '',
-                                'size': '',
-                                'section': '',
-                                'maintainer': ''
-                            }
-
-                            for pkg_line in pkg_stdout.splitlines():
-                                if ': ' in pkg_line:
-                                    key, value = pkg_line.split(': ', 1)
-                                    if key == 'Version':
-                                        pkg_info['version'] = value
-                                    elif key == 'Architecture':
-                                        pkg_info['architecture'] = value
-                                    elif key == 'Installed-Size':
-                                        pkg_info['size'] = value
-                                    elif key == 'Section':
-                                        pkg_info['section'] = value
-                                    elif key == 'Maintainer':
-                                        pkg_info['maintainer'] = value
-
-                            results.append(pkg_info)
-                    else:
-                        results.append({
-                            'name': name.strip(),
-                            'description': description.strip()
-                        })
-
-        self.log_info(f"Recherche terminée, {len(results)} paquets trouvés")
-        return results
-
-    def autoremove(self, purge=False, simulate=False):
-        """
-        Supprime les paquets qui ne sont plus nécessaires.
-
-        Args:
-            purge: Si True, supprime également les fichiers de configuration
-            simulate: Si True, simule l'opération sans l'effectuer
-
-        Returns:
-            bool: True si l'opération a réussi, False sinon
+            bool: True si l'opération a réussi.
         """
         cmd = ['apt-get', 'autoremove']
-
+        cmd.append('-y')
         if purge:
             cmd.append('--purge')
-
         if simulate:
             cmd.append('--simulate')
-        else:
-            cmd.append('-y')
 
         action = "Simulation du nettoyage" if simulate else "Nettoyage"
-        self.log_info(f"{action} des paquets inutilisés")
+        self.log_info(f"{action} des paquets inutilisés (autoremove)")
 
-        success, _, _ = self.run_as_root(cmd)
+        success, stdout, stderr = self.run(cmd, env=self._apt_env, check=False, real_time_output=True)
 
         if success:
             if not simulate:
-                self.log_success("Paquets inutilisés supprimés avec succès")
+                # Vérifier si quelque chose a été supprimé
+                if re.search(r'0 upgraded, 0 newly installed, 0 to remove', stdout):
+                     self.log_info("Aucun paquet inutile à supprimer.")
+                else:
+                     self.log_success("Paquets inutilisés supprimés avec succès.")
             else:
-                self.log_info("Simulation de nettoyage terminée")
+                 self.log_info("Simulation de nettoyage terminée.")
+                 # Afficher ce qui serait supprimé
+                 self.log_info(f"Simulation stdout:\n{stdout}")
         else:
-            self.log_error("Échec du nettoyage des paquets inutilisés")
+             self.log_error(f"Échec du nettoyage des paquets inutilisés. Stderr:\n{stderr}")
 
         return success
 
-    def clean(self, all_cache=False):
-        """
-        Nettoie le cache apt.
-
-        Args:
-            all_cache: Si True, supprime tous les packages téléchargés (clean), sinon uniquement les obsolètes (autoclean)
-
-        Returns:
-            bool: True si l'opération a réussi, False sinon
-        """
-        cmd = ['apt-get', 'clean' if all_cache else 'autoclean']
-
-        action = "Nettoyage complet" if all_cache else "Nettoyage automatique"
-        self.log_info(f"{action} du cache apt")
-
-        success, _, _ = self.run_as_root(cmd)
-
+    def clean(self) -> bool:
+        """Nettoie le cache apt (`/var/cache/apt/archives`) via `apt-get clean`."""
+        self.log_info("Nettoyage du cache apt (apt-get clean)")
+        success, _, stderr = self.run(['apt-get', 'clean'], env=self._apt_env, check=False)
         if success:
-            self.log_success(f"{action} du cache terminé avec succès")
+             self.log_success("Cache apt nettoyé avec succès.")
         else:
-            self.log_error(f"Échec du {action.lower()} du cache")
-
+             self.log_error(f"Échec du nettoyage du cache apt. Stderr:\n{stderr}")
         return success
 
-    def fix_broken(self, simulate=False):
+    def autoclean(self) -> bool:
+        """Nettoie le cache apt des paquets obsolètes via `apt-get autoclean`."""
+        self.log_info("Nettoyage des paquets obsolètes du cache apt (apt-get autoclean)")
+        success, _, stderr = self.run(['apt-get', 'autoclean'], env=self._apt_env, check=False)
+        if success:
+             self.log_success("Cache apt (obsolète) nettoyé avec succès.")
+        else:
+             self.log_error(f"Échec du nettoyage autoclean du cache apt. Stderr:\n{stderr}")
+        return success
+
+    def fix_broken(self, simulate: bool = False) -> bool:
         """
-        Répare les paquets cassés.
+        Tente de réparer les dépendances cassées via `apt-get install --fix-broken`.
 
         Args:
-            simulate: Si True, simule l'opération sans l'effectuer
+            simulate: Simuler sans réparer.
 
         Returns:
-            bool: True si la réparation a réussi, False sinon
+            bool: True si la réparation a réussi ou si rien n'était cassé.
         """
-        cmd = ['apt-get', 'install', '-f']
-
+        cmd = ['apt-get', 'install', '--fix-broken']
+        cmd.append('-y')
         if simulate:
             cmd.append('--simulate')
-        else:
-            cmd.append('-y')
 
         action = "Simulation de la réparation" if simulate else "Réparation"
-        self.log_info(f"{action} des paquets cassés")
+        log_prefix = f"{action} des dépendances cassées"
+        self.log_info(f"{log_prefix} (apt --fix-broken install)")
 
-        success, _, _ = self.run_as_root(cmd)
+        # Utiliser une tâche de progression pour cette opération potentiellement longue
+        task_id = f"apt_fix_broken_{int(time.time())}"
+        self.start_task(1, description=log_prefix, task_id=task_id)
+        success, stdout, stderr = self.run(cmd, env=self._apt_env, check=False, real_time_output=True, timeout=1800)
+        self.update_task() # Marquer l'étape comme terminée
 
         if success:
             if not simulate:
-                self.log_success("Paquets cassés réparés avec succès")
+                if re.search(r'0 upgraded, 0 newly installed, 0 to remove', stdout) and \
+                   re.search(r'0 not upgraded', stdout):
+                     self.log_info("Aucune dépendance cassée à réparer.")
+                else:
+                     self.log_success("Dépendances cassées réparées avec succès.")
             else:
-                self.log_info("Simulation de réparation terminée")
+                 self.log_info("Simulation de réparation terminée.")
+                 self.log_info(f"Simulation stdout:\n{stdout}")
+            self.complete_task(success=True, message=f"{log_prefix} terminée")
         else:
-            self.log_error("Échec de la réparation des paquets cassés")
+             self.log_error(f"Échec de la réparation des dépendances cassées. Stderr:\n{stderr}")
+             self.complete_task(success=False, message=f"{log_prefix} échouée")
 
         return success
 
-    def get_installed_size(self, package_name):
-        """
-        Obtient la taille installée d'un paquet en kB.
+    def is_installed(self, package_name: str) -> bool:
+        """Vérifie si un paquet est installé via `dpkg-query`."""
+        self.log_debug(f"Vérification de l'installation du paquet: {package_name}")
+        # Utilise dpkg-query pour une vérification fiable de l'état installé
+        cmd = ['dpkg-query', '--show', '--showformat=${db:Status-Status}', package_name]
+        # Exécute sans check car un paquet non installé donne un code retour non nul
+        success, stdout, stderr = self.run(cmd, check=False, no_output=True, error_as_warning=True)
 
-        Args:
-            package_name: Nom du paquet
+        # dpkg-query retourne 0 et 'installed' si installé
+        # retourne 1 et 'unknown' ou 'not-installed' sinon
+        is_inst = success and stdout.strip() == 'installed'
+        self.log_debug(f"Paquet '{package_name}' est installé: {is_inst}")
+        return is_inst
 
-        Returns:
-            int: Taille du paquet en kB ou -1 si erreur
-        """
+    def get_version(self, package_name: str) -> Optional[str]:
+        """Obtient la version installée d'un paquet via `dpkg-query`."""
+        self.log_debug(f"Récupération de la version installée de: {package_name}")
         if not self.is_installed(package_name):
-            return -1
-
-        self.log_debug(f"Récupération de la taille installée du paquet {package_name}")
-        success, stdout, _ = self.run(['dpkg-query', '-W', '-f=${Installed-Size}', package_name], no_output=True)
-
-        if success:
-            try:
-                size = int(stdout.strip())
-                self.log_debug(f"Taille installée de {package_name}: {size} kB")
-                return size
-            except ValueError:
-                self.log_error(f"Impossible de convertir la taille en entier: {stdout}")
-                return -1
-
-        return -1
-
-    def get_download_size(self, package_name, version=None):
-        """
-        Obtient la taille de téléchargement d'un paquet en B.
-
-        Args:
-            package_name: Nom du paquet
-            version: Version spécifique (optionnel)
-
-        Returns:
-            int: Taille de téléchargement du paquet en B ou -1 si erreur
-        """
-        cmd = ['apt-cache', 'show']
-
-        if version:
-            cmd.extend([f"{package_name}={version}"])
-        else:
-            cmd.append(package_name)
-
-        self.log_debug(f"Récupération de la taille de téléchargement du paquet {package_name}")
-        success, stdout, _ = self.run(cmd, no_output=True)
-
-        if success:
-            for line in stdout.splitlines():
-                if line.startswith("Size: "):
-                    try:
-                        size = int(line.split(":", 1)[1].strip())
-                        self.log_debug(f"Taille de téléchargement de {package_name}: {size} B")
-                        return size
-                    except ValueError:
-                        self.log_error(f"Impossible de convertir la taille en entier: {line}")
-                        return -1
-
-        return -1
-
-    def get_dependencies(self, package_name, recursive=False, installed_only=False):
-        """
-        Obtient les dépendances d'un paquet.
-
-        Args:
-            package_name: Nom du paquet
-            recursive: Si True, obtient les dépendances récursives
-            installed_only: Si True, retourne uniquement les dépendances installées
-
-        Returns:
-            list: Liste des dépendances
-        """
-        if recursive:
-            cmd = ['apt-rdepends', package_name]
-            self.log_debug(f"Récupération des dépendances récursives du paquet {package_name}")
-        else:
-            cmd = ['apt-cache', 'depends', package_name]
-            self.log_debug(f"Récupération des dépendances directes du paquet {package_name}")
-
-        success, stdout, _ = self.run(cmd, no_output=True)
-
-        if not success:
-            self.log_error(f"Échec de la récupération des dépendances pour {package_name}")
-            return []
-
-        dependencies = []
-
-        if recursive:
-            # Format de apt-rdepends:
-            # package_name
-            #   Depends: dep1
-            #   Depends: dep2
-            # dep1
-            #   Depends: dep1_1
-            for line in stdout.splitlines():
-                if "Depends:" in line:
-                    dep = line.split(":", 1)[1].strip()
-                    if dep not in dependencies and dep != package_name:
-                        dependencies.append(dep)
-        else:
-            # Format de apt-cache depends:
-            # package_name
-            #   Depends: dep1
-            #   Depends: dep2
-            #   Recommends: rec1
-            for line in stdout.splitlines():
-                if line.strip().startswith("Depends:"):
-                    dep = line.split(":", 1)[1].strip()
-                    if dep not in dependencies and dep != package_name:
-                        dependencies.append(dep)
-
-        # Filtrer les dépendances installées si demandé
-        if installed_only:
-            installed_deps = []
-            for dep in dependencies:
-                if self.is_installed(dep):
-                    installed_deps.append(dep)
-            dependencies = installed_deps
-
-        self.log_debug(f"Dépendances de {package_name}: {', '.join(dependencies) if dependencies else 'aucune'}")
-        return dependencies
-
-    def get_reverse_dependencies(self, package_name, installed_only=False):
-        """
-        Obtient les paquets qui dépendent du paquet spécifié.
-
-        Args:
-            package_name: Nom du paquet
-            installed_only: Si True, retourne uniquement les paquets installés
-
-        Returns:
-            list: Liste des paquets qui dépendent du paquet spécifié
-        """
-        self.log_debug(f"Récupération des dépendances inverses du paquet {package_name}")
-        success, stdout, _ = self.run(['apt-cache', 'rdepends', package_name], no_output=True)
-
-        if not success:
-            self.log_error(f"Échec de la récupération des dépendances inverses pour {package_name}")
-            return []
-
-        reverse_deps = []
-
-        # Format de apt-cache rdepends:
-        # package_name
-        # Reverse Depends:
-        #   dep1
-        #   dep2
-        started = False
-        for line in stdout.splitlines():
-            if "Reverse Depends:" in line:
-                started = True
-                continue
-
-            if started and line.strip() and not line.startswith(" "):
-                # Nouvelle section, on arrête
-                break
-
-            if started and line.strip():
-                dep = line.strip()
-                if dep not in reverse_deps and dep != package_name:
-                    reverse_deps.append(dep)
-
-        # Filtrer les dépendances installées si demandé
-        if installed_only:
-            installed_deps = []
-            for dep in reverse_deps:
-                if self.is_installed(dep):
-                    installed_deps.append(dep)
-            reverse_deps = installed_deps
-
-        self.log_debug(f"Dépendances inverses de {package_name}: {', '.join(reverse_deps) if reverse_deps else 'aucune'}")
-        return reverse_deps
-
-    def hold_package(self, package_name):
-        """
-        Bloque un paquet pour empêcher sa mise à jour automatique.
-
-        Args:
-            package_name: Nom du paquet à bloquer
-
-        Returns:
-            bool: True si l'opération a réussi, False sinon
-        """
-        self.log_info(f"Blocage du paquet {package_name} pour empêcher sa mise à jour")
-        success, _, _ = self.run_as_root(['apt-mark', 'hold', package_name])
-
-        if success:
-            self.log_success(f"Paquet {package_name} bloqué avec succès")
-        else:
-            self.log_error(f"Échec du blocage du paquet {package_name}")
-
-        return success
-
-    def unhold_package(self, package_name):
-        """
-        Débloque un paquet pour permettre sa mise à jour automatique.
-
-        Args:
-            package_name: Nom du paquet à débloquer
-
-        Returns:
-            bool: True si l'opération a réussi, False sinon
-        """
-        self.log_info(f"Déblocage du paquet {package_name} pour permettre sa mise à jour")
-        success, _, _ = self.run_as_root(['apt-mark', 'unhold', package_name])
-
-        if success:
-            self.log_success(f"Paquet {package_name} débloqué avec succès")
-        else:
-            self.log_error(f"Échec du déblocage du paquet {package_name}")
-
-        return success
-
-    def is_held(self, package_name):
-        """
-        Vérifie si un paquet est bloqué.
-
-        Args:
-            package_name: Nom du paquet à vérifier
-
-        Returns:
-            bool: True si le paquet est bloqué, False sinon
-        """
-        self.log_debug(f"Vérification si le paquet {package_name} est bloqué")
-        success, stdout, _ = self.run(['apt-mark', 'showhold'], no_output=True)
-
-        if success and package_name in stdout.splitlines():
-            self.log_debug(f"Le paquet {package_name} est bloqué")
-            return True
-        else:
-            self.log_debug(f"Le paquet {package_name} n'est pas bloqué")
-            return False
-
-    def get_package_info(self, package_name):
-        """
-        Obtient des informations détaillées sur un paquet.
-
-        Args:
-            package_name: Nom du paquet
-
-        Returns:
-            dict: Informations sur le paquet ou None si erreur
-        """
-        self.log_debug(f"Récupération des informations détaillées du paquet {package_name}")
-
-        # Vérifier si le paquet est disponible
-        success, stdout, _ = self.run(['apt-cache', 'show', package_name], no_output=True)
-
-        if not success:
-            self.log_error(f"Paquet {package_name} non trouvé")
+            self.log_debug(f"Paquet '{package_name}' non installé.")
             return None
 
-        info = {
-            'name': package_name,
-            'installed': self.is_installed(package_name),
-            'held': self.is_held(package_name),
-            'version_installed': None,
-            'version_candidate': None,
-            'architecture': None,
-            'section': None,
-            'priority': None,
-            'description': None,
-            'maintainer': None,
-            'size': None,
-            'homepage': None,
-            'source': None
-        }
+        cmd = ['dpkg-query', '--show', '--showformat=${Version}', package_name]
+        success, stdout, stderr = self.run(cmd, check=False, no_output=True)
 
-        # Obtenir la version candidate
-        policy_success, policy_stdout, _ = self.run(['apt-cache', 'policy', package_name], no_output=True)
-        if policy_success:
-            for line in policy_stdout.splitlines():
-                if "Installed:" in line:
-                    version = line.split(":", 1)[1].strip()
-                    if version != "(none)":
-                        info['version_installed'] = version
-                elif "Candidate:" in line:
-                    version = line.split(":", 1)[1].strip()
-                    if version != "(none)":
-                        info['version_candidate'] = version
+        if success and stdout.strip():
+            version = stdout.strip()
+            self.log_debug(f"Version installée de {package_name}: {version}")
+            return version
+        else:
+             # Logguer l'erreur même si is_installed était True (cas étrange)
+             self.log_warning(f"Impossible d'obtenir la version de {package_name} (installé). Stderr: {stderr}")
+             return None
 
-        # Obtenir les détails du paquet
-        current_key = None
-        multiline_value = []
-
-        for line in stdout.splitlines():
-            if not line.strip():
-                # Ligne vide, terminer la valeur multiline si nécessaire
-                if current_key and multiline_value:
-                    value = "\n".join(multiline_value)
-                    if current_key == 'Description':
-                        info['description'] = value
-                    multiline_value = []
-                continue
-
-            if line.startswith(" ") and current_key:
-                # Continuation d'une valeur multiline
-                multiline_value.append(line.strip())
-            elif ":" in line:
-                # Nouvelle clé
-                key, value = line.split(":", 1)
-                key = key.strip()
-                value = value.strip()
-                current_key = key
-
-                if key == 'Architecture':
-                    info['architecture'] = value
-                elif key == 'Section':
-                    info['section'] = value
-                elif key == 'Priority':
-                    info['priority'] = value
-                elif key == 'Maintainer':
-                    info['maintainer'] = value
-                elif key == 'Installed-Size':
-                    try:
-                        info['size'] = int(value)
-                    except ValueError:
-                        info['size'] = value
-                elif key == 'Homepage':
-                    info['homepage'] = value
-                elif key == 'Source':
-                    info['source'] = value
-                elif key == 'Description':
-                    multiline_value = [value]
-
-        # Capture la dernière valeur multiline si nécessaire
-        if current_key and multiline_value:
-            value = "\n".join(multiline_value)
-            if current_key == 'Description':
-                info['description'] = value
-
-        self.log_debug(f"Informations détaillées récupérées pour {package_name}")
-        return info
-
-    def get_upgradable_packages(self, security_only=False):
-        """
-        Obtient la liste des paquets pouvant être mis à jour.
-
-        Args:
-            security_only: Si True, retourne uniquement les mises à jour de sécurité
-
-        Returns:
-            list: Liste des paquets pouvant être mis à jour
-        """
-        self.set_total_steps(2)  # mise à jour des sources + analyse
-
-        self.next_step("Mise à jour des sources apt")
-        self.update(allow_fail=True)
-
-        self.next_step("Analyse des paquets à mettre à jour")
-        security_label = " de sécurité" if security_only else ""
-        self.log_info(f"Récupération de la liste des paquets{security_label} pouvant être mis à jour")
-
-        success, stdout, _ = self.run(['apt-get', 'upgrade', '--simulate'], no_output=True)
+    def get_candidate_version(self, package_name: str) -> Optional[str]:
+        """Obtient la version candidate (disponible à l'installation/màj) via `apt-cache policy`."""
+        self.log_debug(f"Récupération de la version candidate de: {package_name}")
+        cmd = ['apt-cache', 'policy', package_name]
+        success, stdout, stderr = self.run(cmd, check=False, no_output=True)
 
         if not success:
-            self.log_error("Échec de la récupération des paquets à mettre à jour")
-            return []
+             # Gérer le cas où le paquet n'existe pas du tout dans les sources
+             if "unable to locate package" in stderr.lower():
+                  self.log_warning(f"Paquet '{package_name}' non trouvé dans les sources apt.")
+             else:
+                  self.log_warning(f"Impossible d'obtenir la policy apt pour {package_name}. Stderr: {stderr}")
+             return None
 
-        upgradable = []
-        started = False
-
+        candidate_version = None
+        # Format de sortie:
+        # Package: ...
+        #   Installed: ...
+        #   Candidate: ...
+        #   Version table:
+        #  *** installed_version priority
+        #      candidate_version priority
+        #         repo_url...
         for line in stdout.splitlines():
-            if "The following packages will be upgraded:" in line:
-                started = True
-                continue
+            line_strip = line.strip()
+            if line_strip.startswith("Candidate:"):
+                version_part = line_strip.split(":", 1)[1].strip()
+                if version_part != '(none)':
+                     candidate_version = version_part
+                break # Candidate est généralement l'info pertinente
 
-            if started and "upgraded," in line:
-                # Fin de la liste
-                break
+        self.log_debug(f"Version candidate de {package_name}: {candidate_version}")
+        return candidate_version
 
-            if started and line.strip():
-                packages = line.strip().split()
-                upgradable.extend(packages)
-
-        # Filtrer les mises à jour de sécurité si demandé
-        if security_only and upgradable:
-            security_upgrades = []
-
-            # Créer une liste temporaire de sources de sécurité
-            tmp_sources = "/tmp/security-sources.list"
-            success, stdout, _ = self.run(['cat', '/etc/apt/sources.list'], no_output=True)
-
-            if success:
-                with open(tmp_sources, "w") as f:
-                    for line in stdout.splitlines():
-                        if "security" in line and not line.strip().startswith("#"):
-                            f.write(line + "\n")
-
-                # Vérifier aussi dans sources.list.d
-                if os.path.exists("/etc/apt/sources.list.d"):
-                    for file in os.listdir("/etc/apt/sources.list.d"):
-                        if file.endswith(".list"):
-                            success, stdout, _ = self.run(['cat', f'/etc/apt/sources.list.d/{file}'], no_output=True)
-                            if success:
-                                for line in stdout.splitlines():
-                                    if "security" in line and not line.strip().startswith("#"):
-                                        f.write(line + "\n")
-
-            # Utiliser la liste temporaire pour vérifier les mises à jour de sécurité
-            self.log_info("Filtrage des mises à jour de sécurité")
-            sec_success, sec_stdout, _ = self.run_as_root([
-                'apt-get', 'upgrade', '--simulate',
-                '-o', f'Dir::Etc::SourceList={tmp_sources}'
-            ], no_output=True)
-
-            if sec_success:
-                started = False
-                for line in sec_stdout.splitlines():
-                    if "The following packages will be upgraded:" in line:
-                        started = True
-                        continue
-
-                    if started and "upgraded," in line:
-                        # Fin de la liste
-                        break
-
-                    if started and line.strip():
-                        packages = line.strip().split()
-                        security_upgrades.extend(packages)
-
-            # Supprimer le fichier temporaire
-            if os.path.exists(tmp_sources):
-                os.remove(tmp_sources)
-
-            upgradable = security_upgrades
-
-        self.log_info(f"Paquets pouvant être mis à jour: {', '.join(upgradable) if upgradable else 'aucun'}")
-        return upgradable
-
-    def download_package(self, package_name, version=None, destination=None):
+    def add_repository(self, repo_line: str, key_url: Optional[str] = None, keyring_path: Optional[str] = None) -> bool:
         """
-        Télécharge un paquet sans l'installer.
+        Ajoute un dépôt APT (ligne dans sources.list.d) et sa clé GPG (via curl | gpg).
 
         Args:
-            package_name: Nom du paquet à télécharger
-            version: Version spécifique à télécharger (optionnel)
-            destination: Répertoire de destination (optionnel)
+            repo_line: Ligne du dépôt (ex: "deb [arch=amd64] http://repo... focal main").
+                       L'option [signed-by=...] sera ajoutée automatiquement si keyring_path est utilisé.
+            key_url: URL de la clé GPG publique à télécharger et ajouter.
+            keyring_path: Chemin absolu où enregistrer la clé GPG traitée (ex: /etc/apt/keyrings/mykey.gpg).
+                          Si None et key_url est fourni, un chemin par défaut est généré dans /etc/apt/keyrings/.
 
         Returns:
-            str: Chemin du fichier téléchargé ou None si erreur
+            bool: True si l'ajout du dépôt et de la clé (si fournie) et la mise à jour des sources ont réussi.
         """
-        self.set_total_steps
+        self.log_info(f"Ajout du dépôt: {repo_line}")
+        task_id = f"add_repo_{int(time.time())}"
+        # Étapes: 1 (clé GPG) + 1 (fichier source) + 1 (apt update)
+        total_steps = 1 + (1 if key_url else 0) + 1
+        self.start_task(total_steps, description=f"Ajout dépôt - Étape 1/{total_steps}: Clé GPG", task_id=task_id)
+
+        # 1. Gérer la clé GPG
+        key_options = ""
+        actual_keyring_path = None
+        if key_url:
+            if keyring_path:
+                 actual_keyring_path = Path(keyring_path)
+                 if not actual_keyring_path.is_absolute():
+                      self.log_error(f"Le chemin keyring_path doit être absolu: {keyring_path}")
+                      self.complete_task(success=False, message="Chemin clé invalide")
+                      return False
+            else:
+                # Générer un chemin par défaut basé sur l'URL
+                try:
+                    domain = key_url.split('//')[1].split('/')[0].replace('.', '-')
+                    default_keyring_dir = Path("/etc/apt/keyrings")
+                    actual_keyring_path = default_keyring_dir / f"{domain}.gpg"
+                except IndexError:
+                     self.log_error(f"URL de clé invalide fournie: {key_url}")
+                     self.complete_task(success=False, message="URL Clé invalide")
+                     return False
+
+            self.log_info(f"Téléchargement de la clé GPG depuis {key_url} vers {actual_keyring_path}")
+            keyring_dir = actual_keyring_path.parent
+            # Créer le dossier /etc/apt/keyrings si nécessaire avec sudo
+            if not keyring_dir.exists():
+                 self.log_info(f"Création du dossier keyring: {keyring_dir}")
+                 mkdir_success, _, mkdir_stderr = self.run(['mkdir', '-p', str(keyring_dir)], check=False, needs_sudo=True)
+                 if not mkdir_success:
+                      self.log_error(f"Impossible de créer le dossier keyring {keyring_dir}: {mkdir_stderr}")
+                      self.complete_task(success=False, message="Échec création dossier clé")
+                      return False
+
+            # Télécharger la clé avec curl
+            cmd_curl = ['curl', '-fsSL', key_url]
+            success_curl, key_data, stderr_curl = self.run(cmd_curl, check=False, no_output=True)
+            if not success_curl:
+                 self.log_error(f"Échec du téléchargement de la clé GPG depuis {key_url}. Stderr: {stderr_curl}")
+                 self.complete_task(success=False, message="Échec téléchargement clé")
+                 return False
+
+            # Traiter avec gpg --dearmor et écrire dans le fichier avec tee (pour gérer sudo)
+            cmd_gpg_tee = ['gpg', '--dearmor', '--yes', '-o', '/dev/stdout', '|', 'tee', str(actual_keyring_path), '>', '/dev/null']
+            # Exécuter via shell pour le pipe et tee
+            # Passer les données de la clé sur stdin
+            success_gpg, _, stderr_gpg = self.run(" ".join(cmd_gpg_tee), input_data=key_data, shell=True, check=False, needs_sudo=True)
+
+            if not success_gpg:
+                self.log_error(f"Échec du traitement/écriture de la clé GPG vers {actual_keyring_path}. Stderr: {stderr_gpg}")
+                # Nettoyage partiel
+                self.run(['rm', '-f', str(actual_keyring_path)], check=False, needs_sudo=True)
+                self.complete_task(success=False, message="Échec traitement clé")
+                return False
+
+            # Assurer les bonnes permissions sur la clé (644)
+            self.run(['chmod', '644', str(actual_keyring_path)], check=False, needs_sudo=True)
+            key_options = f"[signed-by={str(actual_keyring_path)}]"
+            self.log_success(f"Clé GPG ajoutée avec succès: {actual_keyring_path}")
+        else:
+            self.log_info("Aucune clé GPG spécifiée pour ce dépôt.")
+        self.update_task(description=f"Ajout dépôt - Étape {2 if key_url else 1}/{total_steps}: Fichier source")
+
+        # 2. Ajouter la ligne de dépôt au fichier sources.list.d
+        # Extraire les composants pour un nom de fichier plus propre
+        repo_parts = repo_line.split()
+        repo_name_base = "custom-repo" # Nom par défaut
+        for part in repo_parts:
+            if part.startswith('http://') or part.startswith('https://'):
+                try:
+                    repo_name_base = part.split('//')[1].split('/')[0].replace('.', '-').replace(':','-')
+                    break
+                except IndexError: pass
+        # Ajouter l'architecture si présente pour unicité
+        arch_part = next((p for p in repo_parts if p.startswith('[') and 'arch=' in p), None)
+        if arch_part:
+             arch_match = re.search(r'arch=(\S+)', arch_part)
+             if arch_match: repo_name_base += f"-{arch_match.group(1).rstrip(']')}"
+
+        source_file_path = Path(f"/etc/apt/sources.list.d/{repo_name_base}.list")
+
+        # Modifier la ligne de dépôt pour inclure les options de clé
+        repo_line_parts = repo_line.split(None, 1)
+        if len(repo_line_parts) == 2:
+            # Insérer les options après 'deb' ou 'deb-src'
+            final_repo_line = f"{repo_line_parts[0]} {key_options} {repo_line_parts[1]}"
+        else:
+             final_repo_line = repo_line # Ne devrait pas arriver
+
+        self.log_info(f"Ajout de la ligne au fichier: {source_file_path}")
+        # Écrire le fichier (écrase s'il existe) via _write_file_content
+        # Note: _write_file_content gère sudo et backup
+        from .config_files import ConfigFileCommands # Import local pour éviter dépendance cyclique stricte
+        cfg_writer = ConfigFileCommands(self.logger, self.target_ip)
+        success_add = cfg_writer._write_file_content(source_file_path, final_repo_line + "\n", backup=True)
+
+        if not success_add:
+            self.log_error(f"Échec de l'ajout de la ligne de dépôt à {source_file_path}.")
+            self.complete_task(success=False, message="Échec ajout source")
+            return False
+
+        self.log_success(f"Dépôt ajouté avec succès dans {source_file_path}")
+        self.update_task(description=f"Ajout dépôt - Étape {total_steps}/{total_steps}: Mise à jour sources")
+
+        # 3. Mettre à jour les sources
+        update_ok = self.update(allow_fail=True) # Permettre les erreurs partielles ici
+
+        final_message = f"Ajout dépôt {repo_name_base} {'terminé' if update_ok else 'terminé avec erreurs update'}"
+        self.complete_task(success=update_ok, message=final_message)
+
+        return update_ok
+

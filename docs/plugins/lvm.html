@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentation: plugins_utils/lvm.py</title>
+  <link rel="stylesheet" href="docs_style.css">
+  <style>
+    /* Style additionnel pour les avertissements forts */
+    .destructive-warning {
+      color: #dc3545;
+      /* Rouge vif */
+      background-color: #f8d7da;
+      border: 1px solid #f1aeb5;
+      font-weight: 700;
+      /* Gras */
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+      border-radius: 4px;
+    }
+
+    .destructive-warning::before {
+      content: "🚨 ATTENTION: ";
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <h1 class="main-title">Documentation: <code>plugins_utils/lvm.py</code></h1>
+
+    <p class="module-description">
+      Ce module fournit des utilitaires pour la gestion de LVM (Logical Volume Manager) sous Linux.
+      Il utilise les commandes <code>pvs</code>, <code>vgs</code>, <code>lvs</code>, <code>pvcreate</code>,
+      <code>vgcreate</code>, <code>lvcreate</code>, etc., en privilégiant le format de sortie JSON
+      lorsque disponible pour un parsing plus fiable.
+    </p>
+
+    <nav class="toc">
+      <h3 class="toc-title">Accès Rapide aux Méthodes</h3>
+      <ul class="toc-list">
+        <li class="toc-item"><a href="#list_pvs" class="toc-link">list_pvs</a></li>
+        <li class="toc-item"><a href="#list_vgs" class="toc-link">list_vgs</a></li>
+        <li class="toc-item"><a href="#list_lvs" class="toc-link">list_lvs</a></li>
+        <li class="toc-item"><a href="#create_pv" class="toc-link">create_pv</a></li>
+        <li class="toc-item"><a href="#create_vg" class="toc-link">create_vg</a></li>
+        <li class="toc-item"><a href="#create_lv_linear" class="toc-link">create_lv_linear</a></li>
+        <li class="toc-item"><a href="#create_lv_percent" class="toc-link">create_lv_percent</a></li>
+        <li class="toc-item"><a href="#extend_vg" class="toc-link">extend_vg</a></li>
+        <li class="toc-item"><a href="#extend_lv" class="toc-link">extend_lv</a></li>
+        <li class="toc-item"><a href="#resize_filesystem" class="toc-link">resize_filesystem</a></li>
+        <li class="toc-item"><a href="#remove_lv" class="toc-link">remove_lv</a></li>
+        <li class="toc-item"><a href="#remove_vg" class="toc-link">remove_vg</a></li>
+        <li class="toc-item"><a href="#remove_pv" class="toc-link">remove_pv</a></li>
+      </ul>
+    </nav>
+
+    <h2 class="section-title">Classe Principale</h2>
+
+    <section class="method-section">
+      <h3 class="method-title" id="LvmCommands"><code>LvmCommands(PluginUtilsBase)</code></h3>
+      <p class="description">
+        Classe pour gérer LVM (Physical Volumes, Volume Groups, Logical Volumes).
+        Hérite de <code>PluginUtilsBase</code> pour l'exécution des commandes et la journalisation.
+      </p>
+    </section>
+
+    <h2 class="section-title">Méthodes Principales</h2>
+
+    <section class="method-section">
+      <h4 class="method-title" id="list_pvs">
+        <code>list_pvs(vg_name: Optional[str] = None) -> Optional[List[Dict[str, Any]]]</code></h4>
+      <p class="description">Liste les Physical Volumes (PVs) via <code>pvs --reportformat json</code>.</p>
+      <dl class="param-list">
+        <dt>vg_name</dt>
+        <dd><span class="param-type">(Optional[str])</span>: Filtre optionnel pour n'afficher que les PVs d'un Volume
+          Group spécifique.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">Optional[List[Dict[str, Any]]]</span> -
+        Liste de dictionnaires représentant les PVs, ou None en cas d'erreur majeure, ou une liste vide si aucun PV
+        trouvé. Les tailles numériques sont converties en octets dans une clé additionnelle `*_bytes`.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="list_vgs"><code>list_vgs() -> Optional[List[Dict[str, Any]]]</code></h4>
+      <p class="description">Liste les Volume Groups (VGs) via <code>vgs --reportformat json</code>.</p>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">Optional[List[Dict[str, Any]]]</span> -
+        Liste de dictionnaires représentant les VGs, ou None en cas d'erreur majeure, ou une liste vide si aucun VG
+        trouvé. Les tailles numériques sont converties en octets dans une clé additionnelle `*_bytes`.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="list_lvs">
+        <code>list_lvs(vg_name: Optional[str] = None) -> Optional[List[Dict[str, Any]]]</code></h4>
+      <p class="description">Liste les Logical Volumes (LVs) via <code>lvs --reportformat json</code>.</p>
+      <dl class="param-list">
+        <dt>vg_name</dt>
+        <dd><span class="param-type">(Optional[str])</span>: Filtre optionnel pour n'afficher que les LVs d'un Volume
+          Group spécifique.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">Optional[List[Dict[str, Any]]]</span> -
+        Liste de dictionnaires représentant les LVs, ou None en cas d'erreur majeure, ou une liste vide si aucun LV
+        trouvé. Les tailles numériques sont converties en octets dans une clé additionnelle `*_bytes`.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="create_pv"><code>create_pv(device: str) -> bool</code></h4>
+      <p class="description">Initialise un disque ou une partition comme Physical Volume (PV) via
+        <code>pvcreate -y</code>.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <dl class="param-list">
+        <dt>device</dt>
+        <dd><span class="param-type">(str)</span>: Chemin du périphérique bloc (ex: /dev/sdb1).</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la création a réussi.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="create_vg"><code>create_vg(vg_name: str, devices: List[str]) -> bool</code></h4>
+      <p class="description">Crée un Volume Group (VG) à partir d'un ou plusieurs PVs via <code>vgcreate</code>.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <dl class="param-list">
+        <dt>vg_name</dt>
+        <dd><span class="param-type">(str)</span>: Nom du nouveau Volume Group.</dd>
+        <dt>devices</dt>
+        <dd><span class="param-type">(List[str])</span>: Liste des chemins des PVs à inclure.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la création a réussi.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="create_lv_linear">
+        <code>create_lv_linear(vg_name: str, lv_name: str, size: Union[str, int], units: str = 'G') -> bool</code></h4>
+      <p class="description">Crée un Logical Volume (LV) linéaire avec une taille fixe via <code>lvcreate -L</code>.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <dl class="param-list">
+        <dt>vg_name</dt>
+        <dd><span class="param-type">(str)</span>: Nom du Volume Group parent.</dd>
+        <dt>lv_name</dt>
+        <dd><span class="param-type">(str)</span>: Nom du nouveau Logical Volume.</dd>
+        <dt>size</dt>
+        <dd><span class="param-type">(Union[str, int])</span>: Taille du volume (nombre ou chaîne avec unité LVM, ex:
+          '10G').</dd>
+        <dt>units</dt>
+        <dd><span class="param-type">(str)</span>: Unité de taille par défaut si <code>size</code> est un nombre (k, m,
+          g, t - défaut G).</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la création a réussi.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="create_lv_percent">
+        <code>create_lv_percent(vg_name: str, lv_name: str, percent: int, pool: str = 'VG') -> bool</code></h4>
+      <p class="description">Crée un Logical Volume (LV) en utilisant un pourcentage de l'espace disponible via
+        <code>lvcreate -l</code>.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <dl class="param-list">
+        <dt>vg_name</dt>
+        <dd><span class="param-type">(str)</span>: Nom du Volume Group parent.</dd>
+        <dt>lv_name</dt>
+        <dd><span class="param-type">(str)</span>: Nom du nouveau Logical Volume.</dd>
+        <dt>percent</dt>
+        <dd><span class="param-type">(int)</span>: Pourcentage de l'espace à utiliser (1-100).</dd>
+        <dt>pool</dt>
+        <dd><span class="param-type">(str)</span>: Pool d'espace à utiliser ('VG', 'FREE' - défaut VG).</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la création a réussi.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="extend_vg"><code>extend_vg(vg_name: str, devices: List[str]) -> bool</code></h4>
+      <p class="description">Ajoute un ou plusieurs PVs à un Volume Group existant via <code>vgextend</code>.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <dl class="param-list">
+        <dt>vg_name</dt>
+        <dd><span class="param-type">(str)</span>: Nom du VG à étendre.</dd>
+        <dt>devices</dt>
+        <dd><span class="param-type">(List[str])</span>: Liste des chemins des PVs à ajouter.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si l'extension a réussi.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="extend_lv">
+        <code>extend_lv(lv_path_or_name: str, size_increase: Union[str, int], units: str = 'G', resize_fs: bool = True) -> bool</code>
+      </h4>
+      <p class="description">Étend un Logical Volume (<code>lvextend -L +...</code>) et optionnellement son système de
+        fichiers (via <code>resize_filesystem</code>).</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <dl class="param-list">
+        <dt>lv_path_or_name</dt>
+        <dd><span class="param-type">(str)</span>: Chemin complet (/dev/vg/lv) ou nom relatif (vg/lv) du LV.</dd>
+        <dt>size_increase</dt>
+        <dd><span class="param-type">(Union[str, int])</span>: Taille à ajouter (nombre ou chaîne avec unité LVM, ex:
+          '+2G').</dd>
+        <dt>units</dt>
+        <dd><span class="param-type">(str)</span>: Unité de taille par défaut si <code>size_increase</code> est un
+          nombre (k, m, g, t - défaut G).</dd>
+        <dt>resize_fs</dt>
+        <dd><span class="param-type">(bool)</span>: Si True (défaut), tente de redimensionner le système de fichiers
+          après l'extension du LV.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si l'extension du LV (et
+        potentiellement le redimensionnement FS) a réussi.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="resize_filesystem"><code>resize_filesystem(lv_path: str) -> bool</code></h4>
+      <p class="description">Redimensionne le système de fichiers sur un LV pour utiliser tout l'espace disponible.
+        Supporte ext2/3/4 (<code>resize2fs</code>) et XFS (<code>xfs_growfs</code>).</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <dl class="param-list">
+        <dt>lv_path</dt>
+        <dd><span class="param-type">(str)</span>: Chemin complet du Logical Volume (ex: /dev/vg_name/lv_name).</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si le redimensionnement a
+        réussi.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="remove_lv"><code>remove_lv(lv_path_or_name: str) -> bool</code></h4>
+      <p class="description">Supprime un Logical Volume via <code>lvremove -f</code>.</p>
+      <p class="destructive-warning">Opération destructive ! Assurez-vous que le LV n'est pas monté.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <dl class="param-list">
+        <dt>lv_path_or_name</dt>
+        <dd><span class="param-type">(str)</span>: Chemin complet ou nom relatif du LV à supprimer.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la suppression a
+        réussi.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="remove_vg"><code>remove_vg(vg_name: str) -> bool</code></h4>
+      <p class="description">Supprime un Volume Group via <code>vgremove</code>. Le VG doit être vide (aucun LV).</p>
+      <p class="destructive-warning">Opération destructive !</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <dl class="param-list">
+        <dt>vg_name</dt>
+        <dd><span class="param-type">(str)</span>: Nom du VG à supprimer.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la suppression a
+        réussi.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="remove_pv"><code>remove_pv(device: str) -> bool</code></h4>
+      <p class="description">Supprime un Physical Volume via <code>pvremove -f -y</code>. Le PV ne doit appartenir à
+        aucun VG.</p>
+      <p class="destructive-warning">Opération destructive !</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <dl class="param-list">
+        <dt>device</dt>
+        <dd><span class="param-type">(str)</span>: Chemin du périphérique PV à supprimer.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la suppression a
+        réussi.
+      </div>
+    </section>
+
+  </div>
+</body>
+
+</html>

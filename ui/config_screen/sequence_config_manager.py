@@ -117,12 +117,24 @@ class SequenceConfigManager:
         Returns:
             Dict des configurations finales indexées par plugin_name_instance_id
         """
-        instance_counts = {}  # Compteur d'instances par plugin
         result_config = {}   # Configurations finales à retourner
         
-        # IMPORTANTE AMÉLIORATION: Identifiant unique standardisé
+        # Créer un mapping des instances de séquence par plugin
+        sequence_plugin_instances = {}
+        if self.sequence_data and 'plugins' in self.sequence_data:
+            for i, plugin_config in enumerate(self.sequence_data['plugins']):
+                if isinstance(plugin_config, dict) and 'name' in plugin_config:
+                    plugin_name = plugin_config['name']
+                    if plugin_name not in sequence_plugin_instances:
+                        sequence_plugin_instances[plugin_name] = []
+                    sequence_plugin_instances[plugin_name].append(i)
+        
         logger.debug("=== DÉBUT FUSION DES CONFIGURATIONS ===")
         logger.debug(f"Plugins à configurer: {plugin_instances}")
+        logger.debug(f"Instances de séquence: {sequence_plugin_instances}")
+        
+        # Compteurs pour suivre les instances de chaque plugin
+        plugin_counters = {}
         
         for plugin_data in plugin_instances:
             # Extraire les données du plugin
@@ -136,46 +148,60 @@ class SequenceConfigManager:
             if plugin_name.startswith('__'):
                 continue
             
+            # Incrémenter le compteur pour ce plugin
+            if plugin_name not in plugin_counters:
+                plugin_counters[plugin_name] = 0
+            current_count = plugin_counters[plugin_name]
+            plugin_counters[plugin_name] += 1
+            
             # IMPORTANT: Utiliser un ID standardisé partout
             plugin_instance_id = f"{plugin_name}_{instance_id}"
-            logger.debug(f"Traitement du plugin {plugin_instance_id}")
-            
-            # Initialiser ou incrémenter le compteur d'instances
-            if plugin_name not in instance_counts:
-                instance_counts[plugin_name] = 0
-            current_count = instance_counts[plugin_name]
-            instance_counts[plugin_name] += 1
+            logger.debug(f"Traitement du plugin {plugin_instance_id} (compteur: {current_count})")
             
             # Créer la configuration de base
             config_data = {
                 'plugin_name': plugin_name,
+                'instance_id': instance_id,
                 'config': {}
             }
             
-            # ÉTAPE 1: Si déjà une config par défaut dans current_config, la récupérer
+            # ÉTAPE 1: Appliquer la configuration par défaut
+            # Si déjà une config par défaut dans current_config, la récupérer
             if plugin_instance_id in self.current_config:
                 default_config = self.current_config[plugin_instance_id]
                 if 'config' in default_config:
                     config_data['config'] = default_config['config'].copy()
                     logger.debug(f"Config par défaut trouvée pour {plugin_instance_id}: {config_data['config']}")
             
-            # ÉTAPE 2: Si une config de séquence existe pour ce plugin, la fusionner
-            # Utiliser le compteur pour gérer les instances multiples du même plugin
-            if plugin_name in self.sequence_configs:
-                configs = self.sequence_configs[plugin_name]
-                if current_count < len(configs):
-                    sequence_config = configs[current_count]
-                    logger.debug(f"Config de séquence trouvée pour {plugin_instance_id} (position {current_count}): {sequence_config['config']}")
-                    # Fusionner les configs
-                    config_data['config'].update(sequence_config['config'])
-                    # Copier les métadonnées si non définies
-                    for key in ['show_name', 'icon', 'remote_execution']:
-                        if key in sequence_config and key not in config_data:
-                            config_data[key] = sequence_config[key]
+            # ÉTAPE 2: Appliquer la configuration de séquence si elle existe
+            # Vérifier si ce plugin a des instances dans la séquence
+            if plugin_name in sequence_plugin_instances and current_count < len(sequence_plugin_instances[plugin_name]):
+                # Récupérer l'index de l'instance dans la séquence
+                seq_index = sequence_plugin_instances[plugin_name][current_count]
+                seq_plugin = self.sequence_data['plugins'][seq_index]
+                
+                # Extraire la configuration
+                seq_config = {}
+                if 'config' in seq_plugin:
+                    seq_config = seq_plugin['config']
+                elif 'variables' in seq_plugin:  # Rétrocompatibilité
+                    seq_config = seq_plugin['variables']
+                
+                logger.debug(f"Config de séquence trouvée pour {plugin_instance_id} (index {seq_index}): {seq_config}")
+                
+                # Fusionner la configuration de séquence
+                config_data['config'].update(seq_config)
+                
+                # Copier les métadonnées si présentes
+                for key in ['show_name', 'icon', 'remote_execution']:
+                    if key in seq_plugin:
+                        config_data[key] = seq_plugin[key]
             
-            # ÉTAPE 3: Si une config existante, elle a la priorité maximale
+            # ÉTAPE 3: Si une config existante (plugin indépendant), elle a la priorité maximale
             if existing_config:
-                logger.debug(f"Config existante trouvée pour {plugin_instance_id}: {existing_config}")
+                logger.debug(f"Config existante (prioritaire) trouvée pour {plugin_instance_id}: {existing_config}")
+                
+                # Appliquer la configuration existante (priorité maximale)
                 if 'config' in existing_config:
                     config_data['config'].update(existing_config['config'])
                 else:
@@ -183,14 +209,15 @@ class SequenceConfigManager:
                     special_keys = {'plugin_name', 'instance_id', 'show_name', 'icon', 'remote_execution'}
                     existing_values = {k: v for k, v in existing_config.items() if k not in special_keys}
                     config_data['config'].update(existing_values)
-                    # Copier les clés spéciales au niveau principal
-                    for key in special_keys:
-                        if key in existing_config:
-                            config_data[key] = existing_config[key]
+                    
+                # Copier les clés spéciales au niveau principal
+                for key in ['show_name', 'icon', 'remote_execution']:
+                    if key in existing_config:
+                        config_data[key] = existing_config[key]
             
             # Stocker la configuration finale avec l'ID standardisé
             result_config[plugin_instance_id] = config_data
             logger.debug(f"Configuration finale pour {plugin_instance_id}: {config_data}")
         
-        logger.debug(f"=== CONFIGURATIONS FINALES: {result_config} ===")
+        logger.debug(f"=== CONFIGURATIONS FINALES: {len(result_config)} plugins configurés ===")
         return result_config

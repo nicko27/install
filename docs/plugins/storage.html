@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentation: plugins_utils/storage.py</title>
+  <link rel="stylesheet" href="docs_style.css">
+  <style>
+    /* Style additionnel pour les avertissements forts */
+    .destructive-warning {
+      color: #dc3545;
+      /* Rouge vif */
+      background-color: #f8d7da;
+      border: 1px solid #f1aeb5;
+      font-weight: 700;
+      /* Gras */
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+      border-radius: 4px;
+    }
+
+    .destructive-warning::before {
+      content: "🚨 ATTENTION: ";
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <h1 class="main-title">Documentation: <code>plugins_utils/storage.py</code></h1>
+
+    <p class="module-description">
+      Ce module fournit des utilitaires pour la gestion du stockage : périphériques blocs
+      (disques, partitions), systèmes de fichiers, points de montage et utilisation disque.
+      Il utilise les commandes <code>lsblk</code>, <code>mkfs.*</code>, <code>mount</code>,
+      <code>umount</code>, <code>findmnt</code>, <code>df</code>, <code>du</code>, <code>blkid</code>.
+      Les opérations de partitionnement avancées (création/suppression) ne sont pas incluses
+      en raison de leur complexité et des risques associés.
+    </p>
+
+    <nav class="toc">
+      <h3 class="toc-title">Accès Rapide aux Méthodes</h3>
+      <ul class="toc-list">
+        <li class="toc-item"><a href="#list_block_devices" class="toc-link">list_block_devices</a></li>
+        <li class="toc-item"><a href="#get_filesystem_info" class="toc-link">get_filesystem_info</a></li>
+        <li class="toc-item"><a href="#format_partition" class="toc-link">format_partition</a></li>
+        <li class="toc-item"><a href="#mount" class="toc-link">mount</a></li>
+        <li class="toc-item"><a href="#umount" class="toc-link">umount</a></li>
+        <li class="toc-item"><a href="#is_mounted" class="toc-link">is_mounted</a></li>
+        <li class="toc-item"><a href="#get_mount_info" class="toc-link">get_mount_info</a></li>
+        <li class="toc-item"><a href="#add_fstab_entry" class="toc-link">add_fstab_entry</a></li>
+        <li class="toc-item"><a href="#remove_fstab_entry" class="toc-link">remove_fstab_entry</a></li>
+        <li class="toc-item"><a href="#get_disk_usage" class="toc-link">get_disk_usage</a></li>
+        <li class="toc-item"><a href="#get_dir_usage" class="toc-link">get_dir_usage</a></li>
+      </ul>
+    </nav>
+
+    <h2 class="section-title">Classe Principale</h2>
+
+    <section class="method-section">
+      <h3 class="method-title" id="StorageCommands"><code>StorageCommands(PluginUtilsBase)</code></h3>
+      <p class="description">
+        Classe pour gérer le stockage (périphériques, systèmes de fichiers, montage).
+        Hérite de <code>PluginUtilsBase</code> pour l'exécution des commandes et la journalisation.
+      </p>
+    </section>
+
+    <h2 class="section-title">Méthodes Principales</h2>
+
+    <section class="method-section">
+      <h4 class="method-title" id="list_block_devices">
+        <code>list_block_devices(device: Optional[str] = None) -> List[Dict[str, Any]]</code></h4>
+      <p class="description">Liste les périphériques blocs (disques et partitions) via <code>lsblk -J -b -o ...</code>.
+      </p>
+      <dl class="param-list">
+        <dt>device</dt>
+        <dd><span class="param-type">(Optional[str])</span>: Chemin du périphérique spécifique à lister (ex: /dev/sda)
+          ou None pour tous.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">List[Dict[str, Any]]</span> - Liste de
+        dictionnaires, chaque dict représentant un périphérique bloc (disque ou partition) avec des clés comme 'name',
+        'path', 'size' (octets), 'type', 'fstype', 'label', 'uuid', 'mountpoint', 'model', 'serial', 'ro' (bool), 'rm'
+        (bool), etc. Retourne une liste vide en cas d'erreur.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="get_filesystem_info">
+        <code>get_filesystem_info(device: str) -> Optional[Dict[str, str]]</code></h4>
+      <p class="description">Récupère les informations du système de fichiers sur un périphérique via
+        <code>blkid -p -o full</code>.</p>
+      <p class="sudo-warning">Nécessite généralement des privilèges root (pour l'option -p).</p>
+      <dl class="param-list">
+        <dt>device</dt>
+        <dd><span class="param-type">(str)</span>: Chemin du périphérique (ex: /dev/sda1).</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">Optional[Dict[str, str]]</span> -
+        Dictionnaire avec les infos (TYPE, UUID, LABEL, PARTUUID, etc.) ou None si erreur ou si aucun système de
+        fichiers n'est détecté.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="format_partition"><code>format_partition(...) -> bool</code></h4>
+      <p class="description">Formate une partition avec un système de fichiers spécifié via <code>mkfs.*</code>.</p>
+      <p class="destructive-warning">Opération destructive ! Toutes les données sur la partition seront perdues.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <div class="method-signature">
+        <pre><code>format_partition(
+    partition: str,
+    fs_type: str,
+    label: Optional[str] = None,
+    options: Optional[List[str]] = None
+) -> bool</code></pre>
+      </div>
+      <dl class="param-list">
+        <dt>partition</dt>
+        <dd><span class="param-type">(str)</span>: Chemin de la partition (ex: /dev/sda1).</dd>
+        <dt>fs_type</dt>
+        <dd><span class="param-type">(str)</span>: Type de système de fichiers (ext4, xfs, vfat, ntfs, etc.).</dd>
+        <dt>label</dt>
+        <dd><span class="param-type">(Optional[str])</span>: Label à assigner au système de fichiers (optionnel).</dd>
+        <dt>options</dt>
+        <dd><span class="param-type">(Optional[List[str]])</span>: Options supplémentaires à passer à la commande mkfs
+          (ex: ['-O', '^has_journal']).</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si le formatage a réussi.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="mount"><code>mount(...) -> bool</code></h4>
+      <p class="description">Monte un périphérique sur un point de montage via <code>mount</code>.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <div class="method-signature">
+        <pre><code>mount(
+    device: str,
+    mount_point: str,
+    fs_type: Optional[str] = None,
+    options: Optional[Union[str, List[str]]] = None,
+    create_mount_point: bool = True
+) -> bool</code></pre>
+      </div>
+      <dl class="param-list">
+        <dt>device</dt>
+        <dd><span class="param-type">(str)</span>: Périphérique à monter (ex: /dev/sda1, UUID=..., LABEL=...).</dd>
+        <dt>mount_point</dt>
+        <dd><span class="param-type">(str)</span>: Chemin du point de montage.</dd>
+        <dt>fs_type</dt>
+        <dd><span class="param-type">(Optional[str])</span>: Type de système de fichiers (optionnel, mount essaie de
+          détecter).</dd>
+        <dt>options</dt>
+        <dd><span class="param-type">(Optional[Union[str, List[str]]])</span>: Options de montage (chaîne ou liste, ex:
+          'ro,noatime' ou ['ro', 'noatime']).</dd>
+        <dt>create_mount_point</dt>
+        <dd><span class="param-type">(bool)</span>: Si True (défaut), crée le dossier du point de montage s'il n'existe
+          pas.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si le montage a réussi
+        (ou si déjà monté correctement).
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="umount">
+        <code>umount(mount_point_or_device: str, force: bool = False, lazy: bool = False) -> bool</code></h4>
+      <p class="description">Démonte un système de fichiers via <code>umount</code>.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <dl class="param-list">
+        <dt>mount_point_or_device</dt>
+        <dd><span class="param-type">(str)</span>: Point de montage ou périphérique à démonter.</dd>
+        <dt>force</dt>
+        <dd><span class="param-type">(bool)</span>: Forcer le démontage (-f). Attention: peut causer des pertes de
+          données.</dd>
+        <dt>lazy</dt>
+        <dd><span class="param-type">(bool)</span>: Démontage "paresseux" (-l). Détache le FS de la hiérarchie
+          immédiatement.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si le démontage a réussi
+        (ou si déjà démonté).
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="is_mounted"><code>is_mounted(mount_point_or_device: str) -> bool</code></h4>
+      <p class="description">Vérifie si un point de montage ou un périphérique est actuellement monté via
+        <code>findmnt</code>.</p>
+      <dl class="param-list">
+        <dt>mount_point_or_device</dt>
+        <dd><span class="param-type">(str)</span>: Point de montage ou périphérique à vérifier.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True s'il est monté, False
+        sinon.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="get_mount_info">
+        <code>get_mount_info(mount_point_or_device: Optional[str] = None) -> List[Dict[str, str]]</code></h4>
+      <p class="description">Récupère les informations sur les points de montage actuels via
+        <code>findmnt -J -o ...</code>.</p>
+      <dl class="param-list">
+        <dt>mount_point_or_device</dt>
+        <dd><span class="param-type">(Optional[str])</span>: Filtrer par point de montage ou périphérique (optionnel).
+        </dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">List[Dict[str, str]]</span> - Liste de
+        dictionnaires contenant les informations de montage (TARGET, SOURCE, FSTYPE, OPTIONS). Retourne liste vide si
+        erreur ou non trouvé.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="add_fstab_entry"><code>add_fstab_entry(...) -> bool</code></h4>
+      <p class="description">Ajoute (ou remplace si marqueur trouvé) une entrée dans <code>/etc/fstab</code>.</p>
+      <p class="destructive-warning">Modifier /etc/fstab peut rendre le système non démarrable si une erreur est
+        commise.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <div class="method-signature">
+        <pre><code>add_fstab_entry(
+    device: str,
+    mount_point: str,
+    fs_type: str,
+    options: str = 'defaults',
+    dump: int = 0,
+    pass_num: int = 0,
+    marker: Optional[str] = None,
+    backup: bool = True
+) -> bool</code></pre>
+      </div>
+      <dl class="param-list">
+        <dt>device</dt>
+        <dd><span class="param-type">(str)</span>: Périphérique (ex: /dev/sda1, UUID=..., LABEL=...).</dd>
+        <dt>mount_point</dt>
+        <dd><span class="param-type">(str)</span>: Point de montage.</dd>
+        <dt>fs_type</dt>
+        <dd><span class="param-type">(str)</span>: Type de système de fichiers.</dd>
+        <dt>options</dt>
+        <dd><span class="param-type">(str)</span>: Options de montage (ex: 'defaults,noatime').</dd>
+        <dt>dump</dt>
+        <dd><span class="param-type">(int)</span>: Champ dump (généralement 0).</dd>
+        <dt>pass_num</dt>
+        <dd><span class="param-type">(int)</span>: Champ pass (0 pour ne pas vérifier, 1 pour root, 2 pour autres).</dd>
+        <dt>marker</dt>
+        <dd><span class="param-type">(Optional[str])</span>: Commentaire marqueur unique (<code># MARKER:marker</code>)
+          pour identifier/remplacer l'entrée.</dd>
+        <dt>backup</dt>
+        <dd><span class="param-type">(bool)</span>: Si True (défaut), crée une sauvegarde de /etc/fstab avant
+          modification.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si l'ajout/modification a
+        réussi.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="remove_fstab_entry"><code>remove_fstab_entry(...) -> bool</code></h4>
+      <p class="description">Supprime une entrée de <code>/etc/fstab</code> basée sur le point de montage, le
+        périphérique ou un marqueur.</p>
+      <p class="destructive-warning">Modifier /etc/fstab peut rendre le système non démarrable.</p>
+      <p class="sudo-warning">Nécessite des privilèges root.</p>
+      <div class="method-signature">
+        <pre><code>remove_fstab_entry(
+    mount_point_or_device: Optional[str] = None,
+    marker: Optional[str] = None,
+    backup: bool = True
+) -> bool</code></pre>
+      </div>
+      <dl class="param-list">
+        <dt>mount_point_or_device</dt>
+        <dd><span class="param-type">(Optional[str])</span>: Point de montage ou périphérique de l'entrée à supprimer.
+          Utilisé si <code>marker</code> est None.</dd>
+        <dt>marker</dt>
+        <dd><span class="param-type">(Optional[str])</span>: Marqueur unique (<code># MARKER:marker</code>) de l'entrée
+          à supprimer (prioritaire).</dd>
+        <dt>backup</dt>
+        <dd><span class="param-type">(bool)</span>: Créer une sauvegarde avant modification.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si succès ou si l'entrée
+        n'a pas été trouvée. False si erreur.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="get_disk_usage">
+        <code>get_disk_usage(path: Optional[str] = None) -> List[Dict[str, str]]</code></h4>
+      <p class="description">Récupère l'utilisation disque des systèmes de fichiers montés via <code>df -Pk</code>.</p>
+      <dl class="param-list">
+        <dt>path</dt>
+        <dd><span class="param-type">(Optional[str])</span>: Chemin spécifique à vérifier ou None pour tous les systèmes
+          de fichiers.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">List[Dict[str, str]]</span> - Liste de
+        dictionnaires avec les informations df (Filesystem, Size(k), Used(k), Avail(k), UsePct, MountedOn). Retourne
+        liste vide si erreur.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="get_dir_usage">
+        <code>get_dir_usage(path: str, summary: bool = True, apparent_size: bool = False) -> Optional[Tuple[int, str]]</code>
+      </h4>
+      <p class="description">Récupère la taille occupée par un répertoire via <code>du</code>.</p>
+      <p class="sudo-warning">Peut nécessiter des privilèges root pour lire le contenu de certains répertoires.</p>
+      <dl class="param-list">
+        <dt>path</dt>
+        <dd><span class="param-type">(str)</span>: Chemin du répertoire.</dd>
+        <dt>summary</dt>
+        <dd><span class="param-type">(bool)</span>: Si True (défaut), affiche seulement le total (-s).</dd>
+        <dt>apparent_size</dt>
+        <dd><span class="param-type">(bool)</span>: Si True, utilise la taille apparente (--apparent-size).</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">Optional[Tuple[int, str]]</span> - Tuple
+        (taille_en_ko: int, taille_lisible: str) ou None si erreur.
+      </div>
+    </section>
+
+  </div>
+</body>
+
+</html>

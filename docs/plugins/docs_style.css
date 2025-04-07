@@ -1,0 +1,218 @@
+/* docs_style.css - Feuille de style commune pour la documentation */
+
+/* Import de la police Inter */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Styles généraux */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f8f9fa; /* Gris très clair */
+    color: #212529; /* Noir presque */
+    line-height: 1.7;
+    padding: 1rem;
+    margin: 0;
+}
+
+.container {
+    max-width: 900px;
+    margin: 2rem auto; /* my-8 mx-auto */
+    background-color: #ffffff; /* white */
+    padding: 2rem; /* p-6 */
+    border-radius: 8px; /* rounded-lg */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); /* shadow-md */
+    border: 1px solid #dee2e6; /* Gris clair */
+}
+
+/* Titres */
+.main-title {
+    font-size: 2.25rem; /* Plus grand */
+    font-weight: 700; /* font-bold */
+    margin-bottom: 1.5rem; /* mb-4 */
+    color: #343a40; /* Gris foncé */
+    border-bottom: 2px solid #0d6efd; /* Bleu primaire */
+    padding-bottom: 0.5rem; /* pb-1 */
+}
+
+.module-description {
+    color: #495057; /* Gris moyen */
+    margin-bottom: 2rem; /* mb-8 */
+    font-size: 1.1rem;
+}
+
+.section-title {
+    font-size: 1.75rem; /* Plus grand */
+    font-weight: 600; /* font-semibold */
+    margin-top: 2.5rem; /* mt-10 */
+    margin-bottom: 1rem; /* mb-4 */
+    padding-bottom: 0.5rem; /* pb-2 */
+    border-bottom: 1px solid #ced4da; /* border-b border-gray-300 */
+    color: #0d6efd; /* Bleu primaire */
+}
+
+.method-title {
+    font-size: 1.35rem; /* Plus grand */
+    font-weight: 600; /* font-semibold */
+    margin-bottom: 0.75rem; /* mb-3 */
+    color: #0d6efd; /* Bleu primaire */
+}
+.method-title code {
+    font-size: 1.2rem;
+    color: #0a58ca; /* Bleu plus foncé */
+    background-color: #e9ecef; /* Gris très clair */
+    padding: 0.1em 0.4em;
+    border-radius: 4px;
+}
+
+/* Table des Matières (TOC) */
+.toc {
+    background-color: #eef2f7; /* Bleu très clair */
+    border: 1px solid #cfe2ff; /* Bleu clair */
+    border-radius: 6px;
+    padding: 1.5rem;
+    margin-bottom: 2.5rem; /* mb-10 */
+}
+.toc-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #0a58ca; /* Bleu foncé */
+}
+.toc-list {
+    list-style: none;
+    padding: 0;
+    columns: 2; /* Afficher sur 2 colonnes si assez large */
+    -webkit-columns: 2;
+    -moz-columns: 2;
+    gap: 0.75rem; /* Espace entre colonnes */
+}
+.toc-item {
+    margin-bottom: 0.35rem; /* mb-1 */
+    break-inside: avoid-column; /* Éviter qu'un item soit coupé entre 2 colonnes */
+}
+.toc-link {
+    color: #0d6efd; /* Bleu primaire */
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.2s ease;
+}
+.toc-link:hover,
+.toc-link:focus {
+    text-decoration: underline;
+    color: #0a58ca; /* Bleu plus foncé */
+}
+
+/* Sections de Méthode */
+.method-section {
+    margin-bottom: 2rem; /* mb-8 */
+    padding: 1.5rem; /* p-6 */
+    border: 1px solid #dee2e6; /* border border-gray-200 */
+    border-radius: 6px; /* rounded-md */
+    background-color: #ffffff; /* bg-white */
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.3s ease;
+}
+.method-section:hover {
+     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Descriptions et Avertissements */
+.description {
+    color: #495057; /* Gris moyen */
+    margin-bottom: 1rem; /* mb-4 */
+}
+.sudo-warning {
+    color: #842029; /* Rouge foncé */
+    background-color: #f8d7da; /* Rouge clair */
+    border: 1px solid #f5c2c7; /* Rouge moyen */
+    border-radius: 4px; /* rounded-sm */
+    padding: 0.5rem 0.75rem; /* px-3 py-2 */
+    font-size: 0.9rem; /* text-sm */
+    font-weight: 500; /* font-medium */
+    display: inline-block;
+    margin-top: 0.5rem; /* mt-2 */
+    margin-bottom: 1rem; /* mb-4 */
+}
+.sudo-warning::before {
+    content: "⚠️ "; /* Ajoute un emoji d'avertissement */
+}
+
+/* Blocs de Code (Signatures) */
+.method-signature {
+    background-color: #f8f9fa; /* Gris très clair */
+    border: 1px solid #dee2e6; /* Gris clair */
+    border-radius: 6px;
+    padding: 1rem; /* p-4 */
+    overflow-x: auto;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-top: 0.5rem; /* mt-2 */
+    margin-bottom: 1rem; /* mb-4 */
+}
+.method-signature code {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    background-color: transparent;
+    padding: 0;
+}
+
+/* Listes de Paramètres et Retours */
+.param-list {
+    margin-left: 0; /* Pas de marge gauche pour dl */
+    padding-left: 0;
+    margin-bottom: 0.75rem; /* mb-3 */
+}
+.param-list dt {
+    font-weight: 600; /* Semibold */
+    color: #495057; /* Gris moyen */
+    display: block; /* Afficher sur sa propre ligne */
+    margin-top: 0.5rem; /* mt-2 */
+}
+.param-list dd {
+    display: block; /* Afficher sur sa propre ligne */
+    margin-left: 1rem; /* ml-4 pour indentation */
+    color: #212529;
+    margin-bottom: 0.25rem; /* mb-1 */
+}
+.param-type {
+    font-style: italic;
+    color: #6c757d; /* Gris */
+    margin-left: 0.25rem;
+}
+.return-info {
+    margin-top: 1rem; /* mt-4 */
+    padding-top: 0.75rem; /* pt-3 */
+    border-top: 1px dashed #e9ecef; /* Ligne pointillée légère */
+}
+.return-type {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    font-style: normal;
+    color: #0a58ca; /* Bleu foncé */
+    background-color: #e9ecef; /* Gris très clair */
+    padding: 0.1em 0.4em;
+    border-radius: 4px;
+    font-size: 0.85em;
+    margin-left: 0.25rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 1.5rem; /* Moins de padding sur mobile */
+        margin: 1rem auto;
+    }
+    .main-title {
+        font-size: 1.75rem;
+    }
+    .section-title {
+        font-size: 1.35rem;
+    }
+    .method-title {
+        font-size: 1.15rem;
+    }
+    .toc-list {
+        columns: 1; /* Une seule colonne sur petits écrans */
+    }
+    .method-signature {
+        font-size: 0.8rem;
+    }
+}

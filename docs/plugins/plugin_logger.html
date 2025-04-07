@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentation: plugins_utils/plugin_logger.py</title>
+  <link rel="stylesheet" href="docs_style.css">
+  <style>
+    /* Style pour la section Format JSONL */
+    .jsonl-section {
+      background-color: #f8f9fa;
+      /* Gris très clair */
+      border: 1px solid #dee2e6;
+      /* Gris clair */
+      border-radius: 6px;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .jsonl-section h4 {
+      margin-top: 0;
+      color: #0a58ca;
+      /* Bleu foncé */
+      font-size: 1.2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .jsonl-section pre {
+      background-color: #e9ecef;
+      /* Gris plus clair */
+      border: 1px solid #ced4da;
+      /* Gris */
+      margin-top: 0.5rem;
+      padding: 0.75rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+
+    .jsonl-section h5 {
+      font-weight: 600;
+      margin-top: 1rem;
+      margin-bottom: 0.25rem;
+      color: #343a40;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <h1 class="main-title">Documentation: <code>plugins_utils/plugin_logger.py</code></h1>
+
+    <p class="module-description">
+      Ce module fournit une classe <code>PluginLogger</code> pour la journalisation standardisée
+      depuis les scripts de plugins. Il génère des messages au format JSONL (un objet JSON par ligne)
+      sur la sortie standard, qui sont ensuite interceptés et interprétés par l'interface utilisateur
+      (<code>ExecutionWidget</code>) pour afficher les logs et les barres de progression.
+      Il gère également l'écriture de ces logs dans des fichiers dédiés.
+    </p>
+
+    <nav class="toc">
+      <h3 class="toc-title">Accès Rapide aux Méthodes</h3>
+      <ul class="toc-list">
+        <li class="toc-item"><a href="#__init__" class="toc-link">__init__</a></li>
+        <li class="toc-item"><a href="#init_logs" class="toc-link">init_logs</a></li>
+        <li class="toc-item" style="font-weight: 600; margin-top: 0.5rem;">Logging Standard</li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#info" class="toc-link">info</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#warning" class="toc-link">warning</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#error" class="toc-link">error</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#success" class="toc-link">success</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#debug" class="toc-link">debug</a></li>
+        <li class="toc-item" style="font-weight: 600; margin-top: 0.5rem;">Progression Numérique</li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#set_total_steps" class="toc-link">set_total_steps</a>
+        </li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#next_step" class="toc-link">next_step</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#update_progress" class="toc-link">update_progress
+            (Compatibilité)</a></li>
+        <li class="toc-item" style="font-weight: 600; margin-top: 0.5rem;">Barres de Progression Visuelles (Texte)</li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#create_bar" class="toc-link">create_bar</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#update_bar" class="toc-link">update_bar</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#next_bar" class="toc-link">next_bar</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#delete_bar" class="toc-link">delete_bar</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#set_default_bar_style"
+            class="toc-link">set_default_bar_style</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#set_default_bar_width"
+            class="toc-link">set_default_bar_width</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#show_text_pb" class="toc-link">show_text_pb
+            (Compatibilité)</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#delete_text_pb" class="toc-link">delete_text_pb
+            (Compatibilité)</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#next_text_step" class="toc-link">next_text_step
+            (Compatibilité)</a></li>
+      </ul>
+    </nav>
+
+    <h2 class="section-title">Classe Principale</h2>
+
+    <section class="method-section">
+      <h3 class="method-title" id="PluginLogger"><code>PluginLogger</code></h3>
+      <p class="description">
+        Gère la journalisation structurée (JSONL) et les barres de progression
+        pour les plugins et l'interface Textual.
+      </p>
+      <div class="method-signature">
+        <pre><code id="__init__">__init__(
+    plugin_name: Optional[str] = None,
+    instance_id: Optional[Union[str, int]] = None,
+    ssh_mode: bool = False,
+    bar_width: int = 20
+)</code></pre>
+      </div>
+      <dl class="param-list">
+        <dt>plugin_name</dt>
+        <dd><span class="param-type">(Optional[str])</span>: Nom du plugin source.</dd>
+        <dt>instance_id</dt>
+        <dd><span class="param-type">(Optional[Union[str, int]])</span>: ID de l'instance du plugin (utile si plusieurs
+          instances du même plugin sont lancées).</dd>
+        <dt>ssh_mode</dt>
+        <dd><span class="param-type">(bool)</span>: Indique si l'exécution est via SSH (affecte le chemin des logs).
+          Défaut: False.</dd>
+        <dt>bar_width</dt>
+        <dd><span class="param-type">(int)</span>: Largeur par défaut des barres de progression visuelles (texte).
+          Défaut: 20.</dd>
+      </dl>
+    </section>
+
+    <h2 class="section-title">Initialisation</h2>
+    <section class="method-section">
+      <h4 class="method-title" id="init_logs"><code>init_logs()</code></h4>
+      <p class="description">
+        Initialise le chemin du fichier log basé sur le mode (local ou SSH) et les informations
+        du plugin (nom, instance_id). Crée le répertoire de logs si nécessaire. En mode SSH,
+        émet un message spécial `LOG_FILE:/path/to/log` sur stdout pour que l'executor SSH
+        puisse récupérer le fichier.
+      </p>
+    </section>
+
+    <h2 class="section-title">Méthodes de Logging Standard</h2>
+    <p class="description">Ces méthodes émettent un message JSONL sur stdout avec le niveau de log approprié.</p>
+
+    <section class="method-section">
+      <h4 class="method-title" id="info"><code>info(message: str, target_ip: Optional[str] = None)</code></h4>
+      <p class="description">Enregistre un message d'information (niveau 'info').</p>
+    </section>
+    <section class="method-section">
+      <h4 class="method-title" id="warning"><code>warning(message: str, target_ip: Optional[str] = None)</code></h4>
+      <p class="description">Enregistre un message d'avertissement (niveau 'warning').</p>
+    </section>
+    <section class="method-section">
+      <h4 class="method-title" id="error"><code>error(message: str, target_ip: Optional[str] = None)</code></h4>
+      <p class="description">Enregistre un message d'erreur (niveau 'error').</p>
+    </section>
+    <section class="method-section">
+      <h4 class="method-title" id="success"><code>success(message: str, target_ip: Optional[str] = None)</code></h4>
+      <p class="description">Enregistre un message de succès (niveau 'success').</p>
+    </section>
+    <section class="method-section">
+      <h4 class="method-title" id="debug"><code>debug(message: str, target_ip: Optional[str] = None)</code></h4>
+      <p class="description">Enregistre un message de débogage (niveau 'debug').</p>
+    </section>
+
+    <h2 class="section-title">Méthodes de Progression Numérique</h2>
+    <p class="description">Ces méthodes émettent un message JSONL de niveau 'progress' contenant l'état d'avancement
+      (pourcentage, étapes) d'une tâche identifiée par un ID.</p>
+
+    <section class="method-section">
+      <h4 class="method-title" id="set_total_steps">
+        <code>set_total_steps(total: int, pb_id: Optional[str] = None)</code></h4>
+      <p class="description">Définit le nombre total d'étapes pour une barre de progression numérique.</p>
+      <dl class="param-list">
+        <dt>total</dt>
+        <dd><span class="param-type">(int)</span>: Nombre total d'étapes (minimum 1).</dd>
+        <dt>pb_id</dt>
+        <dd><span class="param-type">(Optional[str])</span>: Identifiant unique pour cette barre de progression. Si
+          None, utilise un ID par défaut basé sur le nom/instance du plugin.</dd>
+      </dl>
+    </section>
+    <section class="method-section">
+      <h4 class="method-title" id="next_step">
+        <code>next_step(pb_id: Optional[str] = None, current_step: Optional[int] = None) -> int</code></h4>
+      <p class="description">Avance la progression numérique d'une étape ou définit l'étape actuelle.</p>
+      <dl class="param-list">
+        <dt>pb_id</dt>
+        <dd><span class="param-type">(Optional[str])</span>: Identifiant de la barre de progression. Si None, utilise
+          l'ID par défaut.</dd>
+        <dt>current_step</dt>
+        <dd><span class="param-type">(Optional[int])</span>: Si fourni, définit directement l'étape actuelle. Sinon,
+          incrémente l'étape actuelle de 1.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">int</span> - La nouvelle étape actuelle.
+      </div>
+    </section>
+    <section class="method-section">
+      <h4 class="method-title" id="update_progress">
+        <code>update_progress(percentage: float, current_step: Optional[int] = None, total_steps: Optional[int] = None)</code>
+      </h4>
+      <p class="description">Met à jour la progression numérique par défaut (méthode de compatibilité avec une ancienne
+        API).</p>
+      <dl class="param-list">
+        <dt>percentage</dt>
+        <dd><span class="param-type">(float)</span>: Pourcentage (0.0 à 1.0) utilisé pour estimer
+          <code>current_step</code> si non fourni.</dd>
+        <dt>current_step</dt>
+        <dd><span class="param-type">(Optional[int])</span>: Étape actuelle.</dd>
+        <dt>total_steps</dt>
+        <dd><span class="param-type">(Optional[int])</span>: Nombre total d'étapes.</dd>
+      </dl>
+    </section>
+
+    <h2 class="section-title">Méthodes de Barres de Progression Visuelles (Texte)</h2>
+    <p class="description">Ces méthodes émettent un message JSONL de niveau 'progress-text' contenant les informations
+      nécessaires à l'interface pour afficher/mettre à jour une barre de progression textuelle (ex: [■■■□□□□□□□] Texte).
+    </p>
+
+    <section class="method-section">
+      <h4 class="method-title" id="create_bar"><code>create_bar(...)</code></h4>
+      <p class="description">Crée et affiche une nouvelle barre de progression visuelle.</p>
+      <div class="method-signature">
+        <pre><code>create_bar(
+    id: str,
+    total: int = 1,
+    pre_text: str = "",
+    post_text: str = "",
+    color: str = "blue",
+    filled_char: Optional[str] = None,
+    empty_char: Optional[str] = None,
+    bar_width: Optional[int] = None
+)</code></pre>
+      </div>
+      <dl class="param-list">
+        <dt>id</dt>
+        <dd><span class="param-type">(str)</span>: Identifiant unique pour cette barre.</dd>
+        <dt>total</dt>
+        <dd><span class="param-type">(int)</span>: Nombre total d'étapes. Défaut: 1.</dd>
+        <dt>pre_text</dt>
+        <dd><span class="param-type">(str)</span>: Texte à afficher avant la barre.</dd>
+        <dt>post_text</dt>
+        <dd><span class="param-type">(str)</span>: Texte à afficher après la barre.</dd>
+        <dt>color</dt>
+        <dd><span class="param-type">(str)</span>: Couleur de la barre (nom de couleur CSS ou code hex). Défaut: 'blue'.
+        </dd>
+        <dt>filled_char</dt>
+        <dd><span class="param-type">(Optional[str])</span>: Caractère pour la partie remplie (défaut: '■').</dd>
+        <dt>empty_char</dt>
+        <dd><span class="param-type">(Optional[str])</span>: Caractère pour la partie vide (défaut: '□').</dd>
+        <dt>bar_width</dt>
+        <dd><span class="param-type">(Optional[int])</span>: Largeur de la barre en caractères (défaut: 20).</dd>
+      </dl>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="update_bar"><code>update_bar(...)</code></h4>
+      <p class="description">Met à jour une barre de progression visuelle existante.</p>
+      <div class="method-signature">
+        <pre><code>update_bar(
+    id: str,
+    current: int,
+    total: Optional[int] = None,
+    pre_text: Optional[str] = None,
+    post_text: Optional[str] = None,
+    color: Optional[str] = None,
+    filled_char: Optional[str] = None,
+    empty_char: Optional[str] = None,
+    bar_width: Optional[int] = None
+)</code></pre>
+      </div>
+      <dl class="param-list">
+        <dt>id</dt>
+        <dd><span class="param-type">(str)</span>: Identifiant de la barre.</dd>
+        <dt>current</dt>
+        <dd><span class="param-type">(int)</span>: Étape actuelle.</dd>
+        <dt>total</dt>
+        <dd><span class="param-type">(Optional[int])</span>: Nouveau total d'étapes (optionnel).</dd>
+        <dt>pre_text, post_text, color, ...</dt>
+        <dd>: Autres paramètres pour mettre à jour l'apparence (optionnel).</dd>
+      </dl>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="next_bar"><code>next_bar(...) -> int</code></h4>
+      <p class="description">Avance la barre de progression visuelle d'une étape ou la définit à une étape spécifique.
+      </p>
+      <div class="method-signature">
+        <pre><code>next_bar(
+    id: str,
+    current_step: Optional[int] = None,
+    pre_text: Optional[str] = None,
+    post_text: Optional[str] = None
+) -> int</code></pre>
+      </div>
+      <dl class="param-list">
+        <dt>id</dt>
+        <dd><span class="param-type">(str)</span>: Identifiant de la barre.</dd>
+        <dt>current_step</dt>
+        <dd><span class="param-type">(Optional[int])</span>: Si fourni, définit l'étape actuelle. Sinon, incrémente
+          l'étape de 1.</dd>
+        <dt>pre_text, post_text</dt>
+        <dd>: Textes optionnels à mettre à jour pour cette étape.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span><span class="return-type">int</span> - La nouvelle étape actuelle.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="delete_bar"><code>delete_bar(id: str)</code></h4>
+      <p class="description">Supprime une barre de progression visuelle de l'affichage en envoyant un message avec
+        <code>status='stop'</code>.</p>
+      <dl class="param-list">
+        <dt>id</dt>
+        <dd><span class="param-type">(str)</span>: Identifiant de la barre à supprimer.</dd>
+      </dl>
+    </section>
+    <section class="method-section">
+      <h4 class="method-title" id="set_default_bar_style">
+        <code>set_default_bar_style(filled_char: str, empty_char: str)</code></h4>
+      <p class="description">Définit le style (caractères rempli/vide) par défaut pour les nouvelles barres visuelles.
+      </p>
+    </section>
+    <section class="method-section">
+      <h4 class="method-title" id="set_default_bar_width"><code>set_default_bar_width(width: int)</code></h4>
+      <p class="description">Définit la largeur par défaut pour les nouvelles barres visuelles.</p>
+    </section>
+    <section class="method-section">
+      <h4 class="method-title" id="show_text_pb"><code>show_text_pb(...)</code></h4>
+      <p class="description">Compatibilité ancienne API : Crée la barre visuelle par défaut.</p>
+    </section>
+    <section class="method-section">
+      <h4 class="method-title" id="delete_text_pb"><code>delete_text_pb()</code></h4>
+      <p class="description">Compatibilité ancienne API : Supprime la barre visuelle par défaut.</p>
+    </section>
+    <section class="method-section">
+      <h4 class="method-title" id="next_text_step"><code>next_text_step(...) -> int</code></h4>
+      <p class="description">Compatibilité ancienne API : Avance la barre visuelle par défaut.</p>
+    </section>
+
+    <section class="jsonl-section">
+      <h4 class="method-title">Format des Messages JSONL</h4>
+      <p>Tous les messages émis sur stdout par ce logger sont des objets JSON sur une seule ligne (JSONL).</p>
+      <h5>Logs Standards (info, warning, error, success, debug):</h5>
+      <pre><code>{
+    "timestamp": "ISO8601_timestamp",
+    "level": "info" | "warning" | "error" | "success" | "debug",
+    "plugin_name": "nom_du_plugin",
+    "instance_id": "id_instance",
+    "target_ip": "ip_cible_si_ssh",
+    "message": "Message texte du log"
+}</code></pre>
+      <h5>Progression Numérique (pourcentage):</h5>
+      <pre><code>{
+    "timestamp": "...",
+    "level": "progress",
+    "plugin_name": "...",
+    "instance_id": "...",
+    "target_ip": "...",
+    "message": {
+        "type": "progress",
+        "data": {
+            "id": "id_barre_progression",
+            "percentage": 0.75, // Float entre 0.0 et 1.0
+            "current_step": 75,
+            "total_steps": 100
+        }
+    }
+}</code></pre>
+      <h5>Barre de Progression Visuelle (Texte):</h5>
+      <pre><code>{
+    "timestamp": "...",
+    "level": "progress-text",
+    "plugin_name": "...",
+    "instance_id": "...",
+    "target_ip": "...",
+    "message": {
+        "type": "progress-text",
+        "data": {
+            "id": "id_barre_visuelle",
+            "percentage": 50, // Int 0-100
+            "current_step": 10,
+            "total_steps": 20,
+            "status": "running" | "stop", // 'stop' pour supprimer la barre
+            "pre_text": "Texte avant",
+            "post_text": "Texte après",
+            "color": "blue",
+            "filled_char": "■",
+            "empty_char": "□",
+            "bar": "[■■■■■□□□□□]" // La barre textuelle générée
+        }
+    }
+}</code></pre>
+    </section>
+
+  </div>
+</body>
+
+</html>
