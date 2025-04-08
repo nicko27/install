@@ -40,7 +40,7 @@ for whl in "$WHL_DIR"/*.whl; do
     mkdir -p "$EXTRACT_DIR/libs/$pakname"
 
     # Dézipper le fichier .whl dans son dossier
-    unzip -q "$whl" -d "$EXTRACT_DIR/libs/$pakname 2>/dev/null"
+    unzip -q "$whl" -d "$EXTRACT_DIR/libs/$pakname" 2>/dev/null
 done
 
 echo "Tous les fichiers .whl ont été extraits dans le dossier libs/"

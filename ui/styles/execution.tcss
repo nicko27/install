@@ -1,5 +1,3 @@
-
-/* Conteneur de plugin avec sa progressbar */
 #plugins-list{
     margin-top:1;
     margin-left:2;
@@ -23,17 +21,11 @@
     width: 50%;
 }
 
-Bar{
-    width: 95%;
-    height: 100%;
-}
-
 .plugin-status {
     width: 20%;
     content-align: center middle;
 }
 
-/* États des plugins */
 .plugin-container.waiting {
     border: tall $primary;
     opacity: 70%;
@@ -67,33 +59,27 @@ Bar{
     margin-bottom: 7;  /* Espace pour la zone des boutons */
 }
 
-/* Style des boutons dans le conteneur */
-#button-container Button {
-    margin-left: 1;
-    min-width: 15;
+#button-container-back-exec{
+    margin-left:1;
+    width:16;
 }
 
-/* Ajustement pour l'écran d'exécution qui a des éléments supplémentaires */
-#button-container #continue-on-error {
-    margin-right: 2;
-    width: 25%;
-    content-align: left middle;
+
+#button-container-start-exec{
+    background:red;
+    align-horizontal:right;
+    width:16;
+    margin-left:1;
 }
 
-#button-container #global-progress-label {
-    margin-right: 1;
-    content-align: left middle;
-    height: 3;
-    width: 15%;
+#button-container-progress-exec{
+    width:116;
+    align: left middle;
+    margin-left:2;
 }
 
 #global-progress Bar {
-    height: 1;
-    width:80%;
-    margin-top: 1;
+    height:3;
+    width:110;
 }
-
-#global-progress PercentageStatus{
-    height: 1;
-    margin-top:1;
-}
+    

@@ -14,27 +14,7 @@ import threading
 import shlex # Pour découper les commandes en chaîne de manière sécurisée
 from typing import Union, Optional, List, Tuple, Dict, Any
 
-# Essayer d'importer PluginLogger de manière sécurisée
-try:
-    # Assumer que PluginLogger est dans le même répertoire ou accessible via le path
-    from .plugin_logger import PluginLogger
-except ImportError:
-    # Fallback si PluginLogger n'est pas disponible
-    print("Avertissement: PluginLogger non trouvé, utilisation d'un logger basique.")
-    # Définir une classe PluginLogger minimale pour éviter les erreurs AttributeError
-    class PluginLogger:
-        def __init__(self, *args, **kwargs): pass
-        def info(self, msg: str, **kwargs): print(f"[INFO] {msg}")
-        def warning(self, msg: str, **kwargs): print(f"[WARN] {msg}")
-        def error(self, msg: str, **kwargs): print(f"[ERROR] {msg}")
-        def debug(self, msg: str, **kwargs): print(f"[DEBUG] {msg}")
-        def success(self, msg: str, **kwargs): print(f"[SUCCESS] {msg}")
-        def set_total_steps(self, total: int, pb_id: Optional[str]): pass
-        def next_step(self, pb_id: Optional[str], current_step: Optional[int] = None): pass
-        def create_bar(self, *args, **kwargs): pass
-        def update_bar(self, *args, **kwargs): pass
-        def delete_bar(self, *args, **kwargs): pass
-        def next_bar(self, *args, **kwargs): pass
+from .plugin_logger import PluginLogger
 
 DEFAULT_COMMAND_TIMEOUT = 300 # 5 minutes par défaut
 

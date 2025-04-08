@@ -8,7 +8,6 @@
 
 #button-container {
     dock: bottom;
-    background:$background;
     height: 6;
     padding-bottom:2;
     padding-right:2;

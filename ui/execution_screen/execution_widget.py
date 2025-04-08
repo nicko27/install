@@ -439,7 +439,6 @@ class ExecutionWidget(Container):
 
             # Réinitialiser l'interface
             self.update_global_progress(0)
-            self.set_current_plugin("aucun")
             await LoggerUtils.clear_logs(self)
 
             # Exécuter les plugins
@@ -519,14 +518,6 @@ class ExecutionWidget(Container):
             plugin_name: Nom du plugin en cours d'exécution
         """
         try:
-            # Mettre à jour le label global
-            try:
-                progress_label = self.query_one("#global-progress-label")
-                if progress_label:
-                    progress_label.update(f"Plugin: {plugin_name}")
-            except Exception as e:
-                logger.debug(f"Label de progression non trouvé: {e}")
-
             # Scroller vers le plugin en cours
             if plugin_name != "aucun":
                 try:
@@ -722,16 +713,19 @@ class ExecutionWidget(Container):
 
         # Boutons et contrôles
         with Horizontal(id="button-container"):
-            yield Button("Retour", id="back-button", variant="error")
-            yield Checkbox("Continuer en cas d'erreur", id="continue-on-error", value=True)
-            yield Label("Progression globale", id="global-progress-label")
+            with Vertical(id="button-container-back-exec"):
+                yield Button("Retour", id="back-button", variant="error")
+            with Vertical(id="button-container-continue-exec"):
+                yield Checkbox("Continuer en cas d'erreur", id="continue-on-error", value=True)
             # Initialiser la barre de progression avec des valeurs par défaut
-            progress_bar = ProgressBar(id="global-progress", show_eta=False)
-            progress_bar.total = 100.0
-            progress_bar.progress = 0.0
-            yield progress_bar
+            with Vertical(id="button-container-progress-exec"):
+                progress_bar = ProgressBar(id="global-progress", show_eta=False)
+                progress_bar.total = 100.0
+                progress_bar.progress = 50.0
+                yield progress_bar
             # Bouton de démarrage
-            yield Button("Démarrer", id="start-button", variant="primary")
+            with Vertical(id="button-container-start-exec"):
+                yield Button("Démarrer", id="start-button", variant="primary")
 
         yield Footer()
 
@@ -754,7 +748,6 @@ class ExecutionWidget(Container):
         try:
             # Initialisation de base
             self.update_global_progress(0)
-            self.set_current_plugin("aucun")
 
             # S'assurer que les logs sont visibles
             logs_container = self.query_one("#logs-container", ScrollableContainer)

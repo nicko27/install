@@ -1,41 +1,30 @@
-/* ====== CONFIGURATION SCREEN STYLES ====== */
-
-
-
-/* ==== GLOBAL STRUCTURE ==== */
-Screen {
-    background: $surface;
-    overflow: hidden;
-    height: 100%;
-}
-
-/* Page header */
-#window-config-title {
-    background: $surface;
-    margin-left: 1;
-    margin-top: 1;
-    text-align: left;
-    text-style: bold;
-    width: 100%;
-    margin-bottom: 1;
-}
-
 #config-container-list {
-    overflow-y: auto;
-    overflow-x: hidden;
-    height:80%;
-    margin-bottom: 7;  /* Espace pour la zone des boutons */
+    margin:0;
+    padding:0;
+    box-sizing: border-box;
+    height:36;
 }
 
-.config-container{
-    height: auto;
+
+#button-container-config {
+    dock: bottom;
+    height: 6;
+    padding-bottom:2;
+    padding-right:2;
+    border-top: heavy $primary;
+    box-sizing: border-box;
+    align: right middle;
 }
 
-/* Style des boutons dans le conteneur */
-#button-container Button {
-    margin-left: 1;
-    min-width: 15;
+#button-container-config-left{
+    margin-left:1;
 }
+
+#button-container-config-right{
+
+    align: right middle;
+}
+
 
 .config-fields {
     background: $panel;
@@ -98,7 +87,7 @@ Screen {
     height: 0;
 }
 
-.required-star {
+.required-field {
     color: $error;
     text-style: bold;
 }
@@ -115,11 +104,17 @@ Screen {
     margin-bottom: 1;
 }
 
-.disabled-ssh-container{
-    visibility: hidden;
-    display: none;
-}
+
 
 .template-label{
     padding-left:1;
+}
+
+#ssh-container{
+    display:none;    
+}
+
+.disabled-ssh-container{
+    visibility: hidden;
+    display: none;
 }

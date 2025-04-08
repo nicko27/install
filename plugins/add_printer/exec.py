@@ -23,7 +23,7 @@ setup_import_paths()
 from plugins_utils import *
 
 # Initialiser le logger du plugin
-log = PluginLogger("add_printer")
+log = PluginUtilsBase("add_printer")
 
 # Initialiser les gestionnaires de commandes
 printer_manager = PrinterCommands(log)

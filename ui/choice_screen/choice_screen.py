@@ -340,6 +340,7 @@ class Choice(App):
             self._add_plugin(message.plugin_name, message.source)
         else:
             self._remove_plugin(message.plugin_name)
+            
 
     def _add_plugin(self, plugin_name: str, source_card: PluginCard) -> None:
         """
