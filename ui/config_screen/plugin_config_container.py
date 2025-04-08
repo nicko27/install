@@ -150,9 +150,10 @@ class PluginConfigContainer(ConfigContainer):
                     )
                     
                     # Enregistrer le champ dans les dictionnaires
-                    self.fields_by_id[field_id] = field
+                    # Utiliser l'ID unique du champ pour éviter les conflits entre instances
+                    self.fields_by_id[field.unique_id] = field
                     self.fields_by_plugin[self.source_id][field_id] = field
-                    logger.debug(f"Champ {field_id} créé et ajouté aux dictionnaires")
+                    logger.debug(f"Champ {field_id} créé et ajouté aux dictionnaires (unique_id: {field.unique_id})")
                     
                     # Si c'est une case à cocher, configurer le gestionnaire d'événements
                     if field_type in ['checkbox', 'checkbox_group']:

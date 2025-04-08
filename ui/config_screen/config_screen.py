@@ -92,9 +92,11 @@ class PluginConfig(Screen):
 
             # 2. Charger les configurations des plugins
             for plugin_data in self.plugin_instances:
-                plugin_name = plugin_data[0]
-                instance_id = plugin_data[1]
-                logger.debug(f"Chargement config pour plugin: {plugin_name}")
+                # Extraire les informations du plugin
+                if len(plugin_data) >= 3:
+                    plugin_name, instance_id, _ = plugin_data
+                else:
+                    plugin_name, instance_id = plugin_data[:2]
 
                 # Ignorer les séquences
                 if plugin_name.startswith('__sequence__'):
@@ -106,8 +108,21 @@ class PluginConfig(Screen):
                 self.config_manager.load_plugin_config(plugin_name, settings_path)
                 self.fields_by_plugin[plugin_name] = {}
 
-                # Initialiser la config par défaut
-                self._initialize_default_config(plugin_name, instance_id)
+                # MODIFICATION : Récupérer les valeurs par défaut
+                default_values = self.config_manager.get_default_values(plugin_name)
+                
+                # Préparer l'ID d'instance unique
+                plugin_instance_id = f"{plugin_name}_{instance_id}"
+                
+                # Si pas de configuration existante, charger les valeurs par défaut
+                if plugin_instance_id not in self.current_config:
+                    self.current_config[plugin_instance_id] = {
+                        'plugin_name': plugin_name,
+                        'instance_id': instance_id,
+                        'config': default_values
+                    }
+                    logger.debug(f"Configuration par défaut chargée pour {plugin_instance_id}: {default_values}")
+
 
             # 3. Charger la séquence si spécifiée
             if self.sequence_file:
@@ -380,14 +395,21 @@ class PluginConfig(Screen):
 
                 # Appliquer les valeurs prédéfinies de la séquence/configuration
                 plugin_instance_id = f"{plugin}_{instance_id}"
+                
+                # Générer un ID unique pour ce champ dans cette instance spécifique
+                unique_field_id = f"{field_id}_{instance_id}"
+                field_config_copy['unique_id'] = unique_field_id
+                
+                # Appliquer les valeurs prédéfinies si disponibles
                 if plugin_instance_id in self.current_config:
                     predefined_config = self.current_config[plugin_instance_id]
                     variable_name = field_config_copy.get('variable', field_id)
 
                     # Chercher dans 'config' (nouveau format)
                     if 'config' in predefined_config and variable_name in predefined_config['config']:
-                        logger.debug(f"Valeur prédéfinie trouvée: {plugin}.{field_id} = {predefined_config['config'][variable_name]}")
-                        field_config_copy['default'] = predefined_config['config'][variable_name]
+                        value = predefined_config['config'][variable_name]
+                        logger.debug(f"Valeur prédéfinie trouvée pour {plugin_instance_id}.{field_id} = {value}")
+                        field_config_copy['default'] = value
 
                 config_fields.append(field_config_copy)
 
@@ -690,7 +712,7 @@ class PluginConfig(Screen):
                     remote_enabled = self.plugins_remote_enabled[plugin_key].get_value()
 
                 # Récupérer les valeurs des champs
-                config_values = self._collect_plugin_field_values(plugin_name)
+                config_values = self._collect_plugin_field_values(plugin_name, instance_id)
 
                 # Ajouter les variables SSH si nécessaire
                 if supports_remote and remote_enabled:
@@ -743,22 +765,55 @@ class PluginConfig(Screen):
 
         return ssh_config
 
-    def _collect_plugin_field_values(self, plugin_name: str) -> Dict[str, Any]:
+    def _collect_plugin_field_values(self, plugin_name: str, instance_id: Optional[int] = None) -> Dict[str, Any]:
         """
         Collecte les valeurs des champs d'un plugin.
-
+        
         Args:
             plugin_name: Nom du plugin
-
+            instance_id: ID d'instance optionnel pour différencier les instances multiples
+        
         Returns:
             Dict[str, Any]: Valeurs des champs du plugin
         """
         config_values = {}
 
         # Trouver tous les champs du plugin
-        plugin_fields = [field for field in self.fields_by_id.values()
-                        if hasattr(field, 'source_id') and field.source_id == plugin_name and
-                        not field.field_id.startswith(f"remote_exec_{plugin_name}")]
+        if instance_id is not None:
+            # Si un ID d'instance est spécifié, filtrer les champs par plugin ET instance
+            plugin_instance_id = f"{plugin_name}_{instance_id}"
+            container_id = f"plugin_{plugin_instance_id}"
+            
+            # Récupérer le conteneur spécifique à cette instance
+            container = self.containers_by_id.get(container_id)
+            
+            if container and hasattr(container, 'fields_by_id'):
+                # Utiliser les champs de ce conteneur spécifique
+                # Filtrer pour ne récupérer que les champs qui ont un ID unique correspondant à cette instance
+                plugin_fields = []
+                for field in container.fields_by_id.values():
+                    # Vérifier si le champ a un attribut unique_id qui correspond à cette instance
+                    if hasattr(field, 'unique_id'):
+                        if f"_{instance_id}" in field.unique_id:
+                            plugin_fields.append(field)
+                            logger.debug(f"Champ avec unique_id {field.unique_id} ajouté pour la collecte")
+                    elif hasattr(field, 'source_id') and field.source_id == plugin_name:
+                        # Fallback pour les champs sans ID unique
+                        plugin_fields.append(field)
+                        logger.debug(f"Fallback: Champ {field.field_id} ajouté pour la collecte (pas d'unique_id)")
+                
+                logger.debug(f"Collecte de {len(plugin_fields)} champs pour l'instance spécifique {plugin_instance_id}")
+            else:
+                # Fallback: filtrer par nom de plugin uniquement
+                plugin_fields = [field for field in self.fields_by_id.values()
+                                if hasattr(field, 'source_id') and field.source_id == plugin_name and
+                                not field.field_id.startswith(f"remote_exec_{plugin_name}")]
+                logger.debug(f"Conteneur {container_id} non trouvé, fallback au filtrage par nom de plugin")
+        else:
+            # Comportement original: filtrer par nom de plugin uniquement
+            plugin_fields = [field for field in self.fields_by_id.values()
+                            if hasattr(field, 'source_id') and field.source_id == plugin_name and
+                            not field.field_id.startswith(f"remote_exec_{plugin_name}")]
 
         logger.debug(f"Collecte de {len(plugin_fields)} champs pour {plugin_name}")
 

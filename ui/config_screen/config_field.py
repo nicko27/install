@@ -34,6 +34,11 @@ class ConfigField(VerticalGroup):
         super().__init__()
         self.source_id = source_id         # ID de la source (plugin ou config globale)
         self.field_id = field_id           # ID du champ
+        
+        # Utiliser l'ID unique s'il est disponible
+        self.unique_id = field_config.get('unique_id', field_id)
+        logger.debug(f"Initialisation du champ {field_id} avec unique_id: {self.unique_id}")
+        
         self.field_config = field_config   # Configuration du champ
         self.fields_by_id = fields_by_id or {}  # Champs indexés par ID pour les dépendances
         self.is_global = is_global         # Indique si c'est un champ global ou plugin

@@ -249,6 +249,7 @@ class SequenceConfigManager:
         
         logger.debug("=== DÉBUT FUSION DES CONFIGURATIONS ===")
         logger.debug(f"Plugins à configurer: {len(plugin_instances)}")
+        logger.debug(f"Configuration initiale: {self.current_config}")
         
         # Compteurs pour suivre les instances de chaque type de plugin
         plugin_counters = {}
@@ -287,21 +288,30 @@ class SequenceConfigManager:
             
             # 2. FUSION DES CONFIGURATIONS SELON PRIORITÉ
             
-            # Priorité 1: Configuration par défaut déjà existante
+            # Priorité 1: Configuration par défaut existante dans self.current_config
             if plugin_instance_id in self.current_config:
                 default_config = self.current_config[plugin_instance_id]
+                logger.debug(f"Configuration par défaut trouvée pour {plugin_instance_id}: {default_config}")
+                
+                # Fusionner la configuration par défaut
                 if 'config' in default_config and isinstance(default_config['config'], dict):
-                    config_data['config'].update(default_config['config'])
-                    logger.debug(f"Configuration par défaut appliquée: " +
-                                f"{len(default_config['config'])} paramètres")
+                    # Ne remplacer que si la configuration n'est pas vide
+                    if default_config['config']:
+                        config_data['config'].update(default_config['config'])
+                        logger.debug(f"Configuration par défaut appliquée: " +
+                                    f"{len(default_config['config'])} paramètres")
                 
                 # Copier les attributs spéciaux
                 self._copy_special_attributes(default_config, config_data)
             
             # Priorité 2: Configuration de séquence si disponible
-            seq_config = self._get_sequence_config(plugin_name, current_count, sequence_plugin_instances)
+            existing_config_data = None
+            if plugin_instance_id in self.current_config and 'config' in self.current_config[plugin_instance_id]:
+                existing_config_data = self.current_config[plugin_instance_id]['config']
+            seq_config = self._get_sequence_config(plugin_name, current_count, sequence_plugin_instances, existing_config_data)
             if seq_config:
                 if 'config' in seq_config and isinstance(seq_config['config'], dict):
+                    # Mise à jour avec la configuration de séquence (écrase les valeurs par défaut)
                     config_data['config'].update(seq_config['config'])
                     logger.debug(f"Configuration de séquence appliquée: " +
                                 f"{len(seq_config['config'])} paramètres")
@@ -372,16 +382,18 @@ class SequenceConfigManager:
             'name': plugin_name,  # Sera remplacé par un nom plus descriptif si disponible
             'config': {}
         }
-    
+        
     def _get_sequence_config(self, plugin_name: str, instance_index: int,
-                           sequence_plugin_instances: Dict[str, List[int]]) -> Optional[Dict[str, Any]]:
+                        sequence_plugin_instances: Dict[str, List[int]],
+                        existing_config: Optional[Dict] = None) -> Optional[Dict[str, Any]]:
         """
-        Récupère la configuration de séquence pour un plugin selon son index.
+        Récupère la configuration de séquence la plus appropriée pour un plugin.
         
         Args:
             plugin_name: Nom du plugin
-            instance_index: Index de l'instance de ce type de plugin (0 pour la première)
+            instance_index: Index de l'instance de ce type de plugin
             sequence_plugin_instances: Index des plugins par type dans la séquence
+            existing_config: Configuration existante pour aider à trouver la meilleure correspondance
             
         Returns:
             Optional[Dict[str, Any]]: Configuration de séquence ou None si non trouvée
@@ -390,16 +402,65 @@ class SequenceConfigManager:
         if plugin_name not in sequence_plugin_instances:
             return None
         
-        # Vérifier si nous avons assez d'instances pour cet index
+        # Récupérer tous les indices de ce type de plugin dans la séquence
         plugin_indices = sequence_plugin_instances[plugin_name]
-        if instance_index >= len(plugin_indices):
+        
+        # Si pas d'indices disponibles, retourner None
+        if not plugin_indices:
             return None
         
-        # Récupérer l'index dans la séquence
-        sequence_index = plugin_indices[instance_index]
+        # Si pas de configuration existante, utiliser l'approche par index
+        if not existing_config:
+            # Vérifier si nous avons assez d'instances pour cet index
+            if instance_index >= len(plugin_indices):
+                return None
+            
+            sequence_index = plugin_indices[instance_index]
+        else:
+            # Chercher la meilleure correspondance basée sur la configuration existante
+            best_match_index = None
+            best_match_score = -1
+            
+            for seq_idx in plugin_indices:
+                # Vérifier si ce plugin a déjà été associé
+                association_key = f"{plugin_name}_{seq_idx}"
+                if association_key in self._matched_plugins:
+                    continue
+                    
+                # Récupérer la configuration de la séquence
+                seq_plugin_config = self.sequence_data['plugins'][seq_idx]
+                
+                # Ignorer les formats simples (chaînes)
+                if isinstance(seq_plugin_config, str):
+                    continue
+                    
+                # Récupérer la configuration
+                seq_config = {}
+                if 'config' in seq_plugin_config and isinstance(seq_plugin_config['config'], dict):
+                    seq_config = seq_plugin_config['config']
+                elif 'variables' in seq_plugin_config and isinstance(seq_plugin_config['variables'], dict):
+                    seq_config = seq_plugin_config['variables']
+                
+                # Calculer un score de correspondance
+                match_score = 0
+                for key, value in existing_config.items():
+                    if key in seq_config and seq_config[key] == value:
+                        match_score += 1
+                
+                # Mettre à jour la meilleure correspondance si nécessaire
+                if match_score > best_match_score:
+                    best_match_score = match_score
+                    best_match_index = seq_idx
+            
+            # Utiliser la meilleure correspondance ou l'index par défaut
+            if best_match_index is not None:
+                sequence_index = best_match_index
+            elif instance_index < len(plugin_indices):
+                sequence_index = plugin_indices[instance_index]
+            else:
+                return None
         
         # Créer un identifiant unique pour ce couple (plugin, position)
-        # pour éviter d'associer deux fois le même plugin de séquence
         association_key = f"{plugin_name}_{sequence_index}"
         
         # Vérifier si ce plugin a déjà été associé
@@ -410,7 +471,7 @@ class SequenceConfigManager:
         # Marquer comme associé
         self._matched_plugins.add(association_key)
         
-        # Récupérer la configuration de la séquence
+        # Récupérer et normaliser la configuration
         plugin_config = self.sequence_data['plugins'][sequence_index]
         
         # Format 1: Chaîne simple (juste le nom)

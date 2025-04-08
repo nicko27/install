@@ -173,8 +173,11 @@ class ConfigContainer(VerticalGroup):
             logger.warning(f"Champ sans ID dans {self.source_id}")
             return None
             
+        # Utiliser l'ID unique s'il est disponible pour éviter les conflits entre instances
+        unique_id = field_config.get('unique_id', field_id)
+        
         field_type = field_config.get('type', 'text')
-        logger.debug(f"Création du champ {field_id} de type {field_type}")
+        logger.debug(f"Création du champ {field_id} (unique_id: {unique_id}) de type {field_type}")
         
         # Déterminer la classe du champ
         field_class = self.FIELD_TYPES.get(field_type, TextField)
@@ -190,7 +193,9 @@ class ConfigContainer(VerticalGroup):
             )
             
             # Enregistrer le champ dans le dictionnaire
-            self.fields_by_id[field_id] = field
+            # Utiliser l'ID unique s'il est disponible pour éviter les conflits entre instances
+            unique_id = field_config.get('unique_id', field_id)
+            self.fields_by_id[unique_id] = field
             
             # Si c'est un champ de type checkbox, ajouter un gestionnaire d'événements
             if field_type in ['checkbox', 'checkbox_group']:
