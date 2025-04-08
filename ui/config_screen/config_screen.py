@@ -151,8 +151,9 @@ class PluginConfig(Screen):
         for field_config in plugin_config.get('config_fields', {}).values():
             if isinstance(field_config, dict) and 'default' in field_config:
                 variable_name = field_config.get('variable', field_config.get('id'))
-                default_config['config'][variable_name] = field_config['default']
-                logger.debug(f"Valeur par défaut pour {plugin_name}.{variable_name}: {field_config['default']}")
+                if variable_name is not None:
+                    default_config['config'][variable_name] = field_config['default']
+                    logger.debug(f"Valeur par défaut pour {plugin_name}.{variable_name}: {field_config['default']}")
 
         # Stocker la config par défaut
         plugin_instance_id = f"{plugin_name}_{instance_id}"
@@ -387,10 +388,6 @@ class PluginConfig(Screen):
                     if 'config' in predefined_config and variable_name in predefined_config['config']:
                         logger.debug(f"Valeur prédéfinie trouvée: {plugin}.{field_id} = {predefined_config['config'][variable_name]}")
                         field_config_copy['default'] = predefined_config['config'][variable_name]
-                    # Chercher dans la racine (ancien format)
-                    elif variable_name in predefined_config:
-                        logger.debug(f"Valeur prédéfinie (legacy) trouvée: {plugin}.{field_id} = {predefined_config[variable_name]}")
-                        field_config_copy['default'] = predefined_config[variable_name]
 
                 config_fields.append(field_config_copy)
 

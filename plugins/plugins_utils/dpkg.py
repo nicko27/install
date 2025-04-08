@@ -7,7 +7,7 @@ Permet de gérer les sélections de paquets, les préréponses debconf et les op
 """
 
 # Import de la classe de base et des types
-from .plugin_utils_base import PluginUtilsBase
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
 import os
 import re
 import tempfile
@@ -22,7 +22,7 @@ except ImportError:
     APT_AVAILABLE_FOR_DPKG = False
     class AptCommands: pass # Factice
 
-class DpkgCommands(PluginUtilsBase):
+class DpkgCommands(PluginsUtilsBase):
     """
     Classe avancée pour gérer dpkg, debconf et les sélections de paquets.
     Hérite de PluginUtilsBase pour l'exécution de commandes et la progression.

@@ -13,24 +13,19 @@ import os
 # Ajouter le répertoire parent au chemin de recherche Python
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Import du module d'aide à l'import
-from plugins_utils.import_helper import setup_import_paths
-
-# Configurer les chemins d'import
-setup_import_paths()
 
 # Maintenant on peut importer tous les éléments du module utils
-from plugins_utils import *
+from plugins_utils import main
 
 # Initialiser le logger du plugin
-log = PluginUtilsBase("add_printer")
+#log = PluginUtilsBase("add_printer")
 
 # Initialiser les gestionnaires de commandes
-printer_manager = PrinterCommands(log)
-service_manager = ServiceCommands(log)
+#printer_manager = PrinterCommands(log)
+#service_manager = ServiceCommands(log)
 
 class Plugin:
-    def execute_plugin(self,config):
+    def run(self,config,log):
         """
         Point d'entrée principal pour l'exécution du plugin.
 
@@ -74,7 +69,7 @@ class Plugin:
                 log.update_bar("arrows", i, None, None, f"{i}/5 complété")
                 log.update_bar("stars", i, None, None, f"{i}/5 complété")
                 log.update_bar("smileys", i, None, None, f"{i}/5 complété")
-                
+
                 time.sleep(0.5)
 
             # Toutes les barres sont terminées, les supprimer
@@ -97,17 +92,17 @@ class Plugin:
             for i in range(1, 11):
                 log.update_bar("download", i, None, None, f"{i}/10 MB")
                 time.sleep(0.3)
-                
+
                 # À mi-chemin, démarrer l'installation
                 if i == 5:
                     # Barre pour l'installation
                     log.create_bar("install", 3, "Installation", "préparation...", "green", "█", "░")
-                    
+
                     # Étapes d'installation
                     for step in ["extraction", "configuration", "finalisation"]:
                         log.next_bar("install", None, None, step)
                         time.sleep(0.5)
-                        
+
                     # Installation terminée
                     log.delete_bar("install")
                     log.success("Installation terminée avec succès")
@@ -115,7 +110,7 @@ class Plugin:
             # Téléchargement terminé
             log.delete_bar("download")
             log.success("Téléchargement terminé")
-            
+
             returnValue=True
             # Résultat final
             if returnValue:
@@ -135,4 +130,5 @@ class Plugin:
 
 if __name__ == "__main__":
     plugin=Plugin()
-    main(log,plugin)
+    m=main.Main(plugin)
+    m.start()

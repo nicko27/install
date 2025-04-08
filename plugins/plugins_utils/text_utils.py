@@ -5,12 +5,12 @@ Module utilitaire pour les opérations courantes sur les chaînes de caractères
 Fournit des fonctions pour le parsing simple, la recherche et le nettoyage de texte.
 """
 
-from .plugin_utils_base import PluginUtilsBase
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
 import os
 import re
 from typing import Union, Optional, List, Dict, Any, Tuple, Pattern
 
-class TextUtils(PluginUtilsBase):
+class TextUtils(PluginsUtilsBase):
     """
     Classe pour les opérations courantes sur le texte.
     Hérite de PluginUtilsBase principalement pour la journalisation.

@@ -14,11 +14,11 @@ import threading
 import shlex # Pour découper les commandes en chaîne de manière sécurisée
 from typing import Union, Optional, List, Tuple, Dict, Any
 
-from .plugin_logger import PluginLogger
+from plugins_utils.plugin_logger import PluginLogger
 
 DEFAULT_COMMAND_TIMEOUT = 300 # 5 minutes par défaut
 
-class PluginUtilsBase:
+class PluginsUtilsBase:
     """
     Classe de base pour les utilitaires de plugins. Fournit la journalisation,
     l'exécution de commandes et la gestion de la progression.

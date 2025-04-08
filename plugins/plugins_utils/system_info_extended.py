@@ -5,13 +5,13 @@ Module utilitaire pour récupérer des informations système et matérielles ét
 Utilise des commandes comme lspci, lsusb, dmidecode, hdparm, smartctl.
 """
 
-from .plugin_utils_base import PluginUtilsBase
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
 import os
 import re
 import json
 from typing import Union, Optional, List, Dict, Any, Tuple
 
-class SystemInfoExtended(PluginUtilsBase):
+class SystemInfoExtended(PluginsUtilsBase):
     """
     Classe pour récupérer des informations système et matérielles détaillées.
     Hérite de PluginUtilsBase pour l'exécution de commandes.

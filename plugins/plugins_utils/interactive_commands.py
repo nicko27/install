@@ -7,7 +7,7 @@ Fournit une interface structurée pour définir des scénarios d'interaction.
 NOTE: Nécessite l'installation du paquet pip 'pexpect'.
 """
 
-from .plugin_utils_base import PluginUtilsBase
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
 import sys
 import time
 import os
@@ -41,7 +41,7 @@ except ImportError:
              return [patterns]
 
 
-class InteractiveCommand(PluginUtilsBase):
+class InteractiveCommand(PluginsUtilsBase):
     """
     Classe pour exécuter des commandes interactives via Pexpect.
     Permet de définir des scénarios d'attente/réponse.

@@ -8,14 +8,14 @@ les paquets et dépôts du système avec affichage de la progression.
 """
 
 # Import de la classe de base et des types
-from .plugin_utils_base import PluginUtilsBase
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
 import os
 import re
 import time
 from pathlib import Path
 from typing import Union, Optional, List, Dict, Any, Tuple, Set
 
-class AptCommands(PluginUtilsBase):
+class AptCommands(PluginsUtilsBase):
     """
     Classe avancée pour gérer les paquets via apt/apt-get.
     Hérite de PluginUtilsBase pour l'exécution de commandes et la progression.

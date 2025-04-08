@@ -5,12 +5,13 @@ Module utilitaire pour interagir avec les systèmes de contrôle d'accès mandat
 SELinux et AppArmor via leurs commandes système respectives.
 """
 
-from .plugin_utils_base import PluginUtilsBase
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
 import os
 import re
+from pathlib import Path
 from typing import Union, Optional, List, Dict, Any, Tuple
 
-class MandatoryAccessControl(PluginUtilsBase):
+class MandatoryAccessControl(PluginsUtilsBase):
     """
     Classe pour interagir avec SELinux et AppArmor.
     Hérite de PluginUtilsBase pour l'exécution de commandes.

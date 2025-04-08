@@ -7,12 +7,12 @@ Utilise la commande 'ufw'.
 NOTE: Nécessite que UFW soit installé et configuré sur le système cible.
 """
 
-from .plugin_utils_base import PluginUtilsBase
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
 import os
 import re
 from typing import Union, Optional, List, Dict, Any, Tuple
 
-class FirewallCommands(PluginUtilsBase):
+class FirewallCommands(PluginsUtilsBase):
     """
     Classe pour gérer le pare-feu UFW.
     Hérite de PluginUtilsBase pour l'exécution de commandes.

@@ -5,12 +5,10 @@ Module utilitaire pour interagir avec le noyau Linux.
 Permet de lire/modifier les paramètres sysctl et de gérer les modules du noyau.
 """
 
-from .plugin_utils_base import PluginUtilsBase
-import os
-import re
-from typing import Union, Optional, List, Dict, Any, Tuple
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
+from typing import Union, Optional, List, Dict, Any
 
-class KernelCommands(PluginUtilsBase):
+class KernelCommands(PluginsUtilsBase):
     """
     Classe pour interagir avec les paramètres et modules du noyau Linux.
     Hérite de PluginUtilsBase pour l'exécution de commandes.

@@ -5,7 +5,7 @@ Module utilitaire pour effectuer des vérifications de l'état général du syst
 Vérifie l'espace disque, la mémoire, la charge CPU, la connectivité, les services critiques, etc.
 """
 
-from .plugin_utils_base import PluginUtilsBase
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
 import os
 import re
 import time
@@ -25,7 +25,7 @@ except ImportError:
     class NetworkCommands: pass
     class ServiceCommands: pass
 
-class HealthChecker(PluginUtilsBase):
+class HealthChecker(PluginsUtilsBase):
     """
     Classe pour effectuer des vérifications de santé système.
     Hérite de PluginUtilsBase et utilise d'autres commandes utilitaires.

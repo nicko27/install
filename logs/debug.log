@@ -1,90 +1,867 @@
-2025-04-07 14:56:54,148 - pcUtils.main - DEBUG - Répertoire de base de l'application: /media/nico/Drive/pcUtils_internet
-2025-04-07 14:56:54,149 - pcUtils.main - DEBUG - sys.path complet: ['/media/nico/Drive/pcUtils_internet', '/usr/lib/python310.zip', '/usr/lib/python3.10', '/usr/lib/python3.10/lib-dynload', '/home/nico/.local/lib/python3.10/site-packages', '/usr/local/lib/python3.10/dist-packages', '/usr/lib/python3/dist-packages']
-2025-04-07 14:56:54,166 - pcUtils.main - DEBUG - ruamel.yaml importé avec succès depuis /home/nico/.local/lib/python3.10/site-packages/ruamel/yaml/__init__.py
-2025-04-07 14:56:54,585 - pcUtils.argument_parser - DEBUG - Arguments de ligne de commande: Namespace(auto=False, sequence=None, shortcut=None, plugin=None, config=None, params=None, verbose=0, quiet=False, log_file=None)
-2025-04-07 14:56:54,585 - pcUtils.app_manager - DEBUG - Initialisation du gestionnaire d'application
-2025-04-07 14:56:54,585 - pcUtils.app_manager - INFO - Démarrage en mode normal (interface complète)
-2025-04-07 14:56:54,687 - pcUtils.choice_screen - DEBUG - Initialisation de l'application Choice
-2025-04-07 14:56:54,688 - pcUtils.sequence_handler - DEBUG - Initialisation du gestionnaire de séquences: sequences
-2025-04-07 14:56:54,688 - template_handler - DEBUG - Initialisation du gestionnaire de templates
-2025-04-07 14:56:54,688 - asyncio - DEBUG - Using selector: EpollSelector
-2025-04-07 14:56:54,714 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: home_copy
-2025-04-07 14:56:54,715 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: home_copy
-2025-04-07 14:56:54,715 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: home_copy
-2025-04-07 14:56:54,715 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/home_copy_test
-2025-04-07 14:56:54,715 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/home_copy
-2025-04-07 14:56:54,715 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: home_copy
-2025-04-07 14:56:54,715 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/home_copy/settings.yml
-2025-04-07 14:56:54,756 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour home_copy
-2025-04-07 14:56:54,756 - template_handler - DEBUG - Aucun dossier de templates trouvé pour home_copy
-2025-04-07 14:56:54,756 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: home_copy, templates: 0
-2025-04-07 14:56:54,757 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: add_printer
-2025-04-07 14:56:54,757 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
-2025-04-07 14:56:54,757 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
-2025-04-07 14:56:54,757 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
-2025-04-07 14:56:54,757 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
-2025-04-07 14:56:54,757 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
-2025-04-07 14:56:54,757 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/add_printer/settings.yml
-2025-04-07 14:56:54,773 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour add_printer
-2025-04-07 14:56:54,773 - template_handler - DEBUG - Aucun dossier de templates trouvé pour add_printer
-2025-04-07 14:56:54,774 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: add_printer, templates: 0
-2025-04-07 14:56:54,774 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: scan_plugin
-2025-04-07 14:56:54,774 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: scan_plugin
-2025-04-07 14:56:54,774 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: scan_plugin
-2025-04-07 14:56:54,774 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin_test
-2025-04-07 14:56:54,774 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin
-2025-04-07 14:56:54,774 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: scan_plugin
-2025-04-07 14:56:54,774 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/scan_plugin/settings.yml
-2025-04-07 14:56:54,789 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour scan_plugin
-2025-04-07 14:56:54,790 - template_handler - DEBUG - Aucun dossier de templates trouvé pour scan_plugin
-2025-04-07 14:56:54,790 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: scan_plugin, templates: 0
-2025-04-07 14:56:54,790 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: delete_printer
-2025-04-07 14:56:54,790 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: delete_printer
-2025-04-07 14:56:54,790 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: delete_printer
-2025-04-07 14:56:54,790 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer_test
-2025-04-07 14:56:54,790 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer
-2025-04-07 14:56:54,790 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: delete_printer
-2025-04-07 14:56:54,790 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/delete_printer/settings.yml
-2025-04-07 14:56:54,801 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour delete_printer
-2025-04-07 14:56:54,801 - template_handler - DEBUG - Aucun dossier de templates trouvé pour delete_printer
-2025-04-07 14:56:54,801 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: delete_printer, templates: 0
-2025-04-07 14:56:54,802 - pcUtils.choice_screen - INFO - Plugins valides trouvés: 4
-2025-04-07 14:56:54,812 - pcUtils.choice_screen - INFO - Séquences disponibles: 1
-2025-04-07 14:56:54,813 - pcUtils.choice_screen - DEBUG - Séquence ajoutée: Séquence remplacement imprimante(s) (imp_remp.yml)
-2025-04-07 14:56:54,813 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: add_printer
-2025-04-07 14:56:54,813 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
-2025-04-07 14:56:54,813 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
-2025-04-07 14:56:54,813 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
-2025-04-07 14:56:54,813 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
-2025-04-07 14:56:54,813 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
-2025-04-07 14:56:54,813 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/add_printer/settings.yml
-2025-04-07 14:56:54,831 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour add_printer
-2025-04-07 14:56:54,831 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: scan_plugin
-2025-04-07 14:56:54,831 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: scan_plugin
-2025-04-07 14:56:54,831 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: scan_plugin
-2025-04-07 14:56:54,832 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin_test
-2025-04-07 14:56:54,832 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin
-2025-04-07 14:56:54,832 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: scan_plugin
-2025-04-07 14:56:54,832 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/scan_plugin/settings.yml
-2025-04-07 14:56:54,851 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour scan_plugin
-2025-04-07 14:56:54,852 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: home_copy
-2025-04-07 14:56:54,852 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: home_copy
-2025-04-07 14:56:54,852 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: home_copy
-2025-04-07 14:56:54,852 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/home_copy_test
-2025-04-07 14:56:54,852 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/home_copy
-2025-04-07 14:56:54,852 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: home_copy
-2025-04-07 14:56:54,852 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/home_copy/settings.yml
-2025-04-07 14:56:54,885 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour home_copy
-2025-04-07 14:56:54,885 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: delete_printer
-2025-04-07 14:56:54,885 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: delete_printer
-2025-04-07 14:56:54,885 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: delete_printer
-2025-04-07 14:56:54,885 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer_test
-2025-04-07 14:56:54,885 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer
-2025-04-07 14:56:54,886 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: delete_printer
-2025-04-07 14:56:54,886 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/delete_printer/settings.yml
-2025-04-07 14:56:54,897 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour delete_printer
-2025-04-07 14:56:54,897 - pcUtils.sequence_handler - DEBUG - Initialisation du gestionnaire de séquences: sequences
-2025-04-07 14:56:54,906 - pcUtils.sequence_handler - INFO - Séquence chargée et mise en cache: Séquence remplacement imprimante(s)
-2025-04-07 14:56:54,907 - pcUtils.sequence_handler - DEBUG - Initialisation du gestionnaire de séquences: sequences
-2025-04-07 15:59:13,081 - asyncio - ERROR - Unclosed client session
-client_session: <aiohttp.client.ClientSession object at 0x7422ec5e29e0>
+2025-04-08 16:48:13,130 - pcUtils.main - DEBUG - Répertoire de base de l'application: /media/nico/Drive/pcUtils_internet
+2025-04-08 16:48:13,130 - pcUtils.main - DEBUG - Ajout de /media/nico/Drive/pcUtils_internet au sys.path
+2025-04-08 16:48:13,132 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/psutils-3.3.9-py3-none-any au sys.path
+2025-04-08 16:48:13,132 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/cryptography-44.0.2-cp39-abi3-manylinux_2_34_x86_64 au sys.path
+2025-04-08 16:48:13,132 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/idna-3.10-py3-none-any au sys.path
+2025-04-08 16:48:13,132 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/urllib3-2.3.0-py3-none-any au sys.path
+2025-04-08 16:48:13,132 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/pygments-2.19.1-py3-none-any au sys.path
+2025-04-08 16:48:13,132 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/puremagic-1.28-py3-none-any au sys.path
+2025-04-08 16:48:13,132 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64 au sys.path
+2025-04-08 16:48:13,132 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/mdurl-0.1.2-py3-none-any au sys.path
+2025-04-08 16:48:13,132 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/uc_micro_py-1.0.3-py3-none-any au sys.path
+2025-04-08 16:48:13,132 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/paramiko-3.5.1-py3-none-any au sys.path
+2025-04-08 16:48:13,132 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/textual-3.0.1-py3-none-any au sys.path
+2025-04-08 16:48:13,133 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/pyudev-0.24.3-py3-none-any au sys.path
+2025-04-08 16:48:13,133 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/PyNaCl-1.5.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64 au sys.path
+2025-04-08 16:48:13,133 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/linkify_it_py-2.0.3-py3-none-any au sys.path
+2025-04-08 16:48:13,133 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/dnspython-2.7.0-py3-none-any au sys.path
+2025-04-08 16:48:13,133 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/mdit_py_plugins-0.4.2-py3-none-any au sys.path
+2025-04-08 16:48:13,133 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/rich-14.0.0-py3-none-any au sys.path
+2025-04-08 16:48:13,133 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/pyOpenSSL-25.0.0-py3-none-any au sys.path
+2025-04-08 16:48:13,133 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/pycparser-2.22-py3-none-any au sys.path
+2025-04-08 16:48:13,133 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/cffi-1.17.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64 au sys.path
+2025-04-08 16:48:13,133 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/certifi-2025.1.31-py3-none-any au sys.path
+2025-04-08 16:48:13,133 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/platformdirs-4.3.7-py3-none-any au sys.path
+2025-04-08 16:48:13,133 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/ruamel.yaml-0.18.10-py3-none-any au sys.path
+2025-04-08 16:48:13,133 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/typing_extensions-4.13.1-py3-none-any au sys.path
+2025-04-08 16:48:13,134 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/requests-2.32.3-py3-none-any au sys.path
+2025-04-08 16:48:13,134 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/pypdf-5.4.0-py3-none-any au sys.path
+2025-04-08 16:48:13,134 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/bcrypt-4.3.0-cp39-abi3-manylinux_2_34_x86_64 au sys.path
+2025-04-08 16:48:13,134 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/charset_normalizer-3.4.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64 au sys.path
+2025-04-08 16:48:13,134 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/markdown_it_py-3.0.0-py3-none-any au sys.path
+2025-04-08 16:48:13,134 - pcUtils.main - DEBUG - sys.path complet: ['/media/nico/Drive/pcUtils_internet/libs/markdown_it_py-3.0.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/charset_normalizer-3.4.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/bcrypt-4.3.0-cp39-abi3-manylinux_2_34_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pypdf-5.4.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/requests-2.32.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/typing_extensions-4.13.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/ruamel.yaml-0.18.10-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/platformdirs-4.3.7-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/certifi-2025.1.31-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/cffi-1.17.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pycparser-2.22-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/pyOpenSSL-25.0.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/rich-14.0.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/mdit_py_plugins-0.4.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/dnspython-2.7.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/linkify_it_py-2.0.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/PyNaCl-1.5.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pyudev-0.24.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/textual-3.0.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/paramiko-3.5.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/uc_micro_py-1.0.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/mdurl-0.1.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/puremagic-1.28-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/pygments-2.19.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/urllib3-2.3.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/idna-3.10-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/cryptography-44.0.2-cp39-abi3-manylinux_2_34_x86_64', '/media/nico/Drive/pcUtils_internet/libs/psutils-3.3.9-py3-none-any', '/media/nico/Drive/pcUtils_internet', '', '/usr/lib/python310.zip', '/usr/lib/python3.10', '/usr/lib/python3.10/lib-dynload', '/home/nico/.local/lib/python3.10/site-packages', '/usr/local/lib/python3.10/dist-packages', '/usr/lib/python3/dist-packages']
+2025-04-08 16:48:13,154 - pcUtils.main - DEBUG - ruamel.yaml importé avec succès depuis /media/nico/Drive/pcUtils_internet/libs/ruamel.yaml-0.18.10-py3-none-any/ruamel/yaml/__init__.py
+2025-04-08 16:48:13,594 - pcUtils.argument_parser - DEBUG - Arguments de ligne de commande: Namespace(auto=False, sequence=None, shortcut=None, plugin=None, config=None, params=None, verbose=0, quiet=False, log_file=None)
+2025-04-08 16:48:13,594 - pcUtils.app_manager - DEBUG - Initialisation du gestionnaire d'application
+2025-04-08 16:48:13,594 - pcUtils.app_manager - INFO - Démarrage en mode normal (interface complète)
+2025-04-08 16:48:13,606 - pcUtils.choice_screen - DEBUG - Initialisation de l'application Choice
+2025-04-08 16:48:13,606 - pcUtils.sequence_handler - DEBUG - Initialisation du gestionnaire de séquences: sequences
+2025-04-08 16:48:13,607 - template_handler - DEBUG - Initialisation du gestionnaire de templates
+2025-04-08 16:48:13,607 - asyncio - DEBUG - Using selector: EpollSelector
+2025-04-08 16:48:13,652 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: home_copy
+2025-04-08 16:48:13,652 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: home_copy
+2025-04-08 16:48:13,652 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: home_copy
+2025-04-08 16:48:13,652 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/home_copy_test
+2025-04-08 16:48:13,652 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/home_copy
+2025-04-08 16:48:13,652 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: home_copy
+2025-04-08 16:48:13,652 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/home_copy/settings.yml
+2025-04-08 16:48:13,723 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour home_copy
+2025-04-08 16:48:13,723 - template_handler - DEBUG - Aucun dossier de templates trouvé pour home_copy
+2025-04-08 16:48:13,724 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: home_copy, templates: 0
+2025-04-08 16:48:13,724 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: add_printer
+2025-04-08 16:48:13,724 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-08 16:48:13,724 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-08 16:48:13,724 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-08 16:48:13,724 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-08 16:48:13,724 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-08 16:48:13,724 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/add_printer/settings.yml
+2025-04-08 16:48:13,755 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour add_printer
+2025-04-08 16:48:13,755 - template_handler - DEBUG - Aucun dossier de templates trouvé pour add_printer
+2025-04-08 16:48:13,755 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: add_printer, templates: 0
+2025-04-08 16:48:13,756 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: scan_plugin
+2025-04-08 16:48:13,756 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: scan_plugin
+2025-04-08 16:48:13,756 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: scan_plugin
+2025-04-08 16:48:13,756 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin_test
+2025-04-08 16:48:13,756 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin
+2025-04-08 16:48:13,756 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: scan_plugin
+2025-04-08 16:48:13,756 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/scan_plugin/settings.yml
+2025-04-08 16:48:13,783 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour scan_plugin
+2025-04-08 16:48:13,783 - template_handler - DEBUG - Aucun dossier de templates trouvé pour scan_plugin
+2025-04-08 16:48:13,784 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: scan_plugin, templates: 0
+2025-04-08 16:48:13,784 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: delete_printer
+2025-04-08 16:48:13,784 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: delete_printer
+2025-04-08 16:48:13,784 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: delete_printer
+2025-04-08 16:48:13,784 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer_test
+2025-04-08 16:48:13,784 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer
+2025-04-08 16:48:13,784 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: delete_printer
+2025-04-08 16:48:13,784 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/delete_printer/settings.yml
+2025-04-08 16:48:13,802 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour delete_printer
+2025-04-08 16:48:13,803 - template_handler - DEBUG - Aucun dossier de templates trouvé pour delete_printer
+2025-04-08 16:48:13,803 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: delete_printer, templates: 0
+2025-04-08 16:48:13,803 - pcUtils.choice_screen - INFO - Plugins valides trouvés: 4
+2025-04-08 16:48:13,820 - pcUtils.sequence_handler - DEBUG - Cache des séquences rafraîchi: 1 séquences trouvées
+2025-04-08 16:48:13,820 - pcUtils.choice_screen - INFO - Séquences disponibles: 1
+2025-04-08 16:48:13,821 - pcUtils.choice_screen - DEBUG - Séquence ajoutée: Séquence remplacement imprimante(s) (imp_remp.yml)
+2025-04-08 16:48:13,821 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: add_printer
+2025-04-08 16:48:13,821 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-08 16:48:13,821 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-08 16:48:13,821 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-08 16:48:13,821 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-08 16:48:13,821 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-08 16:48:13,821 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/add_printer/settings.yml
+2025-04-08 16:48:13,849 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour add_printer
+2025-04-08 16:48:13,849 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: scan_plugin
+2025-04-08 16:48:13,850 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: scan_plugin
+2025-04-08 16:48:13,850 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: scan_plugin
+2025-04-08 16:48:13,850 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin_test
+2025-04-08 16:48:13,850 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_plugin
+2025-04-08 16:48:13,850 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: scan_plugin
+2025-04-08 16:48:13,850 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/scan_plugin/settings.yml
+2025-04-08 16:48:13,875 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour scan_plugin
+2025-04-08 16:48:13,875 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: home_copy
+2025-04-08 16:48:13,876 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: home_copy
+2025-04-08 16:48:13,876 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: home_copy
+2025-04-08 16:48:13,876 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/home_copy_test
+2025-04-08 16:48:13,876 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/home_copy
+2025-04-08 16:48:13,876 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: home_copy
+2025-04-08 16:48:13,876 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/home_copy/settings.yml
+2025-04-08 16:48:13,923 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour home_copy
+2025-04-08 16:48:13,923 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: delete_printer
+2025-04-08 16:48:13,923 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: delete_printer
+2025-04-08 16:48:13,923 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: delete_printer
+2025-04-08 16:48:13,923 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer_test
+2025-04-08 16:48:13,924 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer
+2025-04-08 16:48:13,924 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: delete_printer
+2025-04-08 16:48:13,924 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/delete_printer/settings.yml
+2025-04-08 16:48:13,943 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour delete_printer
+2025-04-08 16:48:13,943 - pcUtils.sequence_handler - DEBUG - Initialisation du gestionnaire de séquences: sequences
+2025-04-08 16:48:13,958 - pcUtils.sequence_handler - INFO - Séquence chargée et mise en cache: Séquence remplacement imprimante(s)
+2025-04-08 16:48:13,959 - pcUtils.sequence_handler - DEBUG - Initialisation du gestionnaire de séquences: sequences
+2025-04-08 16:48:24,360 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: add_printer
+2025-04-08 16:48:24,360 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-08 16:48:24,360 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-08 16:48:24,360 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-08 16:48:24,361 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-08 16:48:24,361 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-08 16:48:24,361 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/add_printer/settings.yml
+2025-04-08 16:48:24,389 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour add_printer
+2025-04-08 16:48:24,394 - pcUtils.choice_screen - DEBUG - Changement sélection: add_printer -> True
+2025-04-08 16:48:24,394 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: add_printer
+2025-04-08 16:48:24,394 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-08 16:48:24,394 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-08 16:48:24,394 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-08 16:48:24,395 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-08 16:48:24,395 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-08 16:48:24,395 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/add_printer/settings.yml
+2025-04-08 16:48:24,422 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour add_printer
+2025-04-08 16:48:24,422 - pcUtils.choice_screen - DEBUG - Plugin ajouté: add_printer (ID: 1)
+2025-04-08 16:48:24,424 - pcUtils.plugin_list_item - DEBUG - Plugin avec config: add_printer
+2025-04-08 16:48:24,425 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: add_printer
+2025-04-08 16:48:24,425 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-08 16:48:24,425 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-08 16:48:24,425 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-08 16:48:24,425 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-08 16:48:24,425 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-08 16:48:24,425 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/add_printer/settings.yml
+2025-04-08 16:48:24,456 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour add_printer
+2025-04-08 16:48:24,456 - pcUtils.plugin_list_item - DEBUG - Info du plugin/séquence chargées pour add_printer
+2025-04-08 16:48:24,457 - pcUtils.selected_plugins_panel - DEBUG - Panneau mis à jour avec 1 plugins
+2025-04-08 16:48:24,457 - pcUtils.choice_screen - DEBUG - Affichage des plugins sélectionnés mis à jour
+2025-04-08 16:48:24,459 - pcUtils.plugin_list_item - DEBUG - Composition de l'élément add_printer (is_sequence: False)
+2025-04-08 16:48:26,858 - pcUtils.choice_screen - DEBUG - Changement sélection: __sequence__imp_remp.yml -> True
+2025-04-08 16:48:26,858 - pcUtils.sequence_handler - DEBUG - Utilisation de la version en cache pour imp_remp.yml
+2025-04-08 16:48:26,859 - pcUtils.choice_screen - INFO - Séquence ajoutée: __sequence__imp_remp.yml
+2025-04-08 16:48:26,859 - pcUtils.choice_screen - DEBUG - Plugin ajouté depuis la séquence: delete_printer (ID: 2, Config: {'printer_ip': '192.168.1.223', 'printer_all': False})
+2025-04-08 16:48:26,859 - pcUtils.choice_screen - DEBUG - Plugin ajouté depuis la séquence: add_printer (ID: 3, Config: {'printer_ip': '192.168.1.222', 'printer_model': 'EC4200', 'printer_name': 'Premiere', 'printer_a3': False})
+2025-04-08 16:48:26,860 - pcUtils.choice_screen - DEBUG - Plugin ajouté depuis la séquence: add_printer (ID: 4, Config: {'printer_ip': '192.168.1.221', 'printer_model': 'KM227', 'printer_name': 'Autre', 'printer_a3': False})
+2025-04-08 16:48:26,863 - pcUtils.selected_plugins_panel - DEBUG - Séquence détectée: __sequence__imp_remp.yml, ID: 1, index: 1
+2025-04-08 16:48:26,881 - pcUtils.sequence_handler - INFO - Séquence chargée et mise en cache: Séquence remplacement imprimante(s)
+2025-04-08 16:48:26,881 - pcUtils.selected_plugins_panel - DEBUG - Plugin delete_printer (index 2) identifié comme membre de la séquence 1
+2025-04-08 16:48:26,881 - pcUtils.selected_plugins_panel - DEBUG - Plugin add_printer (index 3) identifié comme membre de la séquence 1
+2025-04-08 16:48:26,881 - pcUtils.selected_plugins_panel - DEBUG - Plugin add_printer (index 4) identifié comme membre de la séquence 1
+2025-04-08 16:48:26,882 - pcUtils.plugin_list_item - DEBUG - Plugin avec config: add_printer
+2025-04-08 16:48:26,882 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: add_printer
+2025-04-08 16:48:26,882 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-08 16:48:26,882 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-08 16:48:26,882 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-08 16:48:26,882 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-08 16:48:26,882 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-08 16:48:26,882 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/add_printer/settings.yml
+2025-04-08 16:48:26,913 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour add_printer
+2025-04-08 16:48:26,913 - pcUtils.plugin_list_item - DEBUG - Info du plugin/séquence chargées pour add_printer
+2025-04-08 16:48:26,913 - pcUtils.plugin_list_item - DEBUG - Plugin sans config: __sequence__imp_remp.yml
+2025-04-08 16:48:26,913 - pcUtils.plugin_list_item - DEBUG - Chargement de la séquence: imp_remp.yml
+2025-04-08 16:48:26,928 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: __sequence__imp_remp.yml
+2025-04-08 16:48:26,928 - pcUtils.plugin_utils - DEBUG - Plugin __sequence__imp_remp.yml est une séquence, utilisation des infos par défaut
+2025-04-08 16:48:26,929 - pcUtils.plugin_list_item - DEBUG - Info du plugin/séquence chargées pour __sequence__imp_remp.yml
+2025-04-08 16:48:26,929 - pcUtils.plugin_list_item - DEBUG - Plugin avec config: delete_printer
+2025-04-08 16:48:26,929 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: delete_printer
+2025-04-08 16:48:26,929 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: delete_printer
+2025-04-08 16:48:26,929 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: delete_printer
+2025-04-08 16:48:26,929 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer_test
+2025-04-08 16:48:26,929 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer
+2025-04-08 16:48:26,929 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: delete_printer
+2025-04-08 16:48:26,929 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/delete_printer/settings.yml
+2025-04-08 16:48:26,950 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour delete_printer
+2025-04-08 16:48:26,950 - pcUtils.plugin_list_item - DEBUG - Info du plugin/séquence chargées pour delete_printer
+2025-04-08 16:48:26,951 - pcUtils.plugin_list_item - DEBUG - Plugin avec config: add_printer
+2025-04-08 16:48:26,951 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: add_printer
+2025-04-08 16:48:26,951 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-08 16:48:26,951 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-08 16:48:26,951 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-08 16:48:26,951 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-08 16:48:26,951 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-08 16:48:26,951 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/add_printer/settings.yml
+2025-04-08 16:48:26,979 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour add_printer
+2025-04-08 16:48:26,979 - pcUtils.plugin_list_item - DEBUG - Info du plugin/séquence chargées pour add_printer
+2025-04-08 16:48:26,979 - pcUtils.plugin_list_item - DEBUG - Plugin avec config: add_printer
+2025-04-08 16:48:26,979 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: add_printer
+2025-04-08 16:48:26,979 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-08 16:48:26,980 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-08 16:48:26,980 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-08 16:48:26,980 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-08 16:48:26,980 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-08 16:48:26,980 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/add_printer/settings.yml
+2025-04-08 16:48:27,007 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour add_printer
+2025-04-08 16:48:27,008 - pcUtils.plugin_list_item - DEBUG - Info du plugin/séquence chargées pour add_printer
+2025-04-08 16:48:27,008 - pcUtils.plugin_list_item - DEBUG - Attributs de séquence mis à jour pour delete_printer (sequence: Séquence remplacement imprimante(s))
+2025-04-08 16:48:27,008 - pcUtils.plugin_list_item - DEBUG - Attributs de séquence mis à jour pour add_printer (sequence: Séquence remplacement imprimante(s))
+2025-04-08 16:48:27,008 - pcUtils.plugin_list_item - DEBUG - Attributs de séquence mis à jour pour add_printer (sequence: Séquence remplacement imprimante(s))
+2025-04-08 16:48:27,012 - pcUtils.selected_plugins_panel - DEBUG - Panneau mis à jour avec 5 plugins
+2025-04-08 16:48:27,012 - pcUtils.choice_screen - DEBUG - Affichage des plugins sélectionnés mis à jour
+2025-04-08 16:48:27,012 - pcUtils.choice_screen - INFO - Séquence chargée: 3 plugins
+2025-04-08 16:48:27,014 - pcUtils.plugin_list_item - DEBUG - Composition de l'élément add_printer (is_sequence: False)
+2025-04-08 16:48:27,017 - pcUtils.plugin_list_item - DEBUG - Composition de l'élément __sequence__imp_remp.yml (is_sequence: True)
+2025-04-08 16:48:27,021 - pcUtils.plugin_list_item - DEBUG - Composition de l'élément delete_printer (is_sequence: False)
+2025-04-08 16:48:27,025 - pcUtils.plugin_list_item - DEBUG - Composition de l'élément add_printer (is_sequence: False)
+2025-04-08 16:48:27,028 - pcUtils.plugin_list_item - DEBUG - Composition de l'élément add_printer (is_sequence: False)
+2025-04-08 16:48:29,261 - pcUtils.choice_screen - DEBUG - Bouton cliqué: configure_selected
+2025-04-08 16:48:29,261 - pcUtils.choice_screen - DEBUG - Début de la configuration des plugins sélectionnés
+2025-04-08 16:48:29,262 - pcUtils.config_screen - DEBUG - === Début Initialisation de PluginConfig ===
+2025-04-08 16:48:29,263 - pcUtils.sequence_config_manager - DEBUG - Gestionnaire de configuration des séquences initialisé
+2025-04-08 16:48:29,263 - pcUtils.config_screen - DEBUG - Création ConfigManager
+2025-04-08 16:48:29,263 - pcUtils.config_manager - DEBUG - ConfigManager initialisé
+2025-04-08 16:48:29,264 - pcUtils.config_screen - DEBUG - Chargement config SSH depuis: /media/nico/Drive/pcUtils_internet/ui/ssh_manager/ssh_fields.yml
+2025-04-08 16:48:29,316 - pcUtils.config_manager - DEBUG - Configuration globale 'ssh' chargée: 5 clés
+2025-04-08 16:48:29,316 - pcUtils.config_screen - DEBUG - Chargement config pour plugin: add_printer
+2025-04-08 16:48:29,316 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-08 16:48:29,317 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-08 16:48:29,317 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-08 16:48:29,317 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-08 16:48:29,317 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-08 16:48:29,317 - pcUtils.config_screen - DEBUG - Chargement config plugin depuis: /media/nico/Drive/pcUtils_internet/plugins/add_printer/settings.yml
+2025-04-08 16:48:29,346 - pcUtils.config_manager - DEBUG - Configuration plugin 'add_printer' chargée: 12 clés
+2025-04-08 16:56:10,075 - pcUtils.config_screen - DEBUG - Chargement config pour plugin: __sequence__imp_remp.yml
+2025-04-08 16:56:10,075 - pcUtils.config_screen - DEBUG - Chargement config pour plugin: delete_printer
+2025-04-08 16:56:10,076 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: delete_printer
+2025-04-08 16:56:10,076 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: delete_printer
+2025-04-08 16:56:10,076 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer_test
+2025-04-08 16:56:10,076 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer
+2025-04-08 16:56:10,076 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: delete_printer
+2025-04-08 16:56:10,076 - pcUtils.config_screen - DEBUG - Chargement config plugin depuis: /media/nico/Drive/pcUtils_internet/plugins/delete_printer/settings.yml
+2025-04-08 16:56:10,101 - pcUtils.config_manager - DEBUG - Configuration plugin 'delete_printer' chargée: 9 clés
+2025-04-08 16:56:13,421 - pcUtils.config_screen - DEBUG - Chargement config pour plugin: add_printer
+2025-04-08 16:56:13,421 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-08 16:56:13,422 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-08 16:56:13,422 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-08 16:56:13,422 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-08 16:56:13,422 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-08 16:56:13,423 - pcUtils.config_screen - DEBUG - Chargement config plugin depuis: /media/nico/Drive/pcUtils_internet/plugins/add_printer/settings.yml
+2025-04-08 16:56:13,423 - pcUtils.config_manager - DEBUG - Configuration plugin 'add_printer' récupérée du cache
+2025-04-08 16:56:15,741 - pcUtils.config_screen - DEBUG - Chargement config pour plugin: add_printer
+2025-04-08 16:56:17,669 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-08 16:56:17,670 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-08 16:56:17,671 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-08 16:56:17,672 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-08 16:56:17,672 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-08 16:56:17,673 - pcUtils.config_screen - DEBUG - Chargement config plugin depuis: /media/nico/Drive/pcUtils_internet/plugins/add_printer/settings.yml
+2025-04-08 16:56:17,674 - pcUtils.config_manager - DEBUG - Configuration plugin 'add_printer' récupérée du cache
+2025-04-08 16:56:22,393 - pcUtils.sequence_config_manager - DEBUG - Configuration ajoutée manuellement pour delete_printer (ID: 2) avec 2 paramètres
+2025-04-08 16:56:22,393 - pcUtils.config_screen - DEBUG - Config existante ajoutée pour delete_printer_2
+2025-04-08 16:56:22,393 - pcUtils.sequence_config_manager - DEBUG - Configuration ajoutée manuellement pour add_printer (ID: 3) avec 4 paramètres
+2025-04-08 16:56:22,393 - pcUtils.config_screen - DEBUG - Config existante ajoutée pour add_printer_3
+2025-04-08 16:56:22,394 - pcUtils.sequence_config_manager - DEBUG - Configuration ajoutée manuellement pour add_printer (ID: 4) avec 4 paramètres
+2025-04-08 16:56:22,394 - pcUtils.config_screen - DEBUG - Config existante ajoutée pour add_printer_4
+2025-04-08 16:56:22,394 - pcUtils.sequence_config_manager - DEBUG - === DÉBUT FUSION DES CONFIGURATIONS ===
+2025-04-08 16:56:22,394 - pcUtils.sequence_config_manager - DEBUG - Plugins à configurer: 5
+2025-04-08 16:56:22,394 - pcUtils.sequence_config_manager - DEBUG - Traitement du plugin add_printer_1 (instance 1 de add_printer)
+2025-04-08 16:56:22,395 - pcUtils.sequence_config_manager - DEBUG - Configuration finale pour add_printer_1: 0 paramètres
+2025-04-08 16:56:22,395 - pcUtils.sequence_config_manager - DEBUG - Plugin spécial ignoré: __sequence__imp_remp.yml
+2025-04-08 16:56:22,395 - pcUtils.sequence_config_manager - DEBUG - Traitement du plugin delete_printer_2 (instance 1 de delete_printer)
+2025-04-08 16:56:22,395 - pcUtils.sequence_config_manager - DEBUG - Configuration par défaut appliquée: 2 paramètres
+2025-04-08 16:56:22,395 - pcUtils.sequence_config_manager - DEBUG - Configuration spécifique appliquée (priorité maximale)
+2025-04-08 16:56:22,395 - pcUtils.sequence_config_manager - DEBUG - Configuration finale pour delete_printer_2: 2 paramètres
+2025-04-08 16:56:22,396 - pcUtils.sequence_config_manager - DEBUG - Traitement du plugin add_printer_3 (instance 2 de add_printer)
+2025-04-08 16:56:22,396 - pcUtils.sequence_config_manager - DEBUG - Configuration par défaut appliquée: 4 paramètres
+2025-04-08 16:56:22,396 - pcUtils.sequence_config_manager - DEBUG - Configuration spécifique appliquée (priorité maximale)
+2025-04-08 16:56:22,396 - pcUtils.sequence_config_manager - DEBUG - Configuration finale pour add_printer_3: 4 paramètres
+2025-04-08 16:56:22,396 - pcUtils.sequence_config_manager - DEBUG - Traitement du plugin add_printer_4 (instance 3 de add_printer)
+2025-04-08 16:56:22,396 - pcUtils.sequence_config_manager - DEBUG - Configuration par défaut appliquée: 4 paramètres
+2025-04-08 16:56:22,396 - pcUtils.sequence_config_manager - DEBUG - Configuration spécifique appliquée (priorité maximale)
+2025-04-08 16:56:22,397 - pcUtils.sequence_config_manager - DEBUG - Configuration finale pour add_printer_4: 4 paramètres
+2025-04-08 16:56:22,397 - pcUtils.sequence_config_manager - DEBUG - === CONFIGURATIONS FINALES: 4 plugins configurés ===
+2025-04-08 16:56:22,397 - pcUtils.config_screen - DEBUG - Configurations finales après fusion: {'add_printer_1': {'plugin_name': 'add_printer', 'instance_id': 1, 'name': 'add_printer', 'config': {}}, 'delete_printer_2': {'plugin_name': 'delete_printer', 'instance_id': 2, 'name': 'delete_printer', 'config': {'printer_ip': '192.168.1.223', 'printer_all': False}}, 'add_printer_3': {'plugin_name': 'add_printer', 'instance_id': 3, 'name': 'add_printer', 'config': {'printer_ip': '192.168.1.222', 'printer_model': 'EC4200', 'printer_name': 'Premiere', 'printer_a3': False}}, 'add_printer_4': {'plugin_name': 'add_printer', 'instance_id': 4, 'name': 'add_printer', 'config': {'printer_ip': '192.168.1.221', 'printer_model': 'KM227', 'printer_name': 'Autre', 'printer_a3': False}}}
+2025-04-08 16:56:22,397 - pcUtils.config_screen - DEBUG - PluginConfig initialized successfully
+2025-04-08 16:56:22,519 - pcUtils.config_screen - DEBUG - PluginConfig.compose() started
+2025-04-08 16:56:22,519 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-08 16:56:22,519 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-08 16:56:22,519 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-08 16:56:22,520 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-08 16:56:22,520 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-08 16:56:22,547 - pcUtils.config_screen - DEBUG - Plugin avec support d'exécution distante trouvé: add_printer
+2025-04-08 16:56:22,547 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: delete_printer
+2025-04-08 16:56:22,548 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: delete_printer
+2025-04-08 16:56:22,548 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer_test
+2025-04-08 16:56:22,548 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer
+2025-04-08 16:56:22,548 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: delete_printer
+2025-04-08 16:56:22,567 - pcUtils.config_screen - DEBUG - Plugin avec support d'exécution distante trouvé: delete_printer
+2025-04-08 16:56:22,567 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-08 16:56:22,567 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-08 16:56:22,567 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-08 16:56:22,567 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-08 16:56:22,568 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-08 16:56:22,597 - pcUtils.config_screen - DEBUG - Plugin avec support d'exécution distante trouvé: add_printer
+2025-04-08 16:56:22,597 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-08 16:56:22,597 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-08 16:56:22,597 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-08 16:56:22,597 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-08 16:56:22,597 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-08 16:56:22,625 - pcUtils.config_screen - DEBUG - Plugin avec support d'exécution distante trouvé: add_printer
+2025-04-08 16:56:22,625 - pcUtils.config_screen - DEBUG - Has remote plugins: True
+2025-04-08 16:56:22,625 - pcUtils.config_screen - DEBUG - Creating config for plugin: add_printer_1
+2025-04-08 16:56:22,626 - plugin_config_container - DEBUG - Initialisation du conteneur de configuration pour add_printer
+2025-04-08 16:56:22,626 - template_manager - DEBUG - Répertoire des templates: /media/nico/Drive/pcUtils_internet/templates
+2025-04-08 16:56:22,627 - template_manager - DEBUG - Aucun schéma de validation trouvé, utilisation des validations par défaut
+2025-04-08 16:56:22,627 - template_manager - DEBUG - Gestionnaire de templates initialisé avec répertoire: /media/nico/Drive/pcUtils_internet/templates
+2025-04-08 16:56:22,627 - plugin_config_container - DEBUG - Gestionnaire de templates initialisé pour add_printer
+2025-04-08 16:56:22,627 - pcUtils.config_screen - DEBUG - Ajout de la case à cocher d'exécution distante pour add_printer_1
+2025-04-08 16:56:22,627 - pcUtils.config_field - DEBUG - Champ remote_exec_add_printer_1 initialisé avec valeur: False
+2025-04-08 16:56:22,628 - pcUtils.config_screen - DEBUG - Creating config for plugin: delete_printer_2
+2025-04-08 16:56:22,629 - pcUtils.config_screen - DEBUG - Valeur prédéfinie trouvée: delete_printer.printer_all = False
+2025-04-08 16:56:22,629 - pcUtils.config_screen - DEBUG - Valeur prédéfinie trouvée: delete_printer.printer_ip = 192.168.1.223
+2025-04-08 16:56:22,629 - plugin_config_container - DEBUG - Initialisation du conteneur de configuration pour delete_printer
+2025-04-08 16:56:22,629 - template_manager - DEBUG - Répertoire des templates: /media/nico/Drive/pcUtils_internet/templates
+2025-04-08 16:56:22,629 - template_manager - DEBUG - Aucun schéma de validation trouvé, utilisation des validations par défaut
+2025-04-08 16:56:22,629 - template_manager - DEBUG - Gestionnaire de templates initialisé avec répertoire: /media/nico/Drive/pcUtils_internet/templates
+2025-04-08 16:56:22,630 - plugin_config_container - DEBUG - Gestionnaire de templates initialisé pour delete_printer
+2025-04-08 16:56:22,630 - pcUtils.config_screen - DEBUG - Ajout de la case à cocher d'exécution distante pour delete_printer_2
+2025-04-08 16:56:22,630 - pcUtils.config_field - DEBUG - Champ remote_exec_delete_printer_2 initialisé avec valeur: False
+2025-04-08 16:56:22,631 - pcUtils.config_screen - DEBUG - Creating config for plugin: add_printer_3
+2025-04-08 16:56:22,631 - pcUtils.config_screen - DEBUG - Valeur prédéfinie trouvée: add_printer.printer_name = Premiere
+2025-04-08 16:56:22,631 - pcUtils.config_screen - DEBUG - Valeur prédéfinie trouvée: add_printer.printer_model = EC4200
+2025-04-08 16:56:22,631 - pcUtils.config_screen - DEBUG - Valeur prédéfinie trouvée: add_printer.printer_ip = 192.168.1.222
+2025-04-08 16:56:22,631 - pcUtils.config_screen - DEBUG - Valeur prédéfinie trouvée: add_printer.printer_a3 = False
+2025-04-08 16:56:22,632 - plugin_config_container - DEBUG - Initialisation du conteneur de configuration pour add_printer
+2025-04-08 16:56:22,632 - template_manager - DEBUG - Répertoire des templates: /media/nico/Drive/pcUtils_internet/templates
+2025-04-08 16:56:22,632 - template_manager - DEBUG - Aucun schéma de validation trouvé, utilisation des validations par défaut
+2025-04-08 16:56:22,632 - template_manager - DEBUG - Gestionnaire de templates initialisé avec répertoire: /media/nico/Drive/pcUtils_internet/templates
+2025-04-08 16:56:22,632 - plugin_config_container - DEBUG - Gestionnaire de templates initialisé pour add_printer
+2025-04-08 16:56:22,632 - pcUtils.config_screen - DEBUG - Ajout de la case à cocher d'exécution distante pour add_printer_3
+2025-04-08 16:56:22,633 - pcUtils.config_field - DEBUG - Champ remote_exec_add_printer_3 initialisé avec valeur: False
+2025-04-08 16:56:22,634 - pcUtils.config_screen - DEBUG - Creating config for plugin: add_printer_4
+2025-04-08 16:56:22,634 - pcUtils.config_screen - DEBUG - Valeur prédéfinie trouvée: add_printer.printer_name = Autre
+2025-04-08 16:56:22,634 - pcUtils.config_screen - DEBUG - Valeur prédéfinie trouvée: add_printer.printer_model = KM227
+2025-04-08 16:56:22,634 - pcUtils.config_screen - DEBUG - Valeur prédéfinie trouvée: add_printer.printer_ip = 192.168.1.221
+2025-04-08 16:56:22,634 - pcUtils.config_screen - DEBUG - Valeur prédéfinie trouvée: add_printer.printer_a3 = False
+2025-04-08 16:56:22,634 - plugin_config_container - DEBUG - Initialisation du conteneur de configuration pour add_printer
+2025-04-08 16:56:22,635 - template_manager - DEBUG - Répertoire des templates: /media/nico/Drive/pcUtils_internet/templates
+2025-04-08 16:56:22,635 - template_manager - DEBUG - Aucun schéma de validation trouvé, utilisation des validations par défaut
+2025-04-08 16:56:22,635 - template_manager - DEBUG - Gestionnaire de templates initialisé avec répertoire: /media/nico/Drive/pcUtils_internet/templates
+2025-04-08 16:56:22,635 - plugin_config_container - DEBUG - Gestionnaire de templates initialisé pour add_printer
+2025-04-08 16:56:22,635 - pcUtils.config_screen - DEBUG - Ajout de la case à cocher d'exécution distante pour add_printer_4
+2025-04-08 16:56:22,635 - pcUtils.config_field - DEBUG - Champ remote_exec_add_printer_4 initialisé avec valeur: False
+2025-04-08 16:56:22,636 - pcUtils.config_screen - DEBUG - Ajout du conteneur SSH (contenu ajouté dans on_mount)
+2025-04-08 16:56:22,640 - pcUtils.config_screen - DEBUG - PluginConfig.compose() completed
+2025-04-08 16:56:22,690 - plugin_config_container - DEBUG - Composition du conteneur pour add_printer
+2025-04-08 16:56:22,691 - template_manager - DEBUG - Aucun dossier de templates trouvé pour add_printer
+2025-04-08 16:56:22,691 - plugin_config_container - DEBUG - Aucun template trouvé pour add_printer
+2025-04-08 16:56:22,691 - plugin_config_container - DEBUG - Création du champ printer_name de type text
+2025-04-08 16:56:22,692 - pcUtils.text_field - DEBUG - 🔔 [1] set_value(BT) pour printer_name, update_input=True
+2025-04-08 16:56:22,692 - pcUtils.text_field - DEBUG - 💾 Valeur interne mise à jour pour printer_name: '' → 'BT'
+2025-04-08 16:56:22,692 - pcUtils.text_field - DEBUG - Widget input non créé pour printer_name, stockage de 'BT' en attente
+2025-04-08 16:56:22,692 - pcUtils.text_field - DEBUG - ✅ set_value réussi pour printer_name
+2025-04-08 16:56:22,692 - pcUtils.config_field - DEBUG - Champ printer_name initialisé avec valeur: BT
+2025-04-08 16:56:22,692 - plugin_config_container - DEBUG - Champ printer_name créé et ajouté aux dictionnaires
+2025-04-08 16:56:22,692 - plugin_config_container - DEBUG - Création du champ printer_model de type select
+2025-04-08 16:56:22,693 - pcUtils.select_field - DEBUG - 🔎 set_value(None) pour printer_model, update_input=True, update_dependencies=True
+2025-04-08 16:56:22,693 - pcUtils.config_field - DEBUG - Champ printer_model initialisé avec valeur: None
+2025-04-08 16:56:22,694 - plugin_config_container - DEBUG - Champ printer_model créé et ajouté aux dictionnaires
+2025-04-08 16:56:22,694 - plugin_config_container - DEBUG - Création du champ printer_ip de type ip
+2025-04-08 16:56:22,694 - pcUtils.config_field - DEBUG - Chargement de valeur dynamique pour printer_ip via script: get_ip.py
+2025-04-08 16:56:22,697 - pcUtils.config_field - DEBUG - Résultat obtenu du script: (True, {'ip': '192.168.1.220'})
+2025-04-08 16:56:22,697 - pcUtils.ip_field - DEBUG - 🔔 set_value(192.168.1.220) pour printer_ip, update_input=True
+2025-04-08 16:56:22,697 - pcUtils.ip_field - DEBUG - 💾 Valeur interne mise à jour pour printer_ip: '' → '192.168.1.220'
+2025-04-08 16:56:22,697 - pcUtils.ip_field - DEBUG - Widget input pas encore créé pour printer_ip, valeur en attente: '192.168.1.220'
+2025-04-08 16:56:22,698 - pcUtils.ip_field - DEBUG - ✅ set_value réussi pour printer_ip
+2025-04-08 16:56:22,698 - pcUtils.config_field - DEBUG - Champ printer_ip initialisé avec valeur: 192.168.1.220
+2025-04-08 16:56:22,698 - pcUtils.ip_field - DEBUG - Initialisation du champ IP printer_ip
+2025-04-08 16:56:22,698 - plugin_config_container - DEBUG - Champ printer_ip créé et ajouté aux dictionnaires
+2025-04-08 16:56:22,698 - plugin_config_container - DEBUG - Création du champ printer_a3 de type checkbox
+2025-04-08 16:56:22,698 - pcUtils.config_field - DEBUG - Champ printer_a3 initialisé avec valeur: None
+2025-04-08 16:56:22,699 - plugin_config_container - DEBUG - Champ printer_a3 créé et ajouté aux dictionnaires
+2025-04-08 16:56:22,699 - plugin_config_container - DEBUG - Gestionnaire d'événements ajouté pour printer_a3
+2025-04-08 16:56:22,699 - plugin_config_container - DEBUG - Ajout du champ d'exécution distante pour add_printer
+2025-04-08 16:56:22,701 - plugin_config_container - DEBUG - Composition du conteneur pour delete_printer
+2025-04-08 16:56:22,702 - template_manager - DEBUG - Aucun dossier de templates trouvé pour delete_printer
+2025-04-08 16:56:22,702 - plugin_config_container - DEBUG - Aucun template trouvé pour delete_printer
+2025-04-08 16:56:22,702 - plugin_config_container - DEBUG - Création du champ printer_all de type checkbox
+2025-04-08 16:56:22,703 - pcUtils.config_field - DEBUG - Champ printer_all initialisé avec valeur: False
+2025-04-08 16:56:22,703 - plugin_config_container - DEBUG - Champ printer_all créé et ajouté aux dictionnaires
+2025-04-08 16:56:22,703 - plugin_config_container - DEBUG - Gestionnaire d'événements ajouté pour printer_all
+2025-04-08 16:56:22,703 - plugin_config_container - DEBUG - Création du champ printer_ip de type ip
+2025-04-08 16:56:22,703 - pcUtils.config_field - DEBUG - Chargement de valeur dynamique pour printer_ip via script: get_ip.py
+2025-04-08 16:56:22,705 - pcUtils.config_field - DEBUG - Résultat obtenu du script: (True, {'ip': '192.168.1.220'})
+2025-04-08 16:56:22,705 - pcUtils.ip_field - DEBUG - 🔔 set_value(192.168.1.220) pour printer_ip, update_input=True
+2025-04-08 16:56:22,705 - pcUtils.ip_field - DEBUG - 💾 Valeur interne mise à jour pour printer_ip: '' → '192.168.1.220'
+2025-04-08 16:56:22,705 - pcUtils.ip_field - DEBUG - Widget input pas encore créé pour printer_ip, valeur en attente: '192.168.1.220'
+2025-04-08 16:56:22,706 - pcUtils.ip_field - DEBUG - ✅ set_value réussi pour printer_ip
+2025-04-08 16:56:22,706 - pcUtils.config_field - DEBUG - Champ printer_ip initialisé avec valeur: 192.168.1.220
+2025-04-08 16:56:22,706 - pcUtils.ip_field - DEBUG - Initialisation du champ IP printer_ip
+2025-04-08 16:56:22,706 - plugin_config_container - DEBUG - Champ printer_ip créé et ajouté aux dictionnaires
+2025-04-08 16:56:22,706 - plugin_config_container - DEBUG - Ajout du champ d'exécution distante pour delete_printer
+2025-04-08 16:56:22,708 - plugin_config_container - DEBUG - Composition du conteneur pour add_printer
+2025-04-08 16:56:22,709 - template_manager - DEBUG - Aucun dossier de templates trouvé pour add_printer
+2025-04-08 16:56:22,709 - plugin_config_container - DEBUG - Aucun template trouvé pour add_printer
+2025-04-08 16:56:22,709 - plugin_config_container - DEBUG - Création du champ printer_name de type text
+2025-04-08 16:56:22,709 - pcUtils.text_field - DEBUG - 🔔 [1] set_value(Premiere) pour printer_name, update_input=True
+2025-04-08 16:56:22,710 - pcUtils.text_field - DEBUG - 💾 Valeur interne mise à jour pour printer_name: '' → 'Premiere'
+2025-04-08 16:56:22,710 - pcUtils.text_field - DEBUG - Widget input non créé pour printer_name, stockage de 'Premiere' en attente
+2025-04-08 16:56:22,710 - pcUtils.text_field - DEBUG - ✅ set_value réussi pour printer_name
+2025-04-08 16:56:22,710 - pcUtils.config_field - DEBUG - Champ printer_name initialisé avec valeur: Premiere
+2025-04-08 16:56:22,710 - plugin_config_container - DEBUG - Champ printer_name créé et ajouté aux dictionnaires
+2025-04-08 16:56:22,710 - plugin_config_container - DEBUG - Création du champ printer_model de type select
+2025-04-08 16:56:22,710 - pcUtils.select_field - DEBUG - 🔎 set_value(EC4200) pour printer_model, update_input=True, update_dependencies=True
+2025-04-08 16:56:22,711 - pcUtils.config_field - DEBUG - Champ printer_model initialisé avec valeur: EC4200
+2025-04-08 16:56:22,712 - plugin_config_container - DEBUG - Champ printer_model créé et ajouté aux dictionnaires
+2025-04-08 16:56:22,712 - plugin_config_container - DEBUG - Création du champ printer_ip de type ip
+2025-04-08 16:56:22,712 - pcUtils.config_field - DEBUG - Chargement de valeur dynamique pour printer_ip via script: get_ip.py
+2025-04-08 16:56:22,714 - pcUtils.config_field - DEBUG - Résultat obtenu du script: (True, {'ip': '192.168.1.220'})
+2025-04-08 16:56:22,715 - pcUtils.ip_field - DEBUG - 🔔 set_value(192.168.1.220) pour printer_ip, update_input=True
+2025-04-08 16:56:22,715 - pcUtils.ip_field - DEBUG - 💾 Valeur interne mise à jour pour printer_ip: '' → '192.168.1.220'
+2025-04-08 16:56:22,715 - pcUtils.ip_field - DEBUG - Widget input pas encore créé pour printer_ip, valeur en attente: '192.168.1.220'
+2025-04-08 16:56:22,715 - pcUtils.ip_field - DEBUG - ✅ set_value réussi pour printer_ip
+2025-04-08 16:56:22,715 - pcUtils.config_field - DEBUG - Champ printer_ip initialisé avec valeur: 192.168.1.220
+2025-04-08 16:56:22,715 - pcUtils.ip_field - DEBUG - Initialisation du champ IP printer_ip
+2025-04-08 16:56:22,715 - plugin_config_container - DEBUG - Champ printer_ip créé et ajouté aux dictionnaires
+2025-04-08 16:56:22,715 - plugin_config_container - DEBUG - Création du champ printer_a3 de type checkbox
+2025-04-08 16:56:22,716 - pcUtils.config_field - DEBUG - Champ printer_a3 initialisé avec valeur: False
+2025-04-08 16:56:22,716 - plugin_config_container - DEBUG - Champ printer_a3 créé et ajouté aux dictionnaires
+2025-04-08 16:56:22,716 - plugin_config_container - DEBUG - Gestionnaire d'événements ajouté pour printer_a3
+2025-04-08 16:56:22,716 - plugin_config_container - DEBUG - Ajout du champ d'exécution distante pour add_printer
+2025-04-08 16:56:22,719 - plugin_config_container - DEBUG - Composition du conteneur pour add_printer
+2025-04-08 16:56:22,720 - template_manager - DEBUG - Aucun dossier de templates trouvé pour add_printer
+2025-04-08 16:56:22,720 - plugin_config_container - DEBUG - Aucun template trouvé pour add_printer
+2025-04-08 16:56:22,720 - plugin_config_container - DEBUG - Création du champ printer_name de type text
+2025-04-08 16:56:22,720 - pcUtils.text_field - DEBUG - 🔔 [1] set_value(Autre) pour printer_name, update_input=True
+2025-04-08 16:56:22,720 - pcUtils.text_field - DEBUG - 💾 Valeur interne mise à jour pour printer_name: '' → 'Autre'
+2025-04-08 16:56:22,720 - pcUtils.text_field - DEBUG - Widget input non créé pour printer_name, stockage de 'Autre' en attente
+2025-04-08 16:56:22,720 - pcUtils.text_field - DEBUG - ✅ set_value réussi pour printer_name
+2025-04-08 16:56:22,721 - pcUtils.config_field - DEBUG - Champ printer_name initialisé avec valeur: Autre
+2025-04-08 16:56:22,721 - plugin_config_container - DEBUG - Champ printer_name créé et ajouté aux dictionnaires
+2025-04-08 16:56:22,721 - plugin_config_container - DEBUG - Création du champ printer_model de type select
+2025-04-08 16:56:22,721 - pcUtils.select_field - DEBUG - 🔎 set_value(KM227) pour printer_model, update_input=True, update_dependencies=True
+2025-04-08 16:56:22,721 - pcUtils.config_field - DEBUG - Champ printer_model initialisé avec valeur: KM227
+2025-04-08 16:56:22,722 - plugin_config_container - DEBUG - Champ printer_model créé et ajouté aux dictionnaires
+2025-04-08 16:56:22,722 - plugin_config_container - DEBUG - Création du champ printer_ip de type ip
+2025-04-08 16:56:22,723 - pcUtils.config_field - DEBUG - Chargement de valeur dynamique pour printer_ip via script: get_ip.py
+2025-04-08 16:56:22,724 - pcUtils.config_field - DEBUG - Résultat obtenu du script: (True, {'ip': '192.168.1.220'})
+2025-04-08 16:56:22,724 - pcUtils.ip_field - DEBUG - 🔔 set_value(192.168.1.220) pour printer_ip, update_input=True
+2025-04-08 16:56:22,724 - pcUtils.ip_field - DEBUG - 💾 Valeur interne mise à jour pour printer_ip: '' → '192.168.1.220'
+2025-04-08 16:56:22,724 - pcUtils.ip_field - DEBUG - Widget input pas encore créé pour printer_ip, valeur en attente: '192.168.1.220'
+2025-04-08 16:56:22,724 - pcUtils.ip_field - DEBUG - ✅ set_value réussi pour printer_ip
+2025-04-08 16:56:22,724 - pcUtils.config_field - DEBUG - Champ printer_ip initialisé avec valeur: 192.168.1.220
+2025-04-08 16:56:22,725 - pcUtils.ip_field - DEBUG - Initialisation du champ IP printer_ip
+2025-04-08 16:56:22,725 - plugin_config_container - DEBUG - Champ printer_ip créé et ajouté aux dictionnaires
+2025-04-08 16:56:22,725 - plugin_config_container - DEBUG - Création du champ printer_a3 de type checkbox
+2025-04-08 16:56:22,725 - pcUtils.config_field - DEBUG - Champ printer_a3 initialisé avec valeur: False
+2025-04-08 16:56:22,725 - plugin_config_container - DEBUG - Champ printer_a3 créé et ajouté aux dictionnaires
+2025-04-08 16:56:22,725 - plugin_config_container - DEBUG - Gestionnaire d'événements ajouté pour printer_a3
+2025-04-08 16:56:22,725 - plugin_config_container - DEBUG - Ajout du champ d'exécution distante pour add_printer
+2025-04-08 16:56:22,772 - pcUtils.text_field - DEBUG - 💻 Création du widget input pour printer_name avec valeur: 'BT'
+2025-04-08 16:56:22,794 - pcUtils.select_field - INFO - Loading script from: /media/nico/Drive/pcUtils_internet/ui/config_screen/../../plugins/add_printer/get_printer_models.py
+2025-04-08 16:56:22,794 - pcUtils.select_field - DEBUG - Script exists: True
+2025-04-08 16:56:22,794 - pcUtils.select_field - DEBUG - Python path: ['/media/nico/Drive/pcUtils_internet', '/media/nico/Drive/pcUtils_internet', '/media/nico/Drive/pcUtils_internet', '/media/nico/Drive/pcUtils_internet', '/media/nico/Drive/pcUtils_internet/libs/markdown_it_py-3.0.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/charset_normalizer-3.4.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/bcrypt-4.3.0-cp39-abi3-manylinux_2_34_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pypdf-5.4.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/requests-2.32.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/typing_extensions-4.13.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/ruamel.yaml-0.18.10-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/platformdirs-4.3.7-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/certifi-2025.1.31-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/cffi-1.17.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pycparser-2.22-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/pyOpenSSL-25.0.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/rich-14.0.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/mdit_py_plugins-0.4.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/dnspython-2.7.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/linkify_it_py-2.0.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/PyNaCl-1.5.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pyudev-0.24.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/textual-3.0.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/paramiko-3.5.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/uc_micro_py-1.0.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/mdurl-0.1.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/puremagic-1.28-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/pygments-2.19.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/urllib3-2.3.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/idna-3.10-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/cryptography-44.0.2-cp39-abi3-manylinux_2_34_x86_64', '/media/nico/Drive/pcUtils_internet/libs/psutils-3.3.9-py3-none-any', '/media/nico/Drive/pcUtils_internet', '', '/usr/lib/python310.zip', '/usr/lib/python3.10', '/usr/lib/python3.10/lib-dynload', '/home/nico/.local/lib/python3.10/site-packages', '/usr/local/lib/python3.10/dist-packages', '/usr/lib/python3/dist-packages', '/media/nico/Drive/pcUtils_internet/ui/config_screen/../../scripts', '/media/nico/Drive/pcUtils_internet/ui/config_screen/../../plugins/add_printer']
+2025-04-08 16:56:22,795 - pcUtils.select_field - DEBUG - Using function: get_printer_models
+2025-04-08 16:56:22,795 - pcUtils.select_field - DEBUG - Calling get_printer_models with kwargs: {}
+2025-04-08 16:56:23,119 - pcUtils.select_field - INFO - Got result from get_printer_models: (True, {'models': [{'description': 'Imprimante Epson C4200 Couleurs', 'value': 'EC4200.yml'}, {'description': 'Photocopieur Konica Minolta 227', 'value': 'KM227.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs', 'value': 'KM227C.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs Agrafes', 'value': 'KM227CA.yml'}, {'description': 'Photocopieur Konica Minolta 250i Couleurs', 'value': 'KM250iC.yml'}, {'description': 'Photocopieur Konica Minolta 251i Couleurs', 'value': 'KM251iC.yml'}, {'description': 'Photocopieur Konica Minolta 287', 'value': 'KM287.yml'}, {'description': 'Photocopieur Konica Minolta 287 Couleurs', 'value': 'KM287C.yml'}, {'description': 'Photocopieur Konica Minolta 301i', 'value': 'KM301i.yml'}, {'description': 'Photocopieur Konica Minolta 301i Agrafes', 'value': 'KM301iA.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs', 'value': 'KM301iC.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs Agrafes', 'value': 'KM301iCA.yml'}, {'description': 'Photocopieur Konica Minolta 360i Couleurs', 'value': 'KM360iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i', 'value': 'KM361i.yml'}, {'description': 'Photocopieur Konica Minolta 361i Agrafes', 'value': 'KM361iA.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs', 'value': 'KM361iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs Agrafes', 'value': 'KM361iCA.yml'}, {'description': 'Photocopieur Konica Minolta 4051i', 'value': 'KM4051i.yml'}, {'description': 'Photocopieur Konica Minolta 4051i Couleurs', 'value': 'KM4051iC.yml'}, {'description': 'Photocopieur Konica Minolta C251i Agrafes', 'value': 'KM251iCA.yml'}]})
+2025-04-08 16:56:23,120 - pcUtils.select_field - INFO - Extracted data using dict_key 'models': [{'description': 'Imprimante Epson C4200 Couleurs', 'value': 'EC4200.yml'}, {'description': 'Photocopieur Konica Minolta 227', 'value': 'KM227.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs', 'value': 'KM227C.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs Agrafes', 'value': 'KM227CA.yml'}, {'description': 'Photocopieur Konica Minolta 250i Couleurs', 'value': 'KM250iC.yml'}, {'description': 'Photocopieur Konica Minolta 251i Couleurs', 'value': 'KM251iC.yml'}, {'description': 'Photocopieur Konica Minolta 287', 'value': 'KM287.yml'}, {'description': 'Photocopieur Konica Minolta 287 Couleurs', 'value': 'KM287C.yml'}, {'description': 'Photocopieur Konica Minolta 301i', 'value': 'KM301i.yml'}, {'description': 'Photocopieur Konica Minolta 301i Agrafes', 'value': 'KM301iA.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs', 'value': 'KM301iC.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs Agrafes', 'value': 'KM301iCA.yml'}, {'description': 'Photocopieur Konica Minolta 360i Couleurs', 'value': 'KM360iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i', 'value': 'KM361i.yml'}, {'description': 'Photocopieur Konica Minolta 361i Agrafes', 'value': 'KM361iA.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs', 'value': 'KM361iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs Agrafes', 'value': 'KM361iCA.yml'}, {'description': 'Photocopieur Konica Minolta 4051i', 'value': 'KM4051i.yml'}, {'description': 'Photocopieur Konica Minolta 4051i Couleurs', 'value': 'KM4051iC.yml'}, {'description': 'Photocopieur Konica Minolta C251i Agrafes', 'value': 'KM251iCA.yml'}]
+2025-04-08 16:56:23,120 - pcUtils.select_field - INFO - Processed data type: <class 'list'> for options
+2025-04-08 16:56:23,120 - pcUtils.select_field - INFO - Processing list data: [{'description': 'Imprimante Epson C4200 Couleurs', 'value': 'EC4200.yml'}, {'description': 'Photocopieur Konica Minolta 227', 'value': 'KM227.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs', 'value': 'KM227C.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs Agrafes', 'value': 'KM227CA.yml'}, {'description': 'Photocopieur Konica Minolta 250i Couleurs', 'value': 'KM250iC.yml'}, {'description': 'Photocopieur Konica Minolta 251i Couleurs', 'value': 'KM251iC.yml'}, {'description': 'Photocopieur Konica Minolta 287', 'value': 'KM287.yml'}, {'description': 'Photocopieur Konica Minolta 287 Couleurs', 'value': 'KM287C.yml'}, {'description': 'Photocopieur Konica Minolta 301i', 'value': 'KM301i.yml'}, {'description': 'Photocopieur Konica Minolta 301i Agrafes', 'value': 'KM301iA.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs', 'value': 'KM301iC.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs Agrafes', 'value': 'KM301iCA.yml'}, {'description': 'Photocopieur Konica Minolta 360i Couleurs', 'value': 'KM360iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i', 'value': 'KM361i.yml'}, {'description': 'Photocopieur Konica Minolta 361i Agrafes', 'value': 'KM361iA.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs', 'value': 'KM361iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs Agrafes', 'value': 'KM361iCA.yml'}, {'description': 'Photocopieur Konica Minolta 4051i', 'value': 'KM4051i.yml'}, {'description': 'Photocopieur Konica Minolta 4051i Couleurs', 'value': 'KM4051iC.yml'}, {'description': 'Photocopieur Konica Minolta C251i Agrafes', 'value': 'KM251iCA.yml'}]
+2025-04-08 16:56:23,120 - pcUtils.select_field - INFO - Final normalized options: [('Imprimante Epson C4200 Couleurs', 'EC4200.yml'), ('Photocopieur Konica Minolta 227', 'KM227.yml'), ('Photocopieur Konica Minolta 227 Couleurs', 'KM227C.yml'), ('Photocopieur Konica Minolta 227 Couleurs Agrafes', 'KM227CA.yml'), ('Photocopieur Konica Minolta 250i Couleurs', 'KM250iC.yml'), ('Photocopieur Konica Minolta 251i Couleurs', 'KM251iC.yml'), ('Photocopieur Konica Minolta 287', 'KM287.yml'), ('Photocopieur Konica Minolta 287 Couleurs', 'KM287C.yml'), ('Photocopieur Konica Minolta 301i', 'KM301i.yml'), ('Photocopieur Konica Minolta 301i Agrafes', 'KM301iA.yml'), ('Photocopieur Konica Minolta 301i Couleurs', 'KM301iC.yml'), ('Photocopieur Konica Minolta 301i Couleurs Agrafes', 'KM301iCA.yml'), ('Photocopieur Konica Minolta 360i Couleurs', 'KM360iC.yml'), ('Photocopieur Konica Minolta 361i', 'KM361i.yml'), ('Photocopieur Konica Minolta 361i Agrafes', 'KM361iA.yml'), ('Photocopieur Konica Minolta 361i Couleurs', 'KM361iC.yml'), ('Photocopieur Konica Minolta 361i Couleurs Agrafes', 'KM361iCA.yml'), ('Photocopieur Konica Minolta 4051i', 'KM4051i.yml'), ('Photocopieur Konica Minolta 4051i Couleurs', 'KM4051iC.yml'), ('Photocopieur Konica Minolta C251i Agrafes', 'KM251iCA.yml')]
+2025-04-08 16:56:23,120 - pcUtils.select_field - INFO - Field printer_model options: [('Imprimante Epson C4200 Couleurs', 'EC4200.yml'), ('Photocopieur Konica Minolta 227', 'KM227.yml'), ('Photocopieur Konica Minolta 227 Couleurs', 'KM227C.yml'), ('Photocopieur Konica Minolta 227 Couleurs Agrafes', 'KM227CA.yml'), ('Photocopieur Konica Minolta 250i Couleurs', 'KM250iC.yml'), ('Photocopieur Konica Minolta 251i Couleurs', 'KM251iC.yml'), ('Photocopieur Konica Minolta 287', 'KM287.yml'), ('Photocopieur Konica Minolta 287 Couleurs', 'KM287C.yml'), ('Photocopieur Konica Minolta 301i', 'KM301i.yml'), ('Photocopieur Konica Minolta 301i Agrafes', 'KM301iA.yml'), ('Photocopieur Konica Minolta 301i Couleurs', 'KM301iC.yml'), ('Photocopieur Konica Minolta 301i Couleurs Agrafes', 'KM301iCA.yml'), ('Photocopieur Konica Minolta 360i Couleurs', 'KM360iC.yml'), ('Photocopieur Konica Minolta 361i', 'KM361i.yml'), ('Photocopieur Konica Minolta 361i Agrafes', 'KM361iA.yml'), ('Photocopieur Konica Minolta 361i Couleurs', 'KM361iC.yml'), ('Photocopieur Konica Minolta 361i Couleurs Agrafes', 'KM361iCA.yml'), ('Photocopieur Konica Minolta 4051i', 'KM4051i.yml'), ('Photocopieur Konica Minolta 4051i Couleurs', 'KM4051iC.yml'), ('Photocopieur Konica Minolta C251i Agrafes', 'KM251iCA.yml')]
+2025-04-08 16:56:23,120 - pcUtils.select_field - DEBUG - 🔎 set_value(EC4200.yml) pour printer_model, update_input=True, update_dependencies=True
+2025-04-08 16:56:23,120 - pcUtils.select_field - DEBUG - Mise à jour des dépendances pour printer_model avec 'EC4200.yml'
+2025-04-08 16:56:23,121 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour printer_model
+2025-04-08 16:56:23,121 - pcUtils.select_field - INFO - Setting default value for printer_model: EC4200.yml
+2025-04-08 16:56:23,125 - pcUtils.ip_field - DEBUG - 🎨 Composition du champ IP printer_ip
+2025-04-08 16:56:23,126 - pcUtils.ip_field - DEBUG - 💻 Création du widget IP pour printer_ip avec valeur: '192.168.1.220'
+2025-04-08 16:56:23,155 - pcUtils.checkbox_field - DEBUG - 💻 Création du checkbox printer_a3 avec valeur False
+2025-04-08 16:56:23,162 - pcUtils.checkbox_field - DEBUG - 💾 Valeur trouvée dans séquence pour printer_all: False
+2025-04-08 16:56:23,162 - pcUtils.checkbox_field - DEBUG - 💾 Valeur booléenne pour printer_all définie à: False
+2025-04-08 16:56:23,162 - pcUtils.checkbox_field - DEBUG - 💻 Création du checkbox printer_all avec valeur False
+2025-04-08 16:56:23,165 - pcUtils.ip_field - DEBUG - 🎨 Composition du champ IP printer_ip
+2025-04-08 16:56:23,166 - pcUtils.config_field - DEBUG - Vérification état initial pour printer_ip: enabled_if={'field': 'printer_all', 'value': False}, champ dépendant=printer_all
+2025-04-08 16:56:23,166 - pcUtils.config_field - DEBUG - Comparaison pour printer_ip: False == False
+2025-04-08 16:56:23,166 - pcUtils.config_field - DEBUG - Champ printer_ip initialement activé
+2025-04-08 16:56:23,167 - pcUtils.ip_field - DEBUG - 💾 Valeur trouvée dans séquence pour printer_ip: '192.168.1.223'
+2025-04-08 16:56:23,167 - pcUtils.ip_field - DEBUG - 💻 Création du widget IP pour printer_ip avec valeur: '192.168.1.223'
+2025-04-08 16:56:23,173 - pcUtils.text_field - DEBUG - 💾 Valeur trouvée dans séquence pour printer_name: 'Premiere'
+2025-04-08 16:56:23,173 - pcUtils.text_field - DEBUG - 💻 Création du widget input pour printer_name avec valeur: 'Premiere'
+2025-04-08 16:56:23,177 - pcUtils.select_field - INFO - Loading script from: /media/nico/Drive/pcUtils_internet/ui/config_screen/../../plugins/add_printer/get_printer_models.py
+2025-04-08 16:56:23,177 - pcUtils.select_field - DEBUG - Script exists: True
+2025-04-08 16:56:23,177 - pcUtils.select_field - DEBUG - Python path: ['/media/nico/Drive/pcUtils_internet', '/media/nico/Drive/pcUtils_internet', '/media/nico/Drive/pcUtils_internet', '/media/nico/Drive/pcUtils_internet', '/media/nico/Drive/pcUtils_internet/libs/markdown_it_py-3.0.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/charset_normalizer-3.4.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/bcrypt-4.3.0-cp39-abi3-manylinux_2_34_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pypdf-5.4.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/requests-2.32.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/typing_extensions-4.13.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/ruamel.yaml-0.18.10-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/platformdirs-4.3.7-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/certifi-2025.1.31-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/cffi-1.17.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pycparser-2.22-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/pyOpenSSL-25.0.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/rich-14.0.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/mdit_py_plugins-0.4.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/dnspython-2.7.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/linkify_it_py-2.0.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/PyNaCl-1.5.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pyudev-0.24.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/textual-3.0.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/paramiko-3.5.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/uc_micro_py-1.0.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/mdurl-0.1.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/puremagic-1.28-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/pygments-2.19.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/urllib3-2.3.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/idna-3.10-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/cryptography-44.0.2-cp39-abi3-manylinux_2_34_x86_64', '/media/nico/Drive/pcUtils_internet/libs/psutils-3.3.9-py3-none-any', '/media/nico/Drive/pcUtils_internet', '', '/usr/lib/python310.zip', '/usr/lib/python3.10', '/usr/lib/python3.10/lib-dynload', '/home/nico/.local/lib/python3.10/site-packages', '/usr/local/lib/python3.10/dist-packages', '/usr/lib/python3/dist-packages', '/media/nico/Drive/pcUtils_internet/ui/config_screen/../../scripts', '/media/nico/Drive/pcUtils_internet/ui/config_screen/../../plugins/add_printer', '/media/nico/Drive/pcUtils_internet/ui/config_screen/../../plugins/add_printer']
+2025-04-08 16:56:23,177 - pcUtils.select_field - DEBUG - Using function: get_printer_models
+2025-04-08 16:56:23,178 - pcUtils.select_field - DEBUG - Calling get_printer_models with kwargs: {}
+2025-04-08 16:56:23,410 - pcUtils.select_field - INFO - Got result from get_printer_models: (True, {'models': [{'description': 'Imprimante Epson C4200 Couleurs', 'value': 'EC4200.yml'}, {'description': 'Photocopieur Konica Minolta 227', 'value': 'KM227.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs', 'value': 'KM227C.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs Agrafes', 'value': 'KM227CA.yml'}, {'description': 'Photocopieur Konica Minolta 250i Couleurs', 'value': 'KM250iC.yml'}, {'description': 'Photocopieur Konica Minolta 251i Couleurs', 'value': 'KM251iC.yml'}, {'description': 'Photocopieur Konica Minolta 287', 'value': 'KM287.yml'}, {'description': 'Photocopieur Konica Minolta 287 Couleurs', 'value': 'KM287C.yml'}, {'description': 'Photocopieur Konica Minolta 301i', 'value': 'KM301i.yml'}, {'description': 'Photocopieur Konica Minolta 301i Agrafes', 'value': 'KM301iA.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs', 'value': 'KM301iC.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs Agrafes', 'value': 'KM301iCA.yml'}, {'description': 'Photocopieur Konica Minolta 360i Couleurs', 'value': 'KM360iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i', 'value': 'KM361i.yml'}, {'description': 'Photocopieur Konica Minolta 361i Agrafes', 'value': 'KM361iA.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs', 'value': 'KM361iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs Agrafes', 'value': 'KM361iCA.yml'}, {'description': 'Photocopieur Konica Minolta 4051i', 'value': 'KM4051i.yml'}, {'description': 'Photocopieur Konica Minolta 4051i Couleurs', 'value': 'KM4051iC.yml'}, {'description': 'Photocopieur Konica Minolta C251i Agrafes', 'value': 'KM251iCA.yml'}]})
+2025-04-08 16:56:23,410 - pcUtils.select_field - INFO - Extracted data using dict_key 'models': [{'description': 'Imprimante Epson C4200 Couleurs', 'value': 'EC4200.yml'}, {'description': 'Photocopieur Konica Minolta 227', 'value': 'KM227.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs', 'value': 'KM227C.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs Agrafes', 'value': 'KM227CA.yml'}, {'description': 'Photocopieur Konica Minolta 250i Couleurs', 'value': 'KM250iC.yml'}, {'description': 'Photocopieur Konica Minolta 251i Couleurs', 'value': 'KM251iC.yml'}, {'description': 'Photocopieur Konica Minolta 287', 'value': 'KM287.yml'}, {'description': 'Photocopieur Konica Minolta 287 Couleurs', 'value': 'KM287C.yml'}, {'description': 'Photocopieur Konica Minolta 301i', 'value': 'KM301i.yml'}, {'description': 'Photocopieur Konica Minolta 301i Agrafes', 'value': 'KM301iA.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs', 'value': 'KM301iC.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs Agrafes', 'value': 'KM301iCA.yml'}, {'description': 'Photocopieur Konica Minolta 360i Couleurs', 'value': 'KM360iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i', 'value': 'KM361i.yml'}, {'description': 'Photocopieur Konica Minolta 361i Agrafes', 'value': 'KM361iA.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs', 'value': 'KM361iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs Agrafes', 'value': 'KM361iCA.yml'}, {'description': 'Photocopieur Konica Minolta 4051i', 'value': 'KM4051i.yml'}, {'description': 'Photocopieur Konica Minolta 4051i Couleurs', 'value': 'KM4051iC.yml'}, {'description': 'Photocopieur Konica Minolta C251i Agrafes', 'value': 'KM251iCA.yml'}]
+2025-04-08 16:56:23,410 - pcUtils.select_field - INFO - Processed data type: <class 'list'> for options
+2025-04-08 16:56:23,410 - pcUtils.select_field - INFO - Processing list data: [{'description': 'Imprimante Epson C4200 Couleurs', 'value': 'EC4200.yml'}, {'description': 'Photocopieur Konica Minolta 227', 'value': 'KM227.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs', 'value': 'KM227C.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs Agrafes', 'value': 'KM227CA.yml'}, {'description': 'Photocopieur Konica Minolta 250i Couleurs', 'value': 'KM250iC.yml'}, {'description': 'Photocopieur Konica Minolta 251i Couleurs', 'value': 'KM251iC.yml'}, {'description': 'Photocopieur Konica Minolta 287', 'value': 'KM287.yml'}, {'description': 'Photocopieur Konica Minolta 287 Couleurs', 'value': 'KM287C.yml'}, {'description': 'Photocopieur Konica Minolta 301i', 'value': 'KM301i.yml'}, {'description': 'Photocopieur Konica Minolta 301i Agrafes', 'value': 'KM301iA.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs', 'value': 'KM301iC.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs Agrafes', 'value': 'KM301iCA.yml'}, {'description': 'Photocopieur Konica Minolta 360i Couleurs', 'value': 'KM360iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i', 'value': 'KM361i.yml'}, {'description': 'Photocopieur Konica Minolta 361i Agrafes', 'value': 'KM361iA.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs', 'value': 'KM361iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs Agrafes', 'value': 'KM361iCA.yml'}, {'description': 'Photocopieur Konica Minolta 4051i', 'value': 'KM4051i.yml'}, {'description': 'Photocopieur Konica Minolta 4051i Couleurs', 'value': 'KM4051iC.yml'}, {'description': 'Photocopieur Konica Minolta C251i Agrafes', 'value': 'KM251iCA.yml'}]
+2025-04-08 16:56:23,410 - pcUtils.select_field - INFO - Final normalized options: [('Imprimante Epson C4200 Couleurs', 'EC4200.yml'), ('Photocopieur Konica Minolta 227', 'KM227.yml'), ('Photocopieur Konica Minolta 227 Couleurs', 'KM227C.yml'), ('Photocopieur Konica Minolta 227 Couleurs Agrafes', 'KM227CA.yml'), ('Photocopieur Konica Minolta 250i Couleurs', 'KM250iC.yml'), ('Photocopieur Konica Minolta 251i Couleurs', 'KM251iC.yml'), ('Photocopieur Konica Minolta 287', 'KM287.yml'), ('Photocopieur Konica Minolta 287 Couleurs', 'KM287C.yml'), ('Photocopieur Konica Minolta 301i', 'KM301i.yml'), ('Photocopieur Konica Minolta 301i Agrafes', 'KM301iA.yml'), ('Photocopieur Konica Minolta 301i Couleurs', 'KM301iC.yml'), ('Photocopieur Konica Minolta 301i Couleurs Agrafes', 'KM301iCA.yml'), ('Photocopieur Konica Minolta 360i Couleurs', 'KM360iC.yml'), ('Photocopieur Konica Minolta 361i', 'KM361i.yml'), ('Photocopieur Konica Minolta 361i Agrafes', 'KM361iA.yml'), ('Photocopieur Konica Minolta 361i Couleurs', 'KM361iC.yml'), ('Photocopieur Konica Minolta 361i Couleurs Agrafes', 'KM361iCA.yml'), ('Photocopieur Konica Minolta 4051i', 'KM4051i.yml'), ('Photocopieur Konica Minolta 4051i Couleurs', 'KM4051iC.yml'), ('Photocopieur Konica Minolta C251i Agrafes', 'KM251iCA.yml')]
+2025-04-08 16:56:23,410 - pcUtils.select_field - INFO - Field printer_model options: [('Imprimante Epson C4200 Couleurs', 'EC4200.yml'), ('Photocopieur Konica Minolta 227', 'KM227.yml'), ('Photocopieur Konica Minolta 227 Couleurs', 'KM227C.yml'), ('Photocopieur Konica Minolta 227 Couleurs Agrafes', 'KM227CA.yml'), ('Photocopieur Konica Minolta 250i Couleurs', 'KM250iC.yml'), ('Photocopieur Konica Minolta 251i Couleurs', 'KM251iC.yml'), ('Photocopieur Konica Minolta 287', 'KM287.yml'), ('Photocopieur Konica Minolta 287 Couleurs', 'KM287C.yml'), ('Photocopieur Konica Minolta 301i', 'KM301i.yml'), ('Photocopieur Konica Minolta 301i Agrafes', 'KM301iA.yml'), ('Photocopieur Konica Minolta 301i Couleurs', 'KM301iC.yml'), ('Photocopieur Konica Minolta 301i Couleurs Agrafes', 'KM301iCA.yml'), ('Photocopieur Konica Minolta 360i Couleurs', 'KM360iC.yml'), ('Photocopieur Konica Minolta 361i', 'KM361i.yml'), ('Photocopieur Konica Minolta 361i Agrafes', 'KM361iA.yml'), ('Photocopieur Konica Minolta 361i Couleurs', 'KM361iC.yml'), ('Photocopieur Konica Minolta 361i Couleurs Agrafes', 'KM361iCA.yml'), ('Photocopieur Konica Minolta 4051i', 'KM4051i.yml'), ('Photocopieur Konica Minolta 4051i Couleurs', 'KM4051iC.yml'), ('Photocopieur Konica Minolta C251i Agrafes', 'KM251iCA.yml')]
+2025-04-08 16:56:23,411 - pcUtils.select_field - INFO - Found partial match for printer_model: EC4200.yml (from EC4200)
+2025-04-08 16:56:23,413 - pcUtils.ip_field - DEBUG - 🎨 Composition du champ IP printer_ip
+2025-04-08 16:56:23,414 - pcUtils.ip_field - DEBUG - 💾 Valeur trouvée dans séquence pour printer_ip: '192.168.1.222'
+2025-04-08 16:56:23,414 - pcUtils.ip_field - DEBUG - 💻 Création du widget IP pour printer_ip avec valeur: '192.168.1.222'
+2025-04-08 16:56:23,417 - pcUtils.checkbox_field - DEBUG - 💾 Valeur trouvée dans séquence pour printer_a3: False
+2025-04-08 16:56:23,417 - pcUtils.checkbox_field - DEBUG - 💾 Valeur booléenne pour printer_a3 définie à: False
+2025-04-08 16:56:23,417 - pcUtils.checkbox_field - DEBUG - 💻 Création du checkbox printer_a3 avec valeur False
+2025-04-08 16:56:23,421 - pcUtils.text_field - DEBUG - 💾 Valeur trouvée dans séquence pour printer_name: 'Autre'
+2025-04-08 16:56:23,422 - pcUtils.text_field - DEBUG - 💻 Création du widget input pour printer_name avec valeur: 'Autre'
+2025-04-08 16:56:23,424 - pcUtils.select_field - INFO - Loading script from: /media/nico/Drive/pcUtils_internet/ui/config_screen/../../plugins/add_printer/get_printer_models.py
+2025-04-08 16:56:23,425 - pcUtils.select_field - DEBUG - Script exists: True
+2025-04-08 16:56:23,425 - pcUtils.select_field - DEBUG - Python path: ['/media/nico/Drive/pcUtils_internet', '/media/nico/Drive/pcUtils_internet', '/media/nico/Drive/pcUtils_internet', '/media/nico/Drive/pcUtils_internet', '/media/nico/Drive/pcUtils_internet/libs/markdown_it_py-3.0.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/charset_normalizer-3.4.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/bcrypt-4.3.0-cp39-abi3-manylinux_2_34_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pypdf-5.4.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/requests-2.32.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/typing_extensions-4.13.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/ruamel.yaml-0.18.10-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/platformdirs-4.3.7-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/certifi-2025.1.31-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/cffi-1.17.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pycparser-2.22-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/pyOpenSSL-25.0.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/rich-14.0.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/mdit_py_plugins-0.4.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/dnspython-2.7.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/linkify_it_py-2.0.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/PyNaCl-1.5.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pyudev-0.24.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/textual-3.0.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/paramiko-3.5.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/uc_micro_py-1.0.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/mdurl-0.1.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/puremagic-1.28-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/pygments-2.19.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/urllib3-2.3.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/idna-3.10-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/cryptography-44.0.2-cp39-abi3-manylinux_2_34_x86_64', '/media/nico/Drive/pcUtils_internet/libs/psutils-3.3.9-py3-none-any', '/media/nico/Drive/pcUtils_internet', '', '/usr/lib/python310.zip', '/usr/lib/python3.10', '/usr/lib/python3.10/lib-dynload', '/home/nico/.local/lib/python3.10/site-packages', '/usr/local/lib/python3.10/dist-packages', '/usr/lib/python3/dist-packages', '/media/nico/Drive/pcUtils_internet/ui/config_screen/../../scripts', '/media/nico/Drive/pcUtils_internet/ui/config_screen/../../plugins/add_printer', '/media/nico/Drive/pcUtils_internet/ui/config_screen/../../plugins/add_printer', '/media/nico/Drive/pcUtils_internet/ui/config_screen/../../plugins/add_printer']
+2025-04-08 16:56:23,425 - pcUtils.select_field - DEBUG - Using function: get_printer_models
+2025-04-08 16:56:23,425 - pcUtils.select_field - DEBUG - Calling get_printer_models with kwargs: {}
+2025-04-08 16:56:23,650 - pcUtils.select_field - INFO - Got result from get_printer_models: (True, {'models': [{'description': 'Imprimante Epson C4200 Couleurs', 'value': 'EC4200.yml'}, {'description': 'Photocopieur Konica Minolta 227', 'value': 'KM227.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs', 'value': 'KM227C.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs Agrafes', 'value': 'KM227CA.yml'}, {'description': 'Photocopieur Konica Minolta 250i Couleurs', 'value': 'KM250iC.yml'}, {'description': 'Photocopieur Konica Minolta 251i Couleurs', 'value': 'KM251iC.yml'}, {'description': 'Photocopieur Konica Minolta 287', 'value': 'KM287.yml'}, {'description': 'Photocopieur Konica Minolta 287 Couleurs', 'value': 'KM287C.yml'}, {'description': 'Photocopieur Konica Minolta 301i', 'value': 'KM301i.yml'}, {'description': 'Photocopieur Konica Minolta 301i Agrafes', 'value': 'KM301iA.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs', 'value': 'KM301iC.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs Agrafes', 'value': 'KM301iCA.yml'}, {'description': 'Photocopieur Konica Minolta 360i Couleurs', 'value': 'KM360iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i', 'value': 'KM361i.yml'}, {'description': 'Photocopieur Konica Minolta 361i Agrafes', 'value': 'KM361iA.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs', 'value': 'KM361iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs Agrafes', 'value': 'KM361iCA.yml'}, {'description': 'Photocopieur Konica Minolta 4051i', 'value': 'KM4051i.yml'}, {'description': 'Photocopieur Konica Minolta 4051i Couleurs', 'value': 'KM4051iC.yml'}, {'description': 'Photocopieur Konica Minolta C251i Agrafes', 'value': 'KM251iCA.yml'}]})
+2025-04-08 16:56:23,650 - pcUtils.select_field - INFO - Extracted data using dict_key 'models': [{'description': 'Imprimante Epson C4200 Couleurs', 'value': 'EC4200.yml'}, {'description': 'Photocopieur Konica Minolta 227', 'value': 'KM227.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs', 'value': 'KM227C.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs Agrafes', 'value': 'KM227CA.yml'}, {'description': 'Photocopieur Konica Minolta 250i Couleurs', 'value': 'KM250iC.yml'}, {'description': 'Photocopieur Konica Minolta 251i Couleurs', 'value': 'KM251iC.yml'}, {'description': 'Photocopieur Konica Minolta 287', 'value': 'KM287.yml'}, {'description': 'Photocopieur Konica Minolta 287 Couleurs', 'value': 'KM287C.yml'}, {'description': 'Photocopieur Konica Minolta 301i', 'value': 'KM301i.yml'}, {'description': 'Photocopieur Konica Minolta 301i Agrafes', 'value': 'KM301iA.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs', 'value': 'KM301iC.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs Agrafes', 'value': 'KM301iCA.yml'}, {'description': 'Photocopieur Konica Minolta 360i Couleurs', 'value': 'KM360iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i', 'value': 'KM361i.yml'}, {'description': 'Photocopieur Konica Minolta 361i Agrafes', 'value': 'KM361iA.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs', 'value': 'KM361iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs Agrafes', 'value': 'KM361iCA.yml'}, {'description': 'Photocopieur Konica Minolta 4051i', 'value': 'KM4051i.yml'}, {'description': 'Photocopieur Konica Minolta 4051i Couleurs', 'value': 'KM4051iC.yml'}, {'description': 'Photocopieur Konica Minolta C251i Agrafes', 'value': 'KM251iCA.yml'}]
+2025-04-08 16:56:23,650 - pcUtils.select_field - INFO - Processed data type: <class 'list'> for options
+2025-04-08 16:56:23,651 - pcUtils.select_field - INFO - Processing list data: [{'description': 'Imprimante Epson C4200 Couleurs', 'value': 'EC4200.yml'}, {'description': 'Photocopieur Konica Minolta 227', 'value': 'KM227.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs', 'value': 'KM227C.yml'}, {'description': 'Photocopieur Konica Minolta 227 Couleurs Agrafes', 'value': 'KM227CA.yml'}, {'description': 'Photocopieur Konica Minolta 250i Couleurs', 'value': 'KM250iC.yml'}, {'description': 'Photocopieur Konica Minolta 251i Couleurs', 'value': 'KM251iC.yml'}, {'description': 'Photocopieur Konica Minolta 287', 'value': 'KM287.yml'}, {'description': 'Photocopieur Konica Minolta 287 Couleurs', 'value': 'KM287C.yml'}, {'description': 'Photocopieur Konica Minolta 301i', 'value': 'KM301i.yml'}, {'description': 'Photocopieur Konica Minolta 301i Agrafes', 'value': 'KM301iA.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs', 'value': 'KM301iC.yml'}, {'description': 'Photocopieur Konica Minolta 301i Couleurs Agrafes', 'value': 'KM301iCA.yml'}, {'description': 'Photocopieur Konica Minolta 360i Couleurs', 'value': 'KM360iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i', 'value': 'KM361i.yml'}, {'description': 'Photocopieur Konica Minolta 361i Agrafes', 'value': 'KM361iA.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs', 'value': 'KM361iC.yml'}, {'description': 'Photocopieur Konica Minolta 361i Couleurs Agrafes', 'value': 'KM361iCA.yml'}, {'description': 'Photocopieur Konica Minolta 4051i', 'value': 'KM4051i.yml'}, {'description': 'Photocopieur Konica Minolta 4051i Couleurs', 'value': 'KM4051iC.yml'}, {'description': 'Photocopieur Konica Minolta C251i Agrafes', 'value': 'KM251iCA.yml'}]
+2025-04-08 16:56:23,651 - pcUtils.select_field - INFO - Final normalized options: [('Imprimante Epson C4200 Couleurs', 'EC4200.yml'), ('Photocopieur Konica Minolta 227', 'KM227.yml'), ('Photocopieur Konica Minolta 227 Couleurs', 'KM227C.yml'), ('Photocopieur Konica Minolta 227 Couleurs Agrafes', 'KM227CA.yml'), ('Photocopieur Konica Minolta 250i Couleurs', 'KM250iC.yml'), ('Photocopieur Konica Minolta 251i Couleurs', 'KM251iC.yml'), ('Photocopieur Konica Minolta 287', 'KM287.yml'), ('Photocopieur Konica Minolta 287 Couleurs', 'KM287C.yml'), ('Photocopieur Konica Minolta 301i', 'KM301i.yml'), ('Photocopieur Konica Minolta 301i Agrafes', 'KM301iA.yml'), ('Photocopieur Konica Minolta 301i Couleurs', 'KM301iC.yml'), ('Photocopieur Konica Minolta 301i Couleurs Agrafes', 'KM301iCA.yml'), ('Photocopieur Konica Minolta 360i Couleurs', 'KM360iC.yml'), ('Photocopieur Konica Minolta 361i', 'KM361i.yml'), ('Photocopieur Konica Minolta 361i Agrafes', 'KM361iA.yml'), ('Photocopieur Konica Minolta 361i Couleurs', 'KM361iC.yml'), ('Photocopieur Konica Minolta 361i Couleurs Agrafes', 'KM361iCA.yml'), ('Photocopieur Konica Minolta 4051i', 'KM4051i.yml'), ('Photocopieur Konica Minolta 4051i Couleurs', 'KM4051iC.yml'), ('Photocopieur Konica Minolta C251i Agrafes', 'KM251iCA.yml')]
+2025-04-08 16:56:23,651 - pcUtils.select_field - INFO - Field printer_model options: [('Imprimante Epson C4200 Couleurs', 'EC4200.yml'), ('Photocopieur Konica Minolta 227', 'KM227.yml'), ('Photocopieur Konica Minolta 227 Couleurs', 'KM227C.yml'), ('Photocopieur Konica Minolta 227 Couleurs Agrafes', 'KM227CA.yml'), ('Photocopieur Konica Minolta 250i Couleurs', 'KM250iC.yml'), ('Photocopieur Konica Minolta 251i Couleurs', 'KM251iC.yml'), ('Photocopieur Konica Minolta 287', 'KM287.yml'), ('Photocopieur Konica Minolta 287 Couleurs', 'KM287C.yml'), ('Photocopieur Konica Minolta 301i', 'KM301i.yml'), ('Photocopieur Konica Minolta 301i Agrafes', 'KM301iA.yml'), ('Photocopieur Konica Minolta 301i Couleurs', 'KM301iC.yml'), ('Photocopieur Konica Minolta 301i Couleurs Agrafes', 'KM301iCA.yml'), ('Photocopieur Konica Minolta 360i Couleurs', 'KM360iC.yml'), ('Photocopieur Konica Minolta 361i', 'KM361i.yml'), ('Photocopieur Konica Minolta 361i Agrafes', 'KM361iA.yml'), ('Photocopieur Konica Minolta 361i Couleurs', 'KM361iC.yml'), ('Photocopieur Konica Minolta 361i Couleurs Agrafes', 'KM361iCA.yml'), ('Photocopieur Konica Minolta 4051i', 'KM4051i.yml'), ('Photocopieur Konica Minolta 4051i Couleurs', 'KM4051iC.yml'), ('Photocopieur Konica Minolta C251i Agrafes', 'KM251iCA.yml')]
+2025-04-08 16:56:23,651 - pcUtils.select_field - INFO - Found partial match for printer_model: KM227.yml (from KM227)
+2025-04-08 16:56:23,653 - pcUtils.ip_field - DEBUG - 🎨 Composition du champ IP printer_ip
+2025-04-08 16:56:23,654 - pcUtils.ip_field - DEBUG - 💾 Valeur trouvée dans séquence pour printer_ip: '192.168.1.221'
+2025-04-08 16:56:23,654 - pcUtils.ip_field - DEBUG - 💻 Création du widget IP pour printer_ip avec valeur: '192.168.1.221'
+2025-04-08 16:56:23,657 - pcUtils.checkbox_field - DEBUG - 💾 Valeur trouvée dans séquence pour printer_a3: False
+2025-04-08 16:56:23,657 - pcUtils.checkbox_field - DEBUG - 💾 Valeur booléenne pour printer_a3 définie à: False
+2025-04-08 16:56:23,657 - pcUtils.checkbox_field - DEBUG - 💻 Création du checkbox printer_a3 avec valeur False
+2025-04-08 16:56:23,697 - pcUtils.checkbox_field - DEBUG - 💻 Création du checkbox remote_exec_add_printer_1 avec valeur False
+2025-04-08 16:56:23,708 - pcUtils.checkbox_field - DEBUG - 💻 Création du checkbox remote_exec_delete_printer_2 avec valeur False
+2025-04-08 16:56:23,725 - pcUtils.checkbox_field - DEBUG - 💻 Création du checkbox remote_exec_add_printer_3 avec valeur False
+2025-04-08 16:56:23,743 - pcUtils.checkbox_field - DEBUG - 💻 Création du checkbox remote_exec_add_printer_4 avec valeur False
+2025-04-08 16:56:23,925 - pcUtils.text_field - DEBUG - 🚨 MONTAGE du champ printer_name
+2025-04-08 16:56:23,925 - pcUtils.text_field - DEBUG - Application de la valeur en attente 'BT' pour printer_name
+2025-04-08 16:56:23,925 - pcUtils.text_field - DEBUG - Widget déjà à la valeur 'BT' pour printer_name, rien à faire
+2025-04-08 16:56:23,926 - pcUtils.text_field - DEBUG - ✓ on_input_changed: valeur déjà à jour pour printer_name: 'BT'
+2025-04-08 16:56:23,927 - pcUtils.ip_field - DEBUG - ✓ Valeur IP déjà à '192.168.1.220' pour printer_ip
+2025-04-08 16:56:23,929 - pcUtils.ip_field - DEBUG - ✓ Valeur IP déjà à '192.168.1.223' pour printer_ip
+2025-04-08 16:56:23,929 - pcUtils.text_field - DEBUG - 🚨 MONTAGE du champ printer_name
+2025-04-08 16:56:23,930 - pcUtils.text_field - DEBUG - Application de la valeur en attente 'Premiere' pour printer_name
+2025-04-08 16:56:23,930 - pcUtils.text_field - DEBUG - Widget déjà à la valeur 'Premiere' pour printer_name, rien à faire
+2025-04-08 16:56:23,930 - pcUtils.text_field - DEBUG - ✓ on_input_changed: valeur déjà à jour pour printer_name: 'Premiere'
+2025-04-08 16:56:23,931 - pcUtils.ip_field - DEBUG - ✓ Valeur IP déjà à '192.168.1.222' pour printer_ip
+2025-04-08 16:56:23,932 - pcUtils.text_field - DEBUG - 🚨 MONTAGE du champ printer_name
+2025-04-08 16:56:23,932 - pcUtils.text_field - DEBUG - Application de la valeur en attente 'Autre' pour printer_name
+2025-04-08 16:56:23,932 - pcUtils.text_field - DEBUG - Widget déjà à la valeur 'Autre' pour printer_name, rien à faire
+2025-04-08 16:56:23,933 - pcUtils.text_field - DEBUG - ✓ on_input_changed: valeur déjà à jour pour printer_name: 'Autre'
+2025-04-08 16:56:23,934 - pcUtils.ip_field - DEBUG - ✓ Valeur IP déjà à '192.168.1.221' pour printer_ip
+2025-04-08 16:56:23,977 - pcUtils.select_field - DEBUG - ✓ On_select_changed: valeur inchangée pour printer_model: EC4200.yml
+2025-04-08 16:56:23,978 - pcUtils.select_field - DEBUG - 🔎 set_value(EC4200.yml) pour printer_model, update_input=True, update_dependencies=True
+2025-04-08 16:56:23,978 - pcUtils.select_field - DEBUG - ✓ Valeur déjà définie à 'EC4200.yml' pour printer_model, aucune action nécessaire
+2025-04-08 16:56:23,978 - pcUtils.config_field - DEBUG - Valeur de printer_model changée à EC4200.yml
+2025-04-08 16:56:23,979 - pcUtils.select_field - DEBUG - ✓ On_select_changed: valeur inchangée pour printer_model: EC4200.yml
+2025-04-08 16:56:23,979 - pcUtils.select_field - DEBUG - 🔎 set_value(EC4200.yml) pour printer_model, update_input=True, update_dependencies=True
+2025-04-08 16:56:23,979 - pcUtils.select_field - DEBUG - ✓ Valeur déjà définie à 'EC4200.yml' pour printer_model, aucune action nécessaire
+2025-04-08 16:56:23,979 - pcUtils.config_field - DEBUG - Valeur de printer_model changée à EC4200.yml
+2025-04-08 16:56:23,980 - pcUtils.select_field - DEBUG - ✓ On_select_changed: valeur inchangée pour printer_model: KM227.yml
+2025-04-08 16:56:23,980 - pcUtils.select_field - DEBUG - 🔎 set_value(KM227.yml) pour printer_model, update_input=True, update_dependencies=True
+2025-04-08 16:56:23,980 - pcUtils.select_field - DEBUG - ✓ Valeur déjà définie à 'KM227.yml' pour printer_model, aucune action nécessaire
+2025-04-08 16:56:23,980 - pcUtils.config_field - DEBUG - Valeur de printer_model changée à KM227.yml
+2025-04-08 16:56:23,982 - plugin_config_container - DEBUG - Montage du conteneur pour delete_printer
+2025-04-08 16:56:23,987 - plugin_config_container - DEBUG - Montage du conteneur pour add_printer
+2025-04-08 16:56:23,988 - plugin_config_container - DEBUG - Montage du conteneur pour add_printer
+2025-04-08 16:56:23,989 - plugin_config_container - DEBUG - Montage du conteneur pour add_printer
+2025-04-08 16:56:23,994 - pcUtils.config_screen - DEBUG - PluginConfig.on_mount() completed
+2025-04-08 16:56:25,100 - plugin_config_container - DEBUG - Application des valeurs prédéfinies pour delete_printer
+2025-04-08 16:56:25,100 - plugin_config_container - DEBUG - Configuration trouvée pour delete_printer_2: 4 clés
+2025-04-08 16:56:32,733 - plugin_config_container - DEBUG - Valeurs trouvées dans 'config': 2 paramètres
+2025-04-08 16:56:32,735 - plugin_config_container - DEBUG - Application de '192.168.1.223' au champ printer_ip (type=ip, tentative 1)
+2025-04-08 16:56:32,783 - pcUtils.ip_field - DEBUG - 🔔 set_value(192.168.1.223) pour printer_ip, update_input=True
+2025-04-08 16:56:32,784 - pcUtils.ip_field - DEBUG - 💾 Valeur interne mise à jour pour printer_ip: '192.168.1.221' → '192.168.1.223'
+2025-04-08 16:56:32,784 - pcUtils.ip_field - DEBUG - Mise à jour du widget IP pour printer_ip: '192.168.1.221' → '192.168.1.223'
+2025-04-08 16:56:32,787 - pcUtils.ip_field - DEBUG - 🔗 Notification des dépendances pour printer_ip
+2025-04-08 16:56:32,787 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour printer_ip
+2025-04-08 16:56:32,787 - pcUtils.ip_field - DEBUG - ✅ set_value réussi pour printer_ip
+2025-04-08 16:56:32,788 - plugin_config_container - DEBUG - Valeur appliquée avec succès via set_value pour printer_ip
+2025-04-08 16:56:32,788 - plugin_config_container - DEBUG - Application de 'False' au champ printer_all (type=checkbox, tentative 1)
+2025-04-08 16:56:32,788 - pcUtils.checkbox_field - DEBUG - Définition de la valeur de la checkbox printer_all à False
+2025-04-08 16:56:32,788 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour printer_all
+2025-04-08 16:56:32,789 - plugin_config_container - DEBUG - Valeur appliquée avec succès via set_value pour printer_all
+2025-04-08 16:56:32,790 - plugin_config_container - DEBUG - Application des valeurs prédéfinies pour add_printer
+2025-04-08 16:56:32,791 - plugin_config_container - DEBUG - Configuration trouvée pour add_printer_1: 4 clés
+2025-04-08 16:56:32,791 - plugin_config_container - DEBUG - Valeurs trouvées dans 'config': 0 paramètres
+2025-04-08 16:56:32,791 - plugin_config_container - DEBUG - Application des valeurs prédéfinies pour add_printer
+2025-04-08 16:56:32,791 - plugin_config_container - DEBUG - Configuration trouvée pour add_printer_3: 4 clés
+2025-04-08 16:56:32,791 - plugin_config_container - DEBUG - Valeurs trouvées dans 'config': 4 paramètres
+2025-04-08 16:56:32,792 - plugin_config_container - DEBUG - Application de '192.168.1.222' au champ printer_ip (type=ip, tentative 1)
+2025-04-08 16:56:32,792 - pcUtils.ip_field - DEBUG - 🔔 set_value(192.168.1.222) pour printer_ip, update_input=True
+2025-04-08 16:56:32,792 - pcUtils.ip_field - DEBUG - 💾 Valeur interne mise à jour pour printer_ip: '192.168.1.223' → '192.168.1.222'
+2025-04-08 16:56:32,792 - pcUtils.ip_field - DEBUG - Mise à jour du widget IP pour printer_ip: '192.168.1.223' → '192.168.1.222'
+2025-04-08 16:56:32,793 - pcUtils.ip_field - DEBUG - 🔗 Notification des dépendances pour printer_ip
+2025-04-08 16:56:32,793 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour printer_ip
+2025-04-08 16:56:32,793 - pcUtils.ip_field - DEBUG - ✅ set_value réussi pour printer_ip
+2025-04-08 16:56:32,793 - plugin_config_container - DEBUG - Valeur appliquée avec succès via set_value pour printer_ip
+2025-04-08 16:56:32,793 - plugin_config_container - DEBUG - Application de 'EC4200' au champ printer_model (type=select, tentative 1)
+2025-04-08 16:56:32,793 - pcUtils.select_field - DEBUG - 🔎 set_value(EC4200) pour printer_model, update_input=True, update_dependencies=True
+2025-04-08 16:56:32,793 - pcUtils.select_field - DEBUG - Correspondance partielle pour printer_model: 'EC4200' → 'EC4200.yml'
+2025-04-08 16:56:32,796 - pcUtils.select_field - DEBUG - Mise à jour des dépendances pour printer_model avec 'EC4200'
+2025-04-08 16:56:32,797 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour printer_model
+2025-04-08 16:56:32,797 - plugin_config_container - DEBUG - Valeur appliquée avec succès via set_value pour printer_model
+2025-04-08 16:56:32,797 - plugin_config_container - DEBUG - Application de 'Premiere' au champ printer_name (type=text, tentative 1)
+2025-04-08 16:56:32,797 - pcUtils.text_field - DEBUG - 🔔 [2] set_value(Premiere) pour printer_name, update_input=True
+2025-04-08 16:56:32,797 - pcUtils.text_field - DEBUG - 💾 Valeur interne mise à jour pour printer_name: 'Autre' → 'Premiere'
+2025-04-08 16:56:32,798 - pcUtils.text_field - DEBUG - Mise à jour du widget pour printer_name: 'Autre' → 'Premiere'
+2025-04-08 16:56:32,798 - pcUtils.text_field - DEBUG - 🔗 Notification des dépendances pour printer_name
+2025-04-08 16:56:32,799 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour printer_name
+2025-04-08 16:56:32,799 - pcUtils.text_field - DEBUG - ✅ set_value réussi pour printer_name
+2025-04-08 16:56:32,799 - plugin_config_container - DEBUG - Valeur appliquée avec succès via set_value pour printer_name
+2025-04-08 16:56:32,799 - plugin_config_container - DEBUG - Application de 'False' au champ printer_a3 (type=checkbox, tentative 1)
+2025-04-08 16:56:32,800 - pcUtils.checkbox_field - DEBUG - Définition de la valeur de la checkbox printer_a3 à False
+2025-04-08 16:56:32,800 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour printer_a3
+2025-04-08 16:56:32,801 - plugin_config_container - DEBUG - Valeur appliquée avec succès via set_value pour printer_a3
+2025-04-08 16:56:32,801 - plugin_config_container - DEBUG - Application des valeurs prédéfinies pour add_printer
+2025-04-08 16:56:32,802 - plugin_config_container - DEBUG - Configuration trouvée pour add_printer_4: 4 clés
+2025-04-08 16:56:32,802 - plugin_config_container - DEBUG - Valeurs trouvées dans 'config': 4 paramètres
+2025-04-08 16:56:32,802 - plugin_config_container - DEBUG - Application de '192.168.1.221' au champ printer_ip (type=ip, tentative 1)
+2025-04-08 16:56:32,802 - pcUtils.ip_field - DEBUG - 🔔 set_value(192.168.1.221) pour printer_ip, update_input=True
+2025-04-08 16:56:32,802 - pcUtils.ip_field - DEBUG - 💾 Valeur interne mise à jour pour printer_ip: '192.168.1.222' → '192.168.1.221'
+2025-04-08 16:56:32,802 - pcUtils.ip_field - DEBUG - Mise à jour du widget IP pour printer_ip: '192.168.1.222' → '192.168.1.221'
+2025-04-08 16:56:32,803 - pcUtils.ip_field - DEBUG - 🔗 Notification des dépendances pour printer_ip
+2025-04-08 16:56:32,803 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour printer_ip
+2025-04-08 16:56:32,803 - pcUtils.ip_field - DEBUG - ✅ set_value réussi pour printer_ip
+2025-04-08 16:56:32,804 - plugin_config_container - DEBUG - Valeur appliquée avec succès via set_value pour printer_ip
+2025-04-08 16:56:32,804 - plugin_config_container - DEBUG - Application de 'KM227' au champ printer_model (type=select, tentative 1)
+2025-04-08 16:56:32,804 - pcUtils.select_field - DEBUG - 🔎 set_value(KM227) pour printer_model, update_input=True, update_dependencies=True
+2025-04-08 16:56:32,804 - pcUtils.select_field - DEBUG - Correspondance partielle pour printer_model: 'KM227' → 'KM227.yml'
+2025-04-08 16:56:32,805 - pcUtils.select_field - DEBUG - Mise à jour des dépendances pour printer_model avec 'KM227'
+2025-04-08 16:56:32,805 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour printer_model
+2025-04-08 16:56:32,805 - plugin_config_container - DEBUG - Valeur appliquée avec succès via set_value pour printer_model
+2025-04-08 16:56:32,805 - plugin_config_container - DEBUG - Application de 'Autre' au champ printer_name (type=text, tentative 1)
+2025-04-08 16:56:32,805 - pcUtils.text_field - DEBUG - 🔔 [3] set_value(Autre) pour printer_name, update_input=True
+2025-04-08 16:56:32,805 - pcUtils.text_field - DEBUG - 💾 Valeur interne mise à jour pour printer_name: 'Premiere' → 'Autre'
+2025-04-08 16:56:32,805 - pcUtils.text_field - DEBUG - Mise à jour du widget pour printer_name: 'Premiere' → 'Autre'
+2025-04-08 16:56:32,806 - pcUtils.text_field - DEBUG - 🔗 Notification des dépendances pour printer_name
+2025-04-08 16:56:32,806 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour printer_name
+2025-04-08 16:56:32,806 - pcUtils.text_field - DEBUG - ✅ set_value réussi pour printer_name
+2025-04-08 16:56:32,806 - plugin_config_container - DEBUG - Valeur appliquée avec succès via set_value pour printer_name
+2025-04-08 16:56:32,806 - plugin_config_container - DEBUG - Application de 'False' au champ printer_a3 (type=checkbox, tentative 1)
+2025-04-08 16:56:32,806 - pcUtils.checkbox_field - DEBUG - Définition de la valeur de la checkbox printer_a3 à False
+2025-04-08 16:56:32,807 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour printer_a3
+2025-04-08 16:56:32,807 - plugin_config_container - DEBUG - Valeur appliquée avec succès via set_value pour printer_a3
+2025-04-08 16:56:32,807 - pcUtils.config_screen - DEBUG - Création des champs de configuration
+2025-04-08 16:56:32,819 - pcUtils.config_screen - DEBUG - Nombre de containers trouvés: 4
+2025-04-08 16:56:32,820 - pcUtils.config_screen - DEBUG - Container ajouté: plugin_add_printer_1
+2025-04-08 16:56:32,820 - pcUtils.config_screen - DEBUG - Champ ajouté: printer_name
+2025-04-08 16:56:32,820 - pcUtils.config_screen - DEBUG - Champ ajouté: printer_model
+2025-04-08 16:56:32,820 - pcUtils.config_screen - DEBUG - Champ ajouté: printer_ip
+2025-04-08 16:56:32,820 - pcUtils.config_screen - DEBUG - Champ ajouté: printer_a3
+2025-04-08 16:56:32,820 - pcUtils.config_screen - DEBUG - Champ ajouté: printer_all
+2025-04-08 16:56:32,820 - pcUtils.config_screen - DEBUG - Container ajouté: plugin_delete_printer_2
+2025-04-08 16:56:32,821 - pcUtils.config_screen - DEBUG - Champ ajouté: printer_name
+2025-04-08 16:56:32,821 - pcUtils.config_screen - DEBUG - Champ ajouté: printer_model
+2025-04-08 16:56:32,821 - pcUtils.config_screen - DEBUG - Champ ajouté: printer_ip
+2025-04-08 16:56:32,821 - pcUtils.config_screen - DEBUG - Champ ajouté: printer_a3
+2025-04-08 16:56:32,821 - pcUtils.config_screen - DEBUG - Champ ajouté: printer_all
+2025-04-08 16:56:32,821 - pcUtils.config_screen - DEBUG - Container ajouté: plugin_add_printer_3
+2025-04-08 16:56:32,821 - pcUtils.config_screen - DEBUG - Champ ajouté: printer_name
+2025-04-08 16:56:32,822 - pcUtils.config_screen - DEBUG - Champ ajouté: printer_model
+2025-04-08 16:56:32,822 - pcUtils.config_screen - DEBUG - Champ ajouté: printer_ip
+2025-04-08 16:56:32,822 - pcUtils.config_screen - DEBUG - Champ ajouté: printer_a3
+2025-04-08 16:56:32,822 - pcUtils.config_screen - DEBUG - Champ ajouté: printer_all
+2025-04-08 16:56:32,822 - pcUtils.config_screen - DEBUG - Container ajouté: plugin_add_printer_4
+2025-04-08 16:56:32,822 - pcUtils.config_screen - DEBUG - Champ ajouté: printer_name
+2025-04-08 16:56:32,822 - pcUtils.config_screen - DEBUG - Champ ajouté: printer_model
+2025-04-08 16:56:32,823 - pcUtils.config_screen - DEBUG - Champ ajouté: printer_ip
+2025-04-08 16:56:32,823 - pcUtils.config_screen - DEBUG - Champ ajouté: printer_a3
+2025-04-08 16:56:32,823 - pcUtils.config_screen - DEBUG - Champ ajouté: printer_all
+2025-04-08 16:56:32,823 - pcUtils.config_screen - DEBUG - Création de 10 champs SSH
+2025-04-08 16:56:32,828 - pcUtils.text_field - DEBUG - 🔔 [1] set_value(192.168.1.136) pour ssh_ips, update_input=True
+2025-04-08 16:56:32,828 - pcUtils.text_field - DEBUG - 💾 Valeur interne mise à jour pour ssh_ips: '' → '192.168.1.136'
+2025-04-08 16:56:32,829 - pcUtils.text_field - DEBUG - Widget input non créé pour ssh_ips, stockage de '192.168.1.136' en attente
+2025-04-08 16:56:32,829 - pcUtils.text_field - DEBUG - ✅ set_value réussi pour ssh_ips
+2025-04-08 16:56:32,829 - pcUtils.config_field - DEBUG - Champ ssh_ips initialisé avec valeur: 192.168.1.136
+2025-04-08 16:56:32,831 - pcUtils.text_field - DEBUG - 🔔 [1] set_value(nico) pour ssh_user, update_input=True
+2025-04-08 16:56:32,831 - pcUtils.text_field - DEBUG - 💾 Valeur interne mise à jour pour ssh_user: '' → 'nico'
+2025-04-08 16:56:32,832 - pcUtils.text_field - DEBUG - Widget input non créé pour ssh_user, stockage de 'nico' en attente
+2025-04-08 16:56:32,832 - pcUtils.text_field - DEBUG - ✅ set_value réussi pour ssh_user
+2025-04-08 16:56:32,832 - pcUtils.config_field - DEBUG - Champ ssh_user initialisé avec valeur: nico
+2025-04-08 16:56:32,834 - pcUtils.text_field - DEBUG - 🔔 [1] set_value(orion1111) pour ssh_passwd, update_input=True
+2025-04-08 16:56:32,834 - pcUtils.text_field - DEBUG - 💾 Valeur interne mise à jour pour ssh_passwd: '' → 'orion1111'
+2025-04-08 16:56:32,834 - pcUtils.text_field - DEBUG - Widget input non créé pour ssh_passwd, stockage de 'orion1111' en attente
+2025-04-08 16:56:32,835 - pcUtils.text_field - DEBUG - ✅ set_value réussi pour ssh_passwd
+2025-04-08 16:56:32,835 - pcUtils.config_field - DEBUG - Champ ssh_passwd initialisé avec valeur: orion1111
+2025-04-08 16:56:32,837 - pcUtils.config_field - DEBUG - Champ ssh_sms_enabled initialisé avec valeur: False
+2025-04-08 16:56:32,839 - pcUtils.text_field - DEBUG - 🔔 [1] set_value(ggd027sf) pour ssh_sms, update_input=True
+2025-04-08 16:56:32,839 - pcUtils.text_field - DEBUG - 💾 Valeur interne mise à jour pour ssh_sms: '' → 'ggd027sf'
+2025-04-08 16:56:32,839 - pcUtils.text_field - DEBUG - Widget input non créé pour ssh_sms, stockage de 'ggd027sf' en attente
+2025-04-08 16:56:32,839 - pcUtils.text_field - DEBUG - ✅ set_value réussi pour ssh_sms
+2025-04-08 16:56:32,839 - pcUtils.config_field - DEBUG - Champ ssh_sms initialisé avec valeur: ggd027sf
+2025-04-08 16:56:32,841 - pcUtils.text_field - DEBUG - 🔔 [1] set_value() pour ssh_exception_ips, update_input=True
+2025-04-08 16:56:32,842 - pcUtils.text_field - DEBUG - ✓ Valeur interne déjà à '' pour ssh_exception_ips
+2025-04-08 16:56:32,842 - pcUtils.config_field - DEBUG - Champ ssh_exception_ips initialisé avec valeur: 
+2025-04-08 16:56:32,844 - pcUtils.config_field - DEBUG - Champ ssh_root_same initialisé avec valeur: True
+2025-04-08 16:56:32,846 - pcUtils.text_field - DEBUG - 🔔 [1] set_value(nico) pour ssh_root_user, update_input=True
+2025-04-08 16:56:32,846 - pcUtils.text_field - DEBUG - 💾 Valeur interne mise à jour pour ssh_root_user: '' → 'nico'
+2025-04-08 16:56:32,846 - pcUtils.text_field - DEBUG - Widget input non créé pour ssh_root_user, stockage de 'nico' en attente
+2025-04-08 16:56:32,847 - pcUtils.text_field - DEBUG - ✅ set_value réussi pour ssh_root_user
+2025-04-08 16:56:32,847 - pcUtils.config_field - DEBUG - Champ ssh_root_user initialisé avec valeur: nico
+2025-04-08 16:56:32,849 - pcUtils.text_field - DEBUG - 🔔 [1] set_value(orion1111) pour ssh_root_passwd, update_input=True
+2025-04-08 16:56:32,849 - pcUtils.text_field - DEBUG - 💾 Valeur interne mise à jour pour ssh_root_passwd: '' → 'orion1111'
+2025-04-08 16:56:32,849 - pcUtils.text_field - DEBUG - Widget input non créé pour ssh_root_passwd, stockage de 'orion1111' en attente
+2025-04-08 16:56:32,849 - pcUtils.text_field - DEBUG - ✅ set_value réussi pour ssh_root_passwd
+2025-04-08 16:56:32,850 - pcUtils.config_field - DEBUG - Champ ssh_root_passwd initialisé avec valeur: orion1111
+2025-04-08 16:56:32,852 - pcUtils.text_field - DEBUG - 🔔 [1] set_value(22) pour ssh_port, update_input=True
+2025-04-08 16:56:32,852 - pcUtils.text_field - DEBUG - 💾 Valeur interne mise à jour pour ssh_port: '' → '22'
+2025-04-08 16:56:32,852 - pcUtils.text_field - DEBUG - Widget input non créé pour ssh_port, stockage de '22' en attente
+2025-04-08 16:56:32,852 - pcUtils.text_field - DEBUG - ✅ set_value réussi pour ssh_port
+2025-04-08 16:56:32,852 - pcUtils.config_field - DEBUG - Champ ssh_port initialisé avec valeur: 22
+2025-04-08 16:56:32,854 - pcUtils.config_screen - DEBUG - Conteneur SSH rempli avec succès
+2025-04-08 16:56:32,854 - pcUtils.config_screen - DEBUG - Total de 4 containers et 15 champs
+2025-04-08 16:56:32,869 - pcUtils.text_field - DEBUG - 💻 Création du widget input pour ssh_ips avec valeur: '192.168.1.136'
+2025-04-08 16:56:32,876 - pcUtils.text_field - DEBUG - 💻 Création du widget input pour ssh_user avec valeur: 'nico'
+2025-04-08 16:56:32,883 - pcUtils.text_field - DEBUG - 💻 Création du widget input pour ssh_passwd avec valeur: 'orion1111'
+2025-04-08 16:56:32,888 - pcUtils.checkbox_field - DEBUG - 💻 Création du checkbox ssh_sms_enabled avec valeur False
+2025-04-08 16:56:32,894 - pcUtils.config_field - DEBUG - Vérification état initial pour ssh_sms: enabled_if={'field': 'ssh_sms_enabled', 'value': True}, champ dépendant=ssh_sms_enabled
+2025-04-08 16:56:32,894 - pcUtils.config_field - DEBUG - Comparaison pour ssh_sms: False == True
+2025-04-08 16:56:32,894 - pcUtils.config_field - DEBUG - Champ ssh_sms initialement désactivé
+2025-04-08 16:56:32,899 - pcUtils.text_field - DEBUG - 💻 Création du widget input pour ssh_sms avec valeur: 'ggd027sf'
+2025-04-08 16:56:32,903 - pcUtils.text_field - DEBUG - Champ ssh_sms désactivé initialement
+2025-04-08 16:56:32,910 - pcUtils.text_field - DEBUG - 💻 Création du widget input pour ssh_exception_ips avec valeur: ''
+2025-04-08 16:56:32,914 - pcUtils.checkbox_field - DEBUG - 💻 Création du checkbox ssh_root_same avec valeur True
+2025-04-08 16:56:32,918 - pcUtils.config_field - DEBUG - Vérification état initial pour ssh_root_user: enabled_if={'field': 'ssh_root_same', 'value': False}, champ dépendant=ssh_root_same
+2025-04-08 16:56:32,918 - pcUtils.config_field - DEBUG - Comparaison pour ssh_root_user: True == False
+2025-04-08 16:56:32,918 - pcUtils.config_field - DEBUG - Champ ssh_root_user initialement désactivé
+2025-04-08 16:56:32,920 - pcUtils.text_field - DEBUG - 💻 Création du widget input pour ssh_root_user avec valeur: 'nico'
+2025-04-08 16:56:32,921 - pcUtils.text_field - DEBUG - Champ ssh_root_user désactivé initialement
+2025-04-08 16:56:32,928 - pcUtils.config_field - DEBUG - Vérification état initial pour ssh_root_passwd: enabled_if={'field': 'ssh_root_same', 'value': False}, champ dépendant=ssh_root_same
+2025-04-08 16:56:32,928 - pcUtils.config_field - DEBUG - Comparaison pour ssh_root_passwd: True == False
+2025-04-08 16:56:32,929 - pcUtils.config_field - DEBUG - Champ ssh_root_passwd initialement désactivé
+2025-04-08 16:56:32,931 - pcUtils.text_field - DEBUG - 💻 Création du widget input pour ssh_root_passwd avec valeur: 'orion1111'
+2025-04-08 16:56:32,933 - pcUtils.text_field - DEBUG - Champ ssh_root_passwd désactivé initialement
+2025-04-08 16:56:32,942 - pcUtils.password_field - DEBUG - PasswordField ssh_root_passwd is initially disabled
+2025-04-08 16:56:32,949 - pcUtils.text_field - DEBUG - 💻 Création du widget input pour ssh_port avec valeur: '22'
+2025-04-08 16:56:32,953 - pcUtils.choice_screen - DEBUG - Écran de configuration affiché
+2025-04-08 16:56:32,954 - pcUtils.choice_screen - DEBUG - Configuration récupérée: 4 plugins
+2025-04-08 16:56:32,954 - pcUtils.choice_screen - DEBUG - Config mise à jour pour add_printer (ID: 1)
+2025-04-08 16:56:32,954 - pcUtils.choice_screen - DEBUG - Pas de nouvelle config pour __sequence__imp_remp.yml (ID: 1)
+2025-04-08 16:56:32,954 - pcUtils.choice_screen - DEBUG - Config mise à jour pour delete_printer (ID: 2)
+2025-04-08 16:56:32,954 - pcUtils.choice_screen - DEBUG - Config mise à jour pour add_printer (ID: 3)
+2025-04-08 16:56:32,954 - pcUtils.choice_screen - DEBUG - Config mise à jour pour add_printer (ID: 4)
+2025-04-08 16:56:32,958 - pcUtils.selected_plugins_panel - DEBUG - Séquence détectée: __sequence__imp_remp.yml, ID: 1, index: 1
+2025-04-08 16:56:32,958 - pcUtils.sequence_handler - DEBUG - Utilisation de la version en cache pour imp_remp.yml
+2025-04-08 16:56:32,959 - pcUtils.plugin_list_item - DEBUG - Plugin avec config: add_printer
+2025-04-08 16:56:32,959 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: add_printer
+2025-04-08 16:56:32,959 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-08 16:56:32,959 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-08 16:56:32,959 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-08 16:56:32,960 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-08 16:56:32,960 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-08 16:56:32,960 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/add_printer/settings.yml
+2025-04-08 16:56:32,992 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour add_printer
+2025-04-08 16:56:32,992 - pcUtils.plugin_list_item - DEBUG - Info du plugin/séquence chargées pour add_printer
+2025-04-08 16:56:32,992 - pcUtils.plugin_list_item - DEBUG - Plugin sans config: __sequence__imp_remp.yml
+2025-04-08 16:56:32,992 - pcUtils.plugin_list_item - DEBUG - Chargement de la séquence: imp_remp.yml
+2025-04-08 16:56:33,008 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: __sequence__imp_remp.yml
+2025-04-08 16:56:33,008 - pcUtils.plugin_utils - DEBUG - Plugin __sequence__imp_remp.yml est une séquence, utilisation des infos par défaut
+2025-04-08 16:56:33,008 - pcUtils.plugin_list_item - DEBUG - Info du plugin/séquence chargées pour __sequence__imp_remp.yml
+2025-04-08 16:56:33,008 - pcUtils.plugin_list_item - DEBUG - Plugin avec config: delete_printer
+2025-04-08 16:56:33,009 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: delete_printer
+2025-04-08 16:56:33,009 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: delete_printer
+2025-04-08 16:56:33,010 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: delete_printer
+2025-04-08 16:56:33,010 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer_test
+2025-04-08 16:56:33,010 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer
+2025-04-08 16:56:33,010 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: delete_printer
+2025-04-08 16:56:33,010 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/delete_printer/settings.yml
+2025-04-08 16:56:33,028 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour delete_printer
+2025-04-08 16:56:33,028 - pcUtils.plugin_list_item - DEBUG - Info du plugin/séquence chargées pour delete_printer
+2025-04-08 16:56:33,029 - pcUtils.plugin_list_item - DEBUG - Plugin avec config: add_printer
+2025-04-08 16:56:33,029 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: add_printer
+2025-04-08 16:56:33,029 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-08 16:56:33,029 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-08 16:56:33,029 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-08 16:56:33,029 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-08 16:56:33,029 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-08 16:56:33,029 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/add_printer/settings.yml
+2025-04-08 16:56:33,058 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour add_printer
+2025-04-08 16:56:33,058 - pcUtils.plugin_list_item - DEBUG - Info du plugin/séquence chargées pour add_printer
+2025-04-08 16:56:33,058 - pcUtils.plugin_list_item - DEBUG - Plugin avec config: add_printer
+2025-04-08 16:56:33,058 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: add_printer
+2025-04-08 16:56:33,059 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-08 16:56:33,059 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-08 16:56:33,059 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-08 16:56:33,059 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-08 16:56:33,059 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-08 16:56:33,059 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/add_printer/settings.yml
+2025-04-08 16:56:33,088 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour add_printer
+2025-04-08 16:56:33,088 - pcUtils.plugin_list_item - DEBUG - Info du plugin/séquence chargées pour add_printer
+2025-04-08 16:56:33,092 - pcUtils.selected_plugins_panel - DEBUG - Panneau mis à jour avec 5 plugins
+2025-04-08 16:56:33,092 - pcUtils.choice_screen - DEBUG - Affichage des plugins sélectionnés mis à jour
+2025-04-08 16:56:33,150 - pcUtils.plugin_list_item - DEBUG - Composition de l'élément add_printer (is_sequence: False)
+2025-04-08 16:56:33,155 - pcUtils.plugin_list_item - DEBUG - Composition de l'élément __sequence__imp_remp.yml (is_sequence: True)
+2025-04-08 16:56:33,158 - pcUtils.plugin_list_item - DEBUG - Composition de l'élément delete_printer (is_sequence: False)
+2025-04-08 16:56:33,162 - pcUtils.plugin_list_item - DEBUG - Composition de l'élément add_printer (is_sequence: False)
+2025-04-08 16:56:33,166 - pcUtils.plugin_list_item - DEBUG - Composition de l'élément add_printer (is_sequence: False)
+2025-04-08 16:56:33,177 - pcUtils.ip_field - DEBUG - 👁️ Changement d'adresse IP pour printer_ip: '192.168.1.221' → '192.168.1.223'
+2025-04-08 16:56:33,178 - pcUtils.ip_field - DEBUG - 🔔 set_value(192.168.1.223) pour printer_ip, update_input=False
+2025-04-08 16:56:33,178 - pcUtils.ip_field - DEBUG - 💾 Valeur interne mise à jour pour printer_ip: '192.168.1.221' → '192.168.1.223'
+2025-04-08 16:56:33,178 - pcUtils.ip_field - DEBUG - 🔗 Notification des dépendances pour printer_ip
+2025-04-08 16:56:33,178 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour printer_ip
+2025-04-08 16:56:33,178 - pcUtils.ip_field - DEBUG - ✅ set_value réussi pour printer_ip
+2025-04-08 16:56:33,178 - pcUtils.ip_field - DEBUG - 👁️ Changement d'adresse IP pour printer_ip: '192.168.1.223' → '192.168.1.222'
+2025-04-08 16:56:33,178 - pcUtils.ip_field - DEBUG - 🔔 set_value(192.168.1.222) pour printer_ip, update_input=False
+2025-04-08 16:56:33,178 - pcUtils.ip_field - DEBUG - 💾 Valeur interne mise à jour pour printer_ip: '192.168.1.223' → '192.168.1.222'
+2025-04-08 16:56:33,178 - pcUtils.ip_field - DEBUG - 🔗 Notification des dépendances pour printer_ip
+2025-04-08 16:56:33,179 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour printer_ip
+2025-04-08 16:56:33,179 - pcUtils.ip_field - DEBUG - ✅ set_value réussi pour printer_ip
+2025-04-08 16:56:33,179 - pcUtils.ip_field - DEBUG - 👁️ Changement d'adresse IP pour printer_ip: '192.168.1.222' → '192.168.1.221'
+2025-04-08 16:56:33,179 - pcUtils.ip_field - DEBUG - 🔔 set_value(192.168.1.221) pour printer_ip, update_input=False
+2025-04-08 16:56:33,179 - pcUtils.ip_field - DEBUG - 💾 Valeur interne mise à jour pour printer_ip: '192.168.1.222' → '192.168.1.221'
+2025-04-08 16:56:33,179 - pcUtils.ip_field - DEBUG - 🔗 Notification des dépendances pour printer_ip
+2025-04-08 16:56:33,179 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour printer_ip
+2025-04-08 16:56:33,179 - pcUtils.ip_field - DEBUG - ✅ set_value réussi pour printer_ip
+2025-04-08 16:56:33,180 - pcUtils.select_field - DEBUG - On_select_changed: valeur modifiée pour printer_model: EC4200.yml
+2025-04-08 16:56:33,180 - pcUtils.select_field - DEBUG - 🔎 set_value(EC4200.yml) pour printer_model, update_input=False, update_dependencies=True
+2025-04-08 16:56:33,180 - pcUtils.select_field - DEBUG - Mise à jour des dépendances pour printer_model avec 'EC4200.yml'
+2025-04-08 16:56:33,180 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour printer_model
+2025-04-08 16:56:33,180 - pcUtils.select_field - DEBUG - 🔎 set_value(EC4200.yml) pour printer_model, update_input=True, update_dependencies=True
+2025-04-08 16:56:33,180 - pcUtils.select_field - DEBUG - ✓ Valeur déjà définie à 'EC4200.yml' pour printer_model, aucune action nécessaire
+2025-04-08 16:56:33,180 - pcUtils.config_field - DEBUG - Valeur de printer_model changée à KM227.yml
+2025-04-08 16:56:33,181 - pcUtils.select_field - DEBUG - On_select_changed: valeur modifiée pour printer_model: KM227.yml
+2025-04-08 16:56:33,181 - pcUtils.select_field - DEBUG - 🔎 set_value(KM227.yml) pour printer_model, update_input=False, update_dependencies=True
+2025-04-08 16:56:33,181 - pcUtils.select_field - DEBUG - Mise à jour des dépendances pour printer_model avec 'KM227.yml'
+2025-04-08 16:56:33,181 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour printer_model
+2025-04-08 16:56:33,181 - pcUtils.select_field - DEBUG - 🔎 set_value(KM227.yml) pour printer_model, update_input=True, update_dependencies=True
+2025-04-08 16:56:33,181 - pcUtils.select_field - DEBUG - ✓ Valeur déjà définie à 'KM227.yml' pour printer_model, aucune action nécessaire
+2025-04-08 16:56:33,181 - pcUtils.config_field - DEBUG - Valeur de printer_model changée à KM227.yml
+2025-04-08 16:56:33,182 - pcUtils.text_field - DEBUG - 👁️ on_input_changed pour printer_name: 'Autre' → 'Premiere'
+2025-04-08 16:56:33,182 - pcUtils.text_field - DEBUG - 🔔 [4] set_value(Premiere) pour printer_name, update_input=False
+2025-04-08 16:56:33,182 - pcUtils.text_field - DEBUG - 💾 Valeur interne mise à jour pour printer_name: 'Autre' → 'Premiere'
+2025-04-08 16:56:33,182 - pcUtils.text_field - DEBUG - 🔗 Notification des dépendances pour printer_name
+2025-04-08 16:56:33,182 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour printer_name
+2025-04-08 16:56:33,182 - pcUtils.text_field - DEBUG - ✅ set_value réussi pour printer_name
+2025-04-08 16:56:33,182 - pcUtils.text_field - DEBUG - 👁️ on_input_changed pour printer_name: 'Premiere' → 'Autre'
+2025-04-08 16:56:33,182 - pcUtils.text_field - DEBUG - 🔔 [5] set_value(Autre) pour printer_name, update_input=False
+2025-04-08 16:56:33,182 - pcUtils.text_field - DEBUG - 💾 Valeur interne mise à jour pour printer_name: 'Premiere' → 'Autre'
+2025-04-08 16:56:33,183 - pcUtils.text_field - DEBUG - 🔗 Notification des dépendances pour printer_name
+2025-04-08 16:56:33,183 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour printer_name
+2025-04-08 16:56:33,183 - pcUtils.text_field - DEBUG - ✅ set_value réussi pour printer_name
+2025-04-08 16:56:33,702 - pcUtils.text_field - DEBUG - 🚨 MONTAGE du champ ssh_ips
+2025-04-08 16:56:33,703 - pcUtils.text_field - DEBUG - Application de la valeur en attente '192.168.1.136' pour ssh_ips
+2025-04-08 16:56:33,703 - pcUtils.text_field - DEBUG - Widget déjà à la valeur '192.168.1.136' pour ssh_ips, rien à faire
+2025-04-08 16:56:33,703 - pcUtils.text_field - DEBUG - ✓ on_input_changed: valeur déjà à jour pour ssh_ips: '192.168.1.136'
+2025-04-08 16:56:33,704 - pcUtils.text_field - DEBUG - 🚨 MONTAGE du champ ssh_user
+2025-04-08 16:56:33,704 - pcUtils.text_field - DEBUG - Application de la valeur en attente 'nico' pour ssh_user
+2025-04-08 16:56:33,704 - pcUtils.text_field - DEBUG - Widget déjà à la valeur 'nico' pour ssh_user, rien à faire
+2025-04-08 16:56:33,705 - pcUtils.text_field - DEBUG - ✓ on_input_changed: valeur déjà à jour pour ssh_user: 'nico'
+2025-04-08 16:56:33,705 - pcUtils.text_field - DEBUG - 🚨 MONTAGE du champ ssh_passwd
+2025-04-08 16:56:33,705 - pcUtils.text_field - DEBUG - Application de la valeur en attente 'orion1111' pour ssh_passwd
+2025-04-08 16:56:33,705 - pcUtils.text_field - DEBUG - Widget déjà à la valeur 'orion1111' pour ssh_passwd, rien à faire
+2025-04-08 16:56:33,706 - pcUtils.text_field - DEBUG - ✓ on_input_changed: valeur déjà à jour pour ssh_passwd: 'orion1111'
+2025-04-08 16:56:33,707 - pcUtils.text_field - DEBUG - 🚨 MONTAGE du champ ssh_sms
+2025-04-08 16:56:33,707 - pcUtils.text_field - DEBUG - Application de la valeur en attente 'ggd027sf' pour ssh_sms
+2025-04-08 16:56:33,707 - pcUtils.text_field - DEBUG - Widget déjà à la valeur 'ggd027sf' pour ssh_sms, rien à faire
+2025-04-08 16:56:33,708 - pcUtils.text_field - DEBUG - ✓ on_input_changed: valeur déjà à jour pour ssh_sms: 'ggd027sf'
+2025-04-08 16:56:33,708 - pcUtils.text_field - DEBUG - 🚨 MONTAGE du champ ssh_exception_ips
+2025-04-08 16:56:33,708 - pcUtils.text_field - DEBUG - Pas de valeur en attente pour ssh_exception_ips, valeur actuelle: ''
+2025-04-08 16:56:33,709 - pcUtils.text_field - DEBUG - 🚨 MONTAGE du champ ssh_root_user
+2025-04-08 16:56:33,710 - pcUtils.text_field - DEBUG - Application de la valeur en attente 'nico' pour ssh_root_user
+2025-04-08 16:56:33,710 - pcUtils.text_field - DEBUG - Widget déjà à la valeur 'nico' pour ssh_root_user, rien à faire
+2025-04-08 16:56:33,710 - pcUtils.text_field - DEBUG - ✓ on_input_changed: valeur déjà à jour pour ssh_root_user: 'nico'
+2025-04-08 16:56:33,711 - pcUtils.text_field - DEBUG - 🚨 MONTAGE du champ ssh_root_passwd
+2025-04-08 16:56:33,711 - pcUtils.text_field - DEBUG - Application de la valeur en attente 'orion1111' pour ssh_root_passwd
+2025-04-08 16:56:33,711 - pcUtils.text_field - DEBUG - Widget déjà à la valeur 'orion1111' pour ssh_root_passwd, rien à faire
+2025-04-08 16:56:33,712 - pcUtils.text_field - DEBUG - ✓ on_input_changed: valeur déjà à jour pour ssh_root_passwd: 'orion1111'
+2025-04-08 16:56:33,712 - pcUtils.text_field - DEBUG - 🚨 MONTAGE du champ ssh_port
+2025-04-08 16:56:33,712 - pcUtils.text_field - DEBUG - Application de la valeur en attente '22' pour ssh_port
+2025-04-08 16:56:33,712 - pcUtils.text_field - DEBUG - Widget déjà à la valeur '22' pour ssh_port, rien à faire
+2025-04-08 16:56:33,713 - pcUtils.text_field - DEBUG - ✓ on_input_changed: valeur déjà à jour pour ssh_port: '22'

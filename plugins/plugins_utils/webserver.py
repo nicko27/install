@@ -5,7 +5,7 @@ Module utilitaire pour la gestion des serveurs web Apache2 et Nginx.
 Utilise les commandes système spécifiques (apachectl/httpd, a2en*/a2dis*, nginx).
 """
 
-from .plugin_utils_base import PluginUtilsBase
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
 import os
 import glob
 from pathlib import Path
@@ -18,7 +18,7 @@ try:
 except ImportError:
     SERVICES_AVAILABLE = False
 
-class WebServerCommands(PluginUtilsBase):
+class WebServerCommands(PluginsUtilsBase):
     """
     Classe pour gérer les serveurs web Apache2 et Nginx.
     Hérite de PluginUtilsBase pour l'exécution de commandes.

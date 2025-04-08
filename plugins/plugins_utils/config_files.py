@@ -6,7 +6,7 @@ Module utilitaire pour lire et écrire différents formats de fichiers de config
 La prise en charge de YAML a été supprimée car ruamel.yaml n'est pas disponible.
 """
 
-from .plugin_utils_base import PluginUtilsBase
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
 import os
 import re
 import json
@@ -20,7 +20,7 @@ from typing import Union, Optional, List, Dict, Any, Tuple, Generator
 # ruamel.yaml n'est pas disponible
 RUAMEL_YAML_AVAILABLE = False
 
-class ConfigFileCommands(PluginUtilsBase):
+class ConfigFileCommands(PluginsUtilsBase):
     """
     Classe pour lire et écrire des fichiers de configuration (INI, JSON)
     et manipuler des fichiers texte.

@@ -5,7 +5,7 @@ Module utilitaire pour effectuer des actions de réparation système courantes.
 Combine des fonctionnalités d'autres modules utilitaires (apt, dpkg, logs, services).
 """
 
-from .plugin_utils_base import PluginUtilsBase
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
 import os
 import time
 from pathlib import Path
@@ -33,7 +33,7 @@ except ImportError as e:
     logging.warning(f"Échec de l'importation d'utilitaires requis pour RepairUtils: {e}. Fonctionnalités limitées.")
 
 
-class RepairCommands(PluginUtilsBase):
+class RepairCommands(PluginsUtilsBase):
     """
     Classe pour exécuter des actions de réparation système courantes.
     Hérite de PluginUtilsBase et utilise d'autres commandes utilitaires.

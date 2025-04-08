@@ -6,16 +6,14 @@ Utilise les commandes pvs, vgs, lvs, pvcreate, vgcreate, lvcreate, etc.
 Privilégie la sortie JSON lorsque disponible (--reportformat json).
 """
 
-from .plugin_utils_base import PluginUtilsBase
-import os
-import re
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
 import json
 from typing import Union, Optional, List, Dict, Any, Tuple
 
 # Unités de taille LVM courantes
 LVM_UNITS = {'k', 'm', 'g', 't', 'p', 'e'} # Kilo, Mega, Giga, Tera, Peta, Exa (puissances de 1024)
 
-class LvmCommands(PluginUtilsBase):
+class LvmCommands(PluginsUtilsBase):
     """
     Classe pour gérer LVM (Physical Volumes, Volume Groups, Logical Volumes).
     Hérite de PluginUtilsBase pour l'exécution de commandes.

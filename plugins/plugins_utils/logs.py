@@ -6,7 +6,7 @@ Combine la gestion de logrotate, journald et l'analyse de contenu/taille.
 Utilise logrotate, journalctl, find, du, grep, sort, uniq.
 """
 
-from .plugin_utils_base import PluginUtilsBase
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
 import os
 import re
 import time
@@ -20,7 +20,7 @@ try:
 except ImportError:
     ARCHIVE_AVAILABLE = False
 
-class LogCommands(PluginUtilsBase):
+class LogCommands(PluginsUtilsBase):
     """
     Classe pour la gestion et l'analyse des logs système.
     Hérite de PluginUtilsBase pour l'exécution de commandes.

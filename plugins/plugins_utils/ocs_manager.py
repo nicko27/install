@@ -5,7 +5,7 @@ Module utilitaire pour interagir avec OCS Inventory NG (Agent et Serveur API RES
 Utilise la commande 'ocsinventory-agent' et potentiellement la bibliothèque 'requests'.
 """
 
-from .plugin_utils_base import PluginUtilsBase
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
 import os
 import re
 import configparser # Pour parser les fichiers .ini simples si nécessaire
@@ -20,7 +20,7 @@ try:
 except ImportError:
     REQUESTS_AVAILABLE = False
 
-class OcsManagerCommands(PluginUtilsBase):
+class OcsManagerCommands(PluginsUtilsBase):
     """
     Classe pour interagir avec l'agent OCS Inventory et le serveur via API REST.
     Hérite de PluginUtilsBase pour l'exécution de commandes.

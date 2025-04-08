@@ -14,9 +14,9 @@ from pathlib import Path
 from typing import Union, Optional, List, Tuple, Dict, Any, Generator
 
 # Import de la classe de base
-from .plugin_utils_base import PluginUtilsBase
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
 
-class Files(PluginUtilsBase):
+class Files(PluginsUtilsBase):
     """
     Classe utilitaire pour la gestion des fichiers et répertoires.
     Hérite de PluginUtilsBase pour l'exécution de commandes (si nécessaire) et la progression.

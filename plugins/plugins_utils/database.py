@@ -5,14 +5,15 @@ Module utilitaire pour les interactions de base avec les SGBD MySQL/MariaDB et P
 Utilise les outils clients en ligne de commande (mysql, psql, mysqldump, pg_dump, etc.).
 """
 
-from .plugin_utils_base import PluginUtilsBase
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
+
 import os
 import shlex # Pour échapper les arguments
 import tempfile
 from pathlib import Path
 from typing import Union, Optional, List, Dict, Any, Tuple
 
-class DatabaseCommands(PluginUtilsBase):
+class DatabaseCommands(PluginsUtilsBase):
     """
     Classe pour les interactions de base avec MySQL/MariaDB et PostgreSQL via CLI.
     Hérite de PluginUtilsBase pour l'exécution de commandes.

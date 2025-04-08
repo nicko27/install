@@ -5,13 +5,13 @@ Module utilitaire pour la gestion des utilisateurs et groupes locaux sous Linux.
 Utilise les commandes système standard (useradd, usermod, userdel, groupadd, etc.).
 """
 
-from .plugin_utils_base import PluginUtilsBase
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
 import os
 import re
 import crypt # Pour gérer les mots de passe cryptés
 from typing import Union, Optional, List, Dict, Any, Tuple
 
-class UserGroupCommands(PluginUtilsBase):
+class UserGroupCommands(PluginsUtilsBase):
     """
     Classe pour gérer les utilisateurs et groupes locaux.
     Hérite de PluginUtilsBase pour l'exécution de commandes et la progression.

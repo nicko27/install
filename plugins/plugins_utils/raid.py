@@ -7,7 +7,7 @@ Permet de créer, gérer, surveiller et réparer les dispositifs RAID.
 """
 
 # Import de la classe de base et des types
-from .plugin_utils_base import PluginUtilsBase
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
 import os
 import re
 import time
@@ -15,7 +15,7 @@ import tempfile
 from pathlib import Path
 from typing import Union, Optional, List, Dict, Any, Tuple
 
-class RaidCommands(PluginUtilsBase):
+class RaidCommands(PluginsUtilsBase):
     """
     Classe pour gérer les tableaux RAID Linux (mdadm).
     Hérite de PluginUtilsBase pour l'exécution de commandes et la progression.

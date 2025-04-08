@@ -5,7 +5,7 @@ Module utilitaire pour vérifier les dépendances et prérequis d'un plugin.
 Vérifie la présence de commandes, paquets, modules Python, fichiers, etc.
 """
 
-from .plugin_utils_base import PluginUtilsBase
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
 import os
 import importlib.util
 from pathlib import Path
@@ -19,7 +19,7 @@ except ImportError:
     APT_AVAILABLE = False
     class AptCommands: pass # Factice si non disponible
 
-class DependencyChecker(PluginUtilsBase):
+class DependencyChecker(PluginsUtilsBase):
     """
     Classe pour vérifier les prérequis d'exécution d'un plugin.
     Hérite de PluginUtilsBase pour l'exécution de commandes et la journalisation.

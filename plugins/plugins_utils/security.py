@@ -5,7 +5,7 @@ Module utilitaire pour les tâches de sécurité courantes.
 Gestion des clés SSH, permissions, propriétaires, interaction fail2ban.
 """
 
-from .plugin_utils_base import PluginUtilsBase
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
 import os
 import pwd # Pour trouver le home directory d'un utilisateur
 import grp # Pour trouver le groupe d'un utilisateur
@@ -13,7 +13,7 @@ import stat # Pour interpréter les modes de permission
 from pathlib import Path
 from typing import Union, Optional, List, Dict, Any, Tuple
 
-class SecurityCommands(PluginUtilsBase):
+class SecurityCommands(PluginsUtilsBase):
     """
     Classe pour effectuer des opérations de sécurité courantes.
     Hérite de PluginUtilsBase pour l'exécution de commandes.

@@ -5,7 +5,7 @@ Module utilitaire pour la gestion basique des certificats SSL/TLS.
 Utilise la commande système 'openssl'.
 """
 
-from .plugin_utils_base import PluginUtilsBase
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
 import os
 import re
 import tempfile
@@ -13,7 +13,7 @@ from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from typing import Union, Optional, List, Dict, Any, Tuple
 
-class SslCertCommands(PluginUtilsBase):
+class SslCertCommands(PluginsUtilsBase):
     """
     Classe pour effectuer des opérations basiques sur les certificats SSL/TLS via openssl.
     Hérite de PluginUtilsBase pour l'exécution de commandes.

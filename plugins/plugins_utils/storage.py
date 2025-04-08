@@ -6,14 +6,14 @@ Permet de lister, ajouter et supprimer des tâches pour les utilisateurs
 et dans les répertoires système (/etc/cron.d).
 """
 
-from .plugin_utils_base import PluginUtilsBase
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
 import os
 import re
 import tempfile
 from pathlib import Path
 from typing import Union, Optional, List, Dict, Any, Tuple
 
-class CronCommands(PluginUtilsBase):
+class CronCommands(PluginsUtilsBase):
     """
     Classe pour gérer les tâches cron système et utilisateur.
     Hérite de PluginUtilsBase pour l'exécution de commandes.

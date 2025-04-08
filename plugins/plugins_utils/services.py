@@ -8,12 +8,12 @@ et vérifier l'état des services du système.
 """
 
 # Import de la classe de base et des types
-from .plugin_utils_base import PluginUtilsBase
+from plugins_utils.plugins_utils_base import PluginsUtilsBase
 import json # Pour parser la sortie de systemctl show
 import time # Pour les délais potentiels
 from typing import Union, Optional, List, Dict, Any, Tuple
 
-class ServiceCommands(PluginUtilsBase):
+class ServiceCommands(PluginsUtilsBase):
     """
     Classe pour gérer les services systemd via systemctl.
     Hérite de PluginUtilsBase pour l'exécution de commandes.
