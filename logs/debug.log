@@ -1133,3 +1133,5 @@ client_session: <aiohttp.client.ClientSession object at 0x786543af2290>
 2025-04-08 18:22:10,990 - pcUtils.text_field - DEBUG - Application de la valeur en attente '22' pour ssh_port
 2025-04-08 18:22:10,990 - pcUtils.text_field - DEBUG - Widget déjà à la valeur '22' pour ssh_port, rien à faire
 2025-04-08 18:22:10,990 - pcUtils.text_field - DEBUG - ✓ on_input_changed: valeur déjà à jour pour ssh_port: '22'
+2025-04-09 09:04:03,989 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x7f72b6ef22c0>

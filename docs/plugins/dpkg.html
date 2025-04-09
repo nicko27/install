@@ -9,12 +9,9 @@
   <style>
     /* Style additionnel pour les avertissements de dépendance */
     .dependency-warning {
-      color: #856404;
-      /* Jaune/brun */
-      background-color: #fff3cd;
-      /* Jaune clair */
-      border: 1px solid #ffeeba;
-      /* Jaune moyen */
+      color: #856404; /* Jaune/brun */
+      background-color: #fff3cd; /* Jaune clair */
+      border: 1px solid #ffeeba; /* Jaune moyen */
       border-radius: 4px;
       padding: 0.75rem 1rem;
       font-size: 0.9rem;
@@ -22,28 +19,18 @@
       margin-top: 0.5rem;
       margin-bottom: 1rem;
     }
-
     .dependency-warning::before {
       content: "⚠️ Prérequis: ";
     }
-
     /* Style pour séparer les sections */
-    .db-section-title {
-      /* Réutiliser le style */
-      font-size: 1.5rem;
-      /* text-2xl */
-      font-weight: 600;
-      /* font-semibold */
-      margin-top: 2rem;
-      /* mt-8 */
-      margin-bottom: 1rem;
-      /* mb-4 */
-      padding-bottom: 0.3rem;
-      /* pb-1 */
-      border-bottom: 1px solid #adb5bd;
-      /* border-b border-gray-400 */
-      color: #495057;
-      /* Gris moyen-foncé */
+    .db-section-title { /* Réutiliser le style */
+      font-size: 1.5rem; /* text-2xl */
+      font-weight: 600; /* font-semibold */
+      margin-top: 2rem; /* mt-8 */
+      margin-bottom: 1rem; /* mb-4 */
+      padding-bottom: 0.3rem; /* pb-1 */
+      border-bottom: 1px solid #adb5bd; /* border-b border-gray-400 */
+      color: #495057; /* Gris moyen-foncé */
     }
   </style>
 </head>
@@ -55,11 +42,11 @@
 
     <p class="module-description">
       Ce module fournit des utilitaires pour la gestion avancée des paquets Debian via <code>dpkg</code>.
-      Il permet de gérer les sélections de paquets (<code>dpkg --set-selections</code>) et les
-      pré-réponses debconf (<code>debconf-set-selections</code>).
+      Il permet de gérer les sélections de paquets (<code>dpkg --set-selections</code>), les
+      pré-réponses debconf (<code>debconf-set-selections</code>), et de récupérer les sélections debconf existantes (<code>debconf-get-selections</code>).
     </p>
     <p class="dependency-warning">
-      Nécessite que les commandes <code>dpkg</code> et <code>debconf-utils</code> (pour les opérations debconf)
+      Nécessite que les commandes <code>dpkg</code>, <code>debconf-utils</code> (pour les opérations debconf) et <code>grep</code>
       soient installées. Le module <code>AptCommands</code> est utilisé pour tenter d'installer
       <code>debconf-utils</code> si nécessaire.
     </p>
@@ -68,27 +55,19 @@
       <h3 class="toc-title">Accès Rapide aux Méthodes</h3>
       <ul class="toc-list">
         <li class="toc-item" style="font-weight: 600;">Sélections Dpkg</li>
-        <li class="toc-item" style="margin-left: 1rem;"><a href="#add_package_selection"
-            class="toc-link">add_package_selection</a></li>
-        <li class="toc-item" style="margin-left: 1rem;"><a href="#add_package_selections"
-            class="toc-link">add_package_selections</a></li>
-        <li class="toc-item" style="margin-left: 1rem;"><a href="#load_package_selections_from_file"
-            class="toc-link">load_package_selections_from_file</a></li>
-        <li class="toc-item" style="margin-left: 1rem;"><a href="#clear_package_selections"
-            class="toc-link">clear_package_selections</a></li>
-        <li class="toc-item" style="margin-left: 1rem;"><a href="#apply_package_selections"
-            class="toc-link">apply_package_selections</a></li>
-        <li class="toc-item" style="font-weight: 600; margin-top: 0.5rem;">Pré-réponses Debconf</li>
-        <li class="toc-item" style="margin-left: 1rem;"><a href="#add_debconf_selection"
-            class="toc-link">add_debconf_selection</a></li>
-        <li class="toc-item" style="margin-left: 1rem;"><a href="#add_debconf_selections"
-            class="toc-link">add_debconf_selections</a></li>
-        <li class="toc-item" style="margin-left: 1rem;"><a href="#load_debconf_selections_from_file"
-            class="toc-link">load_debconf_selections_from_file</a></li>
-        <li class="toc-item" style="margin-left: 1rem;"><a href="#clear_debconf_selections"
-            class="toc-link">clear_debconf_selections</a></li>
-        <li class="toc-item" style="margin-left: 1rem;"><a href="#apply_debconf_selections"
-            class="toc-link">apply_debconf_selections</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#add_package_selection" class="toc-link">add_package_selection</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#add_package_selections" class="toc-link">add_package_selections</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#load_package_selections_from_file" class="toc-link">load_package_selections_from_file</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#clear_package_selections" class="toc-link">clear_package_selections</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#apply_package_selections" class="toc-link">apply_package_selections</a></li>
+        <li class="toc-item" style="font-weight: 600; margin-top: 0.5rem;">Pré-réponses Debconf (Set/Get)</li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#add_debconf_selection" class="toc-link">add_debconf_selection</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#add_debconf_selections" class="toc-link">add_debconf_selections</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#load_debconf_selections_from_file" class="toc-link">load_debconf_selections_from_file</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#clear_debconf_selections" class="toc-link">clear_debconf_selections</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#apply_debconf_selections" class="toc-link">apply_debconf_selections</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#get_debconf_selections_for_package" class="toc-link">get_debconf_selections_for_package</a></li>
+        <li class="toc-item" style="margin-left: 1rem;"><a href="#get_debconf_value" class="toc-link">get_debconf_value</a></li>
       </ul>
     </nav>
 
@@ -105,40 +84,30 @@
     <h2 class="db-section-title">Méthodes de Gestion des Sélections Dpkg</h2>
 
     <section class="method-section">
-      <h4 class="method-title" id="add_package_selection">
-        <code>add_package_selection(package: str, status: str = "install")</code></h4>
-      <p class="description">Ajoute ou met à jour une sélection de paquet individuelle dans la liste cumulative interne
-        (avant application).</p>
+      <h4 class="method-title" id="add_package_selection"><code>add_package_selection(package: str, status: str = "install")</code></h4>
+      <p class="description">Ajoute ou met à jour une sélection de paquet individuelle dans la liste cumulative interne (avant application).</p>
       <dl class="param-list">
-        <dt>package</dt>
-        <dd><span class="param-type">(str)</span>: Nom du paquet.</dd>
-        <dt>status</dt>
-        <dd><span class="param-type">(str)</span>: Statut souhaité ('install', 'hold', 'deinstall', 'purge'). Défaut:
-          'install'.</dd>
+        <dt>package</dt><dd><span class="param-type">(str)</span>: Nom du paquet.</dd>
+        <dt>status</dt><dd><span class="param-type">(str)</span>: Statut souhaité ('install', 'hold', 'deinstall', 'purge'). Défaut: 'install'.</dd>
       </dl>
     </section>
 
     <section class="method-section">
       <h4 class="method-title" id="add_package_selections"><code>add_package_selections(selections: str)</code></h4>
-      <p class="description">Ajoute des sélections de paquets depuis une chaîne multiligne (format: "package status" par
-        ligne) à la liste cumulative interne.</p>
+      <p class="description">Ajoute des sélections de paquets depuis une chaîne multiligne (format: "package status" par ligne) à la liste cumulative interne.</p>
       <dl class="param-list">
-        <dt>selections</dt>
-        <dd><span class="param-type">(str)</span>: Chaîne contenant les sélections.</dd>
+        <dt>selections</dt><dd><span class="param-type">(str)</span>: Chaîne contenant les sélections.</dd>
       </dl>
     </section>
 
     <section class="method-section">
-      <h4 class="method-title" id="load_package_selections_from_file">
-        <code>load_package_selections_from_file(filepath: str) -> bool</code></h4>
+      <h4 class="method-title" id="load_package_selections_from_file"><code>load_package_selections_from_file(filepath: str) -> bool</code></h4>
       <p class="description">Charge les sélections depuis un fichier et les ajoute à la liste cumulative interne.</p>
       <dl class="param-list">
-        <dt>filepath</dt>
-        <dd><span class="param-type">(str)</span>: Chemin vers le fichier de sélections.</dd>
+        <dt>filepath</dt><dd><span class="param-type">(str)</span>: Chemin vers le fichier de sélections.</dd>
       </dl>
       <div class="return-info">
-        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si le chargement a
-        réussi.
+        <span class="font-medium">Retourne:</span> <span class="return-type">bool</span> - True si le chargement a réussi.
       </div>
     </section>
 
@@ -148,63 +117,47 @@
     </section>
 
     <section class="method-section">
-      <h4 class="method-title" id="apply_package_selections">
-        <code>apply_package_selections(task_id: Optional[str] = None) -> bool</code></h4>
-      <p class="description">Applique toutes les sélections de paquets en attente via
-        <code>dpkg --set-selections</code>. La liste interne est vidée après une application réussie.</p>
+      <h4 class="method-title" id="apply_package_selections"><code>apply_package_selections(task_id: Optional[str] = None) -> bool</code></h4>
+      <p class="description">Applique toutes les sélections de paquets en attente via <code>dpkg --set-selections</code>. La liste interne est vidée après une application réussie.</p>
       <p class="sudo-warning">Nécessite des privilèges root.</p>
       <dl class="param-list">
-        <dt>task_id</dt>
-        <dd><span class="param-type">(Optional[str])</span>: ID de tâche pour la progression (optionnel).</dd>
+        <dt>task_id</dt><dd><span class="param-type">(Optional[str])</span>: ID de tâche pour la progression (optionnel).</dd>
       </dl>
       <div class="return-info">
-        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si l'opération a réussi.
+        <span class="font-medium">Retourne:</span> <span class="return-type">bool</span> - True si l'opération a réussi.
       </div>
     </section>
 
     <h2 class="db-section-title">Méthodes de Gestion des Pré-réponses Debconf</h2>
 
     <section class="method-section">
-      <h4 class="method-title" id="add_debconf_selection">
-        <code>add_debconf_selection(package: str, question: str, q_type: str, value: str)</code></h4>
-      <p class="description">Ajoute ou met à jour une pré-réponse debconf individuelle dans la liste cumulative interne.
-      </p>
+      <h4 class="method-title" id="add_debconf_selection"><code>add_debconf_selection(package: str, question: str, q_type: str, value: str)</code></h4>
+      <p class="description">Ajoute ou met à jour une pré-réponse debconf individuelle dans la liste cumulative interne.</p>
       <dl class="param-list">
-        <dt>package</dt>
-        <dd><span class="param-type">(str)</span>: Nom du paquet.</dd>
-        <dt>question</dt>
-        <dd><span class="param-type">(str)</span>: Nom de la question debconf.</dd>
-        <dt>q_type</dt>
-        <dd><span class="param-type">(str)</span>: Type de la question (string, boolean, select, etc.).</dd>
-        <dt>value</dt>
-        <dd><span class="param-type">(str)</span>: Valeur de la réponse.</dd>
+        <dt>package</dt><dd><span class="param-type">(str)</span>: Nom du paquet.</dd>
+        <dt>question</dt><dd><span class="param-type">(str)</span>: Nom de la question debconf.</dd>
+        <dt>q_type</dt><dd><span class="param-type">(str)</span>: Type de la question (string, boolean, select, etc.).</dd>
+        <dt>value</dt><dd><span class="param-type">(str)</span>: Valeur de la réponse.</dd>
       </dl>
     </section>
 
     <section class="method-section">
       <h4 class="method-title" id="add_debconf_selections"><code>add_debconf_selections(selections: str)</code></h4>
-      <p class="description">Ajoute des pré-réponses debconf depuis une chaîne multiligne (format: "package question
-        type value" par ligne) à la liste cumulative interne.</p>
+      <p class="description">Ajoute des pré-réponses debconf depuis une chaîne multiligne (format: "package question type value" par ligne) à la liste cumulative interne.</p>
       <dl class="param-list">
-        <dt>selections</dt>
-        <dd><span class="param-type">(str)</span>: Chaîne contenant les pré-réponses.</dd>
+        <dt>selections</dt><dd><span class="param-type">(str)</span>: Chaîne contenant les pré-réponses.</dd>
       </dl>
     </section>
 
     <section class="method-section">
-      <h4 class="method-title" id="load_debconf_selections_from_file">
-        <code>load_debconf_selections_from_file(filepath: str) -> bool</code></h4>
-      <p class="description">Charge les pré-réponses debconf depuis un fichier et les ajoute à la liste cumulative
-        interne.</p>
-      <p class="dependency-warning">Tente d'installer <code>debconf-utils</code> via <code>AptCommands</code> si
-        nécessaire.</p>
+      <h4 class="method-title" id="load_debconf_selections_from_file"><code>load_debconf_selections_from_file(filepath: str) -> bool</code></h4>
+      <p class="description">Charge les pré-réponses debconf depuis un fichier et les ajoute à la liste cumulative interne.</p>
+      <p class="dependency-warning">Tente d'installer <code>debconf-utils</code> via <code>AptCommands</code> si nécessaire.</p>
       <dl class="param-list">
-        <dt>filepath</dt>
-        <dd><span class="param-type">(str)</span>: Chemin vers le fichier de pré-réponses.</dd>
+        <dt>filepath</dt><dd><span class="param-type">(str)</span>: Chemin vers le fichier de pré-réponses.</dd>
       </dl>
       <div class="return-info">
-        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si le chargement a
-        réussi.
+        <span class="font-medium">Retourne:</span> <span class="return-type">bool</span> - True si le chargement a réussi.
       </div>
     </section>
 
@@ -214,25 +167,44 @@
     </section>
 
     <section class="method-section">
-      <h4 class="method-title" id="apply_debconf_selections">
-        <code>apply_debconf_selections(task_id: Optional[str] = None) -> bool</code></h4>
-      <p class="description">Applique toutes les pré-réponses debconf en attente via
-        <code>debconf-set-selections</code>. La liste interne est vidée après une application réussie.</p>
-      <p class="dependency-warning">Tente d'installer <code>debconf-utils</code> via <code>AptCommands</code> si
-        nécessaire.</p>
+      <h4 class="method-title" id="apply_debconf_selections"><code>apply_debconf_selections(task_id: Optional[str] = None) -> bool</code></h4>
+      <p class="description">Applique toutes les pré-réponses debconf en attente via <code>debconf-set-selections</code>. La liste interne est vidée après une application réussie.</p>
+      <p class="dependency-warning">Tente d'installer <code>debconf-utils</code> via <code>AptCommands</code> si nécessaire.</p>
       <p class="sudo-warning">Nécessite des privilèges root.</p>
       <dl class="param-list">
-        <dt>task_id</dt>
-        <dd><span class="param-type">(Optional[str])</span>: ID de tâche pour la progression (optionnel).</dd>
+        <dt>task_id</dt><dd><span class="param-type">(Optional[str])</span>: ID de tâche pour la progression (optionnel).</dd>
       </dl>
       <div class="return-info">
-        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si l'opération a réussi.
+        <span class="font-medium">Retourne:</span> <span class="return-type">bool</span> - True si l'opération a réussi.
       </div>
     </section>
 
+    <section class="method-section">
+      <h4 class="method-title" id="get_debconf_selections_for_package"><code>get_debconf_selections_for_package(package_name: str) -> Optional[Dict[Tuple[str, str], str]]</code></h4>
+      <p class="description">Récupère les sélections debconf actuelles pour un paquet spécifique en utilisant <code>debconf-get-selections</code> et <code>grep</code>.</p>
+      <p class="dependency-warning">Tente d'installer <code>debconf-utils</code> via <code>AptCommands</code> si nécessaire.</p>
+      <dl class="param-list">
+        <dt>package_name</dt><dd><span class="param-type">(str)</span>: Nom du paquet.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span> <span class="return-type">Optional[Dict[Tuple[str, str], str]]</span> - Un dictionnaire où la clé est un tuple (question, type) et la valeur est la sélection actuelle. Retourne <code>None</code> en cas d'erreur majeure, ou un dictionnaire vide si aucune sélection n'est trouvée pour le paquet.
+      </div>
+    </section>
+
+    <section class="method-section">
+      <h4 class="method-title" id="get_debconf_value"><code>get_debconf_value(package_name: str, question_name: str) -> Optional[str]</code></h4>
+      <p class="description">Récupère la valeur d'une question debconf spécifique pour un paquet donné.</p>
+      <p class="dependency-warning">Tente d'installer <code>debconf-utils</code> via <code>AptCommands</code> si nécessaire.</p>
+      <dl class="param-list">
+        <dt>package_name</dt><dd><span class="param-type">(str)</span>: Nom du paquet.</dd>
+        <dt>question_name</dt><dd><span class="param-type">(str)</span>: Nom de la question debconf.</dd>
+      </dl>
+      <div class="return-info">
+        <span class="font-medium">Retourne:</span> <span class="return-type">Optional[str]</span> - La valeur de la sélection sous forme de chaîne, ou <code>None</code> si la question n'est pas trouvée ou en cas d'erreur.
+      </div>
+    </section>
     <p class="description" style="margin-top: 2rem; font-style: italic; color: #6c757d;">
-      D'autres méthodes pour <code>dpkg-reconfigure</code>, <code>dpkg -s</code>, <code>dpkg -L</code>, etc., pourraient
-      être ajoutées ici.
+      D'autres méthodes pour <code>dpkg-reconfigure</code>, <code>dpkg -s</code>, <code>dpkg -L</code>, etc., pourraient être ajoutées ici.
     </p>
 
   </div>

@@ -4,6 +4,7 @@
     "name": "Ajout d'imprimante",
     "show_name": "add_printer",
     "icon": "\ud83d\udda8",
+    "text_mode": true,
     "config": {
         "printer_name": "BT",
         "printer_model": "EC4200.yml",

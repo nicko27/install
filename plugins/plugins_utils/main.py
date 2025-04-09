@@ -27,15 +27,16 @@ class Main:
 
             # Reconstruire la configuration avec la structure attendue
             config = {
-                "plugin_name": config.get("plugin_name", "add_printer"),
+                "plugin_name": config.get("plugin_name", ""),
                 "instance_id": config.get("instance_id", 0),
+                "text_mode": config.get("text_mode", False),
                 "ssh_mode": config.get("ssh_mode", False),
                 "config": plugin_config
             }
-
-        self.logger.instance_id=config['instance_id']
-        self.logger.plugin_name=config['plugin_name']
-        self.logger.ssh_mode=config.get('ssh_mode',False)
+        self.logger.plugin_name = config.get('plugin_name', '')
+        self.logger.instance_id = config.get('instance_id', 0)
+        self.logger.ssh_mode = config.get('ssh_mode', False)
+        self.logger.text_mode=config.get("text_mode", False)
         self.logger.init_logs()
         self.plugin.run(config,self.logger)
 

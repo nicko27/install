@@ -26,92 +26,209 @@ from plugins_utils import main
 
 class Plugin:
     def run(self,config,log):
-        """
-        Point d'entrée principal pour l'exécution du plugin.
-
-        Args:
-            config: Configuration du plugin (dictionnaire)
-
-        Returns:
-            Tuple (success, message)
-        """
         try:
-            # Démonstration des styles personnalisés
-            log.info("Démonstration de différents styles de barres de progression")
+            log.debug(f"Début de l'exécution du plugin add_printer")
 
-            # Modifier le style par défaut si souhaité
-            # log.set_default_bar_style("▰", "▱")
+            # Vérifier si nous sommes en mode SSH depuis la configuration
+            is_ssh = config.get('ssh_mode', False)
+            if is_ssh:
+                
+            # Récupérer la configuration
+            printer_conf = config['config']
+            printer_name = printer_conf.get('printer_name')
+            printer_model = printer_conf.get('printer_model')
+            printer_ip = printer_conf.get('printer_ip')
+            a3 = printer_conf.get('printer_a3')
+            log.info(f"Configuration de l'imprimante: {json.dumps(printer_conf, ensure_ascii=False)}")
 
-            # Barre avec le style par défaut (carrés)
-            log.create_bar("default", 5, "Style par défaut", "")
+            # Récupérer les informations du modèle d'imprimante
+            model_content = config.get('printer_model_content')
+            # Récupérer les options du modèle
+            couleurs = int(model_content.get('couleurs', 0))
+            rectoverso = int(model_content.get('rectoverso', 0))
+            ppdFile = model_content.get('ppdFile', '')
+            agraffes = int(model_content.get('agraffes', 0))
+            orecto = model_content.get('orecto', '')
+            orectoverso = model_content.get('orectoverso', '')
+            onb = model_content.get('onb', '')
+            ocouleurs = model_content.get('ocouleurs', '')
+            oagraffes = model_content.get('oagraffes', '')
+            oa4 = model_content.get('oa4', '')
+            oa3 = model_content.get('oa3', '')
+            ocommun = model_content.get('ocommun', '')
+            mode = model_content.get('mode', '')
+            baseName = model_content.get('nom', '')
+            socket = model_content.get('socket', '')
 
-            # Barre avec blocs pleins/vides
-            log.create_bar("blocks", 5, "Blocs", "", "green", "█", "░")
+            ip = f"{socket}{printer_ip}"
 
-            # Barre avec rectangles
-            log.create_bar("rectangles", 5, "Rectangles", "", "yellow", "▰", "▱")
+            # Calculer le nombre total d'étapes
+            total_steps = 3  # Étapes de base
 
-            # Barre avec flèches
-            log.create_bar("arrows", 5, "Flèches", "", "cyan", "►", "─")
+            # Recto NB always
+            total_steps += 1
 
-            # Barre avec étoiles
-            log.create_bar("stars", 5, "Étoiles", "", "magenta", "★", "☆")
+            # Couleurs configurations
+            if couleurs == 1:
+                total_steps += 1  # Recto Couleurs
+                if rectoverso == 1:
+                    total_steps += 1  # RectoVerso Couleurs
 
-            # Barre avec smileys
-            log.create_bar("smileys", 5, "Smileys", "", "red", "☺", "☻")
+            # RectoVerso configurations
+            if rectoverso == 1:
+                total_steps += 1  # RectoVerso NB
 
-            # Simuler la progression de toutes les barres simultanément
-            for i in range(1, 6):
-                # Mettre à jour toutes les barres
-                log.update_bar("default", i, None, None, f"{i}/5 complété")
-                log.update_bar("blocks", i, None, None, f"{i}/5 complété")
-                log.update_bar("rectangles", i, None, None, f"{i}/5 complété")
-                log.update_bar("arrows", i, None, None, f"{i}/5 complété")
-                log.update_bar("stars", i, None, None, f"{i}/5 complété")
-                log.update_bar("smileys", i, None, None, f"{i}/5 complété")
+            # Agraffes configurations
+            if agraffes == 1:
+                total_steps += 1  # Recto NB Agraffes
+                if rectoverso == 1:
+                    total_steps += 1  # RectoVerso NB Agraffes
+                    if couleurs == 1:
+                        total_steps += 1  # RectoVerso Couleurs Agraffes
+                if couleurs == 1:
+                    total_steps += 1  # Recto Couleurs Agraffes
 
-                time.sleep(0.5)
+            # A3 configurations
+            if a3 == 1:
+                total_steps += 1  # Recto NB A3
+                if rectoverso == 1:
+                    total_steps += 1  # RectoVerso NB A3
+                    if couleurs == 1:
+                        total_steps += 1  # RectoVerso Couleurs A3
+                if couleurs == 1:
+                    total_steps += 1  # Recto Couleurs A3
 
-            # Toutes les barres sont terminées, les supprimer
-            log.delete_bar("default")
-            log.delete_bar("blocks")
-            log.delete_bar("rectangles")
-            log.delete_bar("arrows")
-            log.delete_bar("stars")
-            log.delete_bar("smileys")
+            # Définir le nombre total d'étapes
+            log.set_total_steps(total_steps)
 
-            log.success("Démonstration des styles terminée")
+            # Débuter avec la première étape
+            log.next_step()
+            log.info(f"Installation de l'imprimante {printer_name} avec IP {printer_ip}")
 
-            # Exemple d'utilisation standard avec plusieurs barres pour un processus
-            log.info("Simulation d'un processus en plusieurs étapes")
+            log.next_step()
+            log.info("Suppression de la config evince pour éviter bug avec nouvelle imprimante")
+            # Utiliser le module os importé globalement
+            import os as os_module  # Réimporter explicitement pour éviter les problèmes de portée
+            userList = os_module.listdir("/home")
 
-            # Barre pour le téléchargement
-            log.create_bar("download", 10, "Téléchargement", "0/10 MB", "blue", "▰", "▱")
+            for user in userList:
+                evince_path = f"/home/{user}/.evince"
+                if os_module.path.exists(evince_path):
+                    try:
+                        os_module.rmdir(evince_path)
+                        log.info(f"Répertoire {evince_path} supprimé")
+                    except Exception as e:
+                        log.warning(f"Impossible de supprimer {evince_path}: {e}")
 
-            # Simuler un téléchargement
-            for i in range(1, 11):
-                log.update_bar("download", i, None, None, f"{i}/10 MB")
-                time.sleep(0.3)
+            # Progresser pour chaque configuration d'imprimante
+            log.next_step()
+            name = f"{baseName}_{printer_name}_Recto_NB"
+            log.info(f"Installation de {name}")
 
-                # À mi-chemin, démarrer l'installation
-                if i == 5:
-                    # Barre pour l'installation
-                    log.create_bar("install", 3, "Installation", "préparation...", "green", "█", "░")
+            # Utiliser PrinterCommands pour ajouter l'imprimante
+            options = f"{ocommun} {orecto} {oa4} {onb}"
+            driver_param = ppdFile
+            is_ppd= (mode=="ppd") or (mode =="-P")
 
-                    # Étapes d'installation
-                    for step in ["extraction", "configuration", "finalisation"]:
-                        log.next_bar("install", None, None, step)
-                        time.sleep(0.5)
+            returnValue = printer_manager.add_printer(name, ip, driver_param, options,is_ppd)
 
-                    # Installation terminée
-                    log.delete_bar("install")
-                    log.success("Installation terminée avec succès")
+            if couleurs == 1 and returnValue:
+                log.next_step()
+                name = f"{baseName}_{printer_name}_Recto_Couleurs"
+                log.info(f"Installation de {name}")
+                options = f"{ocommun} {orecto} {oa4} {ocouleurs}"
 
-            # Téléchargement terminé
-            log.delete_bar("download")
-            log.success("Téléchargement terminé")
+                if rectoverso == 1 and returnValue:
+                    log.next_step()
+                    name = f"{baseName}_{printer_name}_RectoVerso_Couleurs"
+                    log.info(f"Installation de {name}")
 
-            returnValue=True
+                    options = f"{ocommun} {orectoverso} {oa4} {ocouleurs}"
+                    if mode == "ppd" or mode == "-P":
+                        returnValue = printer_manager.add_printer(name, ip, driver_param, options,is_ppd)
+
+            if rectoverso == 1 and returnValue:
+                log.next_step()
+                name = f"{baseName}_{printer_name}_RectoVerso_NB"
+                log.info(f"Installation de {name}")
+
+                options = f"{ocommun} {orectoverso} {oa4} {onb}"
+                returnValue = printer_manager.add_printer(name, ip, driver_param, options,is_ppd)
+
+            if agraffes == 1 and returnValue:
+                log.next_step()
+                name = f"{baseName}_{printer_name}_Recto_NB_Agraffes"
+                log.info(f"Installation de {name}")
+                options = f"{ocommun} {orecto} {oagraffes} {oa4} {onb}"
+                returnValue = printer_manager.add_printer(name, ip, driver_param, options,is_ppd)
+
+                if rectoverso == 1 and returnValue:
+                    log.next_step()
+                    name = f"{baseName}_{printer_name}_RectoVerso_NB_Agraffes"
+                    log.info(f"Installation de {name}")
+                    options = f"{ocommun} {orectoverso} {oagraffes} {oa4} {onb}"
+                    if couleurs == 1 and returnValue:
+                        log.next_step()
+                        name = f"{baseName}_{printer_name}_RectoVerso_Couleurs_Agraffes"
+                        log.info(f"Installation de {name}")
+                        options = f"{ocommun} {orectoverso} {oagraffes} {oa4} {ocouleurs}"
+                        returnValue = printer_manager.add_printer(name, ip, driver_param, options,is_ppd)
+
+                if couleurs == 1 and returnValue:
+                    log.next_step()
+                    name = f"{baseName}_{printer_name}_Recto_Couleurs_Agraffes"
+                    log.info(f"Installation de {name}")
+
+                    options = f"{ocommun} {orecto} {oagraffes} {oa4} {ocouleurs}"
+                    returnValue = printer_manager.add_printer(name, ip, driver_param, options,is_ppd)
+
+            if a3 and returnValue:
+                log.next_step()
+                name = f"{baseName}_{printer_name}_Recto_NB_A3"
+                log.info(f"Installation de {name}")
+
+                options = f"{ocommun} {orecto} {oa3} {onb}"
+                returnValue = printer_manager.add_printer(name, ip, driver_param, options,is_ppd)
+                if rectoverso == 1 and returnValue:
+                    log.next_step()
+                    name = f"{baseName}_{printer_name}_RectoVerso_NB_A3"
+                    log.info(f"Installation de {name}")
+
+                    options = f"{ocommun} {orectoverso} {oa3} {onb}"
+                    returnValue = printer_manager.add_printer(name, ip, driver_param, options,is_ppd)
+
+                    if couleurs == 1 and returnValue:
+                        log.next_step()
+                        name = f"{baseName}_{printer_name}_RectoVerso_Couleurs_A3"
+                        log.info(f"Installation de {name}")
+
+                        options = f"{ocommun} {orectoverso} {oa3} {ocouleurs}"
+                        returnValue = printer_manager.add_printer(name, ip, driver_param, options,is_ppd)
+                if couleurs == 1 and returnValue:
+                    log.next_step()
+                    name = f"{baseName}_{printer_name}_Recto_Couleurs_A3"
+                    log.info(f"Installation de {name}")
+
+                    options = f"{ocommun} {orecto} {oa3} {ocouleurs}"
+                    returnValue = printer_manager.add_printer(name, ip, driver_param, options,is_ppd)
+
+            # Redémarrer le service CUPS si l'installation a réussi
+            if returnValue:
+                log.info("Redémarrage du service CUPS")
+                try:
+                    # Redémarrer CUPS directement car nous sommes déjà en sudo
+                    log.info("Redémarrage du service cups")
+                    cups_restart_success = service_manager.restart("cups")
+
+                    if cups_restart_success:
+                        log.success("Service CUPS redémarré avec succès")
+                    else:
+                        log.error(f"Erreur lors du redémarrage du service CUPS")
+                        return False, "Erreur lors du redémarrage de CUPS"
+                except Exception as e:
+                    log.error(f"Erreur lors du redémarrage de CUPS: {e}")
+                    return False, f"Erreur lors du redémarrage de CUPS: {e}"
+
             # Résultat final
             if returnValue:
                 success_msg = "Ajout de l'imprimante effectué avec succès"
