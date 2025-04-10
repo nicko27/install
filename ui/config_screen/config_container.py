@@ -317,14 +317,17 @@ class ConfigContainer(VerticalGroup):
             
         source_value = self._get_field_value(source_field)
         required_value = dependent_field.enabled_if.get('value')
-        
+
         # Normaliser les valeurs booléennes si nécessaire
-        source_value = self._normalize_boolean_value(source_value)
-        required_value = self._normalize_boolean_value(required_value)
-        
-        # Déterminer si le champ doit être activé
-        should_enable = source_value == required_value
-        
+        normalized_source = self._normalize_boolean_value(source_value)
+        normalized_required = self._normalize_boolean_value(required_value)
+
+        # Déterminer si le champ doit être activé - UTILISER LES VALEURS NORMALISÉES
+        should_enable = normalized_source == normalized_required
+
+        logger.debug(f"Comparaison pour activation de {dependent_field.field_id}: {source_value}({type(source_value).__name__}) == {required_value}({type(required_value).__name__})")
+        logger.debug(f"Après normalisation: {normalized_source} == {normalized_required}, should_enable={should_enable}")
+
         if not should_enable:
             logger.debug(f"Désactivation du champ {dependent_field.field_id}")
             
@@ -352,6 +355,7 @@ class ConfigContainer(VerticalGroup):
             # Restaurer l'état du widget si disponible
             self._restore_field_state(dependent_field)
 
+
     def _get_field_value(self, field: Widget) -> Any:
         """
         Récupère la valeur d'un champ de manière sécurisée.
@@ -378,11 +382,23 @@ class ConfigContainer(VerticalGroup):
         Returns:
             Any: Valeur normalisée
         """
+        logger.debug(f"Normalisation de la valeur booléenne: {value} (type: {type(value).__name__})")
+        
+        # Si c'est déjà un booléen, le retourner tel quel
         if isinstance(value, bool):
+            logger.debug(f"Valeur déjà booléenne: {value}")
             return value
+            
+        # Si c'est une chaîne, la convertir en booléen
         if isinstance(value, str):
-            return value.lower() in ('true', 't', 'yes', 'y', '1')
-        return bool(value)
+            result = value.lower() in ('true', 't', 'yes', 'y', '1')
+            logger.debug(f"Conversion de la chaîne '{value}' en booléen: {result}")
+            return result
+            
+        # Sinon, convertir en booléen standard
+        result = bool(value)
+        logger.debug(f"Conversion de {value} en booléen: {result}")
+        return result
 
     def _update_field_dynamic_options(self, dependent_field: Widget, source_field: Widget) -> None:
         """
