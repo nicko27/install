@@ -22,19 +22,6 @@ class CronCommands(PluginsUtilsBase):
     def __init__(self, logger=None, target_ip=None):
         """Initialise le gestionnaire cron."""
         super().__init__(logger, target_ip)
-        self._check_commands()
-
-    def _check_commands(self):
-        """Vérifie si la commande crontab est disponible."""
-        cmds = ['crontab']
-        missing = []
-        for cmd in cmds:
-            success, _, _ = self.run(['which', cmd], check=False, no_output=True, error_as_warning=True)
-            if not success:
-                missing.append(cmd)
-        if missing:
-            self.log_warning(f"Commandes potentiellement manquantes: {', '.join(missing)}. "
-                             f"Installer le paquet 'cron' ou équivalent.")
 
     def _get_cron_identifier(self, job_line: str, marker: Optional[str]) -> str:
         """Génère un commentaire d'identification pour une tâche cron."""

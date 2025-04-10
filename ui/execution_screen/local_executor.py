@@ -265,7 +265,6 @@ class LocalExecutor:
                 return False, stdout_text
 
             # Succès
-            logger.info(f"Plugin {folder_name} exécuté avec succès")
 
             # Vérifier si la sortie contient des messages de succès explicites
             if "SUCCESS:" in stdout_text:

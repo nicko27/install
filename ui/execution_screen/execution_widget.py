@@ -222,6 +222,7 @@ class ExecutionWidget(Container):
         les erreurs et la mise à jour de l'interface.
         """
         try:
+            await LoggerUtils.start_logs_timer(self)
             # Préparer l'exécution
             filtered_plugins, filtered_configs, ordered_plugins = self._prepare_plugins_execution()
             
@@ -268,15 +269,16 @@ class ExecutionWidget(Container):
                     
                     # Log de résultat
                     if success:
-                        await LoggerUtils.add_log(self, f"Plugin {plugin_name} exécuté avec succès", level="success")
+                        await LoggerUtils.add_log(self, f"Plugin {config['name']} exécuté avec succès", level="success")
                     else:
-                        error_message = f"Échec du plugin {plugin_name}: {output}"
+                        error_message = f"Échec du plugin {config['name']}: {output}"
                         await LoggerUtils.add_log(self, error_message, level="error")
                         
                         # Si on ne continue pas en cas d'erreur, arrêter l'exécution
                         if not self.continue_on_error:
-                            logger.warning(f"Arrêt de l'exécution après erreur sur {plugin_name}")
+                            logger.warning(f"Arrêt de l'exécution après erreur sur le plugin {config['name']}")
                             break
+                    LoggerUtils.flush_pending_messages()
                             
                 except Exception as e:
                     logger.error(f"Erreur lors de l'exécution de {plugin_id}: {e}")
@@ -302,6 +304,12 @@ class ExecutionWidget(Container):
             logger.error(f"Erreur globale lors de l'exécution: {e}")
             logger.error(traceback.format_exc())
             await LoggerUtils.add_log(self, f"Erreur lors de l'exécution: {e}", level="error")
+        finally:
+            # Arrêter le timer d'affichage des logs
+            await LoggerUtils.stop_logs_timer()
+            
+            # Afficher un dernier lot de messages en attente
+            await LoggerUtils.flush_pending_messages(self)
 
     def _prepare_plugins_execution(self) -> Tuple[Dict[str, Any], Dict[str, Any], List[str]]:
         """
@@ -721,7 +729,6 @@ class ExecutionWidget(Container):
             with Vertical(id="button-container-progress-exec"):
                 progress_bar = ProgressBar(id="global-progress", show_eta=False)
                 progress_bar.total = 100.0
-                progress_bar.progress = 50.0
                 yield progress_bar
             # Bouton de démarrage
             with Vertical(id="button-container-start-exec"):
@@ -742,9 +749,7 @@ class ExecutionWidget(Container):
         self.call_after_refresh(self.initialize_ui)
 
     async def initialize_ui(self) -> None:
-        """
-        Initialise l'interface après le montage complet du DOM.
-        """
+        """Initialise l'interface après le montage complet du DOM."""
         try:
             # Initialisation de base
             self.update_global_progress(0)
@@ -761,14 +766,17 @@ class ExecutionWidget(Container):
                 start_button.remove_class("hidden")
                 logger.debug("Bouton démarrer affiché")
 
-            # Message initial dans les logs
-            await LoggerUtils.add_log(self, "Interface initialisée, prêt pour l'exécution", level="info")
-
             # Initialiser les options
             self.continue_on_error = True  # True par défaut
 
             # Vider les logs
             await LoggerUtils.clear_logs(self)
+            
+            # IMPORTANT: Afficher les messages en attente maintenant que l'interface est prête
+            # Ajouter un délai court pour s'assurer que l'interface est complètement rendue
+            await asyncio.sleep(0.1)
+            await LoggerUtils.flush_pending_messages(self)
+            
         except Exception as e:
             logger.error(f"Erreur lors de l'initialisation de l'interface: {e}")
             logger.error(traceback.format_exc())

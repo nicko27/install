@@ -35,31 +35,8 @@ class LogCommands(PluginsUtilsBase):
     def __init__(self, logger=None, target_ip=None):
         """Initialise le gestionnaire de logs."""
         super().__init__(logger, target_ip)
-        self._check_commands()
         self._archive_manager = ArchiveCommands(logger, target_ip) if ARCHIVE_AVAILABLE else None
 
-    def _check_commands(self):
-        """Vérifie si les commandes nécessaires sont disponibles."""
-        cmds = ['logrotate', 'journalctl', 'find', 'du', 'grep', 'sort', 'uniq', 'head', 'tail']
-        # Ajouter les commandes d'archivage si le module est dispo
-        if ARCHIVE_AVAILABLE and self._archive_manager:
-             # Vérifier les commandes utilisées par ArchiveCommands (tar, etc.)
-             # Pour l'instant, on suppose qu'elles sont vérifiées par ArchiveCommands lui-même.
-             pass
-        elif not ARCHIVE_AVAILABLE:
-             # Si ArchiveCommands n'est pas là, vérifier tar manuellement pour archive_logs
-             cmds.append('tar')
-
-        missing = []
-        for cmd in cmds:
-            success, _, _ = self.run(['which', cmd], check=False, no_output=True, error_as_warning=True)
-            if not success:
-                missing.append(cmd)
-        if missing:
-            self.log_warning(f"Commandes potentiellement manquantes: {', '.join(missing)}. "
-                             f"Installer 'logrotate', 'systemd' (journalctl), 'findutils', 'coreutils', 'grep'.")
-
-    # --- Gestion Logrotate ---
 
     def check_logrotate_config(self, service_or_logpath: str) -> Optional[Dict[str, Any]]:
         """

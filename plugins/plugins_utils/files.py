@@ -29,20 +29,7 @@ class Files(PluginsUtilsBase):
         """Initialise le gestionnaire de fichiers."""
         super().__init__(logger, target_ip)
         # Vérifier les commandes si on en utilise (ex: pour les permissions via run)
-        self._check_commands()
 
-    def _check_commands(self):
-        """Vérifie si les commandes externes utilisées sont disponibles."""
-        # Exemples: 'cp', 'mv', 'chmod', 'chown' si on les utilise via self.run
-        cmds = ['cp', 'mv', 'chmod', 'chown', 'mkdir', 'test', 'stat']
-        missing = []
-        for cmd in cmds:
-            success, _, _ = self.run(['which', cmd], check=False, no_output=True, error_as_warning=True)
-            if not success:
-                missing.append(cmd)
-        if missing:
-            self.log_warning(f"Commandes potentiellement manquantes pour Files: {', '.join(missing)}. "
-                             f"Installer 'coreutils'.")
 
     def get_file_size(self, path: Union[str, Path]) -> int:
         """

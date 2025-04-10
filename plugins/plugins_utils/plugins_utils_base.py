@@ -272,9 +272,7 @@ class PluginsUtilsBase:
 
             # Récupérer le mot de passe sudo depuis l'environnement (défini par ssh_wrapper)
             sudo_password = os.environ.get("SUDO_PASSWORD")
-            if not sudo_password:
-                 self.log_warning("Sudo nécessaire mais aucun mot de passe SUDO_PASSWORD trouvé dans l'environnement. Sudo peut échouer.")
-                 # On continue quand même, sudo peut être configuré sans mot de passe
+
 
             if isinstance(cmd_list, list):
                  cmd_to_run = sudo_prefix + cmd_list

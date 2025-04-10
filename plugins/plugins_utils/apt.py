@@ -33,20 +33,6 @@ class AptCommands(PluginsUtilsBase):
         # Environnement standard pour les commandes apt pour éviter les prompts interactifs
         self._apt_env = os.environ.copy()
         self._apt_env["DEBIAN_FRONTEND"] = "noninteractive"
-        # Vérifier la présence des commandes
-        self._check_commands()
-
-    def _check_commands(self):
-        """Vérifie si les commandes apt nécessaires sont disponibles."""
-        cmds = ['apt-get', 'apt-cache', 'dpkg-query', 'gpg', 'curl', 'tee', 'mkdir', 'rm']
-        missing = []
-        for cmd in cmds:
-            success, _, _ = self.run(['which', cmd], check=False, no_output=True, error_as_warning=True)
-            if not success:
-                missing.append(cmd)
-        if missing:
-            self.log_warning(f"Commandes potentiellement manquantes pour AptCommands: {', '.join(missing)}. "
-                             f"Installer 'apt', 'dpkg', 'gnupg', 'curl', 'coreutils'.")
 
     def update(self, allow_fail: bool = False, task_id: Optional[str] = None) -> bool:
         """

@@ -33,6 +33,12 @@ class DirectoryField(TextField):
             id=f"browse_{self.field_id}", 
             classes="browse-button"
         )
+        
+        # Appliquer l'état disabled au bouton si nécessaire
+        if hasattr(self, 'disabled') and self.disabled:
+            logger.debug(f"Application de l'état disabled au bouton browse lors de la composition pour {self.field_id}")
+            self._browse_button.disabled = True
+            
         yield self._browse_button
     
     def on_mount(self) -> None:
@@ -48,11 +54,15 @@ class DirectoryField(TextField):
     
     def set_disabled(self, disabled: bool) -> None:
         """Désactive ou active à la fois le champ texte et le bouton browse"""
+        # Stocker l'état disabled pour l'utiliser plus tard si le bouton n'est pas encore monté
+        self.disabled = disabled
+        
         # Appeler la méthode parent pour désactiver le champ texte
         super().set_disabled(disabled)
         
         # Désactiver aussi le bouton browse si nécessaire
         if hasattr(self, '_browse_button') and self._browse_button:
+            logger.debug(f"Mise à jour de l'état du bouton browse pour {self.field_id}: disabled={disabled}")
             self._browse_button.disabled = disabled
     
     def validate_input(self, value: str) -> Tuple[bool, str]:

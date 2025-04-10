@@ -2,7 +2,7 @@ import argparse
 import sys
 import json
 import traceback
-from plugins_utils import *
+from plugins_utils import plugin_logger
 
 
 
@@ -10,8 +10,9 @@ class Main:
     def __init__(self,plugin):
         self.logger = plugin_logger.PluginLogger()
         self.plugin=plugin
+        self.target_ip=""
 
-    def start(self):                
+    def start(self):
         returnValue,config=self.argparse()
         if not returnValue:
             error_msg=config
@@ -38,7 +39,11 @@ class Main:
         self.logger.ssh_mode = config.get('ssh_mode', False)
         self.logger.text_mode=config.get("text_mode", False)
         self.logger.init_logs()
-        self.plugin.run(config,self.logger)
+        icon = config.get('icon', '')
+        name = config.get('name', '')
+        self.logger.info(f"{icon} {name}")
+        returnValue, msg=self.plugin.run(config,self.logger,self.target_ip)
+        return returnValue, msg
 
     def argparse(self):
         try:

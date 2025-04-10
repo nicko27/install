@@ -16,6 +16,7 @@ from textual.message import Message
 
 from ..utils.logging import get_logger
 from .execution_widget import ExecutionWidget
+from .logger_utils import LoggerUtils
 
 logger = get_logger('execution_screen')
 
@@ -153,6 +154,8 @@ class ExecutionScreen(Screen):
                     finally:
                         # S'assurer que le flag d'exécution est remis à False
                         self._execution_running = False
+            await LoggerUtils.flush_pending_messages(self)
+            
         except Exception as e:
             logger.error(f"Erreur lors de l'initialisation de l'écran: {e}")
             logger.error(traceback.format_exc())

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation: plugins_utils/users_groups.py</title>
+    <link rel="stylesheet" href="docs_style.css">
+    <style>
+        /* Style additionnel pour les notes explicatives */
+        .explanation-note {
+            background-color: #eef2f7; /* Bleu très clair */
+            border-left: 4px solid #0d6efd; /* Bleu primaire */
+            padding: 0.75rem 1rem;
+            margin-top: 0.75rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.85em;
+            color: #343a40; /* Gris foncé */
+        }
+        .explanation-note code {
+             font-size: 0.95em;
+             background-color: #dee2e6; /* Gris clair */
+             padding: 0.1em 0.3em;
+             border-radius: 3px;
+             color: #0a58ca; /* Bleu plus foncé */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <h1 class="main-title">Documentation: <code>plugins_utils/users_groups.py</code></h1>
+
+        <p class="module-description">
+            Ce module fournit des utilitaires pour la gestion des utilisateurs et groupes locaux
+            sur les systèmes Linux, en utilisant les commandes système standard
+            (<code>useradd</code>, <code>usermod</code>, <code>userdel</code>, <code>groupadd</code>, etc.).
+        </p>
+
+        <nav class="toc">
+            <h3 class="toc-title">Accès Rapide aux Méthodes</h3>
+            <ul class="toc-list">
+                <li class="toc-item"><a href="#user_exists" class="toc-link">user_exists</a></li>
+                <li class="toc-item"><a href="#group_exists" class="toc-link">group_exists</a></li>
+                <li class="toc-item"><a href="#add_user" class="toc-link">add_user</a></li>
+                <li class="toc-item"><a href="#delete_user" class="toc-link">delete_user</a></li>
+                <li class="toc-item"><a href="#modify_user" class="toc-link">modify_user</a></li>
+                <li class="toc-item"><a href="#set_password" class="toc-link">set_password</a></li>
+                <li class="toc-item"><a href="#add_group" class="toc-link">add_group</a></li>
+                <li class="toc-item"><a href="#delete_group" class="toc-link">delete_group</a></li>
+                <li class="toc-item"><a href="#modify_group" class="toc-link">modify_group</a></li>
+                <li class="toc-item"><a href="#add_user_to_group" class="toc-link">add_user_to_group</a></li>
+                <li class="toc-item"><a href="#remove_user_from_group" class="toc-link">remove_user_from_group</a></li>
+                <li class="toc-item"><a href="#get_user_info" class="toc-link">get_user_info</a></li>
+                <li class="toc-item"><a href="#get_group_info" class="toc-link">get_group_info</a></li>
+                <li class="toc-item"><a href="#get_user_groups" class="toc-link">get_user_groups</a></li>
+            </ul>
+        </nav>
+
+        <h2 class="section-title">Classe Principale</h2>
+
+        <section class="method-section">
+            <h3 class="method-title" id="UserGroupCommands"><code>UserGroupCommands(PluginUtilsBase)</code></h3>
+            <p class="description">
+                Classe pour gérer les utilisateurs et groupes locaux. Hérite de
+                <code>PluginUtilsBase</code> pour l'exécution des commandes et la journalisation.
+                Assume que les opérations nécessitant des privilèges élevés sont exécutées en tant que root
+                (via sudo si nécessaire).
+            </p>
+        </section>
+
+        <h2 class="section-title">Méthodes Principales</h2>
+
+        <section class="method-section">
+            <h4 class="method-title" id="user_exists"><code>user_exists(username: str) -> bool</code></h4>
+            <p class="description">Vérifie si un utilisateur local existe via <code>getent passwd</code>.</p>
+            <dl class="param-list">
+                <dt>username</dt>
+                <dd><span class="param-type">(str)</span>: Nom de l'utilisateur à vérifier.</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si l'utilisateur existe, False sinon.
+            </div>
+        </section>
+
+        <section class="method-section">
+            <h4 class="method-title" id="group_exists"><code>group_exists(groupname: str) -> bool</code></h4>
+            <p class="description">Vérifie si un groupe local existe via <code>getent group</code>.</p>
+            <dl class="param-list">
+                <dt>groupname</dt>
+                <dd><span class="param-type">(str)</span>: Nom du groupe à vérifier.</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si le groupe existe, False sinon.
+            </div>
+        </section>
+
+        <section class="method-section">
+            <h4 class="method-title" id="add_user"><code>add_user(...) -> bool</code></h4>
+            <p class="description">Ajoute un nouvel utilisateur local via <code>useradd</code>.</p>
+            <p class="sudo-warning">Nécessite généralement des privilèges root.</p>
+            <div class="method-signature"><pre><code>add_user(
+    username: str,
+    password: Optional[str] = None,
+    encrypted_password: Optional[str] = None,
+    uid: Optional[int] = None,
+    gid: Optional[Union[int, str]] = None,
+    gecos: Optional[str] = None,
+    home_dir: Optional[str] = None,
+    create_home: bool = True,
+    shell: Optional[str] = '/bin/bash',
+    primary_group: Optional[str] = None,
+    secondary_groups: Optional[List[str]] = None,
+    system_user: bool = False,
+    no_user_group: bool = False,
+    no_log_init: bool = False
+) -> bool</code></pre></div>
+            <dl class="param-list">
+                <dt>username</dt><dd><span class="param-type">(str)</span>: Nom du nouvel utilisateur.</dd>
+                <dt>password</dt><dd><span class="param-type">(Optional[str])</span>: Mot de passe en clair (utilisera <code>chpasswd</code> après création).</dd>
+                <dt>encrypted_password</dt><dd><span class="param-type">(Optional[str])</span>: Mot de passe déjà crypté (format /etc/shadow). Si fourni, le paramètre <code>password</code> est ignoré.</dd>
+                <div class="explanation-note">
+                    <strong>Note sur <code>encrypted_password</code>:</strong> Le hash attendu est celui utilisé dans <code>/etc/shadow</code> (ex: commençant par $1$, $5$, $6$, $y$). Vous pouvez le générer avec des outils comme <code>mkpasswd</code> (souvent dans le paquet <code>whois</code> ou <code>mkpasswd</code>) : <br>
+                    <code>mkpasswd -m sha-512 VOTRE_MOT_DE_PASSE</code> <br>
+                    Ou en Python : <br>
+                    <code>import crypt; print(crypt.crypt('VOTRE_MOT_DE_PASSE', crypt.METHOD_SHA512))</code>
+                </div>
+                <dt>uid</dt><dd><span class="param-type">(Optional[int])</span>: UID spécifique (optionnel).</dd>
+                <dt>gid</dt><dd><span class="param-type">(Optional[Union[int, str]])</span>: GID ou nom du groupe principal initial (optionnel).</dd>
+                <dt>gecos</dt><dd><span class="param-type">(Optional[str])</span>: Informations GECOS (ex: "Nom Complet,,,,").</dd>
+                <dt>home_dir</dt><dd><span class="param-type">(Optional[str])</span>: Chemin du home ou 'no' pour ne pas en créer. Si None, utilise le défaut système.</dd>
+                <dt>create_home</dt><dd><span class="param-type">(bool)</span>: True (défaut) pour créer le home (-m), False pour ne pas le créer (-M).</dd>
+                <dt>shell</dt><dd><span class="param-type">(Optional[str])</span>: Shell de connexion.</dd>
+                <dt>primary_group</dt><dd><span class="param-type">(Optional[str])</span>: Nom ou GID du groupe principal (-g).</dd>
+                <dt>secondary_groups</dt><dd><span class="param-type">(Optional[List[str]])</span>: Liste des groupes secondaires (-G).</dd>
+                <dt>system_user</dt><dd><span class="param-type">(bool)</span>: Créer un utilisateur système (-r).</dd>
+                <dt>no_user_group</dt><dd><span class="param-type">(bool)</span>: Ne pas créer de groupe privé (-n).</dd>
+                <dt>no_log_init</dt><dd><span class="param-type">(bool)</span>: Ne pas ajouter au lastlog (-l).</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si l'ajout (et la définition du mot de passe si fournie) a réussi.
+            </div>
+        </section>
+
+        <section class="method-section">
+            <h4 class="method-title" id="delete_user"><code>delete_user(username: str, remove_home: bool = False) -> bool</code></h4>
+            <p class="description">Supprime un utilisateur local via <code>userdel</code>.</p>
+            <p class="sudo-warning">Nécessite généralement des privilèges root.</p>
+            <dl class="param-list">
+                <dt>username</dt><dd><span class="param-type">(str)</span>: Nom de l'utilisateur à supprimer.</dd>
+                <dt>remove_home</dt><dd><span class="param-type">(bool)</span>: Si True, supprime aussi le répertoire personnel (-r).</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la suppression a réussi (ou si l'utilisateur n'existait pas).
+            </div>
+        </section>
+
+        <section class="method-section">
+            <h4 class="method-title" id="modify_user"><code>modify_user(...) -> bool</code></h4>
+            <p class="description">Modifie un utilisateur existant via <code>usermod</code>.</p>
+            <p class="sudo-warning">Nécessite généralement des privilèges root.</p>
+            <div class="method-signature"><pre><code>modify_user(
+    username: str,
+    new_username: Optional[str] = None,
+    uid: Optional[int] = None,
+    gid: Optional[Union[int, str]] = None,
+    gecos: Optional[str] = None,
+    home_dir: Optional[str] = None,
+    move_home: bool = False,
+    shell: Optional[str] = None,
+    append_groups: Optional[List[str]] = None,
+    set_groups: Optional[List[str]] = None,
+    lock: bool = False,
+    unlock: bool = False,
+    expire_date: Optional[str] = None
+) -> bool</code></pre></div>
+            <dl class="param-list">
+                <dt>username</dt><dd><span class="param-type">(str)</span>: Nom de l'utilisateur à modifier.</dd>
+                <dt>new_username</dt><dd><span class="param-type">(Optional[str])</span>: Nouveau nom d'utilisateur (-l).</dd>
+                <dt>uid</dt><dd><span class="param-type">(Optional[int])</span>: Nouvel UID (-u).</dd>
+                <dt>gid</dt><dd><span class="param-type">(Optional[Union[int, str]])</span>: Nouveau GID/groupe principal (-g).</dd>
+                <dt>gecos</dt><dd><span class="param-type">(Optional[str])</span>: Nouvelles informations GECOS (-c).</dd>
+                <dt>home_dir</dt><dd><span class="param-type">(Optional[str])</span>: Nouveau chemin du home (-d).</dd>
+                <dt>move_home</dt><dd><span class="param-type">(bool)</span>: Déplacer le contenu de l'ancien home vers le nouveau (-m avec -d).</dd>
+                <dt>shell</dt><dd><span class="param-type">(Optional[str])</span>: Nouveau shell (-s).</dd>
+                <dt>append_groups</dt><dd><span class="param-type">(Optional[List[str]])</span>: Groupes secondaires à ajouter (-a -G).</dd>
+                <dt>set_groups</dt><dd><span class="param-type">(Optional[List[str]])</span>: Remplace la liste des groupes secondaires (-G).</dd>
+                <dt>lock</dt><dd><span class="param-type">(bool)</span>: Verrouiller le compte (-L).</dd>
+                <dt>unlock</dt><dd><span class="param-type">(bool)</span>: Déverrouiller le compte (-U).</dd>
+                <dt>expire_date</dt><dd><span class="param-type">(Optional[str])</span>: Date d'expiration (YYYY-MM-DD) (-e).</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la modification a réussi.
+            </div>
+        </section>
+
+        <section class="method-section">
+            <h4 class="method-title" id="set_password"><code>set_password(username: str, password: str, is_encrypted: bool = False) -> bool</code></h4>
+            <p class="description">Définit ou met à jour le mot de passe d'un utilisateur via <code>chpasswd</code>.</p>
+            <p class="sudo-warning">Nécessite des privilèges root.</p>
+            <dl class="param-list">
+                <dt>username</dt><dd><span class="param-type">(str)</span>: Nom de l'utilisateur.</dd>
+                <dt>password</dt><dd><span class="param-type">(str)</span>: Nouveau mot de passe (en clair ou crypté).</dd>
+                <dt>is_encrypted</dt><dd><span class="param-type">(bool)</span>: Indique si le mot de passe fourni est déjà crypté (option -e de <code>chpasswd</code>).</dd>
+                 <div class="explanation-note">
+                    <strong>Note sur <code>is_encrypted=True</code>:</strong> Le hash attendu est celui utilisé dans <code>/etc/shadow</code> (ex: commençant par $1$, $5$, $6$, $y$). Vous pouvez le générer avec des outils comme <code>mkpasswd</code> (souvent dans le paquet <code>whois</code> ou <code>mkpasswd</code>) : <br>
+                    <code>mkpasswd -m sha-512 VOTRE_MOT_DE_PASSE</code> <br>
+                    Ou en Python : <br>
+                    <code>import crypt; print(crypt.crypt('VOTRE_MOT_DE_PASSE', crypt.METHOD_SHA512))</code>
+                </div>
+           </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la mise à jour a réussi.
+            </div>
+        </section>
+
+        <section class="method-section">
+            <h4 class="method-title" id="add_group"><code>add_group(groupname: str, gid: Optional[int] = None, system: bool = False) -> bool</code></h4>
+            <p class="description">Ajoute un nouveau groupe local via <code>groupadd</code>.</p>
+            <p class="sudo-warning">Nécessite généralement des privilèges root.</p>
+            <dl class="param-list">
+                <dt>groupname</dt><dd><span class="param-type">(str)</span>: Nom du nouveau groupe.</dd>
+                <dt>gid</dt><dd><span class="param-type">(Optional[int])</span>: GID spécifique (optionnel, -g).</dd>
+                <dt>system</dt><dd><span class="param-type">(bool)</span>: Créer un groupe système (-r).</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si l'ajout a réussi.
+            </div>
+        </section>
+
+        <section class="method-section">
+            <h4 class="method-title" id="delete_group"><code>delete_group(groupname: str) -> bool</code></h4>
+            <p class="description">Supprime un groupe local via <code>groupdel</code>.</p>
+            <p class="sudo-warning">Nécessite généralement des privilèges root.</p>
+            <dl class="param-list">
+                <dt>groupname</dt><dd><span class="param-type">(str)</span>: Nom du groupe à supprimer.</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la suppression a réussi (ou si le groupe n'existait pas).
+            </div>
+        </section>
+
+        <section class="method-section">
+            <h4 class="method-title" id="modify_group"><code>modify_group(groupname: str, new_name: Optional[str] = None, new_gid: Optional[int] = None) -> bool</code></h4>
+            <p class="description">Modifie un groupe existant via <code>groupmod</code>.</p>
+            <p class="sudo-warning">Nécessite généralement des privilèges root.</p>
+            <dl class="param-list">
+                <dt>groupname</dt><dd><span class="param-type">(str)</span>: Nom du groupe à modifier.</dd>
+                <dt>new_name</dt><dd><span class="param-type">(Optional[str])</span>: Nouveau nom pour le groupe (-n).</dd>
+                <dt>new_gid</dt><dd><span class="param-type">(Optional[int])</span>: Nouveau GID pour le groupe (-g).</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la modification a réussi.
+            </div>
+        </section>
+
+        <section class="method-section">
+            <h4 class="method-title" id="add_user_to_group"><code>add_user_to_group(username: str, groupname: str) -> bool</code></h4>
+            <p class="description">Ajoute un utilisateur à un groupe secondaire via <code>gpasswd -a</code>.</p>
+            <p class="sudo-warning">Nécessite généralement des privilèges root.</p>
+            <dl class="param-list">
+                <dt>username</dt><dd><span class="param-type">(str)</span>: Nom de l'utilisateur.</dd>
+                <dt>groupname</dt><dd><span class="param-type">(str)</span>: Nom du groupe.</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si l'ajout a réussi (ou si l'utilisateur était déjà membre).
+            </div>
+        </section>
+
+        <section class="method-section">
+            <h4 class="method-title" id="remove_user_from_group"><code>remove_user_from_group(username: str, groupname: str) -> bool</code></h4>
+            <p class="description">Retire un utilisateur d'un groupe secondaire via <code>gpasswd -d</code>.</p>
+            <p class="sudo-warning">Nécessite généralement des privilèges root.</p>
+            <dl class="param-list">
+                <dt>username</dt><dd><span class="param-type">(str)</span>: Nom de l'utilisateur.</dd>
+                <dt>groupname</dt><dd><span class="param-type">(str)</span>: Nom du groupe.</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si le retrait a réussi (ou si l'utilisateur n'était pas membre).
+            </div>
+        </section>
+
+        <section class="method-section">
+            <h4 class="method-title" id="get_user_info"><code>get_user_info(username: str) -> Optional[Dict[str, Any]]</code></h4>
+            <p class="description">Récupère les informations d'un utilisateur via <code>getent passwd</code>.</p>
+            <dl class="param-list">
+                <dt>username</dt><dd><span class="param-type">(str)</span>: Nom de l'utilisateur.</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">Optional[Dict[str, Any]]</span> - Dictionnaire avec les infos (uid, gid, gecos, home_dir, shell) ou None si non trouvé.
+            </div>
+        </section>
+
+        <section class="method-section">
+            <h4 class="method-title" id="get_group_info"><code>get_group_info(groupname: str) -> Optional[Dict[str, Any]]</code></h4>
+            <p class="description">Récupère les informations d'un groupe via <code>getent group</code>.</p>
+            <dl class="param-list">
+                <dt>groupname</dt><dd><span class="param-type">(str)</span>: Nom du groupe.</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">Optional[Dict[str, Any]]</span> - Dictionnaire avec les infos (gid, members) ou None si non trouvé.
+            </div>
+        </section>
+
+        <section class="method-section">
+            <h4 class="method-title" id="get_user_groups"><code>get_user_groups(username: str) -> Optional[List[str]]</code></h4>
+            <p class="description">Récupère la liste des groupes (primaire et secondaires) auxquels un utilisateur appartient via <code>groups</code>.</p>
+            <dl class="param-list">
+                <dt>username</dt><dd><span class="param-type">(str)</span>: Nom de l'utilisateur.</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">Optional[List[str]]</span> - Liste des noms de groupes ou None si erreur.
+            </div>
+        </section>
+
+    </div>
+</body>
+</html>

@@ -13,72 +13,52 @@ import os
 # Ajouter le répertoire parent au chemin de recherche Python
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Import du module d'aide à l'import
-from plugins_utils.import_helper import setup_import_paths
-
-# Configurer les chemins d'import
-setup_import_paths()
 
 # Maintenant on peut importer tous les éléments du module utils
-from plugins_utils import *
+from plugins_utils import main
+from plugins_utils import metier
+from plugins_utils import printers
+from plugins_utils import utils_cmd
 
 # Initialiser le logger du plugin
-log = PluginLogger()
+#log = PluginUtilsBase("add_printer")
 
 # Initialiser les gestionnaires de commandes
-printer_manager = PrinterCommands(log)
-service_manager = ServiceCommands(log)
+#printer_manager = PrinterCommands(log)
+#service_manager = ServiceCommands(log)
 
 class Plugin:
-    def execute_plugin(self,config):
-        """
-        Point d'entrée principal pour l'exécution du plugin.
-
-        Args:
-            config: Configuration du plugin (dictionnaire)
-
-        Returns:
-            Tuple (success, message)
-        """
+    def run(self,config,log,target_ip):
         try:
-            # Log de débogage pour indiquer le début de l'exécution
-            log.set_total_steps(2)
-
-            # Récupérer la configuration
+            log.debug(f"Début de l'exécution du plugin add_printer")
+            metierCmd = metier.MetierCommands(log,target_ip,config)
+            printerCmd = printers.PrinterCommands(log,target_ip)
+            utilsCmd = utils_cmd.UtilsCmd(log,target_ip)
             printer_config = config['config']
             printer_all =printer_config.get('printer_all')
             printer_ip = printer_config.get('printer_ip')
-
-            if printer_all != None and printer_all != False:
-                returnValue = printer_manager.remove_all_network_printers()
+            is_good_sms=metierCmd.is_good_sms()
+            is_good_lrpgn=metierCmd.is_good_lrpgn()
+            is_ssh=config.get('ssh_mode', False)
+            log.set_total_steps(1)
+            if is_ssh==False or (is_good_sms and is_good_lrpgn):
+                if printer_all != None and printer_all != False:
+                    returnValue = printerCmd.remove_all_network_printers()
+                else:
+                    returnValue = printerCmd.remove_printer_by_ip(printer_ip)
+                log.next_step()
+                if returnValue:
+                    success_msg = "Suppression(s) effectué(es) avec succès"
+                    log.success(success_msg)
+                    return True, success_msg
+                else:
+                    error_msg = "Erreur lors de la suppression"
+                    log.error(error_msg)
+                    return False, error_msg
             else:
-                returnValue = printer_manager.remove_printer_by_ip(printer_ip)
-            log.next_step()
-            # Redémarrer le service CUPS si l'installation a réussi
-            if returnValue:
-                log.info("Redémarrage du service CUPS")
-                try:
-                    # Utiliser ServiceCommands pour redémarrer CUPS
-                    returnValue = service_manager.restart("cups")
-
-                    if returnValue:
-                        log.success("Service CUPS redémarré avec succès")
-                    else:
-                        log.error(f"Erreur lors du redémarrage du service CUPS")
-                        return False, "Erreur lors du redémarrage de CUPS"
-                except Exception as e:
-                    log.error(f"Erreur lors du redémarrage de CUPS: {e}")
-                    return False, f"Erreur lors du redémarrage de CUPS: {e}"
-            log.next_step()
-            # Résultat final
-            if returnValue:
-                success_msg = "Suppression(s) effectué(es) avec succès"
+                success_msg = "Ordinateur non concerné"
                 log.success(success_msg)
-                return True, success_msg
-            else:
-                error_msg = "Erreur lors de la suppression"
-                log.error(error_msg)
-                return False, error_msg
+                return True, success_msg                
 
         except Exception as e:
             error_msg = f"Erreur inattendue: {str(e)}"
@@ -88,4 +68,5 @@ class Plugin:
 
 if __name__ == "__main__":
     plugin=Plugin()
-    main(log,plugin)
+    m=main.Main(plugin)
+    m.start()

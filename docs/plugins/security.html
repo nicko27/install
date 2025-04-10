@@ -1,220 +1,237 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Documentation: plugins_utils/security.py</title>
-  <link rel="stylesheet" href="docs_style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation: plugins_utils/security.py</title>
+    <link rel="stylesheet" href="docs_style.css">
+     <style>
+        /* Style additionnel pour les avertissements de dépendance */
+        .dependency-warning {
+            color: #856404; /* Jaune/brun */
+            background-color: #fff3cd; /* Jaune clair */
+            border: 1px solid #ffeeba; /* Jaune moyen */
+            border-radius: 4px;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .dependency-warning::before {
+            content: "⚠️ Prérequis: ";
+        }
+    </style>
 </head>
-
 <body>
-  <div class="container">
+    <div class="container">
 
-    <h1 class="main-title">Documentation: <code>plugins_utils/security.py</code></h1>
+        <h1 class="main-title">Documentation: <code>plugins_utils/security.py</code></h1>
 
-    <p class="module-description">
-      Ce module fournit des utilitaires pour les tâches de sécurité courantes.
-      Il permet la gestion des clés SSH, des permissions et propriétaires de fichiers,
-      ainsi qu'une interaction basique avec Fail2Ban.
-    </p>
+        <p class="module-description">
+            Ce module fournit des utilitaires pour les tâches de sécurité courantes.
+            Il permet la gestion des clés SSH, des permissions et propriétaires de fichiers,
+            l'interaction basique avec Fail2Ban, et la gestion des ACLs POSIX.
+        </p>
+         <p class="dependency-warning">
+            Nécessite que les commandes système correspondantes (<code>ssh-keygen</code>, <code>chmod</code>,
+            <code>chown</code>, <code>fail2ban-client</code>, <code>getfacl</code>, <code>setfacl</code>)
+            soient installées. Le paquet <code>acl</code> est requis pour les fonctions ACL.
+        </p>
 
-    <nav class="toc">
-      <h3 class="toc-title">Accès Rapide aux Méthodes</h3>
-      <ul class="toc-list">
-        <li class="toc-item"><a href="#generate_ssh_key" class="toc-link">generate_ssh_key</a></li>
-        <li class="toc-item"><a href="#add_authorized_key" class="toc-link">add_authorized_key</a></li>
-        <li class="toc-item"><a href="#remove_authorized_key" class="toc-link">remove_authorized_key</a></li>
-        <li class="toc-item"><a href="#set_permissions" class="toc-link">set_permissions</a></li>
-        <li class="toc-item"><a href="#set_ownership" class="toc-link">set_ownership</a></li>
-        <li class="toc-item"><a href="#fail2ban_ban_ip" class="toc-link">fail2ban_ban_ip</a></li>
-        <li class="toc-item"><a href="#fail2ban_unban_ip" class="toc-link">fail2ban_unban_ip</a></li>
-        <li class="toc-item"><a href="#fail2ban_status" class="toc-link">fail2ban_status</a></li>
-      </ul>
-    </nav>
+        <nav class="toc">
+            <h3 class="toc-title">Accès Rapide aux Méthodes</h3>
+            <ul class="toc-list">
+                <li class="toc-item" style="font-weight: 600;">Clés SSH</li>
+                <li class="toc-item" style="margin-left: 1rem;"><a href="#generate_ssh_key" class="toc-link">generate_ssh_key</a></li>
+                <li class="toc-item" style="margin-left: 1rem;"><a href="#add_authorized_key" class="toc-link">add_authorized_key</a></li>
+                <li class="toc-item" style="margin-left: 1rem;"><a href="#remove_authorized_key" class="toc-link">remove_authorized_key</a></li>
+                <li class="toc-item" style="font-weight: 600; margin-top: 0.5rem;">Permissions & Propriétaires</li>
+                <li class="toc-item" style="margin-left: 1rem;"><a href="#set_permissions" class="toc-link">set_permissions</a></li>
+                <li class="toc-item" style="margin-left: 1rem;"><a href="#set_ownership" class="toc-link">set_ownership</a></li>
+                <li class="toc-item" style="font-weight: 600; margin-top: 0.5rem;">ACLs POSIX</li>
+                <li class="toc-item" style="margin-left: 1rem;"><a href="#get_acl" class="toc-link">get_acl</a></li>
+                <li class="toc-item" style="margin-left: 1rem;"><a href="#set_acl" class="toc-link">set_acl</a></li>
+                <li class="toc-item" style="font-weight: 600; margin-top: 0.5rem;">Fail2Ban</li>
+                <li class="toc-item" style="margin-left: 1rem;"><a href="#fail2ban_ban_ip" class="toc-link">fail2ban_ban_ip</a></li>
+                <li class="toc-item" style="margin-left: 1rem;"><a href="#fail2ban_unban_ip" class="toc-link">fail2ban_unban_ip</a></li>
+                <li class="toc-item" style="margin-left: 1rem;"><a href="#fail2ban_status" class="toc-link">fail2ban_status</a></li>
+            </ul>
+        </nav>
 
-    <h2 class="section-title">Classe Principale</h2>
+        <h2 class="section-title">Classe Principale</h2>
 
-    <section class="method-section">
-      <h3 class="method-title" id="SecurityCommands"><code>SecurityCommands(PluginUtilsBase)</code></h3>
-      <p class="description">
-        Classe pour effectuer des opérations de sécurité courantes.
-        Hérite de <code>PluginUtilsBase</code> pour l'exécution des commandes et la journalisation.
-      </p>
-    </section>
+        <section class="method-section">
+            <h3 class="method-title" id="SecurityCommands"><code>SecurityCommands(PluginUtilsBase)</code></h3>
+            <p class="description">
+                Classe pour effectuer des opérations de sécurité courantes, y compris la gestion des ACLs.
+                Hérite de <code>PluginUtilsBase</code> pour l'exécution des commandes et la journalisation.
+            </p>
+        </section>
 
-    <h2 class="section-title">Méthodes Principales</h2>
+        <h2 class="section-title">Méthodes Principales</h2>
 
-    <section class="method-section">
-      <h4 class="method-title" id="generate_ssh_key"><code>generate_ssh_key(...) -> bool</code></h4>
-      <p class="description">Génère une nouvelle paire de clés SSH via <code>ssh-keygen</code>.</p>
-      <p class="sudo-warning">Peut nécessiter des privilèges root si le chemin de la clé est protégé.</p>
-      <div class="method-signature">
-        <pre><code>generate_ssh_key(
+        <section class="method-section">
+            <h4 class="method-title" id="generate_ssh_key"><code>generate_ssh_key(...) -> bool</code></h4>
+            <p class="description">Génère une nouvelle paire de clés SSH via <code>ssh-keygen</code>.</p>
+            <p class="sudo-warning">Peut nécessiter des privilèges root si le chemin de la clé est protégé.</p>
+            <div class="method-signature"><pre><code>generate_ssh_key(
     key_path: Union[str, Path],
     key_type: str = 'rsa',
     bits: int = 4096,
     passphrase: str = '',
     comment: str = '',
     overwrite: bool = False
-) -> bool</code></pre>
-      </div>
-      <dl class="param-list">
-        <dt>key_path</dt>
-        <dd><span class="param-type">(Union[str, Path])</span>: Chemin où enregistrer la clé privée (ex:
-          /home/user/.ssh/id_rsa). La clé publique sera enregistrée avec l'extension .pub.</dd>
-        <dt>key_type</dt>
-        <dd><span class="param-type">(str)</span>: Type de clé ('rsa', 'ed25519', 'ecdsa', 'dsa'). Défaut: 'rsa'.</dd>
-        <dt>bits</dt>
-        <dd><span class="param-type">(int)</span>: Nombre de bits pour la clé (pertinent pour RSA/DSA). Défaut: 4096.
-        </dd>
-        <dt>passphrase</dt>
-        <dd><span class="param-type">(str)</span>: Phrase de passe pour protéger la clé privée (vide pour aucune).
-          Défaut: ''.</dd>
-        <dt>comment</dt>
-        <dd><span class="param-type">(str)</span>: Commentaire à ajouter à la clé publique. Défaut: ''.</dd>
-        <dt>overwrite</dt>
-        <dd><span class="param-type">(bool)</span>: Si True, écrase les clés existantes sans demander. Défaut: False.
-        </dd>
-      </dl>
-      <div class="return-info">
-        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la génération a
-        réussi.
-      </div>
-    </section>
+) -> bool</code></pre></div>
+            <dl class="param-list">
+                <dt>key_path</dt><dd><span class="param-type">(Union[str, Path])</span>: Chemin où enregistrer la clé privée (ex: /home/user/.ssh/id_rsa). La clé publique sera enregistrée avec l'extension .pub.</dd>
+                <dt>key_type</dt><dd><span class="param-type">(str)</span>: Type de clé ('rsa', 'ed25519', 'ecdsa', 'dsa'). Défaut: 'rsa'.</dd>
+                <dt>bits</dt><dd><span class="param-type">(int)</span>: Nombre de bits pour la clé (pertinent pour RSA/DSA). Défaut: 4096.</dd>
+                <dt>passphrase</dt><dd><span class="param-type">(str)</span>: Phrase de passe pour protéger la clé privée (vide pour aucune). Défaut: ''.</dd>
+                <dt>comment</dt><dd><span class="param-type">(str)</span>: Commentaire à ajouter à la clé publique. Défaut: ''.</dd>
+                <dt>overwrite</dt><dd><span class="param-type">(bool)</span>: Si True, écrase les clés existantes sans demander. Défaut: False.</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la génération a réussi.
+            </div>
+        </section>
 
-    <section class="method-section">
-      <h4 class="method-title" id="add_authorized_key">
-        <code>add_authorized_key(username: str, public_key_content: str) -> bool</code></h4>
-      <p class="description">Ajoute une clé publique au fichier <code>authorized_keys</code> d'un utilisateur. Gère la
-        création du dossier <code>.ssh</code> et les permissions (700 pour .ssh, 600 pour authorized_keys).</p>
-      <p class="sudo-warning">Nécessite des privilèges root.</p>
-      <dl class="param-list">
-        <dt>username</dt>
-        <dd><span class="param-type">(str)</span>: Nom de l'utilisateur cible.</dd>
-        <dt>public_key_content</dt>
-        <dd><span class="param-type">(str)</span>: Contenu complet de la clé publique à ajouter (ligne complète).</dd>
-      </dl>
-      <div class="return-info">
-        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la clé a été ajoutée
-        avec succès (ou existait déjà).
-      </div>
-    </section>
+        <section class="method-section">
+            <h4 class="method-title" id="add_authorized_key"><code>add_authorized_key(username: str, public_key_content: str) -> bool</code></h4>
+            <p class="description">Ajoute une clé publique au fichier <code>authorized_keys</code> d'un utilisateur. Gère la création du dossier <code>.ssh</code> et les permissions (700 pour .ssh, 600 pour authorized_keys).</p>
+            <p class="sudo-warning">Nécessite des privilèges root.</p>
+            <dl class="param-list">
+                <dt>username</dt><dd><span class="param-type">(str)</span>: Nom de l'utilisateur cible.</dd>
+                <dt>public_key_content</dt><dd><span class="param-type">(str)</span>: Contenu complet de la clé publique à ajouter (ligne complète).</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la clé a été ajoutée avec succès (ou existait déjà).
+            </div>
+        </section>
 
-    <section class="method-section">
-      <h4 class="method-title" id="remove_authorized_key">
-        <code>remove_authorized_key(username: str, key_identifier: str) -> bool</code></h4>
-      <p class="description">Supprime une clé publique du fichier <code>authorized_keys</code> d'un utilisateur en
-        utilisant <code>sed</code>.</p>
-      <p class="sudo-warning">Nécessite des privilèges root.</p>
-      <dl class="param-list">
-        <dt>username</dt>
-        <dd><span class="param-type">(str)</span>: Nom de l'utilisateur cible.</dd>
-        <dt>key_identifier</dt>
-        <dd><span class="param-type">(str)</span>: Contenu complet de la clé publique OU le commentaire unique de la clé
-          à supprimer.</dd>
-      </dl>
-      <div class="return-info">
-        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la clé a été supprimée
-        ou n'existait pas.
-      </div>
-    </section>
+        <section class="method-section">
+            <h4 class="method-title" id="remove_authorized_key"><code>remove_authorized_key(username: str, key_identifier: str) -> bool</code></h4>
+            <p class="description">Supprime une clé publique du fichier <code>authorized_keys</code> d'un utilisateur en utilisant <code>sed</code>.</p>
+            <p class="sudo-warning">Nécessite des privilèges root.</p>
+            <dl class="param-list">
+                <dt>username</dt><dd><span class="param-type">(str)</span>: Nom de l'utilisateur cible.</dd>
+                <dt>key_identifier</dt><dd><span class="param-type">(str)</span>: Contenu complet de la clé publique OU le commentaire unique de la clé à supprimer.</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la clé a été supprimée ou n'existait pas.
+            </div>
+        </section>
 
-    <section class="method-section">
-      <h4 class="method-title" id="set_permissions">
-        <code>set_permissions(path: Union[str, Path], mode: Union[str, int], recursive: bool = False) -> bool</code>
-      </h4>
-      <p class="description">Modifie les permissions d'un fichier ou d'un dossier via <code>chmod</code>.</p>
-      <p class="sudo-warning">Peut nécessiter des privilèges root selon le chemin.</p>
-      <dl class="param-list">
-        <dt>path</dt>
-        <dd><span class="param-type">(Union[str, Path])</span>: Chemin du fichier ou dossier.</dd>
-        <dt>mode</dt>
-        <dd><span class="param-type">(Union[str, int])</span>: Mode octal (ex: 755, 600) ou symbolique (ex: 'u+x',
-          'g-w').</dd>
-        <dt>recursive</dt>
-        <dd><span class="param-type">(bool)</span>: Appliquer récursivement aux sous-dossiers/fichiers (-R). Défaut:
-          False.</dd>
-      </dl>
-      <div class="return-info">
-        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si succès.
-      </div>
-    </section>
+        <section class="method-section">
+            <h4 class="method-title" id="set_permissions"><code>set_permissions(path: Union[str, Path], mode: Union[str, int], recursive: bool = False) -> bool</code></h4>
+            <p class="description">Modifie les permissions d'un fichier ou d'un dossier via <code>chmod</code>.</p>
+            <p class="sudo-warning">Peut nécessiter des privilèges root selon le chemin.</p>
+            <dl class="param-list">
+                <dt>path</dt><dd><span class="param-type">(Union[str, Path])</span>: Chemin du fichier ou dossier.</dd>
+                <dt>mode</dt><dd><span class="param-type">(Union[str, int])</span>: Mode octal (ex: 755, 600) ou symbolique (ex: 'u+x', 'g-w').</dd>
+                <dt>recursive</dt><dd><span class="param-type">(bool)</span>: Appliquer récursivement aux sous-dossiers/fichiers (-R). Défaut: False.</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si succès.
+            </div>
+        </section>
 
-    <section class="method-section">
-      <h4 class="method-title" id="set_ownership">
-        <code>set_ownership(path: Union[str, Path], user: Optional[str] = None, group: Optional[str] = None, recursive: bool = False) -> bool</code>
-      </h4>
-      <p class="description">Modifie le propriétaire et/ou le groupe d'un fichier ou dossier via <code>chown</code>.</p>
-      <p class="sudo-warning">Nécessite des privilèges root.</p>
-      <dl class="param-list">
-        <dt>path</dt>
-        <dd><span class="param-type">(Union[str, Path])</span>: Chemin du fichier ou dossier.</dd>
-        <dt>user</dt>
-        <dd><span class="param-type">(Optional[str])</span>: Nouveau nom d'utilisateur propriétaire (ou UID). Si None,
-          ne change pas.</dd>
-        <dt>group</dt>
-        <dd><span class="param-type">(Optional[str])</span>: Nouveau nom de groupe propriétaire (ou GID). Si None, ne
-          change pas.</dd>
-        <dt>recursive</dt>
-        <dd><span class="param-type">(bool)</span>: Appliquer récursivement (-R). Défaut: False.</dd>
-      </dl>
-      <div class="return-info">
-        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si succès.
-      </div>
-    </section>
+        <section class="method-section">
+            <h4 class="method-title" id="set_ownership"><code>set_ownership(path: Union[str, Path], user: Optional[str] = None, group: Optional[str] = None, recursive: bool = False) -> bool</code></h4>
+            <p class="description">Modifie le propriétaire et/ou le groupe d'un fichier ou dossier via <code>chown</code>.</p>
+            <p class="sudo-warning">Nécessite des privilèges root.</p>
+            <dl class="param-list">
+                <dt>path</dt><dd><span class="param-type">(Union[str, Path])</span>: Chemin du fichier ou dossier.</dd>
+                <dt>user</dt><dd><span class="param-type">(Optional[str])</span>: Nouveau nom d'utilisateur propriétaire (ou UID). Si None, ne change pas.</dd>
+                <dt>group</dt><dd><span class="param-type">(Optional[str])</span>: Nouveau nom de groupe propriétaire (ou GID). Si None, ne change pas.</dd>
+                <dt>recursive</dt><dd><span class="param-type">(bool)</span>: Appliquer récursivement (-R). Défaut: False.</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si succès.
+            </div>
+        </section>
 
-    <section class="method-section">
-      <h4 class="method-title" id="fail2ban_ban_ip"><code>fail2ban_ban_ip(jail: str, ip_address: str) -> bool</code>
-      </h4>
-      <p class="description">Bannit une IP dans une jail fail2ban via <code>fail2ban-client set ... banip</code>.</p>
-      <p class="sudo-warning">Nécessite des privilèges root.</p>
-      <dl class="param-list">
-        <dt>jail</dt>
-        <dd><span class="param-type">(str)</span>: Nom de la jail fail2ban (ex: 'sshd').</dd>
-        <dt>ip_address</dt>
-        <dd><span class="param-type">(str)</span>: Adresse IP à bannir.</dd>
-      </dl>
-      <div class="return-info">
-        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si le bannissement a
-        réussi.
-      </div>
-    </section>
+        <section class="method-section">
+            <h4 class="method-title" id="get_acl"><code>get_acl(path: Union[str, Path]) -> Optional[Dict[str, Any]]</code></h4>
+            <p class="description">Récupère les ACLs POSIX d'un fichier ou dossier via <code>getfacl -pE</code>.</p>
+             <p class="dependency-warning">Nécessite que la commande <code>getfacl</code> (paquet <code>acl</code>) soit installée.</p>
+            <p class="sudo-warning">Peut nécessiter des privilèges root selon les permissions.</p>
+            <dl class="param-list">
+                <dt>path</dt><dd><span class="param-type">(Union[str, Path])</span>: Chemin du fichier ou dossier.</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">Optional[Dict[str, Any]]</span> - Dictionnaire structuré représentant les ACLs (clés: 'file', 'owner', 'group', 'flags', 'access' (liste), 'default' (liste)) ou None si erreur ou ACLs non supportées.
+            </div>
+        </section>
 
-    <section class="method-section">
-      <h4 class="method-title" id="fail2ban_unban_ip"><code>fail2ban_unban_ip(jail: str, ip_address: str) -> bool</code>
-      </h4>
-      <p class="description">Débannit une IP d'une jail fail2ban via <code>fail2ban-client set ... unbanip</code>.</p>
-      <p class="sudo-warning">Nécessite des privilèges root.</p>
-      <dl class="param-list">
-        <dt>jail</dt>
-        <dd><span class="param-type">(str)</span>: Nom de la jail fail2ban.</dd>
-        <dt>ip_address</dt>
-        <dd><span class="param-type">(str)</span>: Adresse IP à débannir.</dd>
-      </dl>
-      <div class="return-info">
-        <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si le débannissement a
-        réussi.
-      </div>
-    </section>
+        <section class="method-section">
+            <h4 class="method-title" id="set_acl"><code>set_acl(...) -> bool</code></h4>
+            <p class="description">Modifie ou définit les ACLs POSIX d'un fichier ou dossier via <code>setfacl</code>.</p>
+             <p class="dependency-warning">Nécessite que la commande <code>setfacl</code> (paquet <code>acl</code>) soit installée.</p>
+            <p class="sudo-warning">Nécessite des privilèges root.</p>
+            <div class="method-signature"><pre><code>set_acl(
+    path: Union[str, Path],
+    acl_spec: str,
+    recursive: bool = False,
+    modify: bool = True,
+    remove: bool = False,
+    remove_default: bool = False,
+    clear: bool = False,
+    use_default_prefix: bool = False
+) -> bool</code></pre></div>
+            <dl class="param-list">
+                <dt>path</dt><dd><span class="param-type">(Union[str, Path])</span>: Chemin du fichier ou dossier.</dd>
+                <dt>acl_spec</dt><dd><span class="param-type">(str)</span>: Spécification ACL (ex: "u:user:rwx", "g:group:r-x", "d:u:other:rw"). Peut contenir plusieurs spécifications séparées par des virgules. Ignoré si <code>clear=True</code> ou <code>remove_default=True</code>.</dd>
+                <dt>recursive</dt><dd><span class="param-type">(bool)</span>: Appliquer récursivement (-R). Défaut: False.</dd>
+                <dt>modify</dt><dd><span class="param-type">(bool)</span>: Modifier/Ajouter les ACLs spécifiées (-m). Action par défaut si aucune autre action (remove, clear, etc.) n'est True.</dd>
+                <dt>remove</dt><dd><span class="param-type">(bool)</span>: Supprimer les ACLs spécifiées (-x). Défaut: False.</dd>
+                <dt>remove_default</dt><dd><span class="param-type">(bool)</span>: Supprimer les ACLs par défaut (-k). Défaut: False.</dd>
+                <dt>clear</dt><dd><span class="param-type">(bool)</span>: Supprimer toutes les ACLs étendues (-b). Défaut: False.</dd>
+                <dt>use_default_prefix</dt><dd><span class="param-type">(bool)</span>: Si True, préfixe automatiquement 'd:' à <code>acl_spec</code> pour définir les ACLs par défaut. Défaut: False.</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si succès.
+            </div>
+        </section>
 
-    <section class="method-section">
-      <h4 class="method-title" id="fail2ban_status">
-        <code>fail2ban_status(jail: Optional[str] = None) -> Optional[str]</code></h4>
-      <p class="description">Récupère le statut de fail2ban ou d'une jail spécifique via
-        <code>fail2ban-client status [jail]</code>.</p>
-      <p class="sudo-warning">Peut nécessiter des privilèges root.</p>
-      <dl class="param-list">
-        <dt>jail</dt>
-        <dd><span class="param-type">(Optional[str])</span>: Nom de la jail spécifique (optionnel).</dd>
-      </dl>
-      <div class="return-info">
-        <span class="font-medium">Retourne:</span><span class="return-type">Optional[str]</span> - La sortie texte de la
-        commande status ou None si erreur.
-      </div>
-    </section>
+        <section class="method-section">
+            <h4 class="method-title" id="fail2ban_ban_ip"><code>fail2ban_ban_ip(jail: str, ip_address: str) -> bool</code></h4>
+            <p class="description">Bannit une IP dans une jail fail2ban via <code>fail2ban-client set ... banip</code>.</p>
+            <p class="sudo-warning">Nécessite des privilèges root.</p>
+            <dl class="param-list">
+                <dt>jail</dt><dd><span class="param-type">(str)</span>: Nom de la jail fail2ban (ex: 'sshd').</dd>
+                <dt>ip_address</dt><dd><span class="param-type">(str)</span>: Adresse IP à bannir.</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si le bannissement a réussi.
+            </div>
+        </section>
 
-  </div>
+        <section class="method-section">
+            <h4 class="method-title" id="fail2ban_unban_ip"><code>fail2ban_unban_ip(jail: str, ip_address: str) -> bool</code></h4>
+            <p class="description">Débannit une IP d'une jail fail2ban via <code>fail2ban-client set ... unbanip</code>.</p>
+            <p class="sudo-warning">Nécessite des privilèges root.</p>
+            <dl class="param-list">
+                <dt>jail</dt><dd><span class="param-type">(str)</span>: Nom de la jail fail2ban.</dd>
+                <dt>ip_address</dt><dd><span class="param-type">(str)</span>: Adresse IP à débannir.</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si le débannissement a réussi.
+            </div>
+        </section>
+
+        <section class="method-section">
+            <h4 class="method-title" id="fail2ban_status"><code>fail2ban_status(jail: Optional[str] = None) -> Optional[str]</code></h4>
+            <p class="description">Récupère le statut de fail2ban ou d'une jail spécifique via <code>fail2ban-client status [jail]</code>.</p>
+            <p class="sudo-warning">Peut nécessiter des privilèges root.</p>
+            <dl class="param-list">
+                <dt>jail</dt><dd><span class="param-type">(Optional[str])</span>: Nom de la jail spécifique (optionnel).</dd>
+            </dl>
+            <div class="return-info">
+                <span class="font-medium">Retourne:</span><span class="return-type">Optional[str]</span> - La sortie texte de la commande status ou None si erreur.
+            </div>
+        </section>
+
+    </div>
 </body>
-
 </html>

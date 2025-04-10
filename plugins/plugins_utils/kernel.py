@@ -17,19 +17,7 @@ class KernelCommands(PluginsUtilsBase):
     def __init__(self, logger=None, target_ip=None):
         """Initialise le gestionnaire du noyau."""
         super().__init__(logger, target_ip)
-        self._check_commands()
 
-    def _check_commands(self):
-        """Vérifie si les commandes nécessaires sont disponibles."""
-        cmds = ['sysctl', 'lsmod', 'modprobe', 'rmmod', 'uname']
-        missing = []
-        for cmd in cmds:
-            success, _, _ = self.run(['which', cmd], check=False, no_output=True, error_as_warning=True)
-            if not success:
-                missing.append(cmd)
-        if missing:
-            self.log_warning(f"Commandes potentiellement manquantes: {', '.join(missing)}. "
-                             f"Installer 'procps', 'kmod', 'coreutils' ou équivalent.")
 
     def get_uname_info(self) -> Dict[str, str]:
         """

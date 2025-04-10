@@ -12,6 +12,7 @@ import os
 import re
 import tempfile
 import time
+import shlex
 from typing import Union, Optional, List, Dict, Any, Tuple
 
 # Import conditionnel pour AptCommands (utilisé pour installer debconf-utils)
@@ -41,25 +42,10 @@ class DpkgCommands(PluginsUtilsBase):
         self._package_selections: Dict[str, str] = {} # {package: status}
         self._debconf_selections: Dict[Tuple[str, str], Tuple[str, str]] = {} # {(pkg, quest): (type, val)}
         # Instance d'AptCommands pour installer debconf-utils si besoin
+        self.last_run_return_code = 0
         self._apt_cmd = AptCommands(logger, target_ip) if APT_AVAILABLE_FOR_DPKG else None
         if not APT_AVAILABLE_FOR_DPKG:
              self.log_warning("Module AptCommands non trouvé. L'installation automatique de debconf-utils sera désactivée.")
-        # Vérifier la présence des commandes
-        self._check_commands()
-
-    def _check_commands(self):
-        """Vérifie si les commandes dpkg et debconf sont disponibles."""
-        cmds = ['dpkg', 'dpkg-query', 'debconf-set-selections', 'debconf-get-selections', 'dpkg-reconfigure']
-        missing = []
-        for cmd in cmds:
-            success, _, _ = self.run(['which', cmd], check=False, no_output=True, error_as_warning=True)
-            if not success:
-                missing.append(cmd)
-        if missing:
-            self.log_warning(f"Commandes dpkg/debconf potentiellement manquantes: {', '.join(missing)}. "
-                             f"Installer 'dpkg', 'debconf-utils'.")
-
-    # --- Méthodes de Gestion des Sélections Dpkg ---
 
     def add_package_selection(self, package: str, status: str = "install"):
         """
@@ -231,7 +217,6 @@ class DpkgCommands(PluginsUtilsBase):
         """Charge les pré-réponses debconf depuis un fichier et les ajoute à la liste interne."""
         self.log_info(f"Chargement des pré-réponses debconf depuis: {filepath}")
         # Vérifier debconf-utils avant de lire
-        if not self._ensure_debconf_utils(): return False
 
         # Lire le fichier (peut nécessiter sudo)
         success_read, content, stderr_read = self.run(['cat', filepath], check=False, needs_sudo=True, no_output=True)
@@ -268,9 +253,6 @@ class DpkgCommands(PluginsUtilsBase):
             self.log_warning("Aucune pré-réponse debconf en attente à appliquer.")
             return True
 
-        # S'assurer que debconf-utils est là
-        if not self._ensure_debconf_utils(): return False
-
         count = len(self._debconf_selections)
         self.log_info(f"Application de {count} pré-réponses debconf...")
         current_task_id = task_id or f"debconf_set_selections_{int(time.time())}"
@@ -300,6 +282,84 @@ class DpkgCommands(PluginsUtilsBase):
              self.complete_task(success=False, message="Échec debconf-set-selections")
              return False
 
-    # --- Autres opérations Dpkg ---
-    # Des méthodes pour dpkg-reconfigure, dpkg -s, dpkg -L pourraient être ajoutées ici.
+    def get_debconf_selections_for_package(self, package_name: str) -> Optional[Dict[Tuple[str, str], str]]:
+        """
+        Récupère les sélections debconf actuelles pour un paquet spécifique.
 
+        Args:
+            package_name: Nom du paquet.
+
+        Returns:
+            Dictionnaire où la clé est un tuple (question, type) et la valeur est la sélection actuelle.
+            Retourne None en cas d'erreur, ou un dictionnaire vide si aucune sélection trouvée.
+        """
+        self.log_debug(f"Récupération des sélections debconf pour le paquet: {package_name}")
+
+        # Construire la commande: debconf-get-selections | grep '^paquet '
+        # Utiliser shlex.quote pour sécuriser le nom du paquet dans la commande shell
+        cmd_str = f"debconf-get-selections | grep '^{shlex.quote(package_name)}\\s'"
+        # Exécuter avec shell=True. check=False car grep retourne 1 si rien n'est trouvé.
+        # Pas besoin de sudo pour debconf-get-selections
+        success, stdout, stderr = self.run(cmd_str, shell=True, check=False, no_output=True, needs_sudo=False)
+
+        selections: Dict[Tuple[str, str], str] = {}
+
+        if not success:
+            # Vérifier si l'échec est dû au fait que grep n'a rien trouvé (code retour 1)
+            if self.last_run_return_code and self.last_run_return_code == 1:
+                self.log_debug(f"Aucune sélection debconf trouvée pour le paquet '{package_name}'.")
+                return selections # Retourner un dict vide
+            else:
+                # Autre erreur
+                self.log_error(f"Échec de la récupération des sélections debconf pour '{package_name}'. Stderr: {stderr}")
+                return None
+
+        # Parser la sortie
+        count = 0
+        for line in stdout.splitlines():
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            # Format: package question type value
+            parts = line.split(None, 3)
+            if len(parts) == 4:
+                pkg, quest, q_type, val = parts
+                # Double vérification que le paquet est correct (même si grep devrait l'assurer)
+                if pkg == package_name:
+                    selections[(quest, q_type)] = val
+                    count += 1
+                else:
+                    self.log_warning(f"Ligne inattendue retournée par grep: {line}")
+            else:
+                self.log_warning(f"Format de sélection debconf invalide ignoré: {line}")
+
+        self.log_debug(f"{count} sélection(s) debconf trouvée(s) pour '{package_name}'.")
+        self.log_debug(f"Sélections pour {package_name}: {selections}")
+        return selections
+
+    def get_debconf_value(self, package_name: str, question_name: str) -> Optional[str]:
+        """
+        Récupère la valeur d'une question debconf spécifique pour un paquet donné.
+
+        Args:
+            package_name: Nom du paquet.
+            question_name: Nom de la question debconf.
+
+        Returns:
+            La valeur de la sélection sous forme de chaîne, ou None si non trouvée ou en cas d'erreur.
+        """
+        self.log_debug(f"Recherche de la valeur debconf pour: {package_name} -> {question_name}")
+        package_selections = self.get_debconf_selections_for_package(package_name)
+
+        if package_selections is None:
+            self.log_error(f"Impossible de récupérer les sélections pour {package_name} afin d'obtenir la valeur.")
+            return None
+
+        # Chercher la question dans les sélections récupérées
+        for (question, q_type), value in package_selections.items():
+            if question == question_name:
+                self.log_debug(f"Valeur trouvée pour '{question_name}' ({package_name}): '{value}' (type: {q_type})")
+                return value
+
+        self.log_debug(f"Aucune valeur debconf trouvée pour la question '{question_name}' du paquet '{package_name}'.")
+        return None

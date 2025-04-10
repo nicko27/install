@@ -21,19 +21,6 @@ class SystemInfoExtended(PluginsUtilsBase):
         """Initialise le gestionnaire d'informations étendues."""
         super().__init__(logger, target_ip)
         # Vérifier la présence des commandes nécessaires
-        self._check_commands()
-
-    def _check_commands(self):
-        """Vérifie si les commandes nécessaires sont disponibles."""
-        cmds = ['lspci', 'lsusb', 'dmidecode', 'hdparm', 'smartctl', 'lsblk']
-        missing = []
-        for cmd in cmds:
-            success, _, _ = self.run(['which', cmd], check=False, no_output=True, error_as_warning=True)
-            if not success:
-                missing.append(cmd)
-        if missing:
-            self.log_warning(f"Commandes potentiellement manquantes: {', '.join(missing)}. "
-                             f"Installer 'pciutils', 'usbutils', 'dmidecode', 'hdparm', 'smartmontools', 'util-linux'.")
 
     def get_pci_devices(self) -> List[Dict[str, str]]:
         """

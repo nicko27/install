@@ -327,15 +327,27 @@ class ConfigContainer(VerticalGroup):
         
         if not should_enable:
             logger.debug(f"Désactivation du champ {dependent_field.field_id}")
-            dependent_field.disabled = True
-            dependent_field.add_class('disabled')
+            
+            # Utiliser la méthode set_disabled si disponible (pour DirectoryField par exemple)
+            if hasattr(dependent_field, 'set_disabled') and callable(dependent_field.set_disabled):
+                logger.debug(f"Utilisation de set_disabled pour {dependent_field.field_id}")
+                dependent_field.set_disabled(True)
+            else:
+                dependent_field.disabled = True
+                dependent_field.add_class('disabled')
             
             # Si le champ doit aussi être retiré, l'ajouter à la liste
             self._fields_to_remove.add(dependent_field.field_id)
         else:
             logger.debug(f"Activation du champ {dependent_field.field_id}")
-            dependent_field.disabled = False
-            dependent_field.remove_class('disabled')
+            
+            # Utiliser la méthode set_disabled si disponible (pour DirectoryField par exemple)
+            if hasattr(dependent_field, 'set_disabled') and callable(dependent_field.set_disabled):
+                logger.debug(f"Utilisation de set_disabled pour {dependent_field.field_id}")
+                dependent_field.set_disabled(False)
+            else:
+                dependent_field.disabled = False
+                dependent_field.remove_class('disabled')
             
             # Restaurer l'état du widget si disponible
             self._restore_field_state(dependent_field)

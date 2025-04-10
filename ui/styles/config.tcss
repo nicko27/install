@@ -2,7 +2,6 @@
     margin:0;
     padding:0;
     box-sizing: border-box;
-    height:36;
 }
 
 
@@ -17,7 +16,7 @@
 }
 
 #button-container-config-left{
-    margin-left:1;
+    margin-left:2;
 }
 
 #button-container-config-right{
@@ -111,7 +110,7 @@
 }
 
 #ssh-container{
-    display:none;    
+    display:none;
 }
 
 .disabled-ssh-container{

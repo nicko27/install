@@ -34,21 +34,17 @@ except ImportError:
         EOF = EOF
         @staticmethod
         def spawn(*args, **kwargs): raise ImportError("Le module 'pexpect' est requis.")
-        # Méthode factice pour compile_pattern_list si pexpect n'est pas là
-        @staticmethod
-        def compile_pattern_list(patterns):
-             if isinstance(patterns, list): return patterns
-             return [patterns]
+        # compile_pattern_list n'existe pas, on ne met rien ici
 
 
-class InteractiveCommand(PluginsUtilsBase):
+class InteractiveCommands(PluginsUtilsBase):
     """
     Classe pour exécuter des commandes interactives via Pexpect.
     Permet de définir des scénarios d'attente/réponse.
     Hérite de PluginUtilsBase pour la journalisation.
     """
 
-    DEFAULT_TIMEOUT = 30 # Timeout par défaut pour chaque étape d'attente en secondes
+    DEFAULT_TIMEOUT = 1 # Timeout par défaut pour chaque étape d'attente en secondes
 
     def __init__(self, logger=None, target_ip=None):
         """Initialise le gestionnaire de commandes interactives."""
@@ -56,7 +52,6 @@ class InteractiveCommand(PluginsUtilsBase):
         if not PEXPECT_AVAILABLE:
             self.log_error("Le module 'pexpect' est requis mais n'a pas pu être importé. "
                            "Les opérations interactives échoueront. Installez-le via pip.")
-            # Ne pas lever d'exception ici, mais les méthodes échoueront
 
     def run_scenario(self,
                      command: Union[str, List[str]],
@@ -106,21 +101,17 @@ class InteractiveCommand(PluginsUtilsBase):
         # --- Préparation de la commande ---
         if isinstance(command, list):
             cmd_list = command
-            # Utiliser shlex.quote pour un affichage sûr des arguments
             cmd_str_log = ' '.join(shlex.quote(c) for c in command)
         else:
-            cmd_str_log = command # Logguer la commande originale
-            # Tenter de découper pour pexpect.spawn, mais garder la chaîne pour le log
+            cmd_str_log = command
             try:
                  cmd_list = shlex.split(command)
             except ValueError:
                  self.log_warning(f"Impossible de découper la commande '{command}', exécution via shell peut être nécessaire si pexpect échoue.")
-                 # Pexpect peut parfois gérer une chaîne directement, on essaie
                  cmd_list = command
 
         spawn_cmd: str
         spawn_args: List[str]
-        # Hériter de l'environnement et le modifier si nécessaire
         effective_env = os.environ.copy()
         if env is not None:
              effective_env.update(env)
@@ -128,37 +119,29 @@ class InteractiveCommand(PluginsUtilsBase):
         if needs_sudo:
             if self._is_root:
                 self.log_debug("needs_sudo=True mais déjà root, exécution directe.")
-                # Utiliser la commande telle quelle
                 if isinstance(cmd_list, list):
                      spawn_cmd = cmd_list[0]
                      spawn_args = cmd_list[1:]
                 else:
-                     spawn_cmd = cmd_list # Pexpect tentera d'exécuter la chaîne
+                     spawn_cmd = cmd_list
                      spawn_args = []
             else:
-                self.log_info("Préfixage de la commande avec 'sudo -S'")
-                sudo_path = '/usr/bin/sudo' # Chemin commun
-                # Vérifier si sudo existe (déjà fait dans PluginUtilsBase.run, mais redondance ici)
+                self.log_debug("Préfixage de la commande avec 'sudo -S'")
+                sudo_path = '/usr/bin/sudo'
                 which_success, which_out, _ = self.run(['which', 'sudo'], check=False, no_output=True)
                 if which_success and which_out.strip(): sudo_path = which_out.strip()
 
                 spawn_cmd = sudo_path
-                # Passer la commande originale comme arguments à sudo -S
                 if isinstance(cmd_list, list):
                      # -S lit le mdp depuis stdin (normalement géré par l'env SUDO_PASSWORD)
                      # -E préserve l'environnement si possible
                      spawn_args = ['-SE'] + cmd_list
                 else:
-                     # Si la commande originale était une chaîne, la passer à sh -c
-                     # C'est plus complexe et potentiellement moins sûr
                      spawn_args = ['-SE', 'sh', '-c', cmd_list]
 
-                # Vérifier si le mot de passe est dans l'environnement
                 if "SUDO_PASSWORD" not in effective_env:
-                     self.log_warning("sudo requis mais SUDO_PASSWORD non trouvé dans l'environnement. "
-                                      "L'interaction peut échouer si un mot de passe est demandé.")
+                     self.log_warning("sudo requis mais SUDO_PASSWORD non trouvé dans l'environnement. L'interaction peut échouer.")
         else:
-             # Exécution normale
              if isinstance(cmd_list, list):
                   spawn_cmd = cmd_list[0]
                   spawn_args = cmd_list[1:]
@@ -166,37 +149,32 @@ class InteractiveCommand(PluginsUtilsBase):
                   spawn_cmd = cmd_list
                   spawn_args = []
 
-        self.log_info(f"Exécution interactive: {cmd_str_log}")
+        self.log_debug(f"Exécution interactive: {cmd_str_log}")
 
         # --- Exécution Pexpect ---
         transcript_buffer = io.StringIO() if log_transcript else None
         child: Optional[pexpect.spawn] = None
-        # Stocker la sortie lue manuellement si log_transcript=False
         manual_output_log = ""
 
         try:
-            # Démarrer le processus enfant
-            # dimensions=(rows, cols) peut aider à simuler un tty plus grand si nécessaire
             child = pexpect.spawn(spawn_cmd, args=spawn_args,
-                                  timeout=global_timeout, # Timeout par défaut pour les expect initiaux
+                                  timeout=global_timeout,
                                   encoding=encoding,
-                                  codec_errors='replace', # Gérer les erreurs d'encodage
+                                  codec_errors='replace',
                                   cwd=cwd,
                                   env=effective_env,
-                                  logfile=transcript_buffer, # Capturer toute l'interaction si demandé
-                                  echo=False) # Ne pas afficher l'entrée sur le tty enfant
+                                  logfile=transcript_buffer,
+                                  echo=False)
 
             mask_indices = set(mask_responses or [])
 
-            # Dérouler le scénario d'interaction
+            # Dérouler le scénario
             for i, step in enumerate(scenario):
                 if len(step) < 2 or len(step) > 3:
-                     # Log l'erreur et continuer si possible ? Ou lever une exception ? Lever pour l'instant.
                      raise ValueError(f"Format de scénario invalide à l'étape {i+1}: {step}")
 
                 expect_pattern_or_list = step[0]
                 response_to_send = step[1]
-                # Utiliser le timeout spécifique à l'étape ou le global
                 step_timeout = step[2] if len(step) == 3 and step[2] is not None else global_timeout
 
                 # Construire la liste des patterns à attendre pour cette étape
@@ -208,13 +186,15 @@ class InteractiveCommand(PluginsUtilsBase):
 
                 # Ajouter les patterns spéciaux EOF et TIMEOUT
                 patterns_to_expect.extend([pexpect.EOF, pexpect.TIMEOUT])
-                # Compiler la liste pour pexpect (gère str, bytes, regex)
-                compiled_patterns = pexpect.compile_pattern_list(patterns_to_expect)
 
-                self.log_debug(f"  Étape {i+1}: Attente de '{expect_pattern_or_list}' (timeout={step_timeout}s)")
+                # *** CORRECTION: Ne pas utiliser pexpect.compile_pattern_list ***
+                # compiled_patterns = pexpect.compile_pattern_list(patterns_to_expect) # Ligne supprimée
+                final_patterns_list = patterns_to_expect # Utiliser la liste directement
+
+                self.log_debug(f"  Étape {i+1}: Attente de '{expect_pattern_or_list}' ou spéciaux (timeout={step_timeout}s)")
 
                 # Attendre l'un des patterns
-                index = child.expect(compiled_patterns, timeout=step_timeout)
+                index = child.expect(final_patterns_list, timeout=step_timeout)
 
                 # Capturer la sortie avant et après la correspondance pour le log manuel
                 output_before = child.before or ""
@@ -226,14 +206,13 @@ class InteractiveCommand(PluginsUtilsBase):
                      if output_before.strip(): self.log_debug(f"    Avant: {output_before.strip()}")
                      if output_after.strip(): self.log_debug(f"    Match ({index}): {output_after.strip()}")
 
-                matched_pattern = compiled_patterns[index] # Le pattern qui a correspondu
+                # *** CORRECTION: Utiliser final_patterns_list pour récupérer le pattern ***
+                matched_pattern = final_patterns_list[index] # Le pattern qui a correspondu
 
                 # Gérer les cas spéciaux (EOF, TIMEOUT)
                 if matched_pattern == pexpect.EOF:
-                    # La commande s'est terminée avant la fin attendue du scénario
                     raise EOF(f"Fin de fichier inattendue à l'étape {i+1} en attendant '{expect_pattern_or_list}'.")
                 elif matched_pattern == pexpect.TIMEOUT:
-                    # Le prompt attendu n'est pas apparu dans le délai imparti
                     raise TIMEOUT(f"Timeout ({step_timeout}s) dépassé à l'étape {i+1} en attendant '{expect_pattern_or_list}'.")
 
                 # Si on arrive ici, un des patterns attendus a été trouvé
@@ -243,55 +222,46 @@ class InteractiveCommand(PluginsUtilsBase):
                     log_response = "********" if i in mask_indices else response_to_send
                     self.log_debug(f"    Envoi réponse: {log_response}")
                     child.sendline(response_to_send)
-                    # Ajouter la réponse (masquée ou non) au log manuel si besoin
                     if not log_transcript:
-                         # Ajouter un retour chariot simulé car sendline l'envoie
                          manual_output_log += log_response + "\n"
 
             # Fin du scénario, attendre la fin normale du processus
             self.log_debug("Fin du scénario, attente de EOF.")
             child.expect(pexpect.EOF, timeout=global_timeout)
-            # Capturer le reste de la sortie
             final_before = child.before or ""
             if not log_transcript and final_before: manual_output_log += final_before
             # if not log_transcript and final_before.strip(): self.log_debug(f"    Sortie finale: {final_before.strip()}")
 
-            child.close() # Fermer explicitement
+            child.close()
             success = (child.exitstatus == 0)
-            # Récupérer la transcription complète si logguée, sinon le log manuel
             final_output = transcript_buffer.getvalue() if log_transcript and transcript_buffer else manual_output_log
 
             if success:
-                self.log_success(f"Commande interactive '{cmd_str_log}' terminée avec succès.")
+                self.log_debug(f"Commande interactive '{cmd_str_log}' terminée avec succès.")
                 return True, final_output
             else:
-                # Le code d'erreur est dans child.exitstatus ou child.signalstatus
                 err_status = f"Exit status: {child.exitstatus}" if child.exitstatus is not None else f"Signal: {child.signalstatus}"
-                self.log_error(f"Commande interactive '{cmd_str_log}' terminée avec échec. {err_status}")
+                self.log_debug(f"Commande interactive '{cmd_str_log}' terminée avec échec. {err_status}")
                 return False, final_output
 
         except (TIMEOUT, EOF) as e:
-             # Gérer spécifiquement TIMEOUT et EOF levés par notre code ou pexpect
              self.log_error(f"Erreur d'interaction pour '{cmd_str_log}': {e}")
              partial_output = transcript_buffer.getvalue() if log_transcript and transcript_buffer else manual_output_log
              if child and not child.closed:
-                  try: partial_output += child.read_nonblocking(size=1024, timeout=0.1) # Essayer de lire sans bloquer
+                  try: partial_output += child.read_nonblocking(size=1024, timeout=0.1)
                   except: pass
-                  child.close(force=True) # Forcer la fermeture
+                  child.close(force=True)
              return False, partial_output
         except PexpectError as e:
-             # Autres erreurs Pexpect (ex: échec de spawn, erreur de pattern regex)
              self.log_error(f"Erreur Pexpect pour '{cmd_str_log}': {e}", exc_info=True)
              partial_output = transcript_buffer.getvalue() if log_transcript and transcript_buffer else manual_output_log
              if child and not child.closed: child.close(force=True)
              return False, partial_output
         except Exception as e:
-             # Autres erreurs inattendues
              self.log_error(f"Erreur inattendue lors de l'exécution interactive de '{cmd_str_log}': {e}", exc_info=True)
              partial_output = transcript_buffer.getvalue() if log_transcript and transcript_buffer else manual_output_log
              if child and not child.closed: child.close(force=True)
              return False, partial_output
         finally:
-             # Assurer la fermeture du buffer
              if transcript_buffer: transcript_buffer.close()
 

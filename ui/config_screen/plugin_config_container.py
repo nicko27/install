@@ -210,6 +210,10 @@ class PluginConfigContainer(ConfigContainer):
         # Maintenant que les widgets sont créés, appliquer les valeurs prédéfinies
         self.call_after_refresh(self._apply_predefined_values)
         
+        # Réinitialiser les états d'activation des champs après un court délai
+        # pour s'assurer que toutes les valeurs sont correctement initialisées
+        self.call_later(self._reset_enabled_states, 0.1)
+        
     def _apply_predefined_values(self) -> None:
         """
         Applique les valeurs prédéfinies aux champs de configuration.
@@ -484,6 +488,64 @@ class PluginConfigContainer(ConfigContainer):
         except Exception as e:
             logger.error(f"Erreur lors de la mise à jour du widget pour {field.field_id}: {e}")
 
+    def _reset_enabled_states(self, *args) -> None:
+        """
+        Réinitialise les états d'activation de tous les champs en fonction de leurs dépendances.
+        
+        Cette méthode est appelée après le montage pour s'assurer que tous les champs
+        sont correctement activés/désactivés en fonction de leurs dépendances.
+        
+        Args:
+            *args: Arguments supplémentaires (ignorés, présents pour compatibilité avec call_later)
+        """
+        logger.debug(f"Réinitialisation des états d'activation pour {self.source_id}")
+        
+        # Parcourir tous les champs de ce plugin
+        for field_id, field in self.fields_by_id.items():
+            # Ne considérer que les champs de ce plugin
+            if not hasattr(field, 'source_id') or field.source_id != self.source_id:
+                continue
+                
+            # Vérifier si le champ a une dépendance d'activation
+            if hasattr(field, 'enabled_if') and field.enabled_if:
+                dep_field_id = field.enabled_if.get('field')
+                required_value = field.enabled_if.get('value')
+                
+                # Trouver le champ dépendant
+                dep_field = self.fields_by_id.get(dep_field_id)
+                if not dep_field:
+                    continue
+                    
+                # Récupérer la valeur actuelle du champ dépendant
+                current_value = self._get_field_value(dep_field)
+                
+                # Normaliser les valeurs booléennes si nécessaire
+                if isinstance(required_value, bool):
+                    if isinstance(current_value, str):
+                        current_value = current_value.lower() in ('true', 't', 'yes', 'y', '1')
+                    else:
+                        current_value = bool(current_value)
+                
+                logger.debug(f"Vérification état pour {field_id}: {current_value} == {required_value}")
+                
+                # Mettre à jour l'état d'activation
+                should_enable = current_value == required_value
+                
+                # Si le champ est un DirectoryField, utiliser sa méthode set_disabled
+                if hasattr(field, 'set_disabled'):
+                    field.set_disabled(not should_enable)
+                    logger.debug(f"État du champ {field_id} mis à jour via set_disabled: enabled={should_enable}")
+                else:
+                    # Sinon, mettre à jour directement les attributs
+                    field.disabled = not should_enable
+                    if should_enable:
+                        field.remove_class('disabled')
+                    else:
+                        field.add_class('disabled')
+                    logger.debug(f"État du champ {field_id} mis à jour directement: enabled={should_enable}")
+        
+        logger.debug(f"Réinitialisation des états d'activation terminée pour {self.source_id}")
+    
     def _retry_pending_values(self) -> None:
         """
         Réessaie d'appliquer les valeurs en attente.

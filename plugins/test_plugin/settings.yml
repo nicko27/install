@@ -21,7 +21,7 @@ config_fields:
     default: "scan"
     required: true
 
-  confirm:
+  create_scan_dir:
     type: checkbox
     label: Créer le dossier pour la numérisation (si nécessaire) et Appliquer les acls sur le dossier
     description: Créer le dossier pour la numérisation (si nécessaire) et Appliquer les acls sur le dossier
@@ -29,11 +29,11 @@ config_fields:
     required: true
 
   scan_directory:
-    type: text
+    type: directory
     label: Dossier à configurer
     description: Dossier à créer (si besoin) et configurer
     default: "/partage/commun/Numerisation"
     required: true
     enabled_if:
-      field: confirm_config
+      field: create_scan_dir
       value: true

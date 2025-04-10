@@ -5,13 +5,16 @@ couleurs: '1'
 rectoverso: '1'
 agraffes: '0'
 a3: '0'
-orecto: -o Duplex=None
-orectoverso: -o Duplex=DuplexNoTumble
-onb: -o EPRendering=None
-ocouleurs: -o EPRendering=Color
-oagraffes: ''
-oa4: -o PageSize=A4
+orecto:
+  - Duplex: None
+orectoverso:
+  - Duplex: DuplexNoTumble
+onb:
+  - EPRendering: None
+ocouleurs:
+  - EPRendering: Color
+oa4:
+  - PageSize: A4
 oa3: ''
-ocommun: ''
-mode: m
+mode: model
 socket: lpd://

@@ -45,7 +45,6 @@ class ServiceCommands(PluginsUtilsBase):
              self.log_debug(f"Exécutable systemctl trouvé via which: {path_str}")
              return path_str
 
-        self.log_warning("Exécutable 'systemctl' introuvable. La gestion des services pourrait échouer. Installer 'systemd'.")
         # Retourner 'systemctl' quand même, peut être dans le PATH mais non trouvé par les vérifications
         return 'systemctl'
 
