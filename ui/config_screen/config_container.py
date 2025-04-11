@@ -317,44 +317,28 @@ class ConfigContainer(VerticalGroup):
             
         source_value = self._get_field_value(source_field)
         required_value = dependent_field.enabled_if.get('value')
-
+        
         # Normaliser les valeurs booléennes si nécessaire
-        normalized_source = self._normalize_boolean_value(source_value)
-        normalized_required = self._normalize_boolean_value(required_value)
-
-        # Déterminer si le champ doit être activé - UTILISER LES VALEURS NORMALISÉES
-        should_enable = normalized_source == normalized_required
-
-        logger.debug(f"Comparaison pour activation de {dependent_field.field_id}: {source_value}({type(source_value).__name__}) == {required_value}({type(required_value).__name__})")
-        logger.debug(f"Après normalisation: {normalized_source} == {normalized_required}, should_enable={should_enable}")
-
+        source_value = self._normalize_boolean_value(source_value)
+        required_value = self._normalize_boolean_value(required_value)
+        
+        # Déterminer si le champ doit être activé
+        should_enable = source_value == required_value
+        
         if not should_enable:
             logger.debug(f"Désactivation du champ {dependent_field.field_id}")
-            
-            # Utiliser la méthode set_disabled si disponible (pour DirectoryField par exemple)
-            if hasattr(dependent_field, 'set_disabled') and callable(dependent_field.set_disabled):
-                logger.debug(f"Utilisation de set_disabled pour {dependent_field.field_id}")
-                dependent_field.set_disabled(True)
-            else:
-                dependent_field.disabled = True
-                dependent_field.add_class('disabled')
+            dependent_field.disabled = True
+            dependent_field.add_class('disabled')
             
             # Si le champ doit aussi être retiré, l'ajouter à la liste
             self._fields_to_remove.add(dependent_field.field_id)
         else:
             logger.debug(f"Activation du champ {dependent_field.field_id}")
-            
-            # Utiliser la méthode set_disabled si disponible (pour DirectoryField par exemple)
-            if hasattr(dependent_field, 'set_disabled') and callable(dependent_field.set_disabled):
-                logger.debug(f"Utilisation de set_disabled pour {dependent_field.field_id}")
-                dependent_field.set_disabled(False)
-            else:
-                dependent_field.disabled = False
-                dependent_field.remove_class('disabled')
+            dependent_field.disabled = False
+            dependent_field.remove_class('disabled')
             
             # Restaurer l'état du widget si disponible
             self._restore_field_state(dependent_field)
-
 
     def _get_field_value(self, field: Widget) -> Any:
         """
@@ -382,23 +366,11 @@ class ConfigContainer(VerticalGroup):
         Returns:
             Any: Valeur normalisée
         """
-        logger.debug(f"Normalisation de la valeur booléenne: {value} (type: {type(value).__name__})")
-        
-        # Si c'est déjà un booléen, le retourner tel quel
         if isinstance(value, bool):
-            logger.debug(f"Valeur déjà booléenne: {value}")
             return value
-            
-        # Si c'est une chaîne, la convertir en booléen
         if isinstance(value, str):
-            result = value.lower() in ('true', 't', 'yes', 'y', '1')
-            logger.debug(f"Conversion de la chaîne '{value}' en booléen: {result}")
-            return result
-            
-        # Sinon, convertir en booléen standard
-        result = bool(value)
-        logger.debug(f"Conversion de {value} en booléen: {result}")
-        return result
+            return value.lower() in ('true', 't', 'yes', 'y', '1')
+        return bool(value)
 
     def _update_field_dynamic_options(self, dependent_field: Widget, source_field: Widget) -> None:
         """
