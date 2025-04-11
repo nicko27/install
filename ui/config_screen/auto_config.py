@@ -227,114 +227,189 @@ class AutoConfig:
         Returns:
             Dict[str, Any]: Configuration complète du plugin
         """
-        # Charger les paramètres du plugin
-        plugin_settings = self._load_plugin_settings(plugin_name)
-        if not plugin_settings:
-            logger.warning(f"Paramètres non trouvés pour {plugin_name}")
-            plugin_settings = {'name': plugin_name, 'icon': '📦'}
-        
-        # Structure de base de la configuration
-        config = {
-            'plugin_name': plugin_name,
-            'instance_id': instance_id,
-            'name': plugin_settings.get('name', plugin_name),
-            'show_name': plugin_settings.get('plugin_name', plugin_name),
-            'icon': plugin_settings.get('icon', '📦'),
-            'config': {},
-            'remote_execution': False
-        }
-        
-        # 1. Ajouter les valeurs par défaut depuis les paramètres
-        self._add_default_values(config, plugin_settings)
-        
-        # 2. Ajouter la configuration de la séquence si disponible
-        if sequence_configs and sequence_position < len(sequence_configs):
-            seq_config = sequence_configs[sequence_position]
-            self._add_sequence_config(config, seq_config)
-        
-        # 3. Ajouter la configuration initiale (priorité maximale)
-        if initial_config:
-            self._add_initial_config(config, initial_config)
-        
-        # 4. Charger les contenus de fichiers dynamiques si nécessaire
-        config = self._load_dynamic_file_contents(plugin_name, config)
-        
-        # 5. Finaliser la configuration pour l'exécution
-        self._finalize_config(config, plugin_settings)
-        
-        return config
+        try:
+            # Charger les paramètres du plugin
+            plugin_settings = self._load_plugin_settings(plugin_name)
+            if not plugin_settings:
+                logger.warning(f"Paramètres non trouvés pour {plugin_name}")
+                plugin_settings = {'name': plugin_name, 'icon': '📦'}
+            
+            # Structure de base de la configuration
+            config = {
+                'plugin_name': plugin_name,
+                'instance_id': instance_id,
+                'name': plugin_settings.get('name', plugin_name),
+                'show_name': plugin_settings.get('plugin_name', plugin_name),
+                'icon': plugin_settings.get('icon', '📦'),
+                'config': {},
+                'remote_execution': False
+            }
+            
+            # 1. Ajouter les valeurs par défaut depuis les paramètres
+            self._add_default_values(config, plugin_settings)
+            
+            # 2. Ajouter la configuration de la séquence si disponible
+            if sequence_configs and sequence_position < len(sequence_configs):
+                seq_config = sequence_configs[sequence_position]
+                self._add_sequence_config(config, seq_config)
+            
+            # 3. Ajouter la configuration initiale (priorité maximale)
+            if initial_config:
+                self._add_initial_config(config, initial_config)
+            
+            # 4. Charger les contenus dynamiques si nécessaire
+            config = self._load_dynamic_file_contents(plugin_name, config)
+            
+            # 5. Configuration SSH si le plugin est en mode distant
+            if config.get('remote_execution', False):
+                config = self._process_ssh_config(config)
+            
+            # 6. Finaliser la configuration
+            self._finalize_config(config, plugin_settings)
+            
+            return config
+        except Exception as e:
+            logger.error(f"Erreur lors de la construction de la configuration pour {plugin_name}: {e}")
+            logger.error(traceback.format_exc())
+            # Retourner une configuration minimale en cas d'erreur
+            return {
+                'plugin_name': plugin_name,
+                'instance_id': instance_id,
+                'name': plugin_name,
+                'icon': '📦',
+                'config': {},
+                'remote_execution': False
+            }
 
     def _add_default_values(self, config: Dict[str, Any], plugin_settings: Dict[str, Any]) -> None:
         """
         Ajoute les valeurs par défaut des champs à la configuration.
         
         Args:
-            config: Configuration à compléter
+            config: Configuration à enrichir
             plugin_settings: Paramètres du plugin
         """
-        # Parcourir tous les champs
-        config_fields = plugin_settings.get('config_fields', {})
-        if isinstance(config_fields, list):
-            # Convertir en dictionnaire si c'est une liste
-            fields_dict = {}
-            for field in config_fields:
-                if isinstance(field, dict) and 'id' in field:
-                    fields_dict[field['id']] = field
-            config_fields = fields_dict
+        try:
+            # Vérifier que les champs de configuration existent
+            if 'config_fields' not in plugin_settings:
+                logger.warning(f"Pas de config_fields dans les paramètres de {config['plugin_name']}")
+                return
             
-        # Ajouter chaque valeur par défaut
-        for field_id, field_config in config_fields.items():
-            if isinstance(field_config, dict) and 'default' in field_config:
+            # Parcourir tous les champs
+            for field_id, field_config in plugin_settings['config_fields'].items():
+                if not isinstance(field_config, dict):
+                    continue
+                
+                # Récupérer le nom de variable (export)
                 variable_name = field_config.get('variable', field_id)
-                config['config'][variable_name] = field_config['default']
-                logger.debug(f"Valeur par défaut pour {variable_name}: {field_config['default']}")
+                
+                # Vérifier si une valeur par défaut est spécifiée
+                if 'default' in field_config:
+                    # Ne pas écraser une valeur déjà définie
+                    if variable_name not in config['config']:
+                        # Copier la valeur par défaut
+                        import copy
+                        default_value = copy.deepcopy(field_config['default'])
+                        config['config'][variable_name] = default_value
+                        logger.debug(f"Valeur par défaut pour {config['plugin_name']}.{variable_name}: {default_value}")
+                    
+        except Exception as e:
+            logger.error(f"Erreur lors de l'ajout des valeurs par défaut: {e}")
+            logger.error(traceback.format_exc())
 
     def _add_sequence_config(self, config: Dict[str, Any], sequence_config: Dict[str, Any]) -> None:
         """
-        Ajoute la configuration de la séquence à la configuration.
+        Ajoute les paramètres de la séquence à la configuration.
         
         Args:
-            config: Configuration à compléter
-            sequence_config: Configuration du plugin dans la séquence
+            config: Configuration à enrichir
+            sequence_config: Configuration de la séquence
         """
-        # Vérifier d'abord config puis variables (rétrocompatibilité)
-        if 'config' in sequence_config:
-            config['config'].update(sequence_config['config'])
-            logger.debug(f"Configuration de séquence ajoutée (format 'config')")
-        elif 'variables' in sequence_config:
-            config['config'].update(sequence_config['variables'])
-            logger.debug(f"Configuration de séquence ajoutée (format 'variables')")
+        try:
+            # Vérifier que le dictionnaire de config existe
+            if 'config' not in config:
+                config['config'] = {}
             
-        # Copier les attributs spéciaux
-        special_keys = ['remote_execution']
-        for key in special_keys:
-            if key in sequence_config:
-                config[key] = sequence_config[key]
+            # Gérer le cas des différents formats de configuration
+            if 'config' in sequence_config and isinstance(sequence_config['config'], dict):
+                # Format moderne avec 'config'
+                import copy
+                sequence_values = copy.deepcopy(sequence_config['config'])
+                config['config'].update(sequence_values)
+                logger.debug(f"Configuration de séquence ajoutée pour {config['plugin_name']}: {len(sequence_values)} paramètres")
+            elif 'variables' in sequence_config and isinstance(sequence_config['variables'], dict):
+                # Format ancien avec 'variables'
+                import copy
+                sequence_values = copy.deepcopy(sequence_config['variables'])
+                config['config'].update(sequence_values)
+                logger.debug(f"Variables de séquence (ancien format) ajoutées pour {config['plugin_name']}: {len(sequence_values)} paramètres")
+            
+            # Copier les attributs spéciaux
+            special_keys = {
+                'show_name', 'icon', 'remote_execution', 
+                'template', 'ignore_errors', 'timeout'
+            }
+            
+            for key in special_keys:
+                if key in sequence_config:
+                    config[key] = sequence_config[key]
+                
+        except Exception as e:
+            logger.error(f"Erreur lors de l'ajout de la configuration de séquence: {e}")
+            logger.error(traceback.format_exc())
 
     def _add_initial_config(self, config: Dict[str, Any], initial_config: Dict[str, Any]) -> None:
         """
         Ajoute la configuration initiale à la configuration.
+        La configuration initiale a la priorité la plus élevée.
         
         Args:
-            config: Configuration à compléter
-            initial_config: Configuration initiale du plugin
+            config: Configuration à enrichir
+            initial_config: Configuration initiale
         """
-        # Si la configuration initiale a une structure 'config'
-        if 'config' in initial_config:
-            config['config'].update(initial_config['config'])
-            logger.debug(f"Configuration initiale ajoutée (format 'config')")
-        else:
-            # Sinon copier toutes les clés non spéciales
-            special_keys = {'plugin_name', 'instance_id', 'name', 'show_name', 'icon', 'remote_execution'}
-            for key, value in initial_config.items():
-                if key not in special_keys:
-                    config['config'][key] = value
-            logger.debug(f"Configuration initiale ajoutée (format plat)")
+        try:
+            # Vérifier que le dictionnaire de config existe
+            if 'config' not in config:
+                config['config'] = {}
             
-        # Copier les clés spéciales au niveau principal
-        for key in ['name', 'show_name', 'icon', 'remote_execution']:
-            if key in initial_config:
-                config[key] = initial_config[key]
+            # Gérer le cas des différents formats de configuration
+            if 'config' in initial_config and isinstance(initial_config['config'], dict):
+                # Format moderne avec 'config'
+                import copy
+                initial_values = copy.deepcopy(initial_config['config'])
+                config['config'].update(initial_values)
+                logger.debug(f"Configuration initiale ajoutée pour {config['plugin_name']}: {len(initial_values)} paramètres")
+            else:
+                # Format ancien (structure plate)
+                # Identifier les clés spéciales vs. les clés de configuration
+                special_keys = {
+                    'plugin_name', 'instance_id', 'name', 'show_name', 
+                    'icon', 'remote_execution', 'template'
+                }
+                
+                # Copier les valeurs non spéciales dans config
+                config_values = {}
+                for k, v in initial_config.items():
+                    if k not in special_keys:
+                        config_values[k] = v
+                    
+                if config_values:
+                    config['config'].update(config_values)
+                    logger.debug(f"Configuration initiale (format plat) ajoutée pour {config['plugin_name']}: {len(config_values)} paramètres")
+            
+            # Copier les attributs spéciaux
+            special_keys = {
+                'show_name', 'icon', 'remote_execution', 
+                'template', 'ignore_errors', 'timeout'
+            }
+            
+            for key in special_keys:
+                if key in initial_config:
+                    config[key] = initial_config[key]
+                
+        except Exception as e:
+            logger.error(f"Erreur lors de l'ajout de la configuration initiale: {e}")
+            logger.error(traceback.format_exc())
 
     def _load_dynamic_file_contents(self, plugin_name: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """

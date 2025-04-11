@@ -1,601 +1,394 @@
-"""
-Conteneur de configuration pour les plugins.
-Gère l'affichage et la manipulation des champs de configuration spécifiques aux plugins.
-"""
-
+# ui/config_screen/plugin_config_container.py
 from textual.app import ComposeResult
-from textual.widgets import Label, Checkbox, Select, Input
-from textual.containers import Vertical, Horizontal, VerticalGroup, HorizontalGroup
-from logging import getLogger
-from typing import Dict, List, Any, Optional, Tuple, Set, Union, Callable
+from textual.containers import VerticalGroup, Horizontal, Vertical, Container
+from textual.widgets import Label, Button, Input, Select, Checkbox
+from typing import Dict, List, Any, Optional, Set, Tuple, Union, Callable
+import os
+import re
 import traceback
+import time
+import logging
 
 from .config_container import ConfigContainer
-from .text_field import TextField
-from .directory_field import DirectoryField
-from .ip_field import IPField
+from .config_field import ConfigField
 from .checkbox_field import CheckboxField
-from .select_field import SelectField
 from .checkbox_group_field import CheckboxGroupField
-from .template_field import TemplateField
 from .template_manager import TemplateManager
+from ..utils.logging import get_logger
 
-logger = getLogger('plugin_config_container')
+logger = get_logger('plugin_config_container')
 
 class PluginConfigContainer(ConfigContainer):
     """
-    Conteneur pour les champs de configuration spécifiques aux plugins.
+    Conteneur de configuration spécifique pour les plugins.
     
-    Cette classe étend ConfigContainer pour ajouter des fonctionnalités
-    spécifiques aux plugins comme les templates, les dépendances spéciales,
-    et la gestion des valeurs par défaut ou prédéfinies.
+    Cette classe étend ConfigContainer pour gérer les spécificités des plugins,
+    notamment les templates, les instances multiples, et l'exécution à distance.
     """
 
-    def __init__(self, plugin: str, name: str, icon: str, description: str,
-                 fields_by_plugin: Dict[str, Dict], fields_by_id: Dict[str, Any], 
-                 config_fields: List[Dict[str, Any]], **kwargs):
+    def __init__(self, source_id: str, instance_id: Optional[int] = None,
+                fields_by_id: Optional[Dict[str, Any]] = None,
+                config_fields: Optional[List[Dict[str, Any]]] = None,
+                is_global: bool = False):
         """
-        Initialise le conteneur de configuration pour un plugin.
-        
+        Initialise un conteneur de configuration pour un plugin.
+
         Args:
-            plugin: Nom du plugin
-            name: Nom d'affichage du plugin
-            icon: Icône du plugin
-            description: Description du plugin
-            fields_by_plugin: Dictionnaire des champs indexés par plugin
+            source_id: ID du plugin
+            instance_id: ID d'instance du plugin (pour les instances multiples)
             fields_by_id: Dictionnaire global des champs indexés par ID
-            config_fields: Liste des configurations de champs
-            **kwargs: Arguments supplémentaires pour le ConfigContainer
+            config_fields: Liste des configurations de champs pour ce plugin
+            is_global: Indique si c'est un conteneur global
         """
-        logger.debug(f"Initialisation du conteneur de configuration pour {plugin}")
+        super().__init__(source_id, instance_id)
         
-        # Appeler le constructeur de la classe parente avec les paramètres communs
-        super().__init__(
-            source_id=plugin,
-            title=name,
-            icon=icon,
-            description=description,
-            fields_by_id=fields_by_id,
-            config_fields=config_fields,
-            is_global=False,
-            **kwargs
-        )
-        
-        # Garder une référence au dictionnaire des champs spécifiques au plugin
-        self.fields_by_plugin = fields_by_plugin
-        if plugin not in fields_by_plugin:
-            fields_by_plugin[plugin] = {}
-            logger.debug(f"Nouvelle collection de champs créée pour {plugin}")
-        
-        # Configuration spécifique pour ce plugin
-        self.plugin_config = {}
-        
-        # Suivi des valeurs appliquées et des problèmes
-        self._applied_values = {}                # Valeurs déjà appliquées
-        self._field_errors = {}                  # Problèmes rencontrés par champ
-        self._pending_values = {}                # Valeurs en attente d'application
-        self._max_retry_attempts = 5             # Nombre maximum de tentatives d'application
-        self._field_retry_counts = {}            # Compteurs de tentatives par champ
-        
-        # Champ d'exécution distante (sera défini par PluginConfig si nécessaire)
-        self.remote_field = None
+        # Attributs de base
+        self.title = source_id
+        self.icon = "📦"
+        self.description = ""
+        self.is_global = is_global
+        self.is_enabled = True
         
         # Initialiser le gestionnaire de templates
         self.template_manager = TemplateManager()
-        logger.debug(f"Gestionnaire de templates initialisé pour {plugin}")
         
-        # État pour le suivi des mises à jour
-        self._is_updating_values = False         # Flag pour éviter les récursions
+        # Structures pour le suivi des valeurs et des états
+        self._applied_values = {}
+        self._pending_values = {}
+        self._field_errors = {}
+        self._field_retry_counts = {}
+        self._is_updating_values = False
+        self._max_retry_attempts = 3
+        
+        # Stocker les champs globaux si fournis
+        if fields_by_id:
+            self.fields_by_id = fields_by_id
+            
+        # Analyser les dépendances si les configurations sont fournies
+        if config_fields:
+            self._analyze_field_dependencies(config_fields)
+            self._analyze_plugin_dependencies(config_fields)
+            
+        logger.debug(f"PluginConfigContainer initialisé pour {source_id} (instance: {instance_id})")
 
     def compose(self) -> ComposeResult:
         """
-        Compose le conteneur avec les champs et options spécifiques au plugin.
-        
+        Compose l'interface du conteneur de configuration du plugin.
+
         Returns:
             ComposeResult: Résultat de la composition
         """
-        logger.debug(f"Composition du conteneur pour {self.source_id}")
-        
-        # Titre et description du plugin
-        with VerticalGroup(classes="config-header"):
-            yield Label(f"{self.icon} {self.title}", classes="config-title")
+        try:
+            # En-tête du plugin
+            yield Label(f"{self.icon} {self.title}", classes="plugin-header")
+            
             if self.description:
-                yield Label(self.description, classes="config-description")
-
-        # Gérer le cas où il n'y a pas de champs de configuration
-        if not self.config_fields and not self.remote_field:
-            logger.debug(f"Aucun champ de configuration pour {self.source_id}")
-            with VerticalGroup(classes="no-config"):
-                with HorizontalGroup(classes="no-config-content"):
-                    yield Label("ℹ️", classes="no-config-icon")
-                    yield Label(f"Rien à configurer pour ce plugin", classes="no-config-label")
-                return
-
-        # Conteneur pour les champs de configuration
-        with VerticalGroup(classes="config-fields"):
-            # Vérifier et ajouter le champ de template si des templates sont disponibles
-            templates = self.template_manager.get_plugin_templates(self.source_id)
-            if templates:
-                logger.debug(f"Templates trouvés pour {self.source_id}: {list(templates.keys())}")
-                template_field = TemplateField(self.source_id, 'template', self.fields_by_id)
-                template_field.on_template_applied = self.on_template_applied
-                yield template_field
+                yield Label(self.description, classes="plugin-description")
                 
-                # Stocker le champ de template dans le dictionnaire
-                self.fields_by_id['template'] = template_field
+            # Zone pour les champs de configuration
+            config_area = Container(classes="plugin-config-fields")
+            
+            # Créer les champs à partir des définitions et les ajouter au config_area
+            if hasattr(self, 'fields_by_id') and self.fields_by_id:
+                # Importer les classes de champs nécessaires
+                from .text_field import TextField
+                from .directory_field import DirectoryField
+                from .ip_field import IPField
+                from .select_field import SelectField
+                from .checkbox_field import CheckboxField
+                from .password_field import PasswordField
+                
+                logger.debug(f"Création des champs pour {self.source_id}")
+                
+                # Trier les champs par leur ID pour un ordre cohérent
+                field_ids = sorted(self.fields_by_id.keys())
+                for field_id in field_ids:
+                    field = self.fields_by_id[field_id]
+                    # Ne monter que les champs appartenant à ce plugin
+                    if hasattr(field, 'source_id') and field.source_id == self.source_id:
+                        logger.debug(f"Ajout du champ {field_id} au config_area")
+                        config_area.mount(field)
             else:
-                logger.debug(f"Aucun template trouvé pour {self.source_id}")
-            
-            # Créer et ajouter chaque champ de configuration
-            for field_config in self.config_fields:
-                field_id = field_config.get('id')
-                if not field_id:
-                    logger.warning(f"Champ sans identifiant dans {self.source_id}")
-                    continue
-                    
-                field_type = field_config.get('type', 'text')
-                logger.debug(f"Création du champ {field_id} de type {field_type}")
+                logger.warning(f"Aucun champ à afficher pour {self.source_id}")
+                config_area.mount(Label("Aucun champ de configuration disponible", classes="no-fields"))
                 
-                # Déterminer la classe de champ à utiliser selon le type
-                field_class = self._get_field_class_for_type(field_type)
-
-                # Créer le champ avec accès aux autres champs
-                try:
-                    field = field_class(
-                        self.source_id, 
-                        field_id, 
-                        field_config, 
-                        self.fields_by_id, 
-                        is_global=self.is_global
-                    )
-                    
-                    # Enregistrer le champ dans les dictionnaires
-                    # Utiliser l'ID unique du champ pour éviter les conflits entre instances
-                    self.fields_by_id[field.unique_id] = field
-                    self.fields_by_plugin[self.source_id][field_id] = field
-                    logger.debug(f"Champ {field_id} créé et ajouté aux dictionnaires (unique_id: {field.unique_id})")
-                    
-                    # Si c'est une case à cocher, configurer le gestionnaire d'événements
-                    if field_type in ['checkbox', 'checkbox_group']:
-                        field.on_checkbox_changed = self.on_checkbox_changed
-                        logger.debug(f"Gestionnaire d'événements ajouté pour {field_id}")
-                    
-                    # Ajouter le champ à l'interface
-                    yield field
-                    
-                except Exception as e:
-                    logger.error(f"Erreur lors de la création du champ {field_id}: {e}")
-                    logger.error(traceback.format_exc())
+            yield config_area
             
-            # Si nous avons un champ d'exécution distante, l'ajouter à la fin du conteneur
-            if self.remote_field:
-                logger.debug(f"Ajout du champ d'exécution distante pour {self.source_id}")
-                with VerticalGroup(classes="remote-execution-container"):
-                    yield self.remote_field
+            # Template selector si disponible
+            if self._has_templates():
+                with Horizontal(classes="template-selector"):
+                    yield Label("Template:", classes="template-label")
+                    yield Select(
+                        self._get_template_options(),
+                        id=f"template_{self.source_id}_{self.instance_id}",
+                        classes="template-select"
+                    )
+                    yield Button("Appliquer", id=f"apply_template_{self.source_id}_{self.instance_id}")
+                    
+            logger.debug(f"Interface composée pour {self.source_id} (instance: {self.instance_id})")
+                
+        except Exception as e:
+            logger.error(f"Erreur lors de la composition de l'interface pour {self.source_id}: {e}")
+            logger.error(traceback.format_exc())
+            # Fournir une interface minimale en cas d'erreur
+            yield Label(f"Erreur de chargement pour {self.source_id}", classes="error-label")
 
-    def _get_field_class_for_type(self, field_type: str) -> type:
+    def _has_templates(self) -> bool:
         """
-        Détermine la classe de champ à utiliser selon le type.
+        Vérifie si des templates sont disponibles pour ce plugin.
+        
+        Returns:
+            bool: True si des templates existent
+        """
+        try:
+            templates = self.template_manager.get_plugin_templates(self.source_id)
+            return bool(templates)
+        except Exception as e:
+            logger.error(f"Erreur lors de la vérification des templates pour {self.source_id}: {e}")
+            return False
+
+    def _get_template_options(self) -> List[Tuple[str, str]]:
+        """
+        Récupère les options de templates pour le sélecteur.
+        
+        Returns:
+            List[Tuple[str, str]]: Liste de tuples (value, label) pour le sélecteur
+        """
+        try:
+            templates = self.template_manager.get_plugin_templates(self.source_id)
+            options = [(template_id, template.get('name', template_id)) 
+                      for template_id, template in templates.items()]
+            
+            # Ajouter une option vide en tête de liste
+            return [("", "-- Sélectionner un template --")] + options
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des options de templates: {e}")
+            return [("", "-- Erreur de chargement --")]
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        """
+        Gère les clics sur les boutons.
         
         Args:
-            field_type: Type de champ (text, checkbox, select, etc.)
-            
-        Returns:
-            type: Classe de champ à utiliser
+            event: Événement de bouton pressé
         """
-        # Mapping des types de champs vers les classes correspondantes
-        field_classes = {
-            'text': TextField,
-            'directory': DirectoryField,
-            'ip': IPField,
-            'checkbox': CheckboxField,
-            'select': SelectField,
-            'checkbox_group': CheckboxGroupField,
-            # Ajouter d'autres types au besoin
-        }
-        
-        # Retourner la classe correspondante ou TextField par défaut
-        return field_classes.get(field_type, TextField)
+        try:
+            button_id = event.button.id
+            if button_id and button_id.startswith(f"apply_template_{self.source_id}"):
+                logger.debug(f"Bouton d'application de template pressé pour {self.source_id}")
+                self._apply_selected_template()
+                
+        except Exception as e:
+            logger.error(f"Erreur lors du traitement du clic sur le bouton {event.button.id}: {e}")
+            logger.error(traceback.format_exc())
 
-    def on_mount(self) -> None:
+    def on_select_changed(self, event: Select.Changed) -> None:
         """
-        Appelé lors du montage du conteneur dans l'interface.
+        Gère les changements dans les listes déroulantes.
         
-        Cette méthode est exécutée après la création de tous les widgets
-        mais avant leur affichage. C'est le moment idéal pour initialiser
-        les valeurs des champs.
+        Args:
+            event: Événement de changement de sélection
         """
-        logger.debug(f"Montage du conteneur pour {self.source_id}")
-        
-        # Maintenant que les widgets sont créés, appliquer les valeurs prédéfinies
-        self.call_after_refresh(self._apply_predefined_values)
-        
-        # Réinitialiser les états d'activation des champs après un court délai
-        # pour s'assurer que toutes les valeurs sont correctement initialisées
-        self.call_later(self._reset_enabled_states, 0.1)
-        
-    def _apply_predefined_values(self) -> None:
+        try:
+            select_id = event.select.id
+            if select_id and select_id.startswith(f"template_{self.source_id}"):
+                logger.debug(f"Sélection de template modifiée: {event.value}")
+                # Option: appliquer automatiquement le template
+                # self._apply_selected_template()
+                
+        except Exception as e:
+            logger.error(f"Erreur lors du traitement du changement de sélection: {e}")
+            logger.error(traceback.format_exc())
+
+    def _apply_selected_template(self) -> None:
         """
-        Applique les valeurs prédéfinies aux champs de configuration.
-        
-        Cette méthode récupère les valeurs depuis la configuration du plugin
-        et les applique aux champs correspondants.
+        Applique le template sélectionné aux champs de configuration.
+        """
+        try:
+            # Trouver le sélecteur de template
+            template_select_id = f"template_{self.source_id}_{self.instance_id}"
+            template_select = self.query_one(f"#" + template_select_id, Select)
+            
+            if not template_select or not template_select.value:
+                logger.debug("Pas de template sélectionné")
+                return
+                
+            template_id = template_select.value
+            logger.debug(f"Application du template {template_id}")
+            
+            # Récupérer les variables du template
+            variables = self.template_manager.get_template_variables(self.source_id, template_id)
+            if variables:
+                self.on_template_applied(template_id, variables)
+            else:
+                logger.warning(f"Pas de variables trouvées dans le template {template_id}")
+                
+        except Exception as e:
+            logger.error(f"Erreur lors de l'application du template: {e}")
+            logger.error(traceback.format_exc())
+
+    def update_dependent_fields(self, source_field: Any) -> None:
+        """
+        Met à jour tous les champs qui dépendent d'un champ source.
+
+        Args:
+            source_field: Champ source dont les dépendants doivent être mis à jour
         """
         if self._is_updating_values:
-            logger.debug("Application de valeurs déjà en cours, évitement de récursion")
+            logger.debug("Mise à jour récursive évitée dans update_dependent_fields")
             return
             
         try:
             self._is_updating_values = True
             
-            logger.debug(f"Application des valeurs prédéfinies pour {self.source_id}")
-            
-            # Vérifier que nous sommes dans l'écran de configuration
-            config_screen = self._get_config_screen()
-            if not config_screen or not hasattr(config_screen, 'current_config'):
-                logger.warning(f"Impossible d'accéder à current_config pour {self.source_id}")
+            if not source_field or not hasattr(source_field, 'unique_id'):
+                logger.warning("Tentative de mise à jour des dépendants d'un champ invalide")
                 return
-                
-            # Récupérer l'ID de l'instance du plugin
-            plugin_instance_id = self.id.replace('plugin_', '')
-            if plugin_instance_id not in config_screen.current_config:
-                logger.warning(f"Pas de configuration trouvée pour l'instance {plugin_instance_id}")
+
+            source_id = source_field.unique_id
+            logger.debug(f"Mise à jour des champs dépendants de {source_id}")
+
+            # Vérifier si le champ source a des dépendants
+            if source_id not in self._dependent_fields_map:
+                logger.debug(f"Aucun champ dépendant trouvé pour {source_id}")
                 return
-                
-            # Récupérer la configuration prédéfinie pour cette instance
-            predefined_config = config_screen.current_config[plugin_instance_id]
-            logger.debug(f"Configuration trouvée pour {plugin_instance_id}: {len(predefined_config)} clés")
-            
-            # Réinitialiser les structures de suivi
-            self._applied_values = {}
-            self._field_errors = {}
-            self._pending_values = {}
-            self._field_retry_counts = {}
-            
-            # Rassembler toutes les valeurs à appliquer
-            values_to_apply = {}
-            
-            # Format 1: Nouveau format avec 'config'
-            if 'config' in predefined_config and isinstance(predefined_config['config'], dict):
-                values_to_apply.update(predefined_config['config'])
-                logger.debug(f"Valeurs trouvées dans 'config': {len(predefined_config['config'])} paramètres")
-                
-            # Format 2: Ancien format à plat
-            special_keys = {'plugin_name', 'instance_id', 'name', 'show_name', 'icon', 'remote_execution'}
-            for key, value in predefined_config.items():
-                if key not in special_keys and key != 'config':
-                    values_to_apply[key] = value
-                    logger.debug(f"Valeur trouvée à la racine: {key}={value}")
-            
-            # Appliquer chaque valeur au champ correspondant
-            for var_name, value in values_to_apply.items():
-                # Trouver le champ correspondant à cette variable
-                field = self._find_field_for_variable(var_name)
-                
-                if field:
-                    # Planifier l'application de la valeur
-                    self._pending_values[field.field_id] = value
+
+            # Parcourir tous les champs dépendants
+            for dependent_id in self._dependent_fields_map[source_id]:
+                dependent_field = self.fields_by_id.get(dependent_id)
+                if not dependent_field:
+                    logger.warning(f"Champ dépendant {dependent_id} non trouvé")
+                    continue
+
+                try:
+                    # 1. Mise à jour de l'état d'activation
+                    if hasattr(dependent_field, 'enabled_if'):
+                        self._update_field_enabled_state(dependent_field)
+
+                    # 2. Mise à jour des options dynamiques
+                    if hasattr(dependent_field, 'dynamic_options'):
+                        self._update_field_dynamic_options(dependent_field)
+
+                    # 3. Mise à jour de la valeur dépendante
+                    if hasattr(dependent_field, 'depends_on'):
+                        self._update_field_dependent_value(dependent_field)
+
+                except Exception as e:
+                    logger.error(f"Erreur lors de la mise à jour du champ dépendant {dependent_id}: {e}")
+                    logger.error(traceback.format_exc())
                     
-                    # Démarrer avec un premier essai d'application
-                    self._apply_value_to_field(field, value)
-                else:
-                    logger.warning(f"Aucun champ trouvé pour la variable '{var_name}'")
-                    
-            # Gérer les valeurs en attente non appliquées
-            if self._pending_values:
-                logger.debug(f"Valeurs en attente à réessayer: {len(self._pending_values)}")
-                self.call_later(self._retry_pending_values, 0.1)
-                
         except Exception as e:
-            logger.error(f"Erreur lors de l'application des valeurs prédéfinies: {e}")
+            logger.error(f"Erreur lors de la mise à jour des champs dépendants: {e}")
             logger.error(traceback.format_exc())
         finally:
             self._is_updating_values = False
 
-    def _get_config_screen(self) -> Any:
+    def _analyze_plugin_dependencies(self, config_fields: List[Dict[str, Any]]) -> None:
         """
-        Récupère l'écran de configuration parent.
-        
-        Returns:
-            Any: L'écran de configuration ou None si non trouvé
-        """
-        # Rechercher l'écran de configuration dans la hiérarchie des ancêtres
-        app = self.app if hasattr(self, 'app') and self.app else None
-        if app and hasattr(app, 'screen'):
-            from .config_screen import PluginConfig
-            if isinstance(app.screen, PluginConfig):
-                return app.screen
-        return None
+        Analyse les dépendances entre plugins.
 
-    def _find_field_for_variable(self, var_name: str) -> Optional[Any]:
-        """
-        Trouve le champ correspondant à une variable.
-        
         Args:
-            var_name: Nom de la variable
-            
-        Returns:
-            Optional[Any]: Le champ correspondant ou None si non trouvé
-        """
-        # Stratégie 1: Chercher par correspondance exacte avec field_id
-        if var_name in self.fields_by_id:
-            return self.fields_by_id[var_name]
-            
-        # Stratégie 2: Chercher par correspondance avec variable_name
-        for field_id, field in self.fields_by_id.items():
-            if (hasattr(field, 'variable_name') and 
-                field.variable_name == var_name and 
-                hasattr(field, 'source_id') and 
-                field.source_id == self.source_id):
-                return field
-                
-        # Stratégie 3: Chercher avec plugin_name.var_name
-        qualified_name = f"{self.source_id}.{var_name}"
-        if qualified_name in self.fields_by_id:
-            return self.fields_by_id[qualified_name]
-            
-        # Non trouvé
-        return None
-
-    def _apply_value_to_field(self, field: Any, value: Any, attempt: int = 0) -> bool:
-        """
-        Applique une valeur à un champ avec gestion des erreurs.
-        
-        Args:
-            field: Champ à mettre à jour
-            value: Valeur à appliquer
-            attempt: Numéro de tentative (pour la gestion des réessais)
-            
-        Returns:
-            bool: True si l'application a réussi, False sinon
-        """
-        field_id = getattr(field, 'field_id', 'unknown')
-        field_type = getattr(field, 'field_config', {}).get('type', 'unknown')
-        
-        # Marquer cette tentative
-        self._field_retry_counts[field_id] = attempt
-        
-        try:
-            # Approche différente selon le type de champ
-            logger.debug(f"Application de '{value}' au champ {field_id} (type={field_type}, tentative {attempt+1})")
-            
-            # 1. Si le champ a une méthode set_value, l'utiliser en priorité
-            if hasattr(field, 'set_value'):
-                success = field.set_value(value, update_dependencies=True)
-                if success:
-                    logger.debug(f"Valeur appliquée avec succès via set_value pour {field_id}")
-                    self._applied_values[field_id] = value
-                    # Supprimer de la liste des valeurs en attente
-                    if field_id in self._pending_values:
-                        del self._pending_values[field_id]
-                    return True
-                else:
-                    logger.warning(f"Échec de set_value pour {field_id}")
-                    self._field_errors[field_id] = "Échec de set_value"
-                    return False
-                    
-            # 2. Sinon, tenter une assignation directe et mise à jour du widget
-            elif hasattr(field, 'value'):
-                # Assigner la valeur
-                field.value = value
-                
-                # Type spécifique: champ IP
-                if field_type == 'ip' and hasattr(field, '_internal_value'):
-                    field._internal_value = str(value) if value is not None else ""
-                
-                # Mettre à jour le widget associé selon son type
-                self._update_field_widget(field, value)
-                
-                logger.debug(f"Valeur appliquée via attribute .value pour {field_id}")
-                self._applied_values[field_id] = value
-                
-                # Supprimer de la liste des valeurs en attente
-                if field_id in self._pending_values:
-                    del self._pending_values[field_id]
-                return True
-                
-            # 3. Si aucune des méthodes ci-dessus ne fonctionne, échouer
-            else:
-                logger.warning(f"Impossible d'appliquer la valeur à {field_id}: " +
-                              f"pas de méthode set_value ou d'attribut value")
-                self._field_errors[field_id] = "Aucune méthode d'application disponible"
-                return False
-                
-        except Exception as e:
-            error_msg = str(e)
-            if attempt == 0:
-                # Logguer l'erreur détaillée seulement à la première tentative
-                logger.error(f"Erreur lors de l'application de la valeur '{value}' au champ {field_id}: {e}")
-                logger.error(traceback.format_exc())
-            else:
-                # Log simplifié pour les tentatives suivantes
-                logger.warning(f"Échec tentative {attempt+1} pour {field_id}: {error_msg}")
-                
-            self._field_errors[field_id] = error_msg
-            return False
-
-    def _update_field_widget(self, field: Any, value: Any) -> None:
-        """
-        Met à jour le widget UI d'un champ avec une valeur.
-        
-        Args:
-            field: Champ dont le widget doit être mis à jour
-            value: Nouvelle valeur
+            config_fields: Liste des configurations de champs
         """
         try:
-            # Type 1: Champ avec input (TextField, IPField, etc.)
-            if hasattr(field, 'input') and isinstance(field.input, Input):
-                current_value = field.input.value
-                new_value = str(value) if value is not None else ""
-                
-                if current_value != new_value:
-                    field.input.value = new_value
-                    logger.debug(f"Widget input mis à jour: '{current_value}' -> '{new_value}'")
-                    
-            # Type 2: Champ avec select (SelectField)
-            elif hasattr(field, 'select') and isinstance(field.select, Select):
-                current_value = field.select.value
-                new_value = str(value) if value is not None else ""
-                
-                # Vérifier si la valeur existe dans les options
-                if hasattr(field, 'options'):
-                    available_values = [opt[1] for opt in field.options]
-                    if new_value in available_values:
-                        if current_value != new_value:
-                            field.select.value = new_value
-                            logger.debug(f"Widget select mis à jour: '{current_value}' -> '{new_value}'")
-                    else:
-                        # Recherche de correspondance partielle
-                        matched = False
-                        for option_value in available_values:
-                            if (option_value.startswith(new_value) or 
-                                new_value.startswith(option_value.split('.')[0])):
-                                if current_value != option_value:
-                                    field.select.value = option_value
-                                    logger.debug(f"Widget select mis à jour avec correspondance " +
-                                               f"partielle: '{current_value}' -> '{option_value}'")
-                                matched = True
-                                break
-                        
-                        if not matched:
-                            logger.warning(f"Valeur '{new_value}' non trouvée dans les " +
-                                          f"options du select pour {field.field_id}")
-                else:
-                    # Si pas d'accès aux options, tenter quand même la mise à jour
-                    if current_value != new_value:
-                        field.select.value = new_value
-                        logger.debug(f"Widget select mis à jour sans vérification d'options: " +
-                                   f"'{current_value}' -> '{new_value}'")
-                    
-            # Type 3: Champ avec checkbox (CheckboxField)
-            elif hasattr(field, 'checkbox') and isinstance(field.checkbox, Checkbox):
-                current_value = field.checkbox.value
-                
-                # Normaliser en booléen
-                if isinstance(value, str):
-                    new_value = value.lower() in ('true', 't', 'yes', 'y', '1')
-                else:
-                    new_value = bool(value)
-                    
-                if current_value != new_value:
-                    field.checkbox.value = new_value
-                    logger.debug(f"Widget checkbox mis à jour: {current_value} -> {new_value}")
-                    
-            # Type 4: Autre type de champ non géré
-            else:
-                logger.debug(f"Type de widget non géré pour {field.field_id}")
-                
-        except Exception as e:
-            logger.error(f"Erreur lors de la mise à jour du widget pour {field.field_id}: {e}")
+            self._plugin_dependencies = {}
+            self._dependent_plugins_map = {}
 
-    def _reset_enabled_states(self, *args) -> None:
-        """
-        Réinitialise les états d'activation de tous les champs en fonction de leurs dépendances.
-        
-        Cette méthode est appelée après le montage pour s'assurer que tous les champs
-        sont correctement activés/désactivés en fonction de leurs dépendances.
-        
-        Args:
-            *args: Arguments supplémentaires (ignorés, présents pour compatibilité avec call_later)
-        """
-        logger.debug(f"Réinitialisation des états d'activation pour {self.source_id}")
-        
-        # Parcourir tous les champs de ce plugin
-        for field_id, field in self.fields_by_id.items():
-            # Ne considérer que les champs de ce plugin
-            if not hasattr(field, 'source_id') or field.source_id != self.source_id:
-                continue
-                
-            # Vérifier si le champ a une dépendance d'activation
-            if hasattr(field, 'enabled_if') and field.enabled_if:
-                dep_field_id = field.enabled_if.get('field')
-                required_value = field.enabled_if.get('value')
-                
-                # Trouver le champ dépendant
-                dep_field = self.fields_by_id.get(dep_field_id)
-                if not dep_field:
+            logger.debug(f"Analyse des dépendances entre plugins pour {len(config_fields)} champs")
+
+            for field_config in config_fields:
+                field_base_id = field_config.get('id')
+                if not field_base_id:
                     continue
-                    
-                # Récupérer la valeur actuelle du champ dépendant
-                current_value = self._get_field_value(dep_field)
-                
-                # Normaliser les valeurs booléennes si nécessaire
-                if isinstance(required_value, bool):
-                    if isinstance(current_value, str):
-                        current_value = current_value.lower() in ('true', 't', 'yes', 'y', '1')
-                    else:
-                        current_value = bool(current_value)
-                
-                logger.debug(f"Vérification état pour {field_id}: {current_value} == {required_value}")
-                
-                # Mettre à jour l'état d'activation
-                should_enable = current_value == required_value
-                
-                # Si le champ est un DirectoryField, utiliser sa méthode set_disabled
-                if hasattr(field, 'set_disabled'):
-                    field.set_disabled(not should_enable)
-                    logger.debug(f"État du champ {field_id} mis à jour via set_disabled: enabled={should_enable}")
-                else:
-                    # Sinon, mettre à jour directement les attributs
-                    field.disabled = not should_enable
-                    if should_enable:
-                        field.remove_class('disabled')
-                    else:
-                        field.add_class('disabled')
-                    logger.debug(f"État du champ {field_id} mis à jour directement: enabled={should_enable}")
-        
-        logger.debug(f"Réinitialisation des états d'activation terminée pour {self.source_id}")
-    
-    def _retry_pending_values(self) -> None:
+
+                # Construire l'ID unique du champ
+                field_unique_id = self._get_unique_field_id(field_base_id)
+
+                # Collecter les dépendances de plugins
+                plugin_dependencies = set()
+
+                # 1. Dépendance enabled_if
+                if 'enabled_if' in field_config and 'field' in field_config['enabled_if']:
+                    dep_field = field_config['enabled_if']['field']
+                    if '.' in dep_field:
+                        plugin_dependencies.add(dep_field.split('.')[0])
+
+                # 2. Dépendance depends_on
+                if 'depends_on' in field_config and '.' in field_config['depends_on']:
+                    plugin_dependencies.add(field_config['depends_on'].split('.')[0])
+
+                # 3. Dépendances dynamiques
+                for dynamic_key in ['dynamic_options', 'dynamic_default']:
+                    if dynamic_key in field_config and 'args' in field_config[dynamic_key]:
+                        for arg in field_config[dynamic_key]['args']:
+                            if 'field' in arg and '.' in arg['field']:
+                                plugin_dependencies.add(arg['field'].split('.')[0])
+
+                # Stocker les dépendances
+                if plugin_dependencies:
+                    self._plugin_dependencies[field_unique_id] = plugin_dependencies
+                    logger.debug(f"Champ {field_unique_id} dépend des plugins: {plugin_dependencies}")
+
+                    # Construire le mapping inverse
+                    for dep_plugin in plugin_dependencies:
+                        if dep_plugin not in self._dependent_plugins_map:
+                            self._dependent_plugins_map[dep_plugin] = set()
+                        self._dependent_plugins_map[dep_plugin].add(field_unique_id)
+                        
+            logger.debug(f"Analyse des dépendances entre plugins terminée: {len(self._plugin_dependencies)} champs avec dépendances de plugins")
+                        
+        except Exception as e:
+            logger.error(f"Erreur lors de l'analyse des dépendances entre plugins: {e}")
+            logger.error(traceback.format_exc())
+
+    def update_plugin_dependencies(self, plugin_id: str, is_enabled: bool) -> None:
         """
-        Réessaie d'appliquer les valeurs en attente.
-        
-        Cette méthode est appelée périodiquement pour tenter d'appliquer
-        les valeurs qui n'ont pas pu être appliquées au premier essai.
+        Met à jour les champs qui dépendent d'un plugin.
+
+        Args:
+            plugin_id: ID du plugin dont l'état a changé
+            is_enabled: Nouvel état du plugin
         """
-        if not self._pending_values:
-            logger.debug("Aucune valeur en attente à réessayer")
+        if self._is_updating_values:
             return
             
-        # Copier pour éviter les modifications pendant l'itération
-        pending_copy = self._pending_values.copy()
-        logger.debug(f"Réessai de {len(pending_copy)} valeurs en attente")
-        
-        # Tenter d'appliquer chaque valeur en attente
-        for field_id, value in pending_copy.items():
-            # Récupérer le champ
-            if field_id not in self.fields_by_id:
-                logger.warning(f"Champ {field_id} non trouvé, suppression de la valeur en attente")
-                if field_id in self._pending_values:
-                    del self._pending_values[field_id]
-                continue
+        try:
+            self._is_updating_values = True
+            logger.debug(f"Mise à jour des dépendances pour le plugin {plugin_id} (enabled={is_enabled})")
+            
+            # Vérifier si des champs dépendent de ce plugin
+            if plugin_id not in self._dependent_plugins_map:
+                logger.debug(f"Aucun champ dépendant du plugin {plugin_id}")
+                return
                 
-            field = self.fields_by_id[field_id]
-            
-            # Déterminer le numéro de tentative
-            attempt = self._field_retry_counts.get(field_id, 0) + 1
-            
-            # Vérifier si on a dépassé le nombre maximum de tentatives
-            if attempt >= self._max_retry_attempts:
-                logger.warning(f"Abandon après {attempt} tentatives pour {field_id}")
-                if field_id in self._pending_values:
-                    del self._pending_values[field_id]
-                continue
+            # Parcourir tous les champs dépendants
+            for field_id in self._dependent_plugins_map[plugin_id]:
+                field = self.fields_by_id.get(field_id)
+                if not field:
+                    logger.warning(f"Champ dépendant {field_id} non trouvé")
+                    continue
+                    
+                # Vérifier si le champ a une dépendance explicite avec ce plugin
+                required_state = True  # Par défaut, on suppose que le champ nécessite que le plugin soit activé
+                if hasattr(field, 'plugin_dependencies') and plugin_id in field.plugin_dependencies:
+                    required_state = field.plugin_dependencies[plugin_id]
+                    
+                # Activer/désactiver le champ selon l'état du plugin
+                should_enable = (is_enabled == required_state)
+                logger.debug(f"Mise à jour de l'état du champ {field_id}: {should_enable}")
+                self._toggle_field_state(field, should_enable)
                 
-            # Tenter d'appliquer la valeur
-            self._apply_value_to_field(field, value, attempt)
-        
-        # Si des valeurs sont toujours en attente, planifier un nouveau réessai
-        if self._pending_values:
-            # Augmenter le délai exponentiellement (0.1s, 0.2s, 0.4s, 0.8s, ...)
-            delay = 0.1 * (2 ** len(self._field_retry_counts))
-            delay = min(delay, 2.0)  # Plafonner à 2 secondes
-            
-            logger.debug(f"Planification d'un nouveau réessai dans {delay:.1f}s " +
-                        f"pour {len(self._pending_values)} valeurs")
-            self.call_later(self._retry_pending_values, delay)
-        else:
-            logger.debug("Toutes les valeurs ont été appliquées avec succès")
+                # Si le champ est désactivé, appliquer sa valeur par défaut
+                if not should_enable and hasattr(field, 'field_config') and 'default' in field.field_config:
+                    default_value = field.field_config['default']
+                    self._apply_value_to_field(field, default_value)
+                    
+        except Exception as e:
+            logger.error(f"Erreur lors de la mise à jour des dépendances du plugin {plugin_id}: {e}")
+            logger.error(traceback.format_exc())
+        finally:
+            self._is_updating_values = False
 
     def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
         """
@@ -604,20 +397,38 @@ class PluginConfigContainer(ConfigContainer):
         Args:
             event: Événement de changement de case à cocher
         """
-        # Appeler d'abord l'implémentation parente
-        super().on_checkbox_changed(event)
+        try:
+            # Gestion spécifique au plugin
+            checkbox_id = event.checkbox.id
+            value = event.value
+            logger.debug(f"Changement d'état de la case à cocher {checkbox_id} -> {value}")
 
-        # Gestion supplémentaire spécifique au plugin
-        checkbox_id = event.checkbox.id
-        value = event.value
-        logger.debug(f"Changement d'état de la case à cocher {checkbox_id} -> {value}")
+            # Trouver le champ source
+            source_field = None
+            for field in self.fields_by_id.values():
+                if isinstance(field, CheckboxField) and checkbox_id == f"checkbox_{field.source_id}_{field.field_id}":
+                    source_field = field
+                    break
+                elif isinstance(field, CheckboxGroupField):
+                    prefix = f"checkbox_group_{field.source_id}_{field.field_id}_"
+                    if checkbox_id.startswith(prefix):
+                        field.on_checkbox_changed(event)
+                        source_field = field
+                        break
 
-        # Stocker dans la collection de champs spécifique au plugin
-        for field_id, field in self.fields_by_id.items():
-            if hasattr(field, 'source_id') and checkbox_id == f"checkbox_{field.source_id}_{field.field_id}":
-                self.fields_by_plugin[self.source_id][field_id] = field
-                logger.debug(f"Champ {field_id} mis à jour dans la collection de {self.source_id}")
-                break
+            if source_field:
+                logger.debug(f"Champ source identifié: {source_field.unique_id}")
+                if isinstance(source_field, CheckboxField):
+                    source_field.value = event.value
+                    # Mettre à jour le widget
+                    self._update_field_widget(source_field, event.value)
+                self.update_dependent_fields(source_field)
+            else:
+                logger.warning(f"Champ source non trouvé pour checkbox {checkbox_id}")
+                
+        except Exception as e:
+            logger.error(f"Erreur lors du traitement du changement d'état de la case à cocher: {e}")
+            logger.error(traceback.format_exc())
 
     def on_template_applied(self, template_name: str, variables: Dict[str, Any]) -> None:
         """
@@ -627,14 +438,14 @@ class PluginConfigContainer(ConfigContainer):
             template_name: Nom du template appliqué
             variables: Variables du template à appliquer
         """
-        logger.debug(f"Application du template '{template_name}' avec {len(variables)} variables")
-        
-        # Empêcher les mises à jour récursives
-        if self._is_updating_values:
-            logger.warning("Application de template ignorée pour éviter une récursion")
-            return
-            
         try:
+            logger.debug(f"Application du template '{template_name}' avec {len(variables)} variables")
+            
+            # Empêcher les mises à jour récursives
+            if self._is_updating_values:
+                logger.warning("Application de template ignorée pour éviter une récursion")
+                return
+                
             self._is_updating_values = True
             
             # Réinitialiser les structures de suivi
@@ -667,6 +478,133 @@ class PluginConfigContainer(ConfigContainer):
         finally:
             self._is_updating_values = False
 
+    def _find_field_for_variable(self, var_name: str) -> Optional[ConfigField]:
+        """
+        Recherche un champ correspondant à une variable du template.
+        
+        Args:
+            var_name: Nom de la variable à rechercher
+            
+        Returns:
+            Optional[ConfigField]: Champ correspondant ou None
+        """
+        try:
+            # Rechercher par variable_name
+            for field in self.fields_by_id.values():
+                if hasattr(field, 'source_id') and field.source_id == self.source_id:
+                    if hasattr(field, 'variable_name') and field.variable_name == var_name:
+                        return field
+                        
+            # Rechercher par field_id
+            for field in self.fields_by_id.values():
+                if hasattr(field, 'source_id') and field.source_id == self.source_id:
+                    if field.field_id == var_name:
+                        return field
+                        
+            logger.warning(f"Aucun champ trouvé pour la variable {var_name}")
+            return None
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la recherche du champ pour la variable {var_name}: {e}")
+            return None
+
+    def _retry_pending_values(self) -> None:
+        """
+        Réessaie d'appliquer les valeurs en attente.
+        """
+        try:
+            if not self._pending_values:
+                return
+                
+            logger.debug(f"Tentative de réappliquer {len(self._pending_values)} valeurs en attente")
+            
+            # Créer une copie pour éviter les problèmes de modification pendant l'itération
+            pending_copy = self._pending_values.copy()
+            
+            for field_id, value in pending_copy.items():
+                # Trouver le champ
+                field = None
+                for f in self.fields_by_id.values():
+                    if hasattr(f, 'field_id') and f.field_id == field_id:
+                        field = f
+                        break
+                        
+                if not field:
+                    logger.warning(f"Champ {field_id} non trouvé pour la réapplication de valeur")
+                    continue
+                    
+                # Réessayer d'appliquer la valeur
+                success = self._apply_value_to_field(field, value)
+                
+                # Si succès, retirer de la liste d'attente
+                if success:
+                    self._pending_values.pop(field_id, None)
+                    
+            # Planifier une nouvelle tentative si nécessaire
+            if self._pending_values:
+                # Calculer le délai pour la prochaine tentative (exponentiel avec limite)
+                max_retries = max(self._field_retry_counts.values()) if self._field_retry_counts else 0
+                delay = min(2 ** max_retries * 0.1, 5.0)  # Maximum 5 secondes
+                logger.debug(f"Planification d'une nouvelle tentative dans {delay}s pour {len(self._pending_values)} valeurs")
+                self.call_later(self._retry_pending_values, delay)
+                
+        except Exception as e:
+            logger.error(f"Erreur lors de la réapplication des valeurs en attente: {e}")
+            logger.error(traceback.format_exc())
+
+    def _apply_value_to_field(self, field: Any, value: Any) -> bool:
+        """
+        Applique une valeur à un champ avec gestion des tentatives.
+        
+        Args:
+            field: Le champ cible
+            value: La valeur à appliquer
+            
+        Returns:
+            bool: True si l'application a réussi
+        """
+        if not field:
+            return False
+            
+        try:
+            field_id = getattr(field, 'field_id', str(field))
+            
+            # Initialiser le compteur de tentatives si nécessaire
+            if field_id not in self._field_retry_counts:
+                self._field_retry_counts[field_id] = 0
+                
+            # Si la valeur a déjà été appliquée avec succès
+            if field_id in self._applied_values and self._applied_values[field_id] == value:
+                return True
+                
+            # Utiliser la méthode dédiée du conteneur parent
+            success = super()._apply_value_to_field(field, value)
+            
+            if success:
+                # Marquer comme appliquée avec succès
+                self._applied_values[field_id] = value
+                # Réinitialiser le compteur de tentatives
+                self._field_retry_counts[field_id] = 0
+                return True
+                
+            # Gérer l'échec
+            self._field_retry_counts[field_id] += 1
+            
+            # Abandonner après trop de tentatives
+            if self._field_retry_counts[field_id] >= self._max_retry_attempts:
+                logger.error(f"Abandon après {self._max_retry_attempts} tentatives pour le champ {field_id}")
+                self._field_errors[field_id] = f"Échec après {self._max_retry_attempts} tentatives"
+                self._pending_values.pop(field_id, None)
+                return False
+                
+            logger.warning(f"Échec de l'application de la valeur pour {field_id} (tentative {self._field_retry_counts[field_id]})")
+            return False
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de l'application de la valeur au champ {getattr(field, 'field_id', str(field))}: {e}")
+            logger.error(traceback.format_exc())
+            return False
+
     def collect_values(self) -> Dict[str, Any]:
         """
         Collecte toutes les valeurs actuelles des champs.
@@ -676,39 +614,44 @@ class PluginConfigContainer(ConfigContainer):
         """
         values = {}
         
-        for field_id, field in self.fields_by_id.items():
-            # Ne considérer que les champs de ce plugin
-            if not hasattr(field, 'source_id') or field.source_id != self.source_id:
-                continue
-                
-            # Ne pas inclure le champ de template
-            if field_id == 'template':
-                continue
-                
-            # Récupérer la valeur actuelle
-            if hasattr(field, 'get_value'):
-                # Utiliser le nom de variable pour l'export
-                var_name = getattr(field, 'variable_name', field_id)
-                
-                try:
-                    value = field.get_value()
+        try:
+            for field_id, field in self.fields_by_id.items():
+                # Ne considérer que les champs de ce plugin
+                if not hasattr(field, 'source_id') or field.source_id != self.source_id:
+                    continue
                     
-                    # Traitement spécial pour les checkbox_group
-                    if (hasattr(field, 'field_config') and 
-                        field.field_config.get('type') == 'checkbox_group'):
-                        # Assurer que c'est une liste
-                        if not value:
-                            value = []
-                        elif not isinstance(value, list):
-                            value = [value]
-                            
-                    # Ajouter à la collection
-                    values[var_name] = value
-                    logger.debug(f"Valeur collectée pour {var_name}: {value}")
+                # Ne pas inclure le champ de template
+                if field_id == 'template':
+                    continue
                     
-                except Exception as e:
-                    logger.error(f"Erreur lors de la collecte de la valeur pour {var_name}: {e}")
-        
+                # Récupérer la valeur actuelle
+                if hasattr(field, 'get_value'):
+                    # Utiliser le nom de variable pour l'export
+                    var_name = getattr(field, 'variable_name', field_id)
+                    
+                    try:
+                        value = field.get_value()
+                        
+                        # Traitement spécial pour les checkbox_group
+                        if (hasattr(field, 'field_config') and 
+                            field.field_config.get('type') == 'checkbox_group'):
+                            # Assurer que c'est une liste
+                            if not value:
+                                value = []
+                            elif not isinstance(value, list):
+                                value = [value]
+                                
+                        # Ajouter à la collection
+                        values[var_name] = value
+                        logger.debug(f"Valeur collectée pour {var_name}: {value}")
+                        
+                    except Exception as e:
+                        logger.error(f"Erreur lors de la collecte de la valeur pour {var_name}: {e}")
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la collecte des valeurs: {e}")
+            logger.error(traceback.format_exc())
+            
         return values
 
     def is_valid(self) -> bool:
@@ -718,27 +661,64 @@ class PluginConfigContainer(ConfigContainer):
         Returns:
             bool: True si tous les champs sont valides
         """
-        for field_id, field in self.fields_by_id.items():
-            # Ne considérer que les champs de ce plugin
-            if not hasattr(field, 'source_id') or field.source_id != self.source_id:
-                continue
-                
-            # Ignorer les champs désactivés
-            if hasattr(field, 'disabled') and field.disabled:
-                continue
-                
-            # Vérifier la validité du champ
-            if hasattr(field, 'validate_input') and hasattr(field, 'get_value'):
-                value = field.get_value()
-                is_valid, error_msg = field.validate_input(value)
-                
-                if not is_valid:
-                    logger.error(f"Validation échouée pour {field_id}: {error_msg}")
-                    return False
-        
-        # Si tous les champs ont passé la validation
-        return True
-        
+        try:
+            for field_id, field in self.fields_by_id.items():
+                # Ne considérer que les champs de ce plugin
+                if not hasattr(field, 'source_id') or field.source_id != self.source_id:
+                    continue
+                    
+                # Ignorer les champs désactivés
+                if hasattr(field, 'disabled') and field.disabled:
+                    continue
+                    
+                # Vérifier la validité du champ
+                if hasattr(field, 'validate_input') and hasattr(field, 'get_value'):
+                    value = field.get_value()
+                    is_valid, error_msg = field.validate_input(value)
+                    
+                    if not is_valid:
+                        logger.error(f"Validation échouée pour {field_id}: {error_msg}")
+                        return False
+            
+            # Si tous les champs ont passé la validation
+            return True
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la validation des champs: {e}")
+            logger.error(traceback.format_exc())
+            return False
+
+    def reset_to_defaults(self) -> None:
+        """
+        Réinitialise tous les champs à leurs valeurs par défaut.
+        """
+        if self._is_updating_values:
+            logger.warning("Réinitialisation ignorée pour éviter une récursion")
+            return
+            
+        try:
+            self._is_updating_values = True
+            logger.debug(f"Réinitialisation des champs à leurs valeurs par défaut")
+            
+            # Parcourir tous les champs de ce plugin
+            for field_id, field in self.fields_by_id.items():
+                if not hasattr(field, 'source_id') or field.source_id != self.source_id:
+                    continue
+                    
+                # Récupérer la valeur par défaut si disponible
+                if hasattr(field, 'field_config') and 'default' in field.field_config:
+                    default_value = field.field_config['default']
+                    
+                    # Appliquer la valeur par défaut
+                    self._apply_value_to_field(field, default_value)
+                    logger.debug(f"Champ {field_id} réinitialisé à sa valeur par défaut: {default_value}")
+                    
+        except Exception as e:
+            logger.error(f"Erreur lors de la réinitialisation des champs: {e}")
+            logger.error(traceback.format_exc())
+        finally:
+            self._is_updating_values = False
+
     def apply_snapshot(self, snapshot: Dict[str, Any]) -> None:
         """
         Applique un instantané de valeurs à tous les champs.
@@ -784,45 +764,7 @@ class PluginConfigContainer(ConfigContainer):
             logger.error(traceback.format_exc())
         finally:
             self._is_updating_values = False
-            
-    def reset_to_defaults(self) -> None:
-        """
-        Réinitialise tous les champs à leurs valeurs par défaut.
-        """
-        if self._is_updating_values:
-            logger.warning("Réinitialisation ignorée pour éviter une récursion")
-            return
-            
-        try:
-            self._is_updating_values = True
-            logger.debug(f"Réinitialisation des champs à leurs valeurs par défaut")
-            
-            # Parcourir tous les champs de ce plugin
-            for field_id, field in self.fields_by_id.items():
-                if not hasattr(field, 'source_id') or field.source_id != self.source_id:
-                    continue
-                    
-                # Récupérer la valeur par défaut si disponible
-                if hasattr(field, 'field_config') and 'default' in field.field_config:
-                    default_value = field.field_config['default']
-                    
-                    # Appliquer la valeur par défaut
-                    if hasattr(field, 'set_value'):
-                        field.set_value(default_value)
-                    elif hasattr(field, 'value'):
-                        field.value = default_value
-                        
-                        # Mettre à jour le widget associé
-                        self._update_field_widget(field, default_value)
-                        
-                    logger.debug(f"Champ {field_id} réinitialisé à sa valeur par défaut: {default_value}")
-                    
-        except Exception as e:
-            logger.error(f"Erreur lors de la réinitialisation des champs: {e}")
-            logger.error(traceback.format_exc())
-        finally:
-            self._is_updating_values = False
-            
+
     def get_field_errors(self) -> Dict[str, str]:
         """
         Récupère les erreurs rencontrées lors de l'application des valeurs.
@@ -849,3 +791,24 @@ class PluginConfigContainer(ConfigContainer):
             Dict[str, Any]: Dictionnaire des valeurs appliquées {field_id: value}
         """
         return self._applied_values.copy()
+
+    def call_later(self, callback: Callable, delay: float) -> None:
+        """
+        Planifie l'exécution différée d'une fonction.
+        
+        Args:
+            callback: Fonction à exécuter
+            delay: Délai en secondes
+        """
+        try:
+            # Utiliser la méthode de l'application si disponible
+            if hasattr(self, 'app') and hasattr(self.app, 'call_later'):
+                self.app.call_later(callback, delay)
+                return
+                
+            # Fallback pour les tests: exécution immédiate
+            callback()
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la planification d'un callback: {e}")
+            logger.error(traceback.format_exc())

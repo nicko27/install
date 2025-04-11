@@ -6,6 +6,8 @@ Gère le chargement, la fusion et l'application des configurations de séquence 
 from pathlib import Path
 from ruamel.yaml import YAML
 from typing import Dict, List, Optional, Any, Tuple, Union, Set
+import copy
+import traceback
 from ..utils.logging import get_logger
 
 logger = get_logger('sequence_config_manager')
@@ -96,6 +98,10 @@ class SequenceConfigManager:
             
         except Exception as e:
             logger.error(f"Erreur lors du chargement de la séquence: {e}")
+            logger.error(traceback.format_exc())
+            # Réinitialiser en cas d'erreur
+            self.sequence_data = None
+            self.sequence_configs = {}
             raise
     
     def _init_sequence_configs(self) -> None:
@@ -103,80 +109,85 @@ class SequenceConfigManager:
         Initialise le mapping des configurations par plugin.
         Normalise et convertit toutes les configurations au format standardisé.
         """
-        # Réinitialiser le dictionnaire
-        self.sequence_configs = {}
-        
-        # Vérifier que les données de séquence existent
-        if not self.sequence_data or 'plugins' not in self.sequence_data:
-            logger.warning("Aucune donnée de séquence à initialiser")
-            return
-        
-        # Parcourir tous les plugins de la séquence
-        for position, plugin_config in enumerate(self.sequence_data['plugins']):
-            # Traiter différents formats possibles
+        try:
+            # Réinitialiser le dictionnaire
+            self.sequence_configs = {}
             
-            # Format 1: Chaîne simple (juste le nom du plugin)
-            if isinstance(plugin_config, str):
-                plugin_name = plugin_config
-                normalized_config = {
-                    'plugin_name': plugin_name,
-                    'config': {},
-                    'position': position
-                }
-                
-            # Format 2: Dictionnaire avec configuration
-            elif isinstance(plugin_config, dict) and 'name' in plugin_config:
-                plugin_name = plugin_config['name']
-                
-                # Créer une structure de configuration standardisée
-                normalized_config = {
-                    'plugin_name': plugin_name,
-                    'config': {},
-                    'position': position
-                }
-                
-                # Gestion de la configuration avec rétrocompatibilité
-                # Format moderne: utilise 'config'
-                if 'config' in plugin_config:
-                    if isinstance(plugin_config['config'], dict):
-                        normalized_config['config'] = plugin_config['config'].copy()
-                    else:
-                        logger.warning(f"Format 'config' invalide pour {plugin_name} " +
-                                      f"(position {position}): doit être un dictionnaire")
-                
-                # Format ancien: utilise 'variables'
-                elif 'variables' in plugin_config:
-                    if isinstance(plugin_config['variables'], dict):
-                        normalized_config['config'] = plugin_config['variables'].copy()
-                        logger.debug(f"Conversion du format ancien 'variables' " +
-                                    f"vers 'config' pour {plugin_name}")
-                    else:
-                        logger.warning(f"Format 'variables' invalide pour {plugin_name} " +
-                                      f"(position {position}): doit être un dictionnaire")
-                
-                # Copier les attributs spéciaux au niveau principal
-                special_keys = {
-                    'show_name', 'icon', 'remote_execution', 
-                    'template', 'ignore_errors', 'timeout'
-                }
-                
-                for key in special_keys:
-                    if key in plugin_config:
-                        normalized_config[key] = plugin_config[key]
+            # Vérifier que les données de séquence existent
+            if not self.sequence_data or 'plugins' not in self.sequence_data:
+                logger.warning("Aucune donnée de séquence à initialiser")
+                return
             
-            # Format invalide
-            else:
-                logger.warning(f"Plugin invalide à la position {position}: " +
-                              f"doit être une chaîne ou un dictionnaire avec 'name'")
-                continue
-            
-            # Ajouter au dictionnaire des configurations
-            if plugin_name not in self.sequence_configs:
-                self.sequence_configs[plugin_name] = []
-            
-            self.sequence_configs[plugin_name].append(normalized_config)
-            
-            logger.debug(f"Configuration ajoutée pour {plugin_name} (position {position})")
+            # Parcourir tous les plugins de la séquence
+            for position, plugin_config in enumerate(self.sequence_data['plugins']):
+                # Traiter différents formats possibles
+                
+                # Format 1: Chaîne simple (juste le nom du plugin)
+                if isinstance(plugin_config, str):
+                    plugin_name = plugin_config
+                    normalized_config = {
+                        'plugin_name': plugin_name,
+                        'config': {},
+                        'position': position
+                    }
+                    
+                # Format 2: Dictionnaire avec configuration
+                elif isinstance(plugin_config, dict) and 'name' in plugin_config:
+                    plugin_name = plugin_config['name']
+                    
+                    # Créer une structure de configuration standardisée
+                    normalized_config = {
+                        'plugin_name': plugin_name,
+                        'config': {},
+                        'position': position
+                    }
+                    
+                    # Gestion de la configuration avec rétrocompatibilité
+                    # Format moderne: utilise 'config'
+                    if 'config' in plugin_config:
+                        if isinstance(plugin_config['config'], dict):
+                            normalized_config['config'] = copy.deepcopy(plugin_config['config'])
+                        else:
+                            logger.warning(f"Format 'config' invalide pour {plugin_name} " +
+                                          f"(position {position}): doit être un dictionnaire")
+                    
+                    # Format ancien: utilise 'variables'
+                    elif 'variables' in plugin_config:
+                        if isinstance(plugin_config['variables'], dict):
+                            normalized_config['config'] = copy.deepcopy(plugin_config['variables'])
+                            logger.debug(f"Conversion du format ancien 'variables' " +
+                                        f"vers 'config' pour {plugin_name}")
+                        else:
+                            logger.warning(f"Format 'variables' invalide pour {plugin_name} " +
+                                          f"(position {position}): doit être un dictionnaire")
+                    
+                    # Copier les attributs spéciaux au niveau principal
+                    special_keys = {
+                        'show_name', 'icon', 'remote_execution', 
+                        'template', 'ignore_errors', 'timeout'
+                    }
+                    
+                    for key in special_keys:
+                        if key in plugin_config:
+                            normalized_config[key] = plugin_config[key]
+                
+                # Format invalide
+                else:
+                    logger.warning(f"Plugin invalide à la position {position}: " +
+                                  f"doit être une chaîne ou un dictionnaire avec 'name'")
+                    continue
+                
+                # Ajouter au dictionnaire des configurations
+                if plugin_name not in self.sequence_configs:
+                    self.sequence_configs[plugin_name] = []
+                
+                self.sequence_configs[plugin_name].append(normalized_config)
+                
+                logger.debug(f"Configuration ajoutée pour {plugin_name} (position {position})")
+        except Exception as e:
+            logger.error(f"Erreur lors de l'initialisation des configurations: {e}")
+            logger.error(traceback.format_exc())
+            self.sequence_configs = {}
     
     def add_plugin_config(self, plugin_name: str, instance_id: Union[int, str], 
                          config: Dict[str, Any]) -> None:
@@ -189,48 +200,64 @@ class SequenceConfigManager:
             instance_id: ID unique de l'instance
             config: Configuration existante du plugin
         """
-        # Créer un ID unique standardisé
-        plugin_instance_id = f"{plugin_name}_{instance_id}"
-        
-        # Créer une structure de configuration standardisée
-        normalized_config = {
-            'plugin_name': plugin_name,
-            'instance_id': instance_id,
-            'config': {}
-        }
-        
-        # Format 1: La configuration a déjà une structure 'config'
-        if 'config' in config and isinstance(config['config'], dict):
-            normalized_config['config'] = config['config'].copy()
-        
-        # Format 2: Ancienne structure plate
-        else:
-            # Identifier les clés spéciales vs. les clés de configuration
-            special_keys = {
-                'plugin_name', 'instance_id', 'name', 'show_name', 
-                'icon', 'remote_execution', 'template'
+        try:
+            # Créer un ID unique standardisé
+            plugin_instance_id = f"{plugin_name}_{instance_id}"
+            
+            # Créer une structure de configuration standardisée
+            normalized_config = {
+                'plugin_name': plugin_name,
+                'instance_id': instance_id,
+                'config': {}
             }
             
-            # Copier les valeurs non spéciales dans config
-            config_values = {k: v for k, v in config.items() if k not in special_keys}
-            normalized_config['config'] = config_values
+            # Format 1: La configuration a déjà une structure 'config'
+            if isinstance(config, dict):
+                if 'config' in config and isinstance(config['config'], dict):
+                    normalized_config['config'] = copy.deepcopy(config['config'])
+                
+                # Format 2: Ancienne structure plate
+                else:
+                    # Identifier les clés spéciales vs. les clés de configuration
+                    special_keys = {
+                        'plugin_name', 'instance_id', 'name', 'show_name', 
+                        'icon', 'remote_execution', 'template'
+                    }
+                    
+                    # Copier les valeurs non spéciales dans config
+                    config_values = {k: v for k, v in config.items() if k not in special_keys}
+                    normalized_config['config'] = config_values
+                    
+                    # Copier les clés spéciales au niveau principal
+                    for key in special_keys:
+                        if key in config:
+                            normalized_config[key] = config[key]
             
-            # Copier les clés spéciales au niveau principal
-            for key in special_keys:
-                if key in config:
-                    normalized_config[key] = config[key]
-        
-        # Stocker dans current_config avec l'ID standardisé
-        self.current_config[plugin_instance_id] = normalized_config
-        
-        # Ajouter également à sequence_configs pour la fusion ultérieure
-        if plugin_name not in self.sequence_configs:
-            self.sequence_configs[plugin_name] = []
-        
-        self.sequence_configs[plugin_name].append(normalized_config)
-        
-        logger.debug(f"Configuration ajoutée manuellement pour {plugin_name} " +
-                    f"(ID: {instance_id}) avec {len(normalized_config['config'])} paramètres")
+                # Stocker dans current_config avec l'ID standardisé
+                self.current_config[plugin_instance_id] = normalized_config
+                
+                # Ajouter également à sequence_configs pour la fusion ultérieure
+                if plugin_name not in self.sequence_configs:
+                    self.sequence_configs[plugin_name] = []
+                
+                # Vérifier si une config existe déjà pour cette instance
+                for i, existing_config in enumerate(self.sequence_configs[plugin_name]):
+                    if 'instance_id' in existing_config and existing_config['instance_id'] == instance_id:
+                        # Remplacer la configuration existante
+                        self.sequence_configs[plugin_name][i] = normalized_config
+                        logger.debug(f"Configuration remplacée pour {plugin_name} (ID: {instance_id})")
+                        break
+                else:
+                    # Ajouter comme nouvelle configuration
+                    self.sequence_configs[plugin_name].append(normalized_config)
+                
+                logger.debug(f"Configuration ajoutée manuellement pour {plugin_name} " +
+                            f"(ID: {instance_id}) avec {len(normalized_config['config'])} paramètres")
+            else:
+                logger.warning(f"Configuration invalide pour {plugin_name} (ID: {instance_id}): doit être un dictionnaire")
+        except Exception as e:
+            logger.error(f"Erreur lors de l'ajout de configuration manuelle: {e}")
+            logger.error(traceback.format_exc())
     
     def apply_configs_to_plugins(self, plugin_instances: List[Tuple[str, Union[int, str], Optional[Dict]]]) -> Dict[str, Dict]:
         """
@@ -243,127 +270,142 @@ class SequenceConfigManager:
         Returns:
             Dict[str, Dict]: Configurations finales indexées par plugin_instance_id
         """
-        # Réinitialiser les configurations finales et l'ensemble des plugins associés
-        result_config = {}
-        self._matched_plugins = set()
-        
-        logger.debug("=== DÉBUT FUSION DES CONFIGURATIONS ===")
-        logger.debug(f"Plugins à configurer: {len(plugin_instances)}")
-        logger.debug(f"Configuration initiale: {self.current_config}")
-        
-        # Compteurs pour suivre les instances de chaque type de plugin
-        plugin_counters = {}
-        
-        # Créer un mapping des instances de séquence par plugin
-        sequence_plugin_instances = self._index_sequence_plugins_by_type()
-        
-        # Parcourir tous les plugins sélectionnés
-        for plugin_data in plugin_instances:
-            # Extraire les données du plugin
-            if len(plugin_data) >= 3:
-                plugin_name, instance_id, existing_config = plugin_data
-            else:
-                plugin_name, instance_id = plugin_data[:2]
-                existing_config = None
+        try:
+            # Réinitialiser les configurations finales et l'ensemble des plugins associés
+            result_config = {}
+            self._matched_plugins = set()
             
-            # Ignorer les plugins spéciaux comme les séquences
-            if isinstance(plugin_name, str) and plugin_name.startswith('__'):
-                logger.debug(f"Plugin spécial ignoré: {plugin_name}")
-                continue
+            logger.debug("=== DÉBUT FUSION DES CONFIGURATIONS ===")
             
-            # Incrémenter le compteur pour ce type de plugin
-            if plugin_name not in plugin_counters:
-                plugin_counters[plugin_name] = 0
-            current_count = plugin_counters[plugin_name]
-            plugin_counters[plugin_name] += 1
+            # Index des instances de plugins par type pour le mapping avec la séquence
+            plugin_counters = {}
+            plugin_type_instances = {}
             
-            # Créer un ID unique standardisé
-            plugin_instance_id = f"{plugin_name}_{instance_id}"
-            
-            logger.debug(f"Traitement du plugin {plugin_instance_id} " +
-                        f"(instance {current_count + 1} de {plugin_name})")
-            
-            # 1. CRÉATION DE LA CONFIGURATION DE BASE
-            config_data = self._create_base_config(plugin_name, instance_id)
-            
-            # 2. FUSION DES CONFIGURATIONS SELON PRIORITÉ
-            
-            # Priorité 1: Configuration par défaut existante dans self.current_config
-            if plugin_instance_id in self.current_config:
-                default_config = self.current_config[plugin_instance_id]
-                logger.debug(f"Configuration par défaut trouvée pour {plugin_instance_id}: {default_config}")
+            # Créer un mapping des instances pour chaque type de plugin
+            for plugin_data in plugin_instances:
+                # Extraire les données du plugin
+                if len(plugin_data) >= 3:
+                    plugin_name, instance_id, _ = plugin_data
+                else:
+                    plugin_name, instance_id = plugin_data[:2]
                 
-                # Fusionner la configuration par défaut
-                if 'config' in default_config and isinstance(default_config['config'], dict):
-                    # Ne remplacer que si la configuration n'est pas vide
-                    if default_config['config']:
-                        config_data['config'].update(default_config['config'])
-                        logger.debug(f"Configuration par défaut appliquée: " +
-                                    f"{len(default_config['config'])} paramètres")
+                # Ignorer les plugins spéciaux
+                if isinstance(plugin_name, str) and plugin_name.startswith('__'):
+                    continue
                 
-                # Copier les attributs spéciaux
-                self._copy_special_attributes(default_config, config_data)
-            
-            # Priorité 2: Configuration de séquence si disponible
-            existing_config_data = None
-            if plugin_instance_id in self.current_config and 'config' in self.current_config[plugin_instance_id]:
-                existing_config_data = self.current_config[plugin_instance_id]['config']
-            seq_config = self._get_sequence_config(plugin_name, current_count, sequence_plugin_instances, existing_config_data)
-            if seq_config:
-                if 'config' in seq_config and isinstance(seq_config['config'], dict):
-                    # Mise à jour avec la configuration de séquence (écrase les valeurs par défaut)
-                    config_data['config'].update(seq_config['config'])
-                    logger.debug(f"Configuration de séquence appliquée: " +
-                                f"{len(seq_config['config'])} paramètres")
+                # Initialiser les listes si nécessaire
+                if plugin_name not in plugin_type_instances:
+                    plugin_type_instances[plugin_name] = []
                 
-                # Copier les attributs spéciaux
-                self._copy_special_attributes(seq_config, config_data)
+                # Ajouter l'ID d'instance à la liste
+                plugin_type_instances[plugin_name].append(instance_id)
             
-            # Priorité 3: Configuration spécifique fournie (priorité maximale)
-            if existing_config:
-                config_data = self._merge_existing_config(config_data, existing_config)
-                logger.debug("Configuration spécifique appliquée (priorité maximale)")
+            # Déterminer les instances de plugins de la séquence par type
+            sequence_plugin_instances = self._index_sequence_plugins_by_type()
+            logger.debug(f"Instances de plugins dans la séquence: {sequence_plugin_instances}")
             
-            # Enregistrer la configuration finale
-            result_config[plugin_instance_id] = config_data
-            logger.debug(f"Configuration finale pour {plugin_instance_id}: " +
-                        f"{len(config_data['config'])} paramètres")
-        
-        logger.debug(f"=== CONFIGURATIONS FINALES: {len(result_config)} plugins configurés ===")
-        return result_config
+            # Parcourir tous les plugins sélectionnés
+            for plugin_data in plugin_instances:
+                # Extraire les données du plugin
+                if len(plugin_data) >= 3:
+                    plugin_name, instance_id, existing_config = plugin_data
+                else:
+                    plugin_name, instance_id = plugin_data[:2]
+                    existing_config = None
+                
+                # Ignorer les plugins spéciaux comme les séquences
+                if isinstance(plugin_name, str) and plugin_name.startswith('__'):
+                    logger.debug(f"Plugin spécial ignoré: {plugin_name}")
+                    continue
+                
+                # Incrémenter le compteur pour ce type de plugin
+                if plugin_name not in plugin_counters:
+                    plugin_counters[plugin_name] = 0
+                current_count = plugin_counters[plugin_name]
+                plugin_counters[plugin_name] += 1
+                
+                # Créer un ID unique standardisé
+                plugin_instance_id = f"{plugin_name}_{instance_id}"
+                
+                logger.debug(f"Traitement du plugin {plugin_instance_id} " +
+                            f"(instance {current_count + 1} de {plugin_name})")
+                
+                # 1. CRÉATION DE LA CONFIGURATION DE BASE
+                config_data = self._create_base_config(plugin_name, instance_id)
+                
+                # 2. AJOUT DES CONFIGURATIONS DE SÉQUENCE SI APPLICABLE
+                sequence_config = self._get_sequence_config(
+                    plugin_name, 
+                    current_count,
+                    sequence_plugin_instances, 
+                    existing_config
+                )
+                
+                if sequence_config:
+                    # Fusionner les configurations
+                    for key, value in sequence_config.items():
+                        if key == 'config' and isinstance(value, dict) and isinstance(config_data.get('config'), dict):
+                            # Fusion profonde des dictionnaires de configuration
+                            if 'config' not in config_data:
+                                config_data['config'] = {}
+                            config_data['config'].update(value)
+                        else:
+                            # Substitution directe pour les autres attributs
+                            config_data[key] = value
+                    
+                    logger.debug(f"Configuration de séquence appliquée à {plugin_instance_id}")
+                
+                # 3. AJOUT DE LA CONFIGURATION EXISTANTE SI FOURNIE
+                if existing_config:
+                    config_data = self._merge_existing_config(config_data, existing_config)
+                    logger.debug(f"Configuration existante appliquée à {plugin_instance_id}")
+                
+                # Stocker la configuration finale
+                result_config[plugin_instance_id] = config_data
+                
+                logger.debug(f"Configuration finale pour {plugin_instance_id}: " +
+                            f"{len(config_data.get('config', {}))} paramètres")
+            
+            # Mettre à jour la configuration courante
+            self.current_config = result_config
+            
+            logger.debug("=== FIN FUSION DES CONFIGURATIONS ===")
+            return result_config
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de l'application des configurations: {e}")
+            logger.error(traceback.format_exc())
+            return {}
     
     def _index_sequence_plugins_by_type(self) -> Dict[str, List[int]]:
         """
-        Crée un index des plugins dans la séquence par type.
+        Crée un index des instances de plugins dans la séquence par type.
         
         Returns:
-            Dict[str, List[int]]: Pour chaque type de plugin, la liste des indices dans la séquence
+            Dict[str, List[int]]: Mapping des noms de plugins vers leurs positions dans la séquence
         """
-        sequence_plugins = {}
+        result = {}
         
         if not self.sequence_data or 'plugins' not in self.sequence_data:
-            return sequence_plugins
+            return result
         
-        for i, plugin_config in enumerate(self.sequence_data['plugins']):
-            # Format 1: Chaîne simple (juste le nom du plugin)
+        for position, plugin_config in enumerate(self.sequence_data['plugins']):
+            # Extraire le nom du plugin
             if isinstance(plugin_config, str):
                 plugin_name = plugin_config
-            
-            # Format 2: Dictionnaire avec 'name'
             elif isinstance(plugin_config, dict) and 'name' in plugin_config:
                 plugin_name = plugin_config['name']
-            
-            # Format invalide
             else:
+                logger.warning(f"Format de plugin invalide à la position {position}, ignoré")
                 continue
             
             # Ajouter à l'index
-            if plugin_name not in sequence_plugins:
-                sequence_plugins[plugin_name] = []
+            if plugin_name not in result:
+                result[plugin_name] = []
             
-            sequence_plugins[plugin_name].append(i)
+            result[plugin_name].append(position)
         
-        return sequence_plugins
+        return result
     
     def _create_base_config(self, plugin_name: str, instance_id: Union[int, str]) -> Dict[str, Any]:
         """
@@ -371,18 +413,20 @@ class SequenceConfigManager:
         
         Args:
             plugin_name: Nom du plugin
-            instance_id: ID de l'instance
+            instance_id: ID d'instance
             
         Returns:
             Dict[str, Any]: Configuration de base
         """
-        return {
+        # Structure minimale de configuration
+        base_config = {
             'plugin_name': plugin_name,
             'instance_id': instance_id,
-            'name': plugin_name,  # Sera remplacé par un nom plus descriptif si disponible
-            'config': {}
+            'config': {}  # Valeurs par défaut, seront remplacées plus tard
         }
         
+        return base_config
+    
     def _get_sequence_config(self, plugin_name: str, instance_index: int,
                         sequence_plugin_instances: Dict[str, List[int]],
                         existing_config: Optional[Dict] = None) -> Optional[Dict[str, Any]]:
@@ -391,122 +435,94 @@ class SequenceConfigManager:
         
         Args:
             plugin_name: Nom du plugin
-            instance_index: Index de l'instance de ce type de plugin
-            sequence_plugin_instances: Index des plugins par type dans la séquence
-            existing_config: Configuration existante pour aider à trouver la meilleure correspondance
+            instance_index: Index de l'instance dans la liste des plugins sélectionnés
+            sequence_plugin_instances: Mapping des noms de plugins vers leurs positions dans la séquence
+            existing_config: Configuration existante du plugin (utilisée pour la correspondance)
             
         Returns:
             Optional[Dict[str, Any]]: Configuration de séquence ou None si non trouvée
         """
-        # Vérifier si ce type de plugin existe dans la séquence
-        if plugin_name not in sequence_plugin_instances:
-            return None
-        
-        # Récupérer tous les indices de ce type de plugin dans la séquence
-        plugin_indices = sequence_plugin_instances[plugin_name]
-        
-        # Si pas d'indices disponibles, retourner None
-        if not plugin_indices:
-            return None
-        
-        # Si pas de configuration existante, utiliser l'approche par index
-        if not existing_config:
-            # Vérifier si nous avons assez d'instances pour cet index
-            if instance_index >= len(plugin_indices):
+        try:
+            # Cas 1: Le plugin n'est pas dans la séquence
+            if plugin_name not in sequence_plugin_instances or not sequence_plugin_instances[plugin_name]:
+                logger.debug(f"Aucune configuration de séquence pour {plugin_name}")
                 return None
             
-            sequence_index = plugin_indices[instance_index]
-        else:
-            # Chercher la meilleure correspondance basée sur la configuration existante
-            best_match_index = None
-            best_match_score = -1
-            
-            for seq_idx in plugin_indices:
-                # Vérifier si ce plugin a déjà été associé
-                association_key = f"{plugin_name}_{seq_idx}"
-                if association_key in self._matched_plugins:
-                    continue
+            # Cas 2: La configuration est déjà explicitement fournie
+            if existing_config and 'from_sequence' in existing_config:
+                seq_position = existing_config['from_sequence']
+                if isinstance(seq_position, int) and 0 <= seq_position < len(self.sequence_data['plugins']):
+                    matched_key = f"{plugin_name}_{seq_position}"
+                    if matched_key in self._matched_plugins:
+                        logger.warning(f"Configuration de séquence {seq_position} déjà utilisée pour {plugin_name}")
+                        return None
                     
-                # Récupérer la configuration de la séquence
-                seq_plugin_config = self.sequence_data['plugins'][seq_idx]
-                
-                # Ignorer les formats simples (chaînes)
-                if isinstance(seq_plugin_config, str):
-                    continue
+                    self._matched_plugins.add(matched_key)
+                    logger.debug(f"Utilisation explicite de la configuration de séquence {seq_position} pour {plugin_name}")
                     
-                # Récupérer la configuration
-                seq_config = {}
-                if 'config' in seq_plugin_config and isinstance(seq_plugin_config['config'], dict):
-                    seq_config = seq_plugin_config['config']
-                elif 'variables' in seq_plugin_config and isinstance(seq_plugin_config['variables'], dict):
-                    seq_config = seq_plugin_config['variables']
-                
-                # Calculer un score de correspondance
-                match_score = 0
-                for key, value in existing_config.items():
-                    if key in seq_config and seq_config[key] == value:
-                        match_score += 1
-                
-                # Mettre à jour la meilleure correspondance si nécessaire
-                if match_score > best_match_score:
-                    best_match_score = match_score
-                    best_match_index = seq_idx
+                    plugin_config = self.sequence_data['plugins'][seq_position]
+                    if isinstance(plugin_config, str):
+                        return {'plugin_name': plugin_name, 'config': {}}
+                    return plugin_config
+                else:
+                    logger.warning(f"Position de séquence invalide: {seq_position}")
             
-            # Utiliser la meilleure correspondance ou l'index par défaut
-            if best_match_index is not None:
-                sequence_index = best_match_index
-            elif instance_index < len(plugin_indices):
-                sequence_index = plugin_indices[instance_index]
+            # Cas 3: Tentative de correspondance automatique basée sur l'instance
+            seq_positions = sequence_plugin_instances[plugin_name]
+            
+            # Si l'index d'instance est dans les limites des positions de séquence
+            if instance_index < len(seq_positions):
+                seq_position = seq_positions[instance_index]
+                matched_key = f"{plugin_name}_{seq_position}"
+                
+                # Vérifier si cette configuration n'a pas déjà été utilisée
+                if matched_key in self._matched_plugins:
+                    logger.warning(f"Configuration de séquence {seq_position} déjà utilisée pour {plugin_name}")
+                    return None
+                
+                self._matched_plugins.add(matched_key)
+                
+                # Récupérer la configuration depuis la séquence
+                plugin_config = self.sequence_data['plugins'][seq_position]
+                
+                # Normaliser la configuration
+                if isinstance(plugin_config, str):
+                    # Format simple, juste le nom du plugin
+                    return {'plugin_name': plugin_name, 'config': {}}
+                elif isinstance(plugin_config, dict):
+                    # Format dictionnaire, peut contenir une configuration
+                    config_data = {'plugin_name': plugin_name}
+                    
+                    # Ajouter la configuration si présente
+                    if 'config' in plugin_config and isinstance(plugin_config['config'], dict):
+                        config_data['config'] = copy.deepcopy(plugin_config['config'])
+                    elif 'variables' in plugin_config and isinstance(plugin_config['variables'], dict):
+                        config_data['config'] = copy.deepcopy(plugin_config['variables'])
+                    else:
+                        config_data['config'] = {}
+                    
+                    # Copier les attributs spéciaux
+                    self._copy_special_attributes(plugin_config, config_data)
+                    
+                    # Ajouter la référence à la position dans la séquence
+                    config_data['from_sequence'] = seq_position
+                    
+                    return config_data
+                else:
+                    logger.warning(f"Format de configuration invalide pour {plugin_name} à la position {seq_position}")
+                    return None
             else:
+                logger.debug(f"Instance {instance_index} de {plugin_name} hors limites des positions de séquence {seq_positions}")
                 return None
         
-        # Créer un identifiant unique pour ce couple (plugin, position)
-        association_key = f"{plugin_name}_{sequence_index}"
-        
-        # Vérifier si ce plugin a déjà été associé
-        if association_key in self._matched_plugins:
-            logger.debug(f"Plugin {plugin_name} à la position {sequence_index} déjà associé")
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération de configuration de séquence: {e}")
+            logger.error(traceback.format_exc())
             return None
-        
-        # Marquer comme associé
-        self._matched_plugins.add(association_key)
-        
-        # Récupérer et normaliser la configuration
-        plugin_config = self.sequence_data['plugins'][sequence_index]
-        
-        # Format 1: Chaîne simple (juste le nom)
-        if isinstance(plugin_config, str):
-            return {'config': {}}
-        
-        # Format 2: Dictionnaire avec configuration
-        elif isinstance(plugin_config, dict) and plugin_config.get('name') == plugin_name:
-            # Normaliser la configuration
-            normalized_config = {'config': {}}
-            
-            # Traiter 'config' ou 'variables'
-            if 'config' in plugin_config and isinstance(plugin_config['config'], dict):
-                normalized_config['config'] = plugin_config['config'].copy()
-            elif 'variables' in plugin_config and isinstance(plugin_config['variables'], dict):
-                normalized_config['config'] = plugin_config['variables'].copy()
-            
-            # Copier les attributs spéciaux
-            special_keys = {
-                'name', 'show_name', 'icon', 'remote_execution', 
-                'template', 'ignore_errors', 'timeout'
-            }
-            
-            for key in special_keys:
-                if key in plugin_config:
-                    normalized_config[key] = plugin_config[key]
-            
-            return normalized_config
-        
-        # Aucune configuration trouvée
-        return None
     
     def _copy_special_attributes(self, source: Dict[str, Any], target: Dict[str, Any]) -> None:
         """
-        Copie les attributs spéciaux d'une configuration à une autre.
+        Copie les attributs spéciaux d'une configuration source vers une cible.
         
         Args:
             source: Configuration source
@@ -514,7 +530,7 @@ class SequenceConfigManager:
         """
         special_keys = {
             'name', 'show_name', 'icon', 'remote_execution', 
-            'template', 'ignore_errors', 'timeout'
+            'template', 'ignore_errors', 'timeout', 'display_order'
         }
         
         for key in special_keys:
@@ -524,8 +540,8 @@ class SequenceConfigManager:
     def _merge_existing_config(self, base_config: Dict[str, Any], 
                              existing_config: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Fusionne une configuration existante dans la configuration de base.
-        La configuration existante a la priorité maximale.
+        Fusionne une configuration existante avec la configuration de base.
+        La configuration existante a la priorité.
         
         Args:
             base_config: Configuration de base
@@ -534,42 +550,60 @@ class SequenceConfigManager:
         Returns:
             Dict[str, Any]: Configuration fusionnée
         """
-        # Créer une copie de la configuration de base
-        merged_config = base_config.copy()
-        
-        # Format 1: La configuration a déjà une structure 'config'
-        if 'config' in existing_config and isinstance(existing_config['config'], dict):
-            merged_config['config'].update(existing_config['config'])
-        
-        # Format 2: Ancienne structure plate
-        else:
-            # Identifier les clés spéciales vs. les clés de configuration
-            special_keys = {
-                'plugin_name', 'instance_id', 'name', 'show_name', 
-                'icon', 'remote_execution', 'template'
-            }
+        try:
+            # Copie profonde pour éviter les modifications involontaires
+            result = copy.deepcopy(base_config)
             
-            # Copier les valeurs non spéciales dans config
-            config_values = {k: v for k, v in existing_config.items() if k not in special_keys}
-            merged_config['config'].update(config_values)
-        
-        # Copier les attributs spéciaux
-        self._copy_special_attributes(existing_config, merged_config)
-        
-        return merged_config
+            # Fusionner les valeurs de configuration
+            # Format 1: Configuration avec 'config'
+            if 'config' in existing_config and isinstance(existing_config['config'], dict):
+                if 'config' not in result:
+                    result['config'] = {}
+                result['config'].update(existing_config['config'])
+            
+            # Format 2: Configuration plate (ancienne structure)
+            else:
+                # Identifier les clés spéciales vs. les clés de configuration
+                special_keys = {
+                    'plugin_name', 'instance_id', 'name', 'show_name', 
+                    'icon', 'remote_execution', 'template', 'from_sequence'
+                }
+                
+                # Configuration plate: ajouter les clés non spéciales à 'config'
+                if 'config' not in result:
+                    result['config'] = {}
+                
+                for key, value in existing_config.items():
+                    if key not in special_keys:
+                        result['config'][key] = value
+            
+            # Copier les attributs spéciaux
+            self._copy_special_attributes(existing_config, result)
+            
+            # Conserver les attributs d'identification
+            for key in ['plugin_name', 'instance_id', 'from_sequence']:
+                if key in existing_config:
+                    result[key] = existing_config[key]
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la fusion de configurations: {e}")
+            logger.error(traceback.format_exc())
+            return base_config
     
     def get_normalized_config(self) -> Dict[str, Dict[str, Any]]:
         """
-        Retourne une copie des configurations actuelles, toutes normalisées.
+        Récupère la configuration normalisée actuelle.
         
         Returns:
-            Dict[str, Dict[str, Any]]: Configurations normalisées
+            Dict[str, Dict[str, Any]]: Configuration normalisée
         """
-        return self.current_config.copy()
+        return self.current_config
     
     def clear(self) -> None:
         """
-        Réinitialise complètement le gestionnaire.
+        Réinitialise complètement le gestionnaire de configuration.
         """
         self.sequence_data = None
         self.sequence_configs = {}

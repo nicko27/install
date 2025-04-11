@@ -1,4 +1,4 @@
-# install/plugins/plugins_utils/config_files.py
+# plugins_utils/config_files.py CORRIGÉ
 #!/usr/bin/env python3
 """
 Module utilitaire pour lire et écrire différents formats de fichiers de configuration
@@ -18,6 +18,19 @@ import time # Ajout de l'import time manquant pour _backup_file
 from pathlib import Path
 from typing import Union, Optional, List, Dict, Any, Tuple, Generator
 
+# Essayer d'importer RootCredentialsManager pour la gestion du mot de passe sudo local
+try:
+    # Ajuster le chemin relatif si nécessaire en fonction de la structure réelle
+    from ..execution_screen.root_credentials_manager import RootCredentialsManager
+    ROOT_MANAGER_AVAILABLE = True
+except ImportError:
+    ROOT_MANAGER_AVAILABLE = False
+    # Classe factice si non disponible
+    class RootCredentialsManager:
+        @staticmethod
+        def get_instance(): return None
+        def get_local_root_password(self): return None
+
 # ruamel.yaml n'est pas disponible
 RUAMEL_YAML_AVAILABLE = False
 
@@ -32,24 +45,36 @@ class ConfigFileCommands(PluginsUtilsBase):
         """Initialise le gestionnaire de fichiers de configuration."""
         super().__init__(logger, target_ip)
         # Pas d'initialisation YAML ici
+        self._root_manager = RootCredentialsManager.get_instance() if ROOT_MANAGER_AVAILABLE else None
+
 
     def _backup_file(self, path: Union[str, Path]) -> Optional[str]:
         """Crée une sauvegarde d'un fichier."""
         file_path = Path(path)
-        if not file_path.exists():
-            # Utiliser self.run pour vérifier l'existence, car os.path peut échouer avec sudo
-            success_test, _, _ = self.run(['test', '-e', str(file_path)], check=False, no_output=True, error_as_warning=True, needs_sudo=True)
-            if not success_test:
-                 self.log_debug(f"Fichier {file_path} non trouvé (vérifié via test -e), pas de sauvegarde nécessaire.")
-                 return None
-            # Si test -e réussit mais exists() échoue, il y a un problème de permission potentiel
-            # On continue quand même la tentative de sauvegarde
+        # Utiliser self.run pour vérifier l'existence, car os.path peut échouer avec sudo
+        success_test, _, _ = self.run(['test', '-e', str(file_path)], check=False, no_output=True, error_as_warning=True, needs_sudo=True)
+        if not success_test:
+             self.log_debug(f"Fichier {file_path} non trouvé (vérifié via test -e), pas de sauvegarde nécessaire.")
+             return None
+        # Si test -e réussit mais exists() échoue, il y a un problème de permission potentiel
+        # On continue quand même la tentative de sauvegarde
 
         backup_path = file_path.with_suffix(f"{file_path.suffix}.bak_{int(time.time())}")
         try:
             # Utiliser cp -a pour préserver les métadonnées et gérer sudo
             cmd_cp = ['cp', '-a', str(file_path), str(backup_path)]
-            success, _, stderr = self.run(cmd_cp, check=False, needs_sudo=True)
+
+            # Préparer l'environnement pour sudo si nécessaire (exécution locale)
+            env_override = None
+            if self.target_ip is None and self._root_manager: # Exécution locale
+                root_pwd = self._root_manager.get_local_root_password()
+                if root_pwd:
+                    env_override = os.environ.copy()
+                    env_override['SUDO_PASSWORD'] = root_pwd
+                    self.log_debug("Utilisation du mot de passe root local pour la sauvegarde.")
+
+            success, _, stderr = self.run(cmd_cp, check=False, needs_sudo=True, env=env_override)
+
             if not success:
                  self.log_warning(f"Échec de la création de la sauvegarde {backup_path}. Stderr: {stderr}")
                  return None
@@ -66,15 +91,31 @@ class ConfigFileCommands(PluginsUtilsBase):
 
         backup_file = None
         original_stat: Optional[str] = None # Modifié pour stocker la chaîne UID:GID:Mode
+        env_override = None # Pour le mot de passe sudo local
+
+        # Préparer l'environnement pour sudo si nécessaire (exécution locale)
+        needs_sudo_ops = True # Supposer qu'on aura besoin de sudo
+        if self.target_ip is None and self._root_manager: # Exécution locale
+            root_pwd = self._root_manager.get_local_root_password()
+            if root_pwd:
+                env_override = os.environ.copy()
+                env_override['SUDO_PASSWORD'] = root_pwd
+                self.log_debug("Utilisation du mot de passe root local pour les opérations de fichier.")
+            else:
+                 self.log_warning("Mot de passe root local non trouvé via RootManager, sudo pourrait demander un mot de passe.")
+                 # Si pas de mot de passe, on ne peut pas utiliser sudo -S efficacement
+                 # needs_sudo_ops = False # Ou laisser sudo demander interactivement ? Laisser True pour l'instant.
+
+
         # Tenter de lire les stats avant sauvegarde/écriture pour restaurer perms/owner
         try:
             # Utiliser stat via self.run pour gérer sudo si nécessaire
             cmd_stat = ['stat', '-c', '%u:%g:%a', str(file_path)] # Format UID:GID:OctalPerms
-            stat_success, stat_stdout, _ = self.run(cmd_stat, check=False, no_output=True, error_as_warning=True, needs_sudo=True) # error_as_warning pour ignorer "No such file"
+            stat_success, stat_stdout, _ = self.run(cmd_stat, check=False, no_output=True, error_as_warning=True, needs_sudo=needs_sudo_ops, env=env_override) # error_as_warning pour ignorer "No such file"
             if stat_success and stat_stdout.strip():
                  original_stat = stat_stdout.strip() # Ex: "1000:1000:644"
                  self.log_debug(f"Statistiques originales de {file_path}: {original_stat}")
-            elif file_path.exists(): # Si le fichier existe mais stat échoue (permissions?)
+            elif os.path.exists(str(file_path)): # Utiliser os.path.exists ici car on ne peut pas stat
                 self.log_warning(f"Impossible de lire les statistiques originales de {file_path} (commande stat échouée).")
 
         except Exception as e_stat_read:
@@ -82,12 +123,12 @@ class ConfigFileCommands(PluginsUtilsBase):
 
 
         if backup:
-            backup_file = self._backup_file(file_path)
+            backup_file = self._backup_file(file_path) # _backup_file gère son propre sudo/env
             # Si la sauvegarde réussit et qu'on n'avait pas les stats, les prendre de la sauvegarde
             if backup_file and not original_stat:
                  try:
                       cmd_stat_bak = ['stat', '-c', '%u:%g:%a', backup_file]
-                      stat_success_bak, stat_stdout_bak, _ = self.run(cmd_stat_bak, check=False, no_output=True, needs_sudo=True)
+                      stat_success_bak, stat_stdout_bak, _ = self.run(cmd_stat_bak, check=False, no_output=True, needs_sudo=needs_sudo_ops, env=env_override)
                       if stat_success_bak and stat_stdout_bak.strip():
                            original_stat = stat_stdout_bak.strip()
                            self.log_debug(f"Statistiques originales récupérées de la sauvegarde {backup_file}: {original_stat}")
@@ -108,7 +149,7 @@ class ConfigFileCommands(PluginsUtilsBase):
             # Déplacer le fichier temporaire vers la destination finale avec sudo
             # Utiliser `cp` puis `chmod/chown` pour mieux gérer les permissions/propriétaires
             cmd_cp = ['cp', str(tmp_file_path), str(file_path)]
-            success_cp, _, stderr_cp = self.run(cmd_cp, check=False, needs_sudo=True)
+            success_cp, _, stderr_cp = self.run(cmd_cp, check=False, needs_sudo=needs_sudo_ops, env=env_override)
             if not success_cp:
                  self.log_error(f"Échec de la copie vers {file_path}. Stderr: {stderr_cp}")
                  # Ne supprime pas le fichier temporaire ici pour investigation potentielle
@@ -120,21 +161,21 @@ class ConfigFileCommands(PluginsUtilsBase):
                       uid, gid, mode_octal = original_stat.split(':')
                       # Vérifier si mode_octal est valide avant de l'utiliser
                       if re.match(r'^[0-7]{3,4}$', mode_octal):
-                            self.run(['chown', f"{uid}:{gid}", str(file_path)], needs_sudo=True, check=False)
-                            self.run(['chmod', mode_octal, str(file_path)], needs_sudo=True, check=False)
+                            self.run(['chown', f"{uid}:{gid}", str(file_path)], needs_sudo=needs_sudo_ops, check=False, env=env_override)
+                            self.run(['chmod', mode_octal, str(file_path)], needs_sudo=needs_sudo_ops, check=False, env=env_override)
                             self.log_debug(f"Permissions/propriétaire restaurés sur {file_path} vers {original_stat}")
                       else:
                           self.log_warning(f"Mode octal invalide '{mode_octal}' obtenu de stat, utilisation de 644 par défaut.")
-                          self.run(['chown', f"{uid}:{gid}", str(file_path)], needs_sudo=True, check=False)
-                          self.run(['chmod', '644', str(file_path)], needs_sudo=True, check=False)
+                          self.run(['chown', f"{uid}:{gid}", str(file_path)], needs_sudo=needs_sudo_ops, check=False, env=env_override)
+                          self.run(['chmod', '644', str(file_path)], needs_sudo=needs_sudo_ops, check=False, env=env_override)
                  except Exception as e_restore:
                       self.log_warning(f"Impossible de restaurer les permissions/propriétaire originaux ({original_stat}): {e_restore}")
                       # Appliquer des permissions par défaut si la restauration échoue
-                      self.run(['chmod', '644', str(file_path)], needs_sudo=True, check=False)
+                      self.run(['chmod', '644', str(file_path)], needs_sudo=needs_sudo_ops, check=False, env=env_override)
             else:
                  # Définir des permissions par défaut raisonnables (ex: 644) si aucune info originale
                  self.log_debug(f"Aucune information originale sur les permissions/propriétaire trouvée, application de 644 par défaut.")
-                 self.run(['chmod', '644', str(file_path)], needs_sudo=True, check=False)
+                 self.run(['chmod', '644', str(file_path)], needs_sudo=needs_sudo_ops, check=False, env=env_override)
 
             self.log_success(f"Fichier {file_path} écrit/mis à jour avec succès.")
             return True
@@ -196,7 +237,16 @@ class ConfigFileCommands(PluginsUtilsBase):
         file_path = Path(path)
         self.log_debug(f"Lecture du fichier INI: {file_path}")
         # Lire le contenu du fichier (peut nécessiter sudo)
-        success_read, content, stderr_read = self.run(['cat', str(file_path)], check=False, needs_sudo=False, no_output=True, error_as_warning=True)
+        # Préparer l'environnement pour sudo si nécessaire (exécution locale)
+        env_override = None
+        if self.target_ip is None and self._root_manager: # Exécution locale
+            root_pwd = self._root_manager.get_local_root_password()
+            if root_pwd:
+                env_override = os.environ.copy()
+                env_override['SUDO_PASSWORD'] = root_pwd
+                self.log_debug("Utilisation du mot de passe root local pour la lecture INI.")
+
+        success_read, content, stderr_read = self.run(['cat', str(file_path)], check=False, needs_sudo=True, no_output=True, error_as_warning=True, env=env_override) # error_as_warning
         if not success_read:
              if "no such file" in stderr_read.lower():
                   self.log_error(f"Fichier INI introuvable: {file_path}")
@@ -208,9 +258,9 @@ class ConfigFileCommands(PluginsUtilsBase):
         config = configparser.ConfigParser(interpolation=None, strict=False)
         config_dict: Optional[Dict[str, Dict[str, str]]] = None
         processed_content = content # Garder une copie pour le parsing manuel
+        has_content = False # Flag pour savoir si le fichier contient des lignes non vides/commentaires
         try:
             needs_default_section = True
-            has_content = False
             for line in content.splitlines():
                 line_strip = line.strip()
                 if not line_strip or line_strip.startswith('#') or line_strip.startswith(';'): continue
@@ -285,8 +335,16 @@ class ConfigFileCommands(PluginsUtilsBase):
         # Lire le contenu existant (si possible), en gérant l'absence de section
         current_content = ""
         read_success = False
-        if file_path.exists(): # Utiliser exists() ici, la lecture avec cat gérera sudo
-             read_success, content_read, stderr_read = self.run(['cat', str(file_path)], check=False, needs_sudo=True, no_output=True, error_as_warning=True)
+        # Préparer l'environnement pour sudo si nécessaire (exécution locale)
+        env_override_read = None
+        if self.target_ip is None and self._root_manager: # Exécution locale
+            root_pwd = self._root_manager.get_local_root_password()
+            if root_pwd:
+                env_override_read = os.environ.copy()
+                env_override_read['SUDO_PASSWORD'] = root_pwd
+
+        if os.path.exists(str(file_path)): # Utiliser os.path.exists ici, cat gérera sudo
+             read_success, content_read, stderr_read = self.run(['cat', str(file_path)], check=False, needs_sudo=True, no_output=True, error_as_warning=True, env=env_override_read)
              if read_success:
                   current_content = content_read
              elif "no such file" not in stderr_read.lower():
@@ -298,13 +356,13 @@ class ConfigFileCommands(PluginsUtilsBase):
         processed_content = current_content
         if read_success and current_content:
             needs_default_section = True
-            has_content = False
+            has_content_ini = False
             for line in current_content.splitlines():
                 line_strip = line.strip()
                 if not line_strip or line_strip.startswith('#') or line_strip.startswith(';'): continue
-                has_content = True
+                has_content_ini = True
                 if line_strip.startswith('['): needs_default_section = False; break
-            if has_content and needs_default_section:
+            if has_content_ini and needs_default_section:
                 processed_content = "[DEFAULT]\n" + current_content
                 original_needs_default = True
 
@@ -350,7 +408,7 @@ class ConfigFileCommands(PluginsUtilsBase):
             # on retire l'en-tête [DEFAULT] du contenu final.
             if original_needs_default and config.sections() == ['DEFAULT']:
                  lines = new_content.splitlines()
-                 if lines[0].strip() == '[DEFAULT]':
+                 if lines and lines[0].strip() == '[DEFAULT]':
                       new_content = "\n".join(lines[1:])
                       self.log_debug("En-tête [DEFAULT] retiré avant l'écriture car fichier original sans section.")
 
@@ -372,7 +430,15 @@ class ConfigFileCommands(PluginsUtilsBase):
         file_path = Path(path)
         self.log_debug(f"Lecture du fichier JSON: {file_path}")
         # Lire le contenu (peut nécessiter sudo)
-        success_read, content, stderr_read = self.run(['cat', str(file_path)], check=False, needs_sudo=True, no_output=True, error_as_warning=True) # error_as_warning
+        # Préparer l'environnement pour sudo si nécessaire (exécution locale)
+        env_override = None
+        if self.target_ip is None and self._root_manager: # Exécution locale
+            root_pwd = self._root_manager.get_local_root_password()
+            if root_pwd:
+                env_override = os.environ.copy()
+                env_override['SUDO_PASSWORD'] = root_pwd
+
+        success_read, content, stderr_read = self.run(['cat', str(file_path)], check=False, needs_sudo=True, no_output=True, error_as_warning=True, env=env_override) # error_as_warning
         if not success_read:
              if "no such file" in stderr_read.lower():
                   self.log_error(f"Fichier JSON introuvable: {file_path}")
@@ -413,7 +479,15 @@ class ConfigFileCommands(PluginsUtilsBase):
         file_path = Path(path)
         self.log_debug(f"Lecture des lignes du fichier: {file_path}")
         # Lire avec sudo si nécessaire
-        success_read, content, stderr_read = self.run(['cat', str(file_path)], check=False, needs_sudo=True, no_output=True, error_as_warning=True) # error_as_warning
+        # Préparer l'environnement pour sudo si nécessaire (exécution locale)
+        env_override = None
+        if self.target_ip is None and self._root_manager: # Exécution locale
+            root_pwd = self._root_manager.get_local_root_password()
+            if root_pwd:
+                env_override = os.environ.copy()
+                env_override['SUDO_PASSWORD'] = root_pwd
+
+        success_read, content, stderr_read = self.run(['cat', str(file_path)], check=False, needs_sudo=True, no_output=True, error_as_warning=True, env=env_override) # error_as_warning
         if not success_read:
              if "no such file" in stderr_read.lower():
                   self.log_error(f"Fichier introuvable: {file_path}")
@@ -448,7 +522,7 @@ class ConfigFileCommands(PluginsUtilsBase):
         """Remplace la première ou toutes les lignes correspondant à un motif regex."""
         file_path = Path(path)
         self.log_debug(f"Remplacement des lignes correspondant à '{pattern}' dans {file_path}")
-        lines = self.read_file_lines(file_path)
+        lines = self.read_file_lines(path)
         if lines is None: return False
 
         new_lines = []
@@ -486,7 +560,7 @@ class ConfigFileCommands(PluginsUtilsBase):
         """Commente les lignes correspondant à un motif regex."""
         file_path = Path(path)
         self.log_debug(f"Commentage des lignes correspondant à '{pattern}' dans {file_path}")
-        lines = self.read_file_lines(file_path)
+        lines = self.read_file_lines(path)
         if lines is None: return False
 
         new_lines = []
@@ -523,7 +597,7 @@ class ConfigFileCommands(PluginsUtilsBase):
         """Décommente les lignes correspondant à un motif regex."""
         file_path = Path(path)
         self.log_debug(f"Décommentage des lignes correspondant à '{pattern}' dans {file_path}")
-        lines = self.read_file_lines(file_path)
+        lines = self.read_file_lines(path)
         if lines is None: return False
 
         new_lines = []
@@ -571,8 +645,17 @@ class ConfigFileCommands(PluginsUtilsBase):
 
         # Utiliser tee -a pour ajouter (gère sudo)
         cmd_append = ['tee', '-a', str(file_path)]
+
+        # Préparer l'environnement pour sudo si nécessaire (exécution locale)
+        env_override = None
+        if self.target_ip is None and self._root_manager: # Exécution locale
+            root_pwd = self._root_manager.get_local_root_password()
+            if root_pwd:
+                env_override = os.environ.copy()
+                env_override['SUDO_PASSWORD'] = root_pwd
+
         # Passer le contenu via stdin
-        success, stdout, stderr = self.run(cmd_append, input_data=content_to_append, check=False, needs_sudo=True)
+        success, stdout, stderr = self.run(cmd_append, input_data=content_to_append, check=False, needs_sudo=True, env=env_override)
 
         if success:
             self.log_success(f"Ligne ajoutée avec succès à {file_path}.")
@@ -598,8 +681,16 @@ class ConfigFileCommands(PluginsUtilsBase):
         self.log_debug(f"Vérification/Ajout de la ligne dans {file_path}: {line_to_ensure[:50]}...")
 
         # 1. Lire le contenu actuel
+        # Préparer l'environnement pour sudo si nécessaire (exécution locale)
+        env_override = None
+        if self.target_ip is None and self._root_manager: # Exécution locale
+            root_pwd = self._root_manager.get_local_root_password()
+            if root_pwd:
+                env_override = os.environ.copy()
+                env_override['SUDO_PASSWORD'] = root_pwd
+
         current_content = ""
-        read_success, content_read, stderr_read = self.run(['cat', str(file_path)], check=False, needs_sudo=True, no_output=True, error_as_warning=True)
+        read_success, content_read, stderr_read = self.run(['cat', str(file_path)], check=False, needs_sudo=True, no_output=True, error_as_warning=True, env=env_override)
         if read_success:
              current_content = content_read
         elif "no such file" not in stderr_read.lower():
@@ -611,9 +702,12 @@ class ConfigFileCommands(PluginsUtilsBase):
         # 2. Vérifier l'existence
         line_exists = False
         try:
-            check_pattern = pattern_to_check if pattern_to_check else r'^' + re.escape(line_to_ensure.strip()) + r'\s*$'
-            if re.search(check_pattern, current_content, re.MULTILINE):
+            # Utiliser le pattern fourni ou un pattern d'échappement littéral
+            check_pattern_str = pattern_to_check if pattern_to_check else r'^' + re.escape(line_to_ensure.strip()) + r'\s*$'
+            check_pattern = re.compile(check_pattern_str)
+            if check_pattern.search(current_content, re.MULTILINE):
                 line_exists = True
+                self.log_debug(f"Ligne correspondant à '{check_pattern_str}' déjà présente.")
         except re.error as e:
              self.log_error(f"Erreur de regex dans le pattern '{pattern_to_check}': {e}")
              return False
@@ -622,6 +716,7 @@ class ConfigFileCommands(PluginsUtilsBase):
         if line_exists:
             return True
         else:
+            self.log_info(f"Ligne non trouvée, ajout de '{line_to_ensure.strip()}' à {file_path}")
             # Ajouter la ligne avec un saut de ligne avant si nécessaire
             new_content = current_content
             if current_content and not current_content.endswith('\n'):

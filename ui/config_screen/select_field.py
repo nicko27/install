@@ -5,6 +5,7 @@ import os
 import importlib.util
 import sys
 import traceback
+from typing import Any
 
 from .config_field import ConfigField
 from ..utils.logging import get_logger
@@ -150,158 +151,367 @@ class SelectField(ConfigField):
 
     def _get_options(self) -> list:
         """Get options for the select field, either static or dynamic"""
-        if 'options' in self.field_config:
-            logger.debug(f"Using static options from config: {self.field_config['options']}")
-            return self._normalize_options(self.field_config['options'])
+        try:
+            if 'options' in self.field_config:
+                logger.debug(f"Using static options from config: {self.field_config['options']}")
+                return self._normalize_options(self.field_config['options'])
 
-        if 'dynamic_options' in self.field_config:
-            dynamic_config = self.field_config['dynamic_options']
+            if 'dynamic_options' in self.field_config:
+                dynamic_config = self.field_config['dynamic_options']
+                
+                # Vérifier que le script existe
+                if 'script' not in dynamic_config:
+                    logger.error(f"No script specified in dynamic_options for {self.field_id}")
+                    return [("Error: No script specified", "error_no_script")]
 
-            # Déterminer le chemin du script (plugin ou scripts)
-            if dynamic_config.get('global', False):
-                # Script dans le dossier scripts
-                script_path = os.path.join(os.path.dirname(__file__), '..', '..', 'scripts', dynamic_config['script'])
-            else:
-                # Script dans le dossier du plugin
-                script_path = os.path.join(os.path.dirname(__file__), '..', '..', 'plugins', self.source_id, dynamic_config['script'])
+                # Déterminer le chemin du script (plugin ou scripts)
+                script_path = self._resolve_script_path(dynamic_config)
+                if not os.path.exists(script_path):
+                    logger.error(f"Script not found: {script_path}")
+                    return [("Error: Script not found", "error_script_not_found")]
 
-            logger.info(f"Loading script from: {script_path}")
-            logger.debug(f"Script exists: {os.path.exists(script_path)}")
+                logger.debug(f"Loading script from: {script_path}")
 
-            try:
-                # Import the script module
-                import sys
-                import importlib.util
-                sys.path.append(os.path.dirname(script_path))
-                logger.debug(f"Python path: {sys.path}")
+                try:
+                    # Importer le module
+                    module = self._import_script_module(script_path)
+                    if not module:
+                        logger.error("Failed to import script module")
+                        return [("Error loading module", "error_loading_module")]
 
-                spec = importlib.util.spec_from_file_location("dynamic_script", script_path)
-                if not spec:
-                    logger.error("Failed to create module spec")
-                    # Return a safe option
-                    return [("Error loading module", "error_loading")]
+                    # Obtenir le nom de la fonction
+                    func_name = self._get_function_name(module, dynamic_config)
+                    if not func_name or not hasattr(module, func_name):
+                        logger.error(f"Function not found: {func_name}")
+                        return [("Error: Function not found", "error_function_not_found")]
 
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module)
+                    logger.debug(f"Using function: {func_name}")
 
-                # Get the function name
-                func_name = dynamic_config.get('function')
-                if not func_name:
-                    # Try to find a function that starts with get_
-                    func_name = next((name for name in dir(module)
-                                if name.startswith('get_') and callable(getattr(module, name))), None)
+                    # Préparer les arguments
+                    function_args = self._prepare_function_args(dynamic_config)
+                    
+                    # Appeler la fonction
+                    logger.debug(f"Calling {func_name} with kwargs: {function_args}")
+                    result = getattr(module, func_name)(**function_args)
+                    logger.debug(f"Got result from {func_name}: {type(result)}")
 
-                if not func_name or not hasattr(module, func_name):
-                    logger.error(f"Function {func_name} not found in script")
-                    # Return a safe option
-                    return [("Function not found", "function_not_found")]
+                    # Traiter le résultat
+                    options = self._process_dynamic_result(result, dynamic_config)
+                    
+                    # Vérifier que nous avons au moins une option
+                    if not options:
+                        logger.warning(f"No options generated from {func_name}")
+                        return [("No data available", "no_data")]
 
-                logger.debug(f"Using function: {func_name}")
+                    logger.debug(f"Final options count: {len(options)}")
+                    return options
 
-                # Préparer les arguments à passer à la fonction
-                function_args = {}
-                if 'args' in dynamic_config:
-                    for arg in dynamic_config['args']:
-                        # Si l'argument fait référence à un autre champ
-                        if 'field' in arg:
-                            field_id = arg['field']
-                            if field_id in self.fields_by_id:
-                                field_value = self.fields_by_id[field_id].get_value()
-                                param_name = arg.get('param_name', field_id)
-                                function_args[param_name] = field_value
-                        # Si l'argument est une valeur directe
-                        elif 'value' in arg:
-                            param_name = arg.get('param_name')
-                            if param_name:
-                                function_args[param_name] = arg['value']
+                except Exception as e:
+                    logger.error(f"Error loading dynamic options: {e}")
+                    logger.error(traceback.format_exc())
+                    return [(f"Error: {str(e)}", "script_exception")]
 
-                # Call the function with arguments
-                logger.debug(f"Calling {func_name} with kwargs: {function_args}")
-                result = getattr(module, func_name)(**function_args)
-                logger.info(f"Got result from {func_name}: {result}")
+            # Par défaut si aucune option n'est définie
+            logger.warning(f"No options defined for {self.field_id}")
+            return [("No options defined", "no_options_defined")]
+        except Exception as e:
+            logger.error(f"Unexpected error in _get_options: {e}")
+            logger.error(traceback.format_exc())
+            return [("Error: Internal error", "internal_error")]
+        
+    def _resolve_script_path(self, dynamic_config: dict) -> str:
+        """
+        Résout le chemin du script en fonction de la configuration.
+        
+        Args:
+            dynamic_config: Configuration dynamique du champ
+            
+        Returns:
+            str: Chemin résolu du script
+        """
+        script_name = dynamic_config.get('script', '')
+        
+        # Vérifier si c'est un script global ou spécifique au plugin
+        if dynamic_config.get('global', False):
+            # Script dans le dossier scripts
+            script_path = os.path.join(os.path.dirname(__file__), '..', '..', 'scripts', script_name)
+        else:
+            # Déterminer le nom du plugin à partir de source_id
+            plugin_name = self.source_id.split('_')[0] if '_' in self.source_id else self.source_id
+            # Script dans le dossier du plugin
+            script_path = os.path.join(os.path.dirname(__file__), '..', '..', 'plugins', plugin_name, script_name)
+        
+        logger.debug(f"Resolved script path: {script_path}")
+        return script_path
 
-                # Initialiser data comme None
-                data = None
+    def _import_script_module(self, script_path: str) -> Any:
+        """
+        Importe un module script à partir d'un chemin.
+        
+        Args:
+            script_path: Chemin vers le script
+            
+        Returns:
+            Any: Module importé ou None en cas d'erreur
+        """
+        try:
+            # Ajouter le dossier contenant le script au path
+            script_dir = os.path.dirname(script_path)
+            if script_dir not in sys.path:
+                sys.path.append(script_dir)
+            
+            # Importer le module
+            spec = importlib.util.spec_from_file_location("dynamic_script", script_path)
+            if not spec:
+                logger.error("Failed to create module spec")
+                return None
+            
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            return module
+        except Exception as e:
+            logger.error(f"Error importing script module: {e}")
+            logger.error(traceback.format_exc())
+            return None
 
-                # Process the result based on its format
-                if isinstance(result, tuple) and len(result) == 2:
-                    success, value = result
+    def _get_function_name(self, module: Any, dynamic_config: dict) -> str:
+        """
+        Récupère le nom de la fonction à appeler dans le module.
+        
+        Args:
+            module: Module importé
+            dynamic_config: Configuration dynamique
+            
+        Returns:
+            str: Nom de la fonction ou None si non trouvée
+        """
+        # Utiliser la fonction spécifiée ou chercher une fonction commençant par 'get_'
+        func_name = dynamic_config.get('function')
+        if not func_name:
+            logger.debug("No function name specified, looking for function starting with 'get_'")
+            func_name = next((name for name in dir(module)
+                        if name.startswith('get_') and callable(getattr(module, name))), None)
+        
+        logger.debug(f"Function name: {func_name}")
+        return func_name
 
-                    if not success:
-                        logger.error(f"Dynamic options script failed: {value}")
-                        # Return a safe option
-                        return [("Script error", "script_error")]
+    def _prepare_function_args(self, dynamic_config: dict) -> dict:
+        """
+        Prépare les arguments à passer à la fonction.
+        
+        Args:
+            dynamic_config: Configuration dynamique
+            
+        Returns:
+            dict: Arguments à passer à la fonction
+        """
+        function_args = {}
+        
+        # Si pas d'arguments spécifiés, retourner un dictionnaire vide
+        if 'args' not in dynamic_config:
+            return function_args
+        
+        for arg in dynamic_config.get('args', []):
+            # Si l'argument fait référence à un autre champ
+            if 'field' in arg:
+                field_id = arg['field']
+                # Récupérer le champ
+                field = self._get_field_by_id(field_id)
+                if field:
+                    # Récupérer la valeur du champ
+                    field_value = self._get_field_value(field)
+                    # Utiliser le nom de paramètre spécifié ou le nom du champ
+                    param_name = arg.get('param_name', field_id.split('.')[-1])
+                    function_args[param_name] = field_value
+                    logger.debug(f"Added arg from field {field_id}: {param_name}={field_value}")
+                else:
+                    logger.warning(f"Field not found for arg: {field_id}")
+            
+            # Si l'argument est une valeur directe
+            elif 'value' in arg:
+                param_name = arg.get('param_name')
+                if param_name:
+                    function_args[param_name] = arg['value']
+                    logger.debug(f"Added direct arg: {param_name}={arg['value']}")
+        
+        return function_args
 
-                    # Si c'est un succès, la valeur devient notre data
-                    data = value
-
-                    # If data is a dict with a value_key, use that
-                    if isinstance(data, dict) and dynamic_config.get('dict') in data:
-                        data = data[dynamic_config.get('dict')]
-                        logger.info(f"Extracted data using dict_key '{dynamic_config.get('dict')}': {data}")
-                        dict_options = []
-                        for elt  in data:
-                            # Si la valeur est un dictionnaire avec description/value, l'utiliser
-                            if isinstance(elt, dict) and dynamic_config.get('description') in elt and dynamic_config.get('value') in elt:
-                                dict_options.append((elt.get(dynamic_config.get('description')),elt.get(dynamic_config.get('value'))))
-                            elif isinstance(elt, dict) and "description" in elt and "value" in elt:
-                                dict_options.append((elt.get('description'),elt.get('value')))
+    def _process_dynamic_result(self, result: Any, dynamic_config: dict) -> list:
+        """
+        Traite le résultat de la fonction dynamique.
+        
+        Args:
+            result: Résultat de la fonction
+            dynamic_config: Configuration dynamique
+            
+        Returns:
+            list: Options normalisées
+        """
+        # Initialiser data comme None
+        data = None
+        
+        # Traiter le résultat en fonction de son format
+        if isinstance(result, tuple) and len(result) == 2:
+            # Format (success, data)
+            success, value = result
+            
+            if not success:
+                logger.error(f"Dynamic options script returned failure: {value}")
+                return [("Error: Script failed", "script_failed")]
+            
+            # Si c'est un succès, la valeur devient notre data
+            data = value
+        else:
+            # Si le résultat n'est pas un tuple, le considérer directement comme data
+            data = result
+        
+        logger.debug(f"Processing result of type: {type(data)}")
+        
+        # Traiter les différents formats de données
+        if isinstance(data, list):
+            # Si data est une liste, la normaliser directement
+            return self._normalize_options(data)
+        
+        elif isinstance(data, dict):
+            # Si data est un dictionnaire
+            dict_key = dynamic_config.get('dict')
+            if dict_key and dict_key in data:
+                # Extraire les données via la clé spécifiée
+                extracted_data = data[dict_key]
+                logger.debug(f"Extracted data using key '{dict_key}'")
+                
+                if isinstance(extracted_data, list):
+                    desc_key = dynamic_config.get('description', 'description')
+                    value_key = dynamic_config.get('value', 'value')
+                    
+                    # Transformer la liste d'objets en options
+                    options = []
+                    for item in extracted_data:
+                        if isinstance(item, dict):
+                            if desc_key in item and value_key in item:
+                                options.append((item[desc_key], item[value_key]))
                             else:
-                                # Sinon créer un tuple (clé, valeur)
-                                dict_options.append((str(key), str(value)))
-                        options = self._normalize_options(dict_options)
-                else:
-                    # Si le résultat n'est pas un tuple, on le considère directement comme data
-                    data = result
-
-                logger.info(f"Processed data type: {type(data)} for options")
-
-                # Traiter les différents formats de données possibles
-                options = []
-
-                # Si data est une liste, on la normalise directement
-                if isinstance(data, list):
-                    logger.info(f"Processing list data: {data}")
-                    options = self._normalize_options(data)
-
-                # Si data est un dictionnaire sans value_key spécifié, on convertit en liste d'options
-                elif isinstance(data, dict) and not dynamic_config.get('value'):
-                    if 'dict' in dynamic_config.keys():
-                        data = data[dynamic_config.get('dict')]
-                    logger.info(f"Processing dictionary data without value_key: {data}")
-                    # Transformer le dictionnaire en liste pour normalisation
-                    dict_options = []
-                    for key, value in data.items():
-                        # Si la valeur est un dictionnaire avec description/value, l'utiliser
-                        if isinstance(value, dict) and 'description' in value and 'value' in value:
-                            dict_options.append(value)
+                                # Fallback: utiliser la première clé comme description et valeur
+                                first_key = next(iter(item), None)
+                                if first_key:
+                                    options.append((str(first_key), str(item[first_key])))
                         else:
-                            # Sinon créer un tuple (clé, valeur)
-                            dict_options.append((str(key), str(value)))
-                    options = self._normalize_options(dict_options)
-
-                # Si ce n'est ni une liste ni un dictionnaire exploitable, on log une erreur
+                            # Fallback: utiliser l'élément comme description et valeur
+                            options.append((str(item), str(item)))
+                    
+                    return self._normalize_options(options)
                 else:
-                    logger.error(f"Cannot process data of type: {type(data)}, data: {data}")
-                    # Return a safe option
-                    return [("Invalid data format", "invalid_format")]
+                    logger.warning(f"Extracted data is not a list: {type(extracted_data)}")
+            
+            # Si pas de dict_key ou pas trouvé, traiter le dictionnaire entier
+            dict_options = []
+            for key, value in data.items():
+                if isinstance(value, dict) and 'description' in value and 'value' in value:
+                    dict_options.append((value['description'], value['value']))
+                else:
+                    dict_options.append((str(key), str(value)))
+            
+            return self._normalize_options(dict_options)
+        
+        # Pour tout autre type de données
+        logger.warning(f"Unhandled data type: {type(data)}")
+        return [("Invalid data format", "invalid_format")]
 
-                # Ensure we have at least one option
-                if not options:
-                    logger.warning("No options generated from data")
-                    return [("No data available", "no_data")]
-
-                logger.info(f"Final normalized options: {options}")
-                return options
-
+    def update_dynamic_options(self) -> None:
+        """
+        Met à jour les options dynamiques du champ.
+        """
+        try:
+            logger.debug(f"Updating dynamic options for {self.field_id}")
+            
+            # Vérifier si le champ a des options dynamiques
+            if 'dynamic_options' not in self.field_config:
+                logger.debug(f"No dynamic options for {self.field_id}")
+                return
+            
+            # Récupérer les nouvelles options
+            new_options = self._get_options()
+            if not new_options:
+                logger.warning(f"No options returned for {self.field_id}")
+                return
+            
+            # Mettre à jour les options
+            old_value = self.value
+            old_options = getattr(self, 'options', [])
+            
+            # Récupérer les valeurs disponibles
+            new_values = [opt[1] for opt in new_options]
+            
+            # Mettre à jour le widget Select
+            try:
+                # Mettre à jour les options du widget
+                self.options = new_options
+                
+                # Vérifier si l'ancienne valeur est toujours valide
+                if old_value in new_values:
+                    logger.debug(f"Keeping current value: {old_value}")
+                    self.value = old_value
+                else:
+                    # Essayer une correspondance partielle
+                    match_found = False
+                    for option_value in new_values:
+                        if option_value.startswith(str(old_value)) or str(old_value).startswith(option_value.split('.')[0]):
+                            logger.debug(f"Found partial match for {old_value}: {option_value}")
+                            self.value = option_value
+                            match_found = True
+                            break
+                    
+                    # Si aucune correspondance, utiliser la première valeur
+                    if not match_found and new_values:
+                        logger.debug(f"No match found for {old_value}, using first available: {new_values[0]}")
+                        self.value = new_values[0]
+                
+                # Mettre à jour le widget
+                if hasattr(self, 'select'):
+                    self.select.options = self.options
+                    self.select.value = self.value
+                    logger.debug(f"Select widget updated with {len(self.options)} options")
+                
+                # Notifier les dépendances du changement
+                self._notify_dependencies()
+                
             except Exception as e:
-                logger.error(f"Error loading dynamic options: {e}")
-                logger.exception("Traceback:"+traceback.format_exc())
-                # Return a safe option
-                return [(f"Error: {str(e)}", "script_exception")]
+                logger.error(f"Error updating Select widget: {e}")
+                logger.error(traceback.format_exc())
+            
+        except Exception as e:
+            logger.error(f"Error in update_dynamic_options: {e}")
+            logger.error(traceback.format_exc())
 
-        # Fallback if no options defined
-        return [("No options defined", "no_options_defined")]
+    def on_select_changed(self, event: Select.Changed) -> None:
+        """
+        Gère l'événement de changement de sélection.
+        
+        Args:
+            event: Événement de changement
+        """
+        try:
+            # Eviter les mises à jour en boucle
+            if self._updating_widget:
+                return
+            
+            logger.debug(f"Select changed for {self.field_id}: {event.value}")
+            
+            # Mettre à jour la valeur
+            self._value = event.value
+            
+            # Obtenir le parent pour mettre à jour les dépendances
+            parent = self._get_parent_container()
+            if parent and hasattr(parent, 'update_dependent_fields'):
+                logger.debug(f"Notifying parent container of change in {self.field_id}")
+                parent.update_dependent_fields(self)
+            else:
+                logger.warning(f"Pas de conteneur parent avec update_dependent_fields trouvé pour {self.field_id}")
+                # Tenter de notifier les dépendances directement
+                self._notify_dependencies()
+        except Exception as e:
+            logger.error(f"Error handling select change: {e}")
+            logger.error(traceback.format_exc())
 
     # Ajouter un flag spécifique pour surveiller les mises à jour du widget Select
     _updating_widget = False
@@ -378,23 +588,6 @@ class SelectField(ConfigField):
         """Définit la valeur via la méthode set_value standard"""
         # Utiliser la méthode standard pour éviter la duplication de code
         self.set_value(new_value)
-
-    def on_select_changed(self, event: Select.Changed) -> None:
-        """Gestionnaire d'événement quand le select change de valeur"""
-        if event.select.id == f"select_{self.field_id}":
-            # Si nous sommes déjà en train de mettre à jour le widget, ignorer l'événement
-            if self._updating_widget:
-                logger.debug(f"⚠️ Ignorer l'événement on_select_changed pendant la mise à jour du widget pour {self.field_id}")
-                return
-                
-            # Vérifier si la valeur est différente de celle stockée
-            if hasattr(self, '_value') and self._value == event.value:
-                logger.debug(f"✓ On_select_changed: valeur inchangée pour {self.field_id}: {event.value}")
-                return
-                
-            # Valeur différente, mettre à jour via set_value
-            logger.debug(f"On_select_changed: valeur modifiée pour {self.field_id}: {event.value}")
-            self.set_value(event.value, update_input=False)  # Ne pas mettre à jour le widget qui vient de changer
 
     def get_value(self) -> str:
         """Get the current value"""

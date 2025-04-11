@@ -4,13 +4,16 @@ Gère le chargement, la validation et l'application des templates.
 """
 
 import os
+import traceback
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple
 from ruamel.yaml import YAML
-from logging import getLogger
+import copy
+from ..utils.logging import get_logger
 
-logger = getLogger('template_manager')
+logger = get_logger('template_manager')
 yaml = YAML()
+yaml.preserve_quotes = True
 
 class TemplateManager:
     """
@@ -58,6 +61,7 @@ class TemplateManager:
             logger.debug("Aucun schéma de validation trouvé, utilisation des validations par défaut")
         except Exception as e:
             logger.error(f"Erreur lors du chargement du schéma: {e}")
+            logger.error(traceback.format_exc())
         return {}
 
     def get_plugin_templates(self, plugin_name: str) -> Dict[str, dict]:
@@ -70,41 +74,47 @@ class TemplateManager:
         Returns:
             Dict[str, dict]: Dictionnaire des templates disponibles {nom: données}
         """
-        # Vérifier d'abord le cache
-        if plugin_name in self.templates_cache:
-            logger.debug(f"Templates pour {plugin_name} trouvés dans le cache")
-            return self.templates_cache[plugin_name]
-            
-        templates_dir = self.templates_dir / plugin_name
-        templates = {}
+        try:
+            # Vérifier d'abord le cache
+            if plugin_name in self.templates_cache:
+                logger.debug(f"Templates pour {plugin_name} trouvés dans le cache")
+                return self.templates_cache[plugin_name]
+                
+            templates_dir = self.templates_dir / plugin_name
+            templates = {}
 
-        if not templates_dir.exists():
-            logger.debug(f"Aucun dossier de templates trouvé pour {plugin_name}")
+            if not templates_dir.exists():
+                logger.debug(f"Aucun dossier de templates trouvé pour {plugin_name}")
+                self.templates_cache[plugin_name] = templates
+                return templates
+
+            logger.debug(f"Chargement des templates pour {plugin_name} depuis {templates_dir}")
+            for template_file in templates_dir.glob('*.yml'):
+                if template_file.name == 'template_schema.yml':
+                    continue
+
+                try:
+                    with open(template_file, 'r', encoding='utf-8') as f:
+                        template_data = yaml.load(f)
+                        validation_result, error_message = self._validate_template(template_data)
+                        
+                        if validation_result:
+                            templates[template_file.stem] = template_data
+                            logger.debug(f"Template chargé: {template_file.name}")
+                        else:
+                            logger.warning(f"Template invalide ignoré ({template_file.name}): {error_message}")
+                except Exception as e:
+                    logger.error(f"Erreur lors du chargement du template {template_file}: {e}")
+                    logger.error(traceback.format_exc())
+
+            # Mettre en cache
             self.templates_cache[plugin_name] = templates
+            logger.debug(f"{len(templates)} templates chargés pour {plugin_name}")
             return templates
-
-        logger.debug(f"Chargement des templates pour {plugin_name} depuis {templates_dir}")
-        for template_file in templates_dir.glob('*.yml'):
-            if template_file.name == 'template_schema.yml':
-                continue
-
-            try:
-                with open(template_file, 'r', encoding='utf-8') as f:
-                    template_data = yaml.load(f)
-                    validation_result, error_message = self._validate_template(template_data)
-                    
-                    if validation_result:
-                        templates[template_file.stem] = template_data
-                        logger.debug(f"Template chargé: {template_file.name}")
-                    else:
-                        logger.warning(f"Template invalide ignoré ({template_file.name}): {error_message}")
-            except Exception as e:
-                logger.error(f"Erreur lors du chargement du template {template_file}: {e}")
-
-        # Mettre en cache
-        self.templates_cache[plugin_name] = templates
-        logger.debug(f"{len(templates)} templates chargés pour {plugin_name}")
-        return templates
+        except Exception as e:
+            logger.error(f"Erreur lors du chargement des templates pour {plugin_name}: {e}")
+            logger.error(traceback.format_exc())
+            return {}
 
     def _validate_template(self, template: dict) -> Tuple[bool, str]:
         """
@@ -116,45 +126,50 @@ class TemplateManager:
         Returns:
             Tuple[bool, str]: (validité, message d'erreur)
         """
-        if not isinstance(template, dict):
-            return False, "Le template doit être un dictionnaire"
+        try:
+            if not isinstance(template, dict):
+                return False, "Le template doit être un dictionnaire"
 
-        # Vérifier les champs requis
-        required_fields = self.schema.get('required_fields', ['name', 'description', 'variables'])
-        for field in required_fields:
-            if field not in template:
-                return False, f"Champ requis manquant: {field}"
+            # Vérifier les champs requis
+            required_fields = self.schema.get('required_fields', ['name', 'description', 'variables'])
+            for field in required_fields:
+                if field not in template:
+                    return False, f"Champ requis manquant: {field}"
 
-        # Vérifier le format des variables
-        if not isinstance(template.get('variables', {}), dict):
-            return False, "Le champ 'variables' doit être un dictionnaire"
+            # Vérifier le format des variables
+            if not isinstance(template.get('variables', {}), dict):
+                return False, "Le champ 'variables' doit être un dictionnaire"
 
-        # Vérifier les types de champs
-        field_types = self.schema.get('field_types', {})
-        for field, expected_type in field_types.items():
-            if field in template:
-                value = template[field]
-                if expected_type == 'string' and not isinstance(value, str):
-                    return False, f"Le champ {field} doit être une chaîne"
-                elif expected_type == 'dict' and not isinstance(value, dict):
-                    return False, f"Le champ {field} doit être un dictionnaire"
-                elif expected_type == 'list' and not isinstance(value, list):
-                    return False, f"Le champ {field} doit être une liste"
-                elif expected_type == 'bool' and not isinstance(value, bool):
-                    return False, f"Le champ {field} doit être un booléen"
+            # Vérifier les types de champs
+            field_types = self.schema.get('field_types', {})
+            for field, expected_type in field_types.items():
+                if field in template:
+                    value = template[field]
+                    if expected_type == 'string' and not isinstance(value, str):
+                        return False, f"Le champ {field} doit être une chaîne"
+                    elif expected_type == 'dict' and not isinstance(value, dict):
+                        return False, f"Le champ {field} doit être un dictionnaire"
+                    elif expected_type == 'list' and not isinstance(value, list):
+                        return False, f"Le champ {field} doit être une liste"
+                    elif expected_type == 'bool' and not isinstance(value, bool):
+                        return False, f"Le champ {field} doit être un booléen"
 
-        # Vérification des formats spéciaux si définis dans le schéma
-        format_rules = self.schema.get('format_rules', {})
-        for field, rule in format_rules.items():
-            if field in template:
-                value = template[field]
-                if rule == 'version' and not self._is_valid_version(value):
-                    return False, f"Format de version invalide pour {field}"
-                elif rule == 'path' and not self._is_valid_path(value):
-                    return False, f"Format de chemin invalide pour {field}"
+            # Vérification des formats spéciaux si définis dans le schéma
+            format_rules = self.schema.get('format_rules', {})
+            for field, rule in format_rules.items():
+                if field in template:
+                    value = template[field]
+                    if rule == 'version' and not self._is_valid_version(value):
+                        return False, f"Format de version invalide pour {field}"
+                    elif rule == 'path' and not self._is_valid_path(value):
+                        return False, f"Format de chemin invalide pour {field}"
 
-        logger.debug(f"Template validé: {template.get('name', 'Sans nom')}")
-        return True, ""
+            logger.debug(f"Template validé: {template.get('name', 'Sans nom')}")
+            return True, ""
+        except Exception as e:
+            logger.error(f"Erreur lors de la validation du template: {e}")
+            logger.error(traceback.format_exc())
+            return False, f"Erreur inattendue: {str(e)}"
 
     def _is_valid_version(self, version: str) -> bool:
         """
@@ -169,7 +184,7 @@ class TemplateManager:
         try:
             parts = version.split('.')
             return len(parts) <= 3 and all(part.isdigit() for part in parts)
-        except:
+        except Exception:
             return False
 
     def _is_valid_path(self, path: str) -> bool:
@@ -183,8 +198,8 @@ class TemplateManager:
             bool: True si le chemin est valide
         """
         try:
-            return len(path) > 0 and '/' not in path and '..' not in path
-        except:
+            return len(path) > 0 and '..' not in path and not path.startswith('/') and not path.startswith('\\')
+        except Exception:
             return False
 
     def get_default_template(self, plugin_name: str) -> Optional[dict]:
@@ -197,13 +212,18 @@ class TemplateManager:
         Returns:
             Optional[dict]: Template par défaut ou None si non trouvé
         """
-        templates = self.get_plugin_templates(plugin_name)
-        default = templates.get('default')
-        if default:
-            logger.debug(f"Template par défaut trouvé pour {plugin_name}")
-        else:
-            logger.debug(f"Aucun template par défaut trouvé pour {plugin_name}")
-        return default
+        try:
+            templates = self.get_plugin_templates(plugin_name)
+            default = templates.get('default')
+            if default:
+                logger.debug(f"Template par défaut trouvé pour {plugin_name}")
+            else:
+                logger.debug(f"Aucun template par défaut trouvé pour {plugin_name}")
+            return default
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération du template par défaut pour {plugin_name}: {e}")
+            logger.error(traceback.format_exc())
+            return None
 
     def get_template_names(self, plugin_name: str) -> List[str]:
         """
@@ -215,19 +235,24 @@ class TemplateManager:
         Returns:
             List[str]: Liste des noms de templates
         """
-        templates = self.get_plugin_templates(plugin_name)
-        names = list(templates.keys())
-        
-        # Trier les noms pour que "default" apparaisse en premier
-        if 'default' in names:
-            names.remove('default')
-            names.sort()
-            names.insert(0, 'default')
-        else:
-            names.sort()
+        try:
+            templates = self.get_plugin_templates(plugin_name)
+            names = list(templates.keys())
             
-        logger.debug(f"Templates disponibles pour {plugin_name}: {names}")
-        return names
+            # Trier les noms pour que "default" apparaisse en premier
+            if 'default' in names:
+                names.remove('default')
+                names.sort()
+                names.insert(0, 'default')
+            else:
+                names.sort()
+                
+            logger.debug(f"Templates disponibles pour {plugin_name}: {names}")
+            return names
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des noms de templates pour {plugin_name}: {e}")
+            logger.error(traceback.format_exc())
+            return []
 
     def get_template_description(self, plugin_name: str, template_name: str) -> str:
         """
@@ -240,23 +265,24 @@ class TemplateManager:
         Returns:
             str: Description du template ou chaîne formatée incluant le nom
         """
-        templates = self.get_plugin_templates(plugin_name)
-        template = templates.get(template_name, {})
-        
-        # Si le template existe, utiliser sa description ou construire une par défaut
-        if template:
-            if 'description' in template and template['description']:
-                description = template['description']
-            else:
-                # Si pas de description, utiliser le nom formaté
-                name = template.get('name', template_name)
-                description = f"Template: {name}"
-        else:
-            # Si le template n'existe pas, utiliser une description générique
-            description = f"Template: {template_name}"
+        try:
+            templates = self.get_plugin_templates(plugin_name)
+            template = templates.get(template_name, {})
             
-        logger.debug(f"Description pour {plugin_name}/{template_name}: {description}")
-        return description
+            # Si le template existe, utiliser sa description ou construire une par défaut
+            if template:
+                if 'description' in template and template['description']:
+                    description = template['description']
+                else:
+                    description = f"Configuration {template_name} pour {plugin_name}"
+            else:
+                description = f"Template inconnu: {template_name}"
+                
+            return description
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération de la description du template {template_name} pour {plugin_name}: {e}")
+            logger.error(traceback.format_exc())
+            return f"Template: {template_name}"
 
     def get_template_variables(self, plugin_name: str, template_name: str) -> Optional[dict]:
         """
@@ -269,84 +295,135 @@ class TemplateManager:
         Returns:
             Optional[dict]: Variables du template ou None si non trouvé
         """
-        templates = self.get_plugin_templates(plugin_name)
-        template = templates.get(template_name)
-        if template and 'variables' in template:
-            variables = template['variables']
-            logger.debug(f"Variables récupérées pour {plugin_name}/{template_name}: {list(variables.keys())}")
-            return variables
-        logger.debug(f"Aucune variable trouvée pour {plugin_name}/{template_name}")
-        return None
-        
+        try:
+            templates = self.get_plugin_templates(plugin_name)
+            template = templates.get(template_name, {})
+            
+            if template and 'variables' in template:
+                # Faire une copie profonde pour éviter les modifications accidentelles
+                variables = copy.deepcopy(template['variables'])
+                logger.debug(f"Variables récupérées pour {plugin_name}/{template_name}: {len(variables)} variables")
+                return variables
+                
+            logger.warning(f"Aucune variable trouvée pour {plugin_name}/{template_name}")
+            return None
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des variables du template {template_name} pour {plugin_name}: {e}")
+            logger.error(traceback.format_exc())
+            return None
+
     def apply_template(self, plugin_name: str, template_name: str, current_config: dict) -> dict:
         """
         Applique un template à une configuration existante.
         
         Args:
             plugin_name: Nom du plugin
-            template_name: Nom du template à appliquer
-            current_config: Configuration actuelle du plugin
+            template_name: Nom du template
+            current_config: Configuration actuelle
             
         Returns:
-            dict: Configuration mise à jour avec les variables du template
+            dict: Configuration avec variables du template appliquées
         """
-        templates = self.get_plugin_templates(plugin_name)
-        template = templates.get(template_name)
-        
-        if not template:
-            logger.warning(f"Template {template_name} non trouvé pour {plugin_name}")
-            return current_config.copy()
+        try:
+            # Vérifier les paramètres
+            if not plugin_name or not template_name:
+                logger.warning("Nom de plugin ou de template vide")
+                return current_config
+                
+            # Récupérer le template
+            templates = self.get_plugin_templates(plugin_name)
+            template = templates.get(template_name)
             
-        # Créer une copie de la configuration actuelle
-        updated_config = current_config.copy()
-        
-        # Extraire les variables du template
-        variables = template.get('variables', {})
-        
-        # Mettre à jour la configuration avec les variables du template
-        for var_name, var_value in variables.items():
-            updated_config[var_name] = var_value
+            if not template or 'variables' not in template:
+                logger.warning(f"Template {template_name} non trouvé ou sans variables pour {plugin_name}")
+                return current_config
+                
+            # Faire une copie profonde de la configuration
+            config = copy.deepcopy(current_config)
             
-        logger.debug(f"Template {template_name} appliqué à {plugin_name} ({len(variables)} variables)")
-        return updated_config
-        
+            # S'assurer que la section 'config' existe
+            if 'config' not in config:
+                config['config'] = {}
+                
+            # Appliquer les variables du template
+            variables = template['variables']
+            config['config'].update(variables)
+            
+            # Ajouter une référence au template utilisé
+            config['template'] = template_name
+            
+            logger.debug(f"Template {template_name} appliqué à {plugin_name} avec {len(variables)} variables")
+            return config
+        except Exception as e:
+            logger.error(f"Erreur lors de l'application du template {template_name} pour {plugin_name}: {e}")
+            logger.error(traceback.format_exc())
+            return current_config
+
     def save_template(self, plugin_name: str, template_name: str, template_data: dict) -> bool:
         """
-        Sauvegarde un template dans un fichier YAML.
+        Sauvegarde un template.
         
         Args:
             plugin_name: Nom du plugin
             template_name: Nom du template
-            template_data: Données du template à sauvegarder
+            template_data: Données du template
             
         Returns:
             bool: True si la sauvegarde a réussi
         """
         try:
-            # Valider le template avant de le sauvegarder
-            valid, error = self._validate_template(template_data)
-            if not valid:
-                logger.error(f"Impossible de sauvegarder un template invalide: {error}")
+            # Validation des entrées
+            if not plugin_name or not template_name:
+                logger.error("Nom de plugin ou de template vide")
                 return False
                 
-            # Créer le répertoire du plugin s'il n'existe pas
+            if not isinstance(template_data, dict):
+                logger.error("Les données du template doivent être un dictionnaire")
+                return False
+                
+            # Valider le template
+            valid, message = self._validate_template(template_data)
+            if not valid:
+                logger.error(f"Validation du template a échoué: {message}")
+                return False
+                
+            # Créer le dossier du plugin si nécessaire
             plugin_dir = self.templates_dir / plugin_name
             plugin_dir.mkdir(parents=True, exist_ok=True)
             
-            # Définir le chemin du fichier template
-            template_path = plugin_dir / f"{template_name}.yml"
+            # Chemin du fichier template
+            template_file = plugin_dir / f"{template_name}.yml"
             
             # Sauvegarder le template
-            with open(template_path, 'w', encoding='utf-8') as f:
+            with open(template_file, 'w', encoding='utf-8') as f:
                 yaml.dump(template_data, f)
                 
-            # Mettre à jour le cache si nécessaire
+            # Mettre à jour le cache
             if plugin_name in self.templates_cache:
                 self.templates_cache[plugin_name][template_name] = template_data
                 
-            logger.info(f"Template {template_name} sauvegardé pour {plugin_name}")
+            logger.debug(f"Template {template_name} sauvegardé pour {plugin_name} dans {template_file}")
             return True
-            
         except Exception as e:
-            logger.error(f"Erreur lors de la sauvegarde du template {template_name}: {e}")
+            logger.error(f"Erreur lors de la sauvegarde du template {template_name} pour {plugin_name}: {e}")
+            logger.error(traceback.format_exc())
             return False
+            
+    def clear_cache(self, plugin_name: Optional[str] = None) -> None:
+        """
+        Efface le cache des templates.
+        
+        Args:
+            plugin_name: Nom du plugin dont le cache doit être effacé, ou None pour tout effacer
+        """
+        try:
+            if plugin_name:
+                if plugin_name in self.templates_cache:
+                    del self.templates_cache[plugin_name]
+                    logger.debug(f"Cache effacé pour {plugin_name}")
+            else:
+                self.templates_cache = {}
+                logger.debug("Cache complet des templates effacé")
+        except Exception as e:
+            logger.error(f"Erreur lors de l'effacement du cache: {e}")
+            logger.error(traceback.format_exc())

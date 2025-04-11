@@ -108,7 +108,7 @@ class PluginConfig(Screen):
                 self.config_manager.load_plugin_config(plugin_name, settings_path)
                 self.fields_by_plugin[plugin_name] = {}
 
-                # MODIFICATION : Récupérer les valeurs par défaut
+                # Récupérer les valeurs par défaut
                 default_values = self.config_manager.get_default_values(plugin_name)
                 
                 # Préparer l'ID d'instance unique
@@ -119,10 +119,9 @@ class PluginConfig(Screen):
                     self.current_config[plugin_instance_id] = {
                         'plugin_name': plugin_name,
                         'instance_id': instance_id,
-                        'config': default_values
+                        'config': default_values.copy() if default_values else {}
                     }
                     logger.debug(f"Configuration par défaut chargée pour {plugin_instance_id}: {default_values}")
-
 
             # 3. Charger la séquence si spécifiée
             if self.sequence_file:
@@ -138,12 +137,19 @@ class PluginConfig(Screen):
                 if len(plugin_data) >= 3:
                     plugin_name, instance_id, config = plugin_data
                     if config:
-                        self.sequence_manager.add_plugin_config(plugin_name, instance_id, config)
+                        # Faire une copie profonde de la configuration pour éviter les références partagées
+                        import copy
+                        config_copy = copy.deepcopy(config)
+                        self.sequence_manager.add_plugin_config(plugin_name, instance_id, config_copy)
                         logger.debug(f"Config existante ajoutée pour {plugin_name}_{instance_id}")
 
             # 5. Appliquer les configurations finales
-            self.current_config = self.sequence_manager.apply_configs_to_plugins(self.plugin_instances)
-            logger.debug(f"Configurations finales après fusion: {self.current_config}")
+            final_config = self.sequence_manager.apply_configs_to_plugins(self.plugin_instances)
+            if final_config:  # Vérifier que la fusion a réussi
+                self.current_config = final_config
+                logger.debug(f"Configurations finales après fusion: {len(self.current_config)} plugins configurés")
+            else:
+                logger.warning("La fusion des configurations a échoué, conservation des configurations par défaut")
 
         except Exception as e:
             logger.error(f"Erreur lors du chargement des configurations: {e}")
@@ -353,12 +359,12 @@ class PluginConfig(Screen):
             logger.error(f"Erreur lors du remplissage du conteneur SSH: {e}")
             logger.error(traceback.format_exc())
 
-    def _create_plugin_config(self, plugin: str, instance_id: int) -> Optional[Container]:
+    def _create_plugin_config(self, plugin_name: str, instance_id: int) -> Optional[Container]:
         """
         Crée un conteneur de configuration pour un plugin.
 
         Args:
-            plugin: Nom du plugin
+            plugin_name: Nom du plugin
             instance_id: ID d'instance
 
         Returns:
@@ -366,70 +372,156 @@ class PluginConfig(Screen):
         """
         try:
             # Vérifier si c'est une séquence
-            if plugin.startswith('__sequence__'):
-                logger.warning(f"Ignorer la configuration de la séquence: {plugin}")
+            if plugin_name.startswith('__sequence__'):
+                logger.warning(f"Ignorer la configuration de la séquence: {plugin_name}")
                 return None
 
             # Récupérer la configuration du plugin
-            plugin_config = self.config_manager.plugin_configs.get(plugin, {})
+            plugin_config = self.config_manager.plugin_configs.get(plugin_name, {})
             if not plugin_config:
-                logger.error(f"Configuration non trouvée pour {plugin}")
-                container = Container(id=f"plugin_{plugin}_{instance_id}", classes="config-container")
+                logger.error(f"Configuration non trouvée pour {plugin_name}")
+                container = Container(id=f"plugin_{plugin_name}_{instance_id}", classes="config-container")
+                container.border_title = f"Plugin {plugin_name} (non configuré)"
                 return container
 
             # Préparer les champs
-            self.fields_by_plugin[plugin] = {}
+            self.fields_by_plugin[plugin_name] = {}
             fields_by_id = self.fields_by_id
 
             # Récupérer les métadonnées du plugin
-            name = plugin_config.get('name', plugin)
+            name = plugin_config.get('name', plugin_name)
             icon = plugin_config.get('icon', '📦')
             description = plugin_config.get('description', '')
 
             # Préparer les configurations de champs avec valeurs prédéfinies
             config_fields = []
-            for field_id, field_config in plugin_config.get('config_fields', {}).items():
-                # Créer une copie de la configuration
-                field_config_copy = field_config.copy()
-                field_config_copy['id'] = field_id
+            plugin_instance_id = f"{plugin_name}_{instance_id}"
+            current_values = {}
 
-                # Appliquer les valeurs prédéfinies de la séquence/configuration
-                plugin_instance_id = f"{plugin}_{instance_id}"
-                
-                # Générer un ID unique pour ce champ dans cette instance spécifique
-                unique_field_id = f"{field_id}_{instance_id}"
-                field_config_copy['unique_id'] = unique_field_id
-                
-                # Appliquer les valeurs prédéfinies si disponibles
-                if plugin_instance_id in self.current_config:
-                    predefined_config = self.current_config[plugin_instance_id]
-                    variable_name = field_config_copy.get('variable', field_id)
+            # Récupérer les valeurs actuelles si disponibles
+            if plugin_instance_id in self.current_config and 'config' in self.current_config[plugin_instance_id]:
+                current_values = self.current_config[plugin_instance_id]['config']
+                logger.debug(f"Valeurs actuelles trouvées pour {plugin_instance_id}: {len(current_values)} paramètres")
 
-                    # Chercher dans 'config' (nouveau format)
-                    if 'config' in predefined_config and variable_name in predefined_config['config']:
-                        value = predefined_config['config'][variable_name]
-                        logger.debug(f"Valeur prédéfinie trouvée pour {plugin_instance_id}.{field_id} = {value}")
-                        field_config_copy['default'] = value
+            # Récupérer les champs de configuration du plugin
+            if 'config_fields' in plugin_config:
+                # Copier les configurations de champs
+                for field_id, field_config in plugin_config['config_fields'].items():
+                    if not isinstance(field_config, dict):
+                        logger.warning(f"Configuration invalide pour le champ {field_id}")
+                        continue
 
-                config_fields.append(field_config_copy)
+                    # Copier la configuration du champ
+                    field_config_copy = field_config.copy()
 
-            # Créer le conteneur
-            return PluginConfigContainer(
-                plugin=plugin,
-                name=name,
-                icon=icon,
-                description=description,
-                fields_by_plugin=self.fields_by_plugin,
+                    # Récupérer le nom de variable pour accéder à la valeur actuelle
+                    variable_name = field_config.get('variable', field_id)
+
+                    # Appliquer la valeur actuelle si disponible
+                    if variable_name in current_values:
+                        field_config_copy['value'] = current_values[variable_name]
+                        logger.debug(f"Valeur actuelle appliquée pour {plugin_name}.{variable_name}: {current_values[variable_name]}")
+
+                    # Ajouter à la liste
+                    config_fields.append({
+                        'id': field_id,
+                        **field_config_copy
+                    })
+
+            # Créer le conteneur de configuration du plugin
+            container = PluginConfigContainer(
+                source_id=plugin_instance_id,
+                instance_id=instance_id,
                 fields_by_id=fields_by_id,
-                config_fields=config_fields,
-                id=f"plugin_{plugin}_{instance_id}",
-                classes="config-container"
+                config_fields=config_fields
             )
 
+            # Configurer les attributs du conteneur
+            container.title = name
+            container.icon = icon
+            container.description = description
+            
+            # Créer les champs de configuration
+            from .text_field import TextField
+            from .directory_field import DirectoryField
+            from .ip_field import IPField
+            from .select_field import SelectField
+            from .checkbox_field import CheckboxField
+            from .password_field import PasswordField
+            
+            # Créer chaque champ et l'enregistrer dans le container
+            plugin_fields = {}
+            
+            for field_config in config_fields:
+                field_id = field_config.get('id')
+                field_type = field_config.get('type', 'text')
+                
+                # Sélectionner la classe de champ appropriée
+                field_class = {
+                    'text': TextField,
+                    'ip': IPField,
+                    'password': PasswordField,
+                    'checkbox': CheckboxField,
+                    'select': SelectField,
+                    'directory': DirectoryField
+                }.get(field_type, TextField)
+                
+                try:
+                    # Créer le champ avec la configuration
+                    field = field_class(
+                        source_id=plugin_instance_id,
+                        field_id=field_id,
+                        field_config=field_config,
+                        fields_by_id=fields_by_id,
+                        is_global=False
+                    )
+                    
+                    # Enregistrer le champ dans le dictionnaire local
+                    unique_id = f"{plugin_instance_id}.{field_id}"
+                    plugin_fields[unique_id] = field
+                    
+                    # Enregistrer le champ dans le dictionnaire global
+                    self.fields_by_id[unique_id] = field
+                    
+                    # Enregistrer le champ dans le conteneur
+                    container.fields_by_id[unique_id] = field
+                    
+                    logger.debug(f"Champ créé: {unique_id}")
+                    
+                except Exception as e:
+                    logger.error(f"Erreur lors de la création du champ {field_id}: {e}")
+                    logger.error(traceback.format_exc())
+            
+            # Analyser les dépendances avec les nouveaux champs
+            if config_fields:
+                container._analyze_field_dependencies(config_fields)
+                container._analyze_plugin_dependencies(config_fields)
+
+            # Enregistrer le conteneur pour un accès ultérieur
+            self.containers_by_id[plugin_instance_id] = container
+            
+            # Aussi enregistrer les champs dans le dictionnaire par plugin
+            self.fields_by_plugin[plugin_name] = plugin_fields
+
+            # Vérifier l'exécution à distance
+            remote_execution = False
+            if plugin_instance_id in self.current_config:
+                remote_execution = self.current_config[plugin_instance_id].get('remote_execution', False)
+            self.plugins_remote_enabled[plugin_instance_id] = remote_execution
+
+            # Ajouter la case à cocher d'exécution à distance si le plugin le supporte
+            plugin_settings = self.config_manager.plugin_configs.get(plugin_name, {})
+            if plugin_settings.get('remote_execution', False):
+                self._add_remote_execution_checkbox(container, plugin_name, instance_id)
+
+            return container
         except Exception as e:
-            logger.error(f"Erreur dans _create_plugin_config pour {plugin}: {e}")
+            logger.error(f"Erreur lors de la création du conteneur de config pour {plugin_name}: {e}")
             logger.error(traceback.format_exc())
-            return None
+            # Créer un conteneur d'erreur
+            container = Container(id=f"plugin_{plugin_name}_{instance_id}", classes="config-container")
+            container.border_title = f"Erreur: {plugin_name}"
+            return container
 
     def _add_remote_execution_checkbox(self, container: Container, plugin_name: str, instance_id: int) -> None:
         """
@@ -444,7 +536,8 @@ class PluginConfig(Screen):
             logger.debug(f"Ajout de la case à cocher d'exécution distante pour {plugin_name}_{instance_id}")
 
             # Créer un ID unique
-            remote_field_id = f"remote_exec_{plugin_name}_{instance_id}"
+            plugin_instance_id = f"{plugin_name}_{instance_id}"
+            remote_field_id = f"remote_exec"
 
             # Configuration de la case à cocher
             remote_config = {
@@ -458,18 +551,39 @@ class PluginConfig(Screen):
             }
 
             # Créer le champ
-            remote_field = CheckboxField(plugin_name, remote_field_id, remote_config, self.fields_by_id, is_global=False)
+            remote_field = CheckboxField(
+                source_id=plugin_instance_id,
+                field_id=remote_field_id,
+                field_config=remote_config,
+                fields_by_id=self.fields_by_id,
+                is_global=False
+            )
             remote_field.add_class("remote-execution-checkbox")
 
             # Enregistrer pour future référence
+            unique_id = f"{plugin_instance_id}.{remote_field_id}"
+            self.fields_by_id[unique_id] = remote_field
+            
+            # Enregistrer dans le conteneur du plugin aussi
+            container.fields_by_id[unique_id] = remote_field
+            
+            # Enregistrer le champ dans le dictionnaire par plugin
+            if plugin_name not in self.fields_by_plugin:
+                self.fields_by_plugin[plugin_name] = {}
             self.fields_by_plugin[plugin_name][remote_field_id] = remote_field
-            self.plugins_remote_enabled[f"{plugin_name}_{instance_id}"] = remote_field
+            
+            # Garder une référence pour activer/désactiver l'exécution distante
+            self.plugins_remote_enabled[plugin_instance_id] = remote_field
 
             # Associer au conteneur
-            container.remote_field = remote_field
+            if hasattr(container, 'remote_field'):
+                container.remote_field = remote_field
+            
+            logger.debug(f"Case à cocher d'exécution distante ajoutée pour {plugin_instance_id}")
 
         except Exception as e:
             logger.error(f"Erreur lors de l'ajout de la case à cocher d'exécution distante: {e}")
+            logger.error(traceback.format_exc())
 
     def _get_remote_execution_plugins(self) -> List[str]:
         """
@@ -586,20 +700,28 @@ class PluginConfig(Screen):
 
     def update_all_dependencies(self) -> None:
         """
-        Met à jour toutes les dépendances entre champs.
+        Met à jour toutes les dépendances entre les champs.
+        Utile lors de l'initialisation ou après des modifications majeures.
         """
         try:
-            logger.debug("Mise à jour de toutes les dépendances")
-
-            # Parcourir tous les conteneurs
-            for container_id, container in self.containers_by_id.items():
-                if hasattr(container, 'update_dependent_fields'):
-                    # Mettre à jour les dépendances pour chaque champ du conteneur
-                    for field_id, field in container.fields_by_id.items():
-                        container.update_dependent_fields(field)
-                        logger.debug(f"Dépendances mises à jour pour {field_id}")
+            logger.debug("=== Mise à jour de toutes les dépendances ===")
+            
+            # 1. Mettre à jour les dépendances des plugins
+            for plugin_instance_id, container in self.containers_by_id.items():
+                if hasattr(container, 'update_all_dependencies'):
+                    logger.debug(f"Mise à jour des dépendances pour {plugin_instance_id}")
+                    container.update_all_dependencies()
+            
+            # 2. Mettre à jour les dépendances SSH
+            if self.ssh_container:
+                logger.debug("Mise à jour des dépendances SSH")
+                if hasattr(self.ssh_container, 'update_all_dependencies'):
+                    self.ssh_container.update_all_dependencies()
+                
+            logger.debug("=== Mise à jour des dépendances terminée ===")
         except Exception as e:
             logger.error(f"Erreur lors de la mise à jour des dépendances: {e}")
+            logger.error(traceback.format_exc())
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         """
@@ -678,68 +800,72 @@ class PluginConfig(Screen):
 
     def collect_configurations(self) -> None:
         """
-        Collecte les configurations de tous les champs.
+        Collecte toutes les configurations actuelles des champs.
+        Met à jour self.current_config avec les valeurs actuelles.
         """
         try:
-            logger.debug("Collecte des configurations")
-            self.current_config = {}
-
-            # Récupérer la configuration SSH
-            ssh_config = self._collect_ssh_config()
-
-            # Collecter pour chaque plugin
-            for plugin_instance in self.plugin_instances:
+            logger.debug("=== Collecte des configurations actuelles ===")
+            
+            # 1. Collecter la configuration SSH si applicable
+            if self.ssh_container and self.ssh_container.is_enabled:
+                ssh_config = self._collect_ssh_config()
+                self.current_config['ssh'] = ssh_config
+                logger.debug(f"Config SSH collectée: {len(ssh_config)} paramètres")
+            
+            # 2. Collecter les configurations des plugins
+            for plugin_data in self.plugin_instances:
+                # Extraire les données du plugin
+                if len(plugin_data) >= 3:
+                    plugin_name, instance_id, _ = plugin_data
+                else:
+                    plugin_name, instance_id = plugin_data[:2]
+                    
                 # Ignorer les séquences
-                if plugin_instance[0].startswith('__sequence__'):
+                if plugin_name.startswith('__sequence__'):
                     continue
-
-                # Extraire les informations du plugin
-                if len(plugin_instance) >= 3:
-                    plugin_name, instance_id, _ = plugin_instance
-                else:
-                    plugin_name, instance_id = plugin_instance[:2]
-
-                logger.debug(f"Collecte pour {plugin_name}_{instance_id}")
-
-                # Vérifier si le plugin supporte l'exécution distante
-                plugin_settings = self.config_manager.plugin_configs.get(plugin_name, {})
-                supports_remote = plugin_settings.get('remote_execution', False)
-
-                # Vérifier si l'exécution distante est activée pour ce plugin
-                plugin_key = f"{plugin_name}_{instance_id}"
-                remote_enabled = False
-                if plugin_key in self.plugins_remote_enabled:
-                    remote_enabled = self.plugins_remote_enabled[plugin_key].get_value()
-
-                # Récupérer les valeurs des champs
-                config_values = self._collect_plugin_field_values(plugin_name, instance_id)
-
-                # Ajouter les variables SSH si nécessaire
-                if supports_remote and remote_enabled:
-                    config_values.update(ssh_config)
-                    config_values["remote_execution"] = True
-                else:
-                    config_values["remote_execution"] = False
-
-                # Créer la configuration complète
-                self.current_config[plugin_key] = {
+                    
+                # Générer l'ID unique standardisé
+                plugin_instance_id = f"{plugin_name}_{instance_id}"
+                
+                # Vérifier que le conteneur existe
+                if plugin_instance_id not in self.containers_by_id:
+                    logger.warning(f"Conteneur non trouvé pour {plugin_instance_id}, impossible de collecter la config")
+                    continue
+                    
+                # Récupérer le conteneur
+                container = self.containers_by_id[plugin_instance_id]
+                
+                # Collecter les valeurs des champs
+                plugin_config = self._collect_plugin_field_values(plugin_name, instance_id)
+                
+                # Vérifier si le plugin est activé pour l'exécution à distance
+                remote_execution = self.plugins_remote_enabled.get(plugin_instance_id, False)
+                
+                # Structure de base de la configuration du plugin
+                if plugin_instance_id not in self.current_config:
+                    self.current_config[plugin_instance_id] = {}
+                    
+                # Mettre à jour la configuration
+                self.current_config[plugin_instance_id].update({
                     'plugin_name': plugin_name,
                     'instance_id': instance_id,
-                    'name': plugin_settings.get('name', plugin_name),
-                    'show_name': plugin_settings.get('show_name', plugin_settings.get('plugin_name', plugin_name)),
-                    'icon': plugin_settings.get('icon', '📦'),
-                    'config': config_values,
-                    'remote_execution': supports_remote and remote_enabled
-                }
-
-                logger.debug(f"Configuration collectée pour {plugin_key}")
-
-            logger.debug(f"Configuration finale: {len(self.current_config)} plugins")
+                    'config': plugin_config,
+                    'remote_execution': remote_execution
+                })
+                
+                # Ajouter les attributs du conteneur
+                if hasattr(container, 'title'):
+                    self.current_config[plugin_instance_id]['name'] = container.title
+                    
+                if hasattr(container, 'icon'):
+                    self.current_config[plugin_instance_id]['icon'] = container.icon
+                    
+                logger.debug(f"Configuration collectée pour {plugin_instance_id}: {len(plugin_config)} paramètres")
+                
+            logger.debug(f"=== Collecte terminée: {len(self.current_config)} configurations ===")
         except Exception as e:
             logger.error(f"Erreur lors de la collecte des configurations: {e}")
             logger.error(traceback.format_exc())
-            # Assurer qu'on a au moins une config vide
-            self.current_config = {}
 
     def _collect_ssh_config(self) -> Dict[str, Any]:
         """
