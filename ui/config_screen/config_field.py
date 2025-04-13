@@ -46,14 +46,69 @@ class ConfigField(VerticalGroup):
         # Attributs pour la gestion des dépendances
         self.enabled_if = field_config.get('enabled_if')
         self._original_default = field_config.get('default') if self.enabled_if else None
+        
+        # Transformer les noms de champs dans enabled_if pour tenir compte du contexte
+        if self.enabled_if and 'field' in self.enabled_if:
+            # Stocker l'ID simple pour référence
+            self.enabled_if['simple_field'] = self.enabled_if['field']
+            
+            # Si le champ a un ID unique, essayer de construire un ID dépendant avec le même préfixe
+            if '_' in self.unique_id and '_' not in self.enabled_if['field']:
+                # Extraire le préfixe du plugin à partir de l'ID unique
+                parts = self.unique_id.split('_')
+                if len(parts) > 1:  # Au moins un underscore
+                    plugin_prefix = '_'.join(parts[:-1])  # Tout sauf le dernier élément
+                    # Construire un ID dépendant avec le même préfixe
+                    potential_dep_field = f"{plugin_prefix}_{self.enabled_if['field']}"
+                    logger.debug(f"Transformation de enabled_if: {self.enabled_if['field']} -> {potential_dep_field}")
+                    self.enabled_if['transformed_field'] = potential_dep_field
             
         # Nom de la variable pour l'export (peut être différent de l'ID)
         self.variable_name = field_config.get('variable', field_id)
         
         # Gestion des dépendances pour les valeurs dynamiques
         self.depends_on = field_config.get('depends_on')
+        
+        # Transformer les noms de champs dans depends_on pour tenir compte du contexte
         if self.depends_on:
+            # Stocker l'ID simple pour référence
+            self.depends_on_simple = self.depends_on
+            
+            # Si le champ a un ID unique, essayer de construire un ID dépendant avec le même préfixe
+            if '_' in self.unique_id and '_' not in self.depends_on:
+                # Extraire le préfixe du plugin à partir de l'ID unique
+                parts = self.unique_id.split('_')
+                if len(parts) > 1:  # Au moins un underscore
+                    plugin_prefix = '_'.join(parts[:-1])  # Tout sauf le dernier élément
+                    # Construire un ID dépendant avec le même préfixe
+                    potential_dep_field = f"{plugin_prefix}_{self.depends_on}"
+                    logger.debug(f"Transformation de depends_on: {self.depends_on} -> {potential_dep_field}")
+                    self.depends_on_transformed = potential_dep_field
+            
             logger.debug(f"Champ {self.field_id} dépend de {self.depends_on}")
+            
+        # Transformer les noms de champs dans dynamic_options pour tenir compte du contexte
+        if 'dynamic_options' in field_config and 'args' in field_config['dynamic_options']:
+            self.dynamic_options = field_config['dynamic_options']
+            self.dynamic_options_args_transformed = []
+            
+            for arg in self.dynamic_options['args']:
+                if 'field' in arg:
+                    # Stocker l'ID simple pour référence
+                    arg['simple_field'] = arg['field']
+                    
+                    # Si le champ a un ID unique, essayer de construire un ID dépendant avec le même préfixe
+                    if '_' in self.unique_id and '_' not in arg['field']:
+                        # Extraire le préfixe du plugin à partir de l'ID unique
+                        parts = self.unique_id.split('_')
+                        if len(parts) > 1:  # Au moins un underscore
+                            plugin_prefix = '_'.join(parts[:-1])  # Tout sauf le dernier élément
+                            # Construire un ID dépendant avec le même préfixe
+                            potential_dep_field = f"{plugin_prefix}_{arg['field']}"
+                            logger.debug(f"Transformation de dynamic_options.arg.field: {arg['field']} -> {potential_dep_field}")
+                            arg['transformed_field'] = potential_dep_field
+                    
+                    self.dynamic_options_args_transformed.append(arg)
 
         # Initialisation de la valeur par défaut
         self.value = self._get_default_value()
@@ -314,9 +369,41 @@ class ConfigField(VerticalGroup):
         if not self.enabled_if:
             return
             
-        dep_field = self.fields_by_id.get(self.enabled_if['field'])
+        # Chercher le champ dépendant par son ID
+        dep_field_id = self.enabled_if['field']
+        dep_field = None
+        
+        # Chercher tous les champs dont le field_id se termine par le nom du champ dépendant
+        matching_fields = []
+        suffix = f"{dep_field_id}_"
+        
+        for field_id, field in self.fields_by_id.items():
+            field_id_attr = getattr(field, 'field_id', '')
+            
+            # Cas 1: Correspondance exacte
+            if field_id_attr == dep_field_id:
+                matching_fields.append(field)
+                logger.debug(f"Correspondance exacte trouvée pour {dep_field_id}: {field_id}")
+            
+            # Cas 2: Le field_id se termine par _{dep_field_id}
+            elif field_id_attr.startswith(suffix):
+                matching_fields.append(field)
+                logger.debug(f"Correspondance par suffixe trouvée pour {dep_field_id}: {field_id}")
+        
+        # S'il y a plusieurs correspondances, essayer de filtrer par le même plugin
+        if len(matching_fields) > 1:
+            same_plugin_fields = [f for f in matching_fields if getattr(f, 'source_id', '') == self.source_id]
+            if same_plugin_fields:
+                matching_fields = same_plugin_fields
+                logger.debug(f"Filtré {len(same_plugin_fields)} champs du même plugin {self.source_id}")
+        
+        # Prendre le premier champ correspondant s'il y en a
+        if matching_fields:
+            dep_field = matching_fields[0]
+            logger.debug(f"Champ dépendant sélectionné: {dep_field.field_id} (sur {len(matching_fields)} correspondances)")
+                    
         logger.debug(f"Vérification état initial pour {self.field_id}: enabled_if={self.enabled_if}, "
-                    f"champ dépendant={dep_field and dep_field.field_id}")
+                   f"champ dépendant trouvé: {dep_field is not None}")
 
         # Vérifier si le champ dépendant existe
         if dep_field:

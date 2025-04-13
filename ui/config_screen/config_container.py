@@ -105,11 +105,11 @@ class ConfigContainer(VerticalGroup):
                     yield Label(f"Rien à configurer pour ce plugin", classes="no-config-label")
                 return
 
+        # Préparer l'analyse des dépendances
+        self._analyze_field_dependencies(self.config_fields)
+
         # Créer les champs de configuration
         with VerticalGroup(classes="config-fields"):
-            # Préparer l'analyse des dépendances
-            self._analyze_field_dependencies(self.config_fields)
-            
             # Création des champs
             for field_config in self.config_fields:
                 field = self._create_field(field_config)
@@ -125,9 +125,20 @@ class ConfigContainer(VerticalGroup):
         """
         self._field_dependencies = {}
         
-        # Parcourir tous les champs
+        # Créer un dictionnaire des champs par ID simple pour faciliter la recherche
+        fields_by_simple_id = {}
         for field_config in config_fields:
-            field_id = field_config.get('id')
+            simple_id = field_config.get('id')
+            unique_id = field_config.get('unique_id', simple_id)
+            if simple_id and unique_id:
+                if simple_id not in fields_by_simple_id:
+                    fields_by_simple_id[simple_id] = []
+                fields_by_simple_id[simple_id].append(unique_id)
+                logger.debug(f"Champ enregistré: {simple_id} -> {unique_id}")
+        
+        # Parcourir tous les champs pour analyser les dépendances
+        for field_config in config_fields:
+            field_id = field_config.get('unique_id', field_config.get('id'))
             if not field_id:
                 continue
             
@@ -136,25 +147,67 @@ class ConfigContainer(VerticalGroup):
             
             # 1. Dépendance enabled_if (ce champ dépend d'un autre pour son activation)
             if 'enabled_if' in field_config and 'field' in field_config['enabled_if']:
-                dependencies.append(field_config['enabled_if']['field'])
+                dep_simple_id = field_config['enabled_if']['field']
+                
+                # Chercher les champs correspondants dans config_fields
+                if dep_simple_id in fields_by_simple_id:
+                    for dep_unique_id in fields_by_simple_id[dep_simple_id]:
+                        dependencies.append(dep_unique_id)
+                        logger.debug(f"Dépendance enabled_if identifiée: {field_id} dépend de {dep_unique_id} (via {dep_simple_id})")
+                else:
+                    # Si aucun champ correspondant n'est trouvé, utiliser l'ID simple
+                    dependencies.append(dep_simple_id)
+                    logger.debug(f"Dépendance enabled_if simple: {field_id} dépend de {dep_simple_id}")
             
             # 2. Dépendance depends_on (ce champ dépend d'un autre pour sa valeur)
             if 'depends_on' in field_config:
-                dependencies.append(field_config['depends_on'])
+                dep_simple_id = field_config['depends_on']
+                
+                # Chercher les champs correspondants dans config_fields
+                if dep_simple_id in fields_by_simple_id:
+                    for dep_unique_id in fields_by_simple_id[dep_simple_id]:
+                        dependencies.append(dep_unique_id)
+                        logger.debug(f"Dépendance depends_on identifiée: {field_id} dépend de {dep_unique_id} (via {dep_simple_id})")
+                else:
+                    # Si aucun champ correspondant n'est trouvé, utiliser l'ID simple
+                    dependencies.append(dep_simple_id)
+                    logger.debug(f"Dépendance depends_on simple: {field_id} dépend de {dep_simple_id}")
             
             # 3. Dépendance dynamic_options (ce champ dépend d'autres pour ses options)
             if 'dynamic_options' in field_config and 'args' in field_config['dynamic_options']:
                 for arg in field_config['dynamic_options']['args']:
                     if 'field' in arg:
-                        dependencies.append(arg['field'])
+                        dep_simple_id = arg['field']
+                        
+                        # Chercher les champs correspondants dans config_fields
+                        if dep_simple_id in fields_by_simple_id:
+                            for dep_unique_id in fields_by_simple_id[dep_simple_id]:
+                                dependencies.append(dep_unique_id)
+                                logger.debug(f"Dépendance dynamic_options identifiée: {field_id} dépend de {dep_unique_id} (via {dep_simple_id})")
+                        else:
+                            # Si aucun champ correspondant n'est trouvé, utiliser l'ID simple
+                            dependencies.append(dep_simple_id)
+                            logger.debug(f"Dépendance dynamic_options simple: {field_id} dépend de {dep_simple_id}")
             
             # Ajouter les dépendances au dictionnaire
             for dep_field in dependencies:
                 if dep_field:
+                    # Ajouter la dépendance directe (telle que spécifiée dans la configuration)
                     if dep_field not in self._field_dependencies:
                         self._field_dependencies[dep_field] = set()
                     self._field_dependencies[dep_field].add(field_id)
-                    logger.debug(f"Dépendance identifiée: {field_id} dépend de {dep_field}")
+                    logger.debug(f"Dépendance directe identifiée: {field_id} dépend de {dep_field}")
+                    
+                    # Ajouter également les dépendances avec préfixe pour les champs existants
+                    # qui commencent par le nom du champ dépendant suivi d'un underscore
+                    prefix = f"{dep_field}_"
+                    for existing_field_id in self.fields_by_id.keys():
+                        field_id_attr = getattr(self.fields_by_id[existing_field_id], 'field_id', '')
+                        if field_id_attr.startswith(prefix):
+                            if existing_field_id not in self._field_dependencies:
+                                self._field_dependencies[existing_field_id] = set()
+                            self._field_dependencies[existing_field_id].add(field_id)
+                            logger.debug(f"Dépendance par préfixe identifiée: {field_id} dépend de {existing_field_id} (via {dep_field})")
         
         logger.debug(f"Analyse des dépendances terminée: {self._field_dependencies}")
 
@@ -186,7 +239,7 @@ class ConfigContainer(VerticalGroup):
             # Créer le champ avec accès aux autres champs
             field = field_class(
                 self.source_id, 
-                field_id, 
+                unique_id, 
                 field_config, 
                 self.fields_by_id, 
                 is_global=self.is_global
@@ -221,9 +274,12 @@ class ConfigContainer(VerticalGroup):
         logger.debug(f"Checkbox changée: {checkbox_id} -> {event.value}")
 
         # Trouver le champ correspondant
-        for field_id, field in self.fields_by_id.items():
+        for field_unique_id, field in self.fields_by_id.items():
+            # Vérifier si c'est une case à cocher et si l'ID correspond
+            # Note: le checkbox_id est construit avec field_id, pas unique_id
             if isinstance(field, CheckboxField) and checkbox_id == f"checkbox_{field.source_id}_{field.field_id}":
-                logger.debug(f"Case à cocher trouvée: {field.field_id}")
+                unique_id = getattr(field, 'unique_id', field.field_id)
+                logger.debug(f"Case à cocher trouvée: {field.field_id} (unique_id: {unique_id})")
                 
                 # Mettre à jour la valeur du champ
                 field.value = event.value
@@ -252,7 +308,7 @@ class ConfigContainer(VerticalGroup):
             self._fields_to_remove = set()
             
             # Trouver les champs dépendants directs
-            source_id = getattr(source_field, 'field_id', None)
+            source_id = getattr(source_field, 'unique_id', getattr(source_field, 'field_id', None))
             if not source_id or source_id not in self._field_dependencies:
                 logger.debug(f"Aucune dépendance trouvée pour {source_id}")
                 return
@@ -311,8 +367,43 @@ class ConfigContainer(VerticalGroup):
         if not hasattr(dependent_field, 'enabled_if') or not dependent_field.enabled_if:
             return
             
-        # Vérifier si la dépendance concerne le champ source
-        if dependent_field.enabled_if.get('field') != source_field.field_id:
+        # Récupérer les identifiants des champs
+        source_field_id = getattr(source_field, 'field_id', '')
+        source_unique_id = getattr(source_field, 'unique_id', source_field_id)
+        
+        # Vérifier toutes les formes possibles de l'ID dépendant
+        dep_field_id = dependent_field.enabled_if.get('field')  # ID original
+        dep_simple_id = dependent_field.enabled_if.get('simple_field', dep_field_id)  # ID simple (sans préfixe)
+        dep_transformed_id = dependent_field.enabled_if.get('transformed_field', dep_field_id)  # ID transformé avec préfixe
+        
+        logger.debug(f"Vérification de correspondance: source={source_field_id} (unique={source_unique_id}) vs "
+                   f"dep={dep_field_id}, simple={dep_simple_id}, transformed={dep_transformed_id}")
+        
+        # Vérifier si le champ source correspond au champ dépendant
+        is_match = False
+        
+        # Cas 1: Correspondance avec l'ID original
+        if source_field_id == dep_field_id or source_unique_id == dep_field_id:
+            is_match = True
+            logger.debug(f"Correspondance avec ID original: {source_field_id} == {dep_field_id}")
+        
+        # Cas 2: Correspondance avec l'ID transformé
+        elif source_field_id == dep_transformed_id or source_unique_id == dep_transformed_id:
+            is_match = True
+            logger.debug(f"Correspondance avec ID transformé: {source_field_id} == {dep_transformed_id}")
+        
+        # Cas 3: Le champ source contient l'ID simple comme suffixe
+        elif source_field_id.endswith(f"_{dep_simple_id}"):
+            is_match = True
+            logger.debug(f"Correspondance par suffixe: {source_field_id} se termine par _{dep_simple_id}")
+        
+        # Cas 4: Le champ source commence par l'ID simple comme préfixe
+        elif source_field_id.startswith(f"{dep_simple_id}_"):
+            is_match = True
+            logger.debug(f"Correspondance par préfixe: {source_field_id} commence par {dep_simple_id}_")
+            
+        if not is_match:
+            logger.debug(f"La dépendance {dep_field_id} ne correspond pas au champ source {source_field_id}")
             return
             
         source_value = self._get_field_value(source_field)
@@ -331,7 +422,8 @@ class ConfigContainer(VerticalGroup):
             dependent_field.add_class('disabled')
             
             # Si le champ doit aussi être retiré, l'ajouter à la liste
-            self._fields_to_remove.add(dependent_field.field_id)
+            if dependent_field.enabled_if.get('remove_if_disabled', False):
+                self._fields_to_remove.add(dependent_field.field_id)
         else:
             logger.debug(f"Activation du champ {dependent_field.field_id}")
             dependent_field.disabled = False
@@ -380,10 +472,54 @@ class ConfigContainer(VerticalGroup):
             dependent_field: Champ dépendant à mettre à jour
             source_field: Champ source dont la valeur a changé
         """
-        # Vérifier si le champ a besoin de mettre à jour ses options dynamiques
+        # Vérifier si le champ a des options dynamiques
+        if not hasattr(dependent_field, 'dynamic_options') or not dependent_field.dynamic_options:
+            return
+            
+        # Récupérer les identifiants des champs
+        source_field_id = getattr(source_field, 'field_id', '')
+        source_unique_id = getattr(source_field, 'unique_id', source_field_id)
+        
+        # Vérifier toutes les formes possibles de l'ID dépendant
+        dynamic_field_id = dependent_field.dynamic_options.get('field')  # ID original
+        dynamic_simple_id = dependent_field.dynamic_options.get('simple_field', dynamic_field_id)  # ID simple (sans préfixe)
+        dynamic_transformed_id = dependent_field.dynamic_options.get('transformed_field', dynamic_field_id)  # ID transformé avec préfixe
+        
+        logger.debug(f"Vérification de correspondance pour options dynamiques: source={source_field_id} (unique={source_unique_id}) vs "
+                   f"dynamic={dynamic_field_id}, simple={dynamic_simple_id}, transformed={dynamic_transformed_id}")
+        
+        # Vérifier si le champ source correspond au champ dépendant
+        is_match = False
+        
+        # Cas 1: Correspondance avec l'ID original
+        if source_field_id == dynamic_field_id or source_unique_id == dynamic_field_id:
+            is_match = True
+            logger.debug(f"Correspondance avec ID original: {source_field_id} == {dynamic_field_id}")
+        
+        # Cas 2: Correspondance avec l'ID transformé
+        elif source_field_id == dynamic_transformed_id or source_unique_id == dynamic_transformed_id:
+            is_match = True
+            logger.debug(f"Correspondance avec ID transformé: {source_field_id} == {dynamic_transformed_id}")
+        
+        # Cas 3: Le champ source contient l'ID simple comme suffixe
+        elif source_field_id.endswith(f"_{dynamic_simple_id}"):
+            is_match = True
+            logger.debug(f"Correspondance par suffixe: {source_field_id} se termine par _{dynamic_simple_id}")
+        
+        # Cas 4: Le champ source commence par l'ID simple comme préfixe
+        elif source_field_id.startswith(f"{dynamic_simple_id}_"):
+            is_match = True
+            logger.debug(f"Correspondance par préfixe: {source_field_id} commence par {dynamic_simple_id}_")
+            
+        if not is_match:
+            logger.debug(f"La dépendance pour options dynamiques {dynamic_field_id} ne correspond pas au champ source {source_field_id}")
+            return
+            
+        # Si correspondance, mettre à jour les options dynamiques
         if hasattr(dependent_field, 'update_dynamic_options'):
             logger.debug(f"Mise à jour des options dynamiques pour {dependent_field.field_id}")
-            dependent_field.update_dynamic_options()
+            source_value = self._get_field_value(source_field)
+            dependent_field.update_dynamic_options(source_value)
             
             # Vérifier si le champ est un GroupCheckboxField et n'a plus d'options
             if (hasattr(dependent_field, 'options') and 
@@ -404,22 +540,76 @@ class ConfigContainer(VerticalGroup):
             dependent_field: Champ dépendant à mettre à jour
             source_field: Champ source dont la valeur a changé
         """
-        # Vérifier si le champ dépend explicitement de la source pour sa valeur
-        depends_on = getattr(dependent_field, 'depends_on', None)
-        
-        if depends_on == source_field.field_id:
-            logger.debug(f"Mise à jour de la valeur de {dependent_field.field_id} qui dépend de {source_field.field_id}")
+        # Vérifier si le champ a une dépendance de valeur
+        if not hasattr(dependent_field, 'depends_on') or not dependent_field.depends_on:
+            return
             
-            # Récupérer la nouvelle valeur dynamique
-            if hasattr(dependent_field, '_get_default_value'):
-                new_value = dependent_field._get_default_value()
-                logger.debug(f"Nouvelle valeur dynamique pour {dependent_field.field_id}: {new_value}")
-                
-                # Appliquer la nouvelle valeur
-                if hasattr(dependent_field, 'set_value'):
-                    dependent_field.set_value(new_value)
-                else:
-                    dependent_field.value = new_value
+        # Récupérer les identifiants des champs
+        source_field_id = getattr(source_field, 'field_id', '')
+        source_unique_id = getattr(source_field, 'unique_id', source_field_id)
+        
+        # Vérifier toutes les formes possibles de l'ID dépendant
+        dep_field_id = dependent_field.depends_on  # ID original
+        dep_simple_id = getattr(dependent_field, 'depends_on_simple', dep_field_id)  # ID simple (sans préfixe)
+        dep_transformed_id = getattr(dependent_field, 'depends_on_transformed', dep_field_id)  # ID transformé avec préfixe
+        
+        logger.debug(f"Vérification de correspondance pour valeur dépendante: source={source_field_id} (unique={source_unique_id}) vs "
+                   f"dep={dep_field_id}, simple={dep_simple_id}, transformed={dep_transformed_id}")
+        
+        # Vérifier si le champ source correspond au champ dépendant
+        is_match = False
+        
+        # Cas 1: Correspondance avec l'ID original
+        if source_field_id == dep_field_id or source_unique_id == dep_field_id:
+            is_match = True
+            logger.debug(f"Correspondance avec ID original: {source_field_id} == {dep_field_id}")
+        
+        # Cas 2: Correspondance avec l'ID transformé
+        elif source_field_id == dep_transformed_id or source_unique_id == dep_transformed_id:
+            is_match = True
+            logger.debug(f"Correspondance avec ID transformé: {source_field_id} == {dep_transformed_id}")
+        
+        # Cas 3: Le champ source contient l'ID simple comme suffixe
+        elif source_field_id.endswith(f"_{dep_simple_id}"):
+            is_match = True
+            logger.debug(f"Correspondance par suffixe: {source_field_id} se termine par _{dep_simple_id}")
+        
+        # Cas 4: Le champ source commence par l'ID simple comme préfixe
+        elif source_field_id.startswith(f"{dep_simple_id}_"):
+            is_match = True
+            logger.debug(f"Correspondance par préfixe: {source_field_id} commence par {dep_simple_id}_")
+            
+        if not is_match:
+            logger.debug(f"La dépendance de valeur {dep_field_id} ne correspond pas au champ source {source_field_id}")
+            return
+            
+        # Si correspondance, mettre à jour la valeur du champ dépendant
+        source_value = self._get_field_value(source_field)
+        logger.debug(f"Mise à jour de la valeur de {dependent_field.field_id} avec {source_value}")
+        
+        # Appliquer une transformation si nécessaire
+        if hasattr(dependent_field, 'transform_value') and callable(dependent_field.transform_value):
+            transformed_value = dependent_field.transform_value(source_value)
+            logger.debug(f"Valeur transformée: {source_value} -> {transformed_value}")
+            source_value = transformed_value
+        
+        # Mettre à jour la valeur
+        if hasattr(dependent_field, 'set_value'):
+            dependent_field.set_value(source_value)
+        elif hasattr(dependent_field, 'value'):
+            dependent_field.value = source_value
+        
+        # Vérifier si le champ a une méthode pour obtenir une valeur par défaut dynamique
+        if hasattr(dependent_field, '_get_default_value'):
+            # Récupérer la nouvelle valeur dynamique basée sur la valeur du champ source
+            new_value = dependent_field._get_default_value(source_value)
+            logger.debug(f"Nouvelle valeur dynamique pour {dependent_field.field_id}: {new_value}")
+            
+            # Appliquer la nouvelle valeur
+            if hasattr(dependent_field, 'set_value'):
+                dependent_field.set_value(new_value)
+            elif hasattr(dependent_field, 'value'):
+                dependent_field.value = new_value
 
     def _process_fields_to_remove(self) -> None:
         """

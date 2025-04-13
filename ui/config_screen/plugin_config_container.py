@@ -111,6 +111,10 @@ class PluginConfigContainer(ConfigContainer):
                     yield Label(f"Rien à configurer pour ce plugin", classes="no-config-label")
                 return
 
+        # Analyser les dépendances entre les champs
+        self._analyze_field_dependencies(self.config_fields)
+        logger.debug(f"Analyse des dépendances effectuée pour {self.source_id}")
+        
         # Conteneur pour les champs de configuration
         with VerticalGroup(classes="config-fields"):
             # Vérifier et ajouter le champ de template si des templates sont disponibles
@@ -129,6 +133,7 @@ class PluginConfigContainer(ConfigContainer):
             # Créer et ajouter chaque champ de configuration
             for field_config in self.config_fields:
                 field_id = field_config.get('id')
+                field_id = field_config.get('unique_id', field_id)
                 if not field_id:
                     logger.warning(f"Champ sans identifiant dans {self.source_id}")
                     continue

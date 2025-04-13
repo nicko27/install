@@ -23,7 +23,7 @@ config_fields:
     type: checkbox
     label: Tri par code unité
     required: false
-    default: true
+    default: false
     enabled_if:
       field: "user_all"
       value: false

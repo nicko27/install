@@ -1,2 +1,195 @@
-2025-04-10 18:23:19,957 - pcUtils.checkbox_group_field - DEBUG - Using function: get_users
-2025-04-10 18:23:19,958 - pcUtils.checkbox_group_field - DEBUG - Calling get_users with args=[], kwargs={}
+2025-04-13 10:54:26,043 - pcUtils.checkbox_group_field - DEBUG - Using function: get_users
+2025-04-13 10:54:26,043 - pcUtils.checkbox_group_field - DEBUG - Calling get_users with args=[], kwargs={}
+2025-04-13 10:54:26,043 - pcUtils.get_users - DEBUG - get_users called with home_dir=
+2025-04-13 10:54:26,043 - pcUtils.get_users - DEBUG - Script path: /media/nico/Drive/pcUtils_internet/ui/config_screen/../../scripts/get_users.py
+2025-04-13 10:54:26,043 - pcUtils.get_users - DEBUG - Current working directory: /media/nico/Drive/pcUtils_internet
+2025-04-13 10:54:26,044 - pcUtils.get_users - ERROR - Le répertoire  n'existe pas
+2025-04-13 10:54:26,044 - pcUtils.checkbox_group_field - DEBUG - Result from get_users: (False, "Le répertoire  n'existe pas")
+2025-04-13 10:54:26,044 - pcUtils.checkbox_group_field - ERROR - Dynamic options script failed: Le répertoire  n'existe pas
+2025-04-13 10:54:26,044 - pcUtils.checkbox_group_field - DEBUG - Checkbox group options for user_select_1: [('Script error', 'script_error')]
+2025-04-13 10:54:26,048 - pcUtils.select_field - INFO - Loading script from: /media/nico/Drive/pcUtils_internet/ui/config_screen/../../scripts/get_usb.py
+2025-04-13 10:54:26,048 - pcUtils.select_field - DEBUG - Script exists: True
+2025-04-13 10:54:26,048 - pcUtils.select_field - DEBUG - Python path: ['/media/nico/Drive/pcUtils_internet/ui', '/media/nico/Drive/pcUtils_internet/plugins', '/media/nico/Drive/pcUtils_internet/libs/markdown_it_py-3.0.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/bcrypt-4.3.0-cp39-abi3-manylinux_2_34_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pypdf-5.4.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/typing_extensions-4.13.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/ruamel.yaml-0.18.10-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/platformdirs-4.3.7-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/cffi-1.17.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pycparser-2.22-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/rich-14.0.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/mdit_py_plugins-0.4.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/dnspython-2.7.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/linkify_it_py-2.0.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/PyNaCl-1.5.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64', '/media/nico/Drive/pcUtils_internet/libs/textual-3.0.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/paramiko-3.5.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/uc_micro_py-1.0.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/mdurl-0.1.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/puremagic-1.28-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/pygments-2.19.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/cryptography-44.0.2-cp39-abi3-manylinux_2_34_x86_64', '/media/nico/Drive/pcUtils_internet/libs/psutils-3.3.9-py3-none-any', '/media/nico/Drive/pcUtils_internet', '', '/usr/lib/python310.zip', '/usr/lib/python3.10', '/usr/lib/python3.10/lib-dynload', '/home/nico/.local/lib/python3.10/site-packages', '/usr/local/lib/python3.10/dist-packages', '/usr/lib/python3/dist-packages', '/media/nico/Drive/pcUtils_internet/ui/config_screen/../../scripts', '/media/nico/Drive/pcUtils_internet/ui/config_screen/../../scripts']
+2025-04-13 10:54:26,049 - pcUtils.select_field - DEBUG - Using function: get_usb
+2025-04-13 10:54:26,049 - pcUtils.select_field - DEBUG - Calling get_usb with kwargs: {'include_system_disk': False, 'only_external': True, 'only_internal': False}
+2025-04-13 10:54:26,049 - pcUtils.get_usb - DEBUG - Recherche des périphériques (include_system_disk=False, only_external=True, only_internal=False, kwargs={})
+2025-04-13 10:54:26,049 - pcUtils.get_usb - DEBUG - Exécution de la commande lsblk
+2025-04-13 10:54:26,056 - pcUtils.get_usb - DEBUG - Disque système identifié: nvme0n1
+2025-04-13 10:54:26,056 - pcUtils.get_usb - DEBUG - Exclusion du disque système: nvme0n1
+2025-04-13 10:54:26,056 - pcUtils.get_usb - DEBUG - Trouvé 1 périphériques de stockage
+2025-04-13 10:54:26,056 - pcUtils.select_field - INFO - Got result from get_usb: (True, {'devices': [{'device': 'sda1', 'path': '/dev/sda1', 'size': '1,8T', 'mounted': True, 'mount_point': '/media/nico/Drive', 'fs_type': 'ext4', 'label': 'Drive', 'model': '015-2E8174', 'is_external': True, 'description': 'Drive 015-2E8174 /dev/sda1 → /media/nico/Drive (ext4, 1,8T) [Externe]', 'value': '/dev/sda1'}]})
+2025-04-13 10:54:26,056 - pcUtils.select_field - INFO - Extracted data using dict_key 'devices': [{'device': 'sda1', 'path': '/dev/sda1', 'size': '1,8T', 'mounted': True, 'mount_point': '/media/nico/Drive', 'fs_type': 'ext4', 'label': 'Drive', 'model': '015-2E8174', 'is_external': True, 'description': 'Drive 015-2E8174 /dev/sda1 → /media/nico/Drive (ext4, 1,8T) [Externe]', 'value': '/dev/sda1'}]
+2025-04-13 10:54:26,056 - pcUtils.select_field - INFO - Processed data type: <class 'list'> for options
+2025-04-13 10:54:26,057 - pcUtils.select_field - INFO - Processing list data: [{'device': 'sda1', 'path': '/dev/sda1', 'size': '1,8T', 'mounted': True, 'mount_point': '/media/nico/Drive', 'fs_type': 'ext4', 'label': 'Drive', 'model': '015-2E8174', 'is_external': True, 'description': 'Drive 015-2E8174 /dev/sda1 → /media/nico/Drive (ext4, 1,8T) [Externe]', 'value': '/dev/sda1'}]
+2025-04-13 10:54:26,057 - pcUtils.select_field - INFO - Final normalized options: [('Drive 015-2E8174 /dev/sda1 → /media/nico/Drive (ext4, 1,8T) [Externe]', '/dev/sda1')]
+2025-04-13 10:54:26,057 - pcUtils.select_field - INFO - Field dst_dir_1 options: [('Drive 015-2E8174 /dev/sda1 → /media/nico/Drive (ext4, 1,8T) [Externe]', '/dev/sda1')]
+2025-04-13 10:54:26,057 - pcUtils.select_field - DEBUG - 🔎 set_value(/dev/sda1) pour dst_dir_1, update_input=True, update_dependencies=True
+2025-04-13 10:54:26,057 - pcUtils.select_field - DEBUG - Mise à jour des dépendances pour dst_dir_1 avec '/dev/sda1'
+2025-04-13 10:54:26,057 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour dst_dir_1
+2025-04-13 10:54:26,058 - pcUtils.select_field - INFO - Setting default value for dst_dir_1: /dev/sda1
+2025-04-13 10:54:26,061 - pcUtils.checkbox_field - DEBUG - 💻 Création du checkbox mount_if_needed_1 avec valeur True
+2025-04-13 10:54:26,064 - pcUtils.checkbox_field - DEBUG - 💻 Création du checkbox machine_dir_1 avec valeur True
+2025-04-13 10:54:26,161 - pcUtils.directory_field - DEBUG - 🚨 MONTAGE du champ répertoire src_dir_1
+2025-04-13 10:54:26,162 - pcUtils.text_field - DEBUG - 🚨 MONTAGE du champ src_dir_1
+2025-04-13 10:54:26,162 - pcUtils.text_field - DEBUG - Application de la valeur en attente '/home' pour src_dir_1
+2025-04-13 10:54:26,162 - pcUtils.text_field - DEBUG - Widget déjà à la valeur '/home' pour src_dir_1, rien à faire
+2025-04-13 10:54:26,162 - pcUtils.text_field - DEBUG - 🚨 MONTAGE du champ src_dir_1
+2025-04-13 10:54:26,163 - pcUtils.text_field - DEBUG - Pas de valeur en attente pour src_dir_1, valeur actuelle: '/home'
+2025-04-13 10:54:26,163 - pcUtils.text_field - DEBUG - ✓ on_input_changed: valeur déjà à jour pour src_dir_1: '/home'
+2025-04-13 10:54:26,203 - pcUtils.text_field - DEBUG - 🚨 MONTAGE du champ cu_list_1
+2025-04-13 10:54:26,203 - pcUtils.text_field - DEBUG - Application de la valeur en attente '12027' pour cu_list_1
+2025-04-13 10:54:26,203 - pcUtils.text_field - DEBUG - Widget déjà à la valeur '12027' pour cu_list_1, rien à faire
+2025-04-13 10:54:26,204 - pcUtils.text_field - DEBUG - ✓ on_input_changed: valeur déjà à jour pour cu_list_1: '12027'
+2025-04-13 10:54:26,219 - pcUtils.select_field - DEBUG - ✓ On_select_changed: valeur inchangée pour dst_dir_1: /dev/sda1
+2025-04-13 10:54:26,220 - pcUtils.select_field - DEBUG - 🔎 set_value(/dev/sda1) pour dst_dir_1, update_input=True, update_dependencies=True
+2025-04-13 10:54:26,220 - pcUtils.select_field - DEBUG - ✓ Valeur déjà définie à '/dev/sda1' pour dst_dir_1, aucune action nécessaire
+2025-04-13 10:54:26,220 - pcUtils.config_field - DEBUG - Valeur de dst_dir_1 changée à /dev/sda1
+2025-04-13 10:54:26,222 - plugin_config_container - DEBUG - Montage du conteneur pour test_plugin
+2025-04-13 10:54:26,224 - plugin_config_container - DEBUG - Réinitialisation des états d'activation pour test_plugin
+2025-04-13 10:54:26,224 - plugin_config_container - DEBUG - Réinitialisation des états d'activation terminée pour test_plugin
+2025-04-13 10:54:26,227 - pcUtils.config_screen - DEBUG - PluginConfig.on_mount() completed
+2025-04-13 10:54:26,929 - plugin_config_container - DEBUG - Application des valeurs prédéfinies pour test_plugin
+2025-04-13 10:54:26,929 - plugin_config_container - WARNING - Pas de configuration trouvée pour l'instance test_1
+2025-04-13 10:54:26,930 - pcUtils.config_screen - DEBUG - Création des champs de configuration
+2025-04-13 10:54:26,933 - pcUtils.config_screen - DEBUG - Nombre de containers trouvés: 1
+2025-04-13 10:54:26,933 - pcUtils.config_screen - DEBUG - Container ajouté: plugin_test_plugin_1
+2025-04-13 10:54:26,933 - pcUtils.config_screen - DEBUG - Champ ajouté: src_dir_1
+2025-04-13 10:54:26,933 - pcUtils.config_screen - DEBUG - Champ ajouté: user_all_1
+2025-04-13 10:54:26,933 - pcUtils.config_screen - DEBUG - Champ ajouté: cu_sort_1
+2025-04-13 10:54:26,933 - pcUtils.config_screen - DEBUG - Champ ajouté: cu_list_1
+2025-04-13 10:54:26,933 - pcUtils.config_screen - DEBUG - Champ ajouté: user_select_1
+2025-04-13 10:54:26,934 - pcUtils.config_screen - DEBUG - Champ ajouté: dst_dir_1
+2025-04-13 10:54:26,934 - pcUtils.config_screen - DEBUG - Champ ajouté: mount_if_needed_1
+2025-04-13 10:54:26,934 - pcUtils.config_screen - DEBUG - Champ ajouté: machine_dir_1
+2025-04-13 10:54:26,934 - pcUtils.config_screen - DEBUG - Total de 1 containers et 8 champs
+2025-04-13 10:54:26,935 - pcUtils.choice_screen - DEBUG - Écran de configuration affiché
+2025-04-13 10:54:26,935 - pcUtils.choice_screen - DEBUG - Configuration récupérée: 1 plugins
+2025-04-13 10:54:26,935 - pcUtils.choice_screen - DEBUG - Config mise à jour pour test_plugin (ID: 1)
+2025-04-13 10:54:26,937 - pcUtils.plugin_list_item - DEBUG - Plugin avec config: test_plugin
+2025-04-13 10:54:26,937 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: test_plugin
+2025-04-13 10:54:26,937 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: test_plugin
+2025-04-13 10:54:26,938 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: test_plugin
+2025-04-13 10:54:26,938 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/test_plugin_test
+2025-04-13 10:54:26,938 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/test_plugin
+2025-04-13 10:54:26,938 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: test_plugin
+2025-04-13 10:54:26,938 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/test_plugin/settings.yml
+2025-04-13 10:54:26,998 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour test_plugin
+2025-04-13 10:54:26,999 - pcUtils.plugin_list_item - DEBUG - Info du plugin/séquence chargées pour test_plugin
+2025-04-13 10:54:27,000 - pcUtils.selected_plugins_panel - DEBUG - Panneau mis à jour avec 1 plugins
+2025-04-13 10:54:27,000 - pcUtils.choice_screen - DEBUG - Affichage des plugins sélectionnés mis à jour
+2025-04-13 10:54:27,005 - pcUtils.plugin_list_item - DEBUG - Composition de l'élément test_plugin (is_sequence: False)
+2025-04-13 10:54:30,278 - pcUtils.checkbox_field - DEBUG - Valeur de la checkbox user_all_1 changée de True à False
+2025-04-13 10:54:30,279 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_all_1: {'user_select_1', 'cu_sort_1'}
+2025-04-13 10:54:30,279 - pcUtils.config_container - DEBUG - Vérification de correspondance: source=user_all_1 (unique=user_all_1) vs dep=user_all, simple=user_all, transformed=user_all
+2025-04-13 10:54:30,279 - pcUtils.config_container - DEBUG - Correspondance par préfixe: user_all_1 commence par user_all_
+2025-04-13 10:54:30,279 - pcUtils.config_container - DEBUG - Activation du champ user_select_1
+2025-04-13 10:54:30,280 - pcUtils.config_container - DEBUG - Restauration de l'état du champ user_select_1
+2025-04-13 10:54:30,281 - pcUtils.config_container - DEBUG - Vérification de correspondance pour options dynamiques: source=user_all_1 (unique=user_all_1) vs dynamic=None, simple=None, transformed=None
+2025-04-13 10:54:30,281 - pcUtils.config_container - DEBUG - La dépendance pour options dynamiques None ne correspond pas au champ source user_all_1
+2025-04-13 10:54:30,282 - pcUtils.config_container - DEBUG - Vérification de correspondance pour valeur dépendante: source=user_all_1 (unique=user_all_1) vs dep=src_dir, simple=src_dir, transformed=src_dir
+2025-04-13 10:54:30,282 - pcUtils.config_container - DEBUG - La dépendance de valeur src_dir ne correspond pas au champ source user_all_1
+2025-04-13 10:54:30,282 - pcUtils.config_container - DEBUG - Vérification de correspondance: source=user_all_1 (unique=user_all_1) vs dep=user_all, simple=user_all, transformed=user_all
+2025-04-13 10:54:30,282 - pcUtils.config_container - DEBUG - Correspondance par préfixe: user_all_1 commence par user_all_
+2025-04-13 10:54:30,282 - pcUtils.config_container - DEBUG - Activation du champ cu_sort_1
+2025-04-13 10:54:30,299 - pcUtils.config_container - DEBUG - Restauration de l'état du champ cu_sort_1
+2025-04-13 10:54:30,302 - pcUtils.config_container - DEBUG - Checkbox changée: checkbox_test_plugin_user_all_1 -> False
+2025-04-13 10:54:30,303 - pcUtils.config_container - DEBUG - Case à cocher trouvée: user_all_1 (unique_id: user_all_1)
+2025-04-13 10:54:30,303 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_all_1: {'user_select_1', 'cu_sort_1'}
+2025-04-13 10:54:30,303 - pcUtils.config_container - DEBUG - Vérification de correspondance: source=user_all_1 (unique=user_all_1) vs dep=user_all, simple=user_all, transformed=user_all
+2025-04-13 10:54:30,303 - pcUtils.config_container - DEBUG - Correspondance par préfixe: user_all_1 commence par user_all_
+2025-04-13 10:54:30,303 - pcUtils.config_container - DEBUG - Activation du champ user_select_1
+2025-04-13 10:54:30,303 - pcUtils.config_container - DEBUG - Restauration de l'état du champ user_select_1
+2025-04-13 10:54:30,304 - pcUtils.config_container - DEBUG - Vérification de correspondance pour options dynamiques: source=user_all_1 (unique=user_all_1) vs dynamic=None, simple=None, transformed=None
+2025-04-13 10:54:30,304 - pcUtils.config_container - DEBUG - La dépendance pour options dynamiques None ne correspond pas au champ source user_all_1
+2025-04-13 10:54:30,305 - pcUtils.config_container - DEBUG - Vérification de correspondance pour valeur dépendante: source=user_all_1 (unique=user_all_1) vs dep=src_dir, simple=src_dir, transformed=src_dir
+2025-04-13 10:54:30,305 - pcUtils.config_container - DEBUG - La dépendance de valeur src_dir ne correspond pas au champ source user_all_1
+2025-04-13 10:54:30,305 - pcUtils.config_container - DEBUG - Vérification de correspondance: source=user_all_1 (unique=user_all_1) vs dep=user_all, simple=user_all, transformed=user_all
+2025-04-13 10:54:30,305 - pcUtils.config_container - DEBUG - Correspondance par préfixe: user_all_1 commence par user_all_
+2025-04-13 10:54:30,305 - pcUtils.config_container - DEBUG - Activation du champ cu_sort_1
+2025-04-13 10:54:30,305 - pcUtils.config_container - DEBUG - Restauration de l'état du champ cu_sort_1
+2025-04-13 10:54:30,306 - plugin_config_container - DEBUG - Changement d'état de la case à cocher checkbox_test_plugin_user_all_1 -> False
+2025-04-13 10:54:30,306 - plugin_config_container - DEBUG - Champ user_all_1 mis à jour dans la collection de test_plugin
+2025-04-13 10:54:30,306 - pcUtils.config_container - DEBUG - Checkbox changée: checkbox_test_plugin_user_all_1 -> False
+2025-04-13 10:54:30,306 - pcUtils.config_container - DEBUG - Case à cocher trouvée: user_all_1 (unique_id: user_all_1)
+2025-04-13 10:54:30,307 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_all_1: {'user_select_1', 'cu_sort_1'}
+2025-04-13 10:54:30,307 - pcUtils.config_container - DEBUG - Vérification de correspondance: source=user_all_1 (unique=user_all_1) vs dep=user_all, simple=user_all, transformed=user_all
+2025-04-13 10:54:30,307 - pcUtils.config_container - DEBUG - Correspondance par préfixe: user_all_1 commence par user_all_
+2025-04-13 10:54:30,307 - pcUtils.config_container - DEBUG - Activation du champ user_select_1
+2025-04-13 10:54:30,307 - pcUtils.config_container - DEBUG - Restauration de l'état du champ user_select_1
+2025-04-13 10:54:30,308 - pcUtils.config_container - DEBUG - Vérification de correspondance pour options dynamiques: source=user_all_1 (unique=user_all_1) vs dynamic=None, simple=None, transformed=None
+2025-04-13 10:54:30,308 - pcUtils.config_container - DEBUG - La dépendance pour options dynamiques None ne correspond pas au champ source user_all_1
+2025-04-13 10:54:30,308 - pcUtils.config_container - DEBUG - Vérification de correspondance pour valeur dépendante: source=user_all_1 (unique=user_all_1) vs dep=src_dir, simple=src_dir, transformed=src_dir
+2025-04-13 10:54:30,309 - pcUtils.config_container - DEBUG - La dépendance de valeur src_dir ne correspond pas au champ source user_all_1
+2025-04-13 10:54:30,309 - pcUtils.config_container - DEBUG - Vérification de correspondance: source=user_all_1 (unique=user_all_1) vs dep=user_all, simple=user_all, transformed=user_all
+2025-04-13 10:54:30,309 - pcUtils.config_container - DEBUG - Correspondance par préfixe: user_all_1 commence par user_all_
+2025-04-13 10:54:30,309 - pcUtils.config_container - DEBUG - Activation du champ cu_sort_1
+2025-04-13 10:54:30,309 - pcUtils.config_container - DEBUG - Restauration de l'état du champ cu_sort_1
+2025-04-13 10:54:30,339 - pcUtils.config_screen - DEBUG - Checkbox changée: checkbox_test_plugin_user_all_1 -> False
+2025-04-13 10:54:30,339 - pcUtils.config_screen - DEBUG - Notification des dépendances pour le champ user_all_1
+2025-04-13 10:54:30,340 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_all_1: {'user_select_1', 'cu_sort_1'}
+2025-04-13 10:54:30,340 - pcUtils.config_container - DEBUG - Vérification de correspondance: source=user_all_1 (unique=user_all_1) vs dep=user_all, simple=user_all, transformed=user_all
+2025-04-13 10:54:30,340 - pcUtils.config_container - DEBUG - Correspondance par préfixe: user_all_1 commence par user_all_
+2025-04-13 10:54:30,340 - pcUtils.config_container - DEBUG - Activation du champ user_select_1
+2025-04-13 10:54:30,340 - pcUtils.config_container - DEBUG - Restauration de l'état du champ user_select_1
+2025-04-13 10:54:30,341 - pcUtils.config_container - DEBUG - Vérification de correspondance pour options dynamiques: source=user_all_1 (unique=user_all_1) vs dynamic=None, simple=None, transformed=None
+2025-04-13 10:54:30,341 - pcUtils.config_container - DEBUG - La dépendance pour options dynamiques None ne correspond pas au champ source user_all_1
+2025-04-13 10:54:30,342 - pcUtils.config_container - DEBUG - Vérification de correspondance pour valeur dépendante: source=user_all_1 (unique=user_all_1) vs dep=src_dir, simple=src_dir, transformed=src_dir
+2025-04-13 10:54:30,342 - pcUtils.config_container - DEBUG - La dépendance de valeur src_dir ne correspond pas au champ source user_all_1
+2025-04-13 10:54:30,342 - pcUtils.config_container - DEBUG - Vérification de correspondance: source=user_all_1 (unique=user_all_1) vs dep=user_all, simple=user_all, transformed=user_all
+2025-04-13 10:54:30,342 - pcUtils.config_container - DEBUG - Correspondance par préfixe: user_all_1 commence par user_all_
+2025-04-13 10:54:30,342 - pcUtils.config_container - DEBUG - Activation du champ cu_sort_1
+2025-04-13 10:54:30,342 - pcUtils.config_container - DEBUG - Restauration de l'état du champ cu_sort_1
+2025-04-13 10:54:31,855 - pcUtils.checkbox_field - DEBUG - Valeur de la checkbox cu_sort_1 changée de False à True
+2025-04-13 10:54:31,855 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de cu_sort_1: {'cu_list_1'}
+2025-04-13 10:54:31,855 - pcUtils.config_container - DEBUG - Vérification de correspondance: source=cu_sort_1 (unique=cu_sort_1) vs dep=cu_sort, simple=cu_sort, transformed=cu_sort
+2025-04-13 10:54:31,855 - pcUtils.config_container - DEBUG - Correspondance par préfixe: cu_sort_1 commence par cu_sort_
+2025-04-13 10:54:31,855 - pcUtils.config_container - DEBUG - Activation du champ cu_list_1
+2025-04-13 10:54:31,873 - pcUtils.config_container - DEBUG - Restauration de l'état du champ cu_list_1
+2025-04-13 10:54:31,883 - pcUtils.config_container - DEBUG - Checkbox changée: checkbox_test_plugin_cu_sort_1 -> True
+2025-04-13 10:54:31,883 - pcUtils.config_container - DEBUG - Case à cocher trouvée: cu_sort_1 (unique_id: cu_sort_1)
+2025-04-13 10:54:31,883 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de cu_sort_1: {'cu_list_1'}
+2025-04-13 10:54:31,883 - pcUtils.config_container - DEBUG - Vérification de correspondance: source=cu_sort_1 (unique=cu_sort_1) vs dep=cu_sort, simple=cu_sort, transformed=cu_sort
+2025-04-13 10:54:31,884 - pcUtils.config_container - DEBUG - Correspondance par préfixe: cu_sort_1 commence par cu_sort_
+2025-04-13 10:54:31,884 - pcUtils.config_container - DEBUG - Activation du champ cu_list_1
+2025-04-13 10:54:31,884 - pcUtils.config_container - DEBUG - Restauration de l'état du champ cu_list_1
+2025-04-13 10:54:31,884 - plugin_config_container - DEBUG - Changement d'état de la case à cocher checkbox_test_plugin_cu_sort_1 -> True
+2025-04-13 10:54:31,884 - plugin_config_container - DEBUG - Champ cu_sort_1 mis à jour dans la collection de test_plugin
+2025-04-13 10:54:31,884 - pcUtils.config_container - DEBUG - Checkbox changée: checkbox_test_plugin_cu_sort_1 -> True
+2025-04-13 10:54:31,885 - pcUtils.config_container - DEBUG - Case à cocher trouvée: cu_sort_1 (unique_id: cu_sort_1)
+2025-04-13 10:54:31,885 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de cu_sort_1: {'cu_list_1'}
+2025-04-13 10:54:31,885 - pcUtils.config_container - DEBUG - Vérification de correspondance: source=cu_sort_1 (unique=cu_sort_1) vs dep=cu_sort, simple=cu_sort, transformed=cu_sort
+2025-04-13 10:54:31,885 - pcUtils.config_container - DEBUG - Correspondance par préfixe: cu_sort_1 commence par cu_sort_
+2025-04-13 10:54:31,885 - pcUtils.config_container - DEBUG - Activation du champ cu_list_1
+2025-04-13 10:54:31,885 - pcUtils.config_container - DEBUG - Restauration de l'état du champ cu_list_1
+2025-04-13 10:54:31,913 - pcUtils.config_screen - DEBUG - Checkbox changée: checkbox_test_plugin_cu_sort_1 -> True
+2025-04-13 10:54:31,914 - pcUtils.config_screen - DEBUG - Notification des dépendances pour le champ cu_sort_1
+2025-04-13 10:54:31,914 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de cu_sort_1: {'cu_list_1'}
+2025-04-13 10:54:31,914 - pcUtils.config_container - DEBUG - Vérification de correspondance: source=cu_sort_1 (unique=cu_sort_1) vs dep=cu_sort, simple=cu_sort, transformed=cu_sort
+2025-04-13 10:54:31,914 - pcUtils.config_container - DEBUG - Correspondance par préfixe: cu_sort_1 commence par cu_sort_
+2025-04-13 10:54:31,914 - pcUtils.config_container - DEBUG - Activation du champ cu_list_1
+2025-04-13 10:54:31,914 - pcUtils.config_container - DEBUG - Restauration de l'état du champ cu_list_1
+2025-04-13 10:54:33,153 - pcUtils.checkbox_field - DEBUG - Valeur de la checkbox cu_sort_1 changée de True à False
+2025-04-13 10:54:33,153 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de cu_sort_1: {'cu_list_1'}
+2025-04-13 10:54:33,154 - pcUtils.config_container - DEBUG - Vérification de correspondance: source=cu_sort_1 (unique=cu_sort_1) vs dep=cu_sort, simple=cu_sort, transformed=cu_sort
+2025-04-13 10:54:33,155 - pcUtils.config_container - DEBUG - Correspondance par préfixe: cu_sort_1 commence par cu_sort_
+2025-04-13 10:54:33,155 - pcUtils.config_container - DEBUG - Désactivation du champ cu_list_1
+2025-04-13 10:54:33,187 - pcUtils.config_container - DEBUG - Checkbox changée: checkbox_test_plugin_cu_sort_1 -> False
+2025-04-13 10:54:33,188 - pcUtils.config_container - DEBUG - Case à cocher trouvée: cu_sort_1 (unique_id: cu_sort_1)
+2025-04-13 10:54:33,188 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de cu_sort_1: {'cu_list_1'}
+2025-04-13 10:54:33,188 - pcUtils.config_container - DEBUG - Vérification de correspondance: source=cu_sort_1 (unique=cu_sort_1) vs dep=cu_sort, simple=cu_sort, transformed=cu_sort
+2025-04-13 10:54:33,188 - pcUtils.config_container - DEBUG - Correspondance par préfixe: cu_sort_1 commence par cu_sort_
+2025-04-13 10:54:33,188 - pcUtils.config_container - DEBUG - Désactivation du champ cu_list_1
+2025-04-13 10:54:33,189 - plugin_config_container - DEBUG - Changement d'état de la case à cocher checkbox_test_plugin_cu_sort_1 -> False
+2025-04-13 10:54:33,189 - plugin_config_container - DEBUG - Champ cu_sort_1 mis à jour dans la collection de test_plugin
+2025-04-13 10:54:33,189 - pcUtils.config_container - DEBUG - Checkbox changée: checkbox_test_plugin_cu_sort_1 -> False
+2025-04-13 10:54:33,189 - pcUtils.config_container - DEBUG - Case à cocher trouvée: cu_sort_1 (unique_id: cu_sort_1)
+2025-04-13 10:54:33,189 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de cu_sort_1: {'cu_list_1'}
+2025-04-13 10:54:33,189 - pcUtils.config_container - DEBUG - Vérification de correspondance: source=cu_sort_1 (unique=cu_sort_1) vs dep=cu_sort, simple=cu_sort, transformed=cu_sort
+2025-04-13 10:54:33,190 - pcUtils.config_container - DEBUG - Correspondance par préfixe: cu_sort_1 commence par cu_sort_
+2025-04-13 10:54:33,190 - pcUtils.config_container - DEBUG - Désactivation du champ cu_list_1
+2025-04-13 10:54:33,192 - pcUtils.config_screen - DEBUG - Checkbox changée: checkbox_test_plugin_cu_sort_1 -> False
+2025-04-13 10:54:33,192 - pcUtils.config_screen - DEBUG - Notification des dépendances pour le champ cu_sort_1
+2025-04-13 10:54:33,192 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de cu_sort_1: {'cu_list_1'}
+2025-04-13 10:54:33,192 - pcUtils.config_container - DEBUG - Vérification de correspondance: source=cu_sort_1 (unique=cu_sort_1) vs dep=cu_sort, simple=cu_sort, transformed=cu_sort
+2025-04-13 10:54:33,192 - pcUtils.config_container - DEBUG - Correspondance par préfixe: cu_sort_1 commence par cu_sort_
+2025-04-13 10:54:33,192 - pcUtils.config_container - DEBUG - Désactivation du champ cu_list_1
