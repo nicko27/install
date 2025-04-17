@@ -1,9 +1,8 @@
-# install/plugins/plugins_utils/logs.py
 #!/usr/bin/env python3
 """
 Module utilitaire pour la gestion et l'analyse des fichiers journaux système.
 Combine la gestion de logrotate, journald et l'analyse de contenu/taille.
-Utilise logrotate, journalctl, find, du, grep, sort, uniq.
+Utilise logrotate, journalctl, find, du, grep, sort, uniq (via des appels systèmes).
 """
 
 from plugins_utils.plugins_utils_base import PluginsUtilsBase
@@ -12,6 +11,7 @@ import re
 import time
 from pathlib import Path
 from typing import Union, Optional, List, Dict, Any, Tuple, Generator
+import shlex  # Pour sécuriser les commandes shell
 
 # Essayer d'importer ArchiveCommands si disponible
 try:
@@ -37,6 +37,16 @@ class LogCommands(PluginsUtilsBase):
         super().__init__(logger, target_ip)
         self._archive_manager = ArchiveCommands(logger, target_ip) if ARCHIVE_AVAILABLE else None
 
+    def _read_file_lines(self, file_path: Union[str, Path]) -> Generator[str, None, None]:
+        """Générateur pour lire les lignes d'un fichier."""
+        try:
+            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                for line in f:
+                    yield line.strip()
+        except FileNotFoundError:
+            self.log_warning(f"Fichier non trouvé: {file_path}")
+        except Exception as e:
+            self.log_error(f"Erreur lors de la lecture de {file_path}: {e}")
 
     def check_logrotate_config(self, service_or_logpath: str) -> Optional[Dict[str, Any]]:
         """
@@ -145,7 +155,7 @@ class LogCommands(PluginsUtilsBase):
                        older_than_days: Optional[int] = None,
                        pattern: str = "*.log*") -> List[str]:
         """
-        Liste les fichiers journaux selon des critères de taille et d'âge.
+        Liste les fichiers journaux selon des critères de taille et d'âge (incluant les sous-dossiers).
 
         Args:
             directories: Liste de répertoires à scanner (défaut: ['/var/log']).
@@ -157,37 +167,33 @@ class LogCommands(PluginsUtilsBase):
             Liste des chemins complets des fichiers trouvés.
         """
         dirs_to_scan = directories or self.DEFAULT_LOG_DIRS
+        found_files = []
         criteria_log = []
-        self.log_info(f"Recherche de fichiers logs dans {', '.join(dirs_to_scan)}")
+        self.log_info(f"Recherche de fichiers logs dans {', '.join(dirs_to_scan)} (et leurs sous-dossiers)")
         if pattern != "*.log*": criteria_log.append(f"pattern='{pattern}'")
         if min_size_mb is not None: criteria_log.append(f"taille >= {min_size_mb} Mo")
         if older_than_days is not None: criteria_log.append(f"plus vieux que {older_than_days} jours")
         if criteria_log: self.log_info(f"  Critères: {', '.join(criteria_log)}")
 
-        cmd = ['find'] + dirs_to_scan
-        # Limiter la profondeur ? Pour l'instant non.
-        # cmd.extend(['-maxdepth', '3'])
-        cmd.extend(['-type', 'f']) # Seulement les fichiers
-        cmd.extend(['-name', pattern]) # Filtrer par nom
+        for log_dir in dirs_to_scan:
+            log_path = Path(log_dir)
+            if log_path.is_dir():
+                for item in log_path.rglob(pattern): # Use rglob to include subdirectories
+                    if item.is_file():
+                        include = True
+                        if min_size_mb is not None and item.stat().st_size < min_size_mb * 1024 * 1024:
+                            include = False
+                        if older_than_days is not None:
+                            cutoff_timestamp = time.time() - (older_than_days * 24 * 3600)
+                            if item.stat().st_mtime >= cutoff_timestamp:
+                                include = False
+                        if include:
+                            found_files.append(str(item.resolve()))
+            else:
+                self.log_warning(f"Répertoire non trouvé: {log_path}")
 
-        if min_size_mb is not None:
-            cmd.extend(['-size', f'+{int(min_size_mb)}M'])
-        if older_than_days is not None:
-            cmd.extend(['-mtime', f'+{older_than_days}'])
-
-        # find peut nécessiter root pour accéder à certains dossiers
-        success, stdout, stderr = self.run(cmd, check=False, needs_sudo=True, error_as_warning=True) # Ignorer erreurs de permission
-
-        if not success and stderr and "permission denied" not in stderr.lower():
-            # Erreur autre que permission denied
-            self.log_error(f"Échec de la commande find. Stderr: {stderr}")
-            return []
-        elif stderr:
-             self.log_warning(f"Erreurs de permission lors du scan des logs (normal): {stderr.splitlines()[0]}...")
-
-        files = [line for line in stdout.splitlines() if line.strip()]
-        self.log_info(f"{len(files)} fichier(s) log(s) trouvé(s) correspondant aux critères.")
-        return files
+        self.log_info(f"{len(found_files)} fichier(s) log(s) trouvé(s) correspondant aux critères.")
+        return found_files
 
     def archive_logs(self, log_files: List[str], output_archive: Union[str, Path], compression: str = 'gz') -> bool:
         """
@@ -240,7 +246,7 @@ class LogCommands(PluginsUtilsBase):
                        pattern: str = "*.log*",
                        dry_run: bool = True) -> bool:
         """
-        Supprime les fichiers journaux plus vieux qu'un certain nombre de jours.
+        Supprime les fichiers journaux plus vieux qu'un certain nombre de jours (incluant les sous-dossiers).
         ATTENTION: Opération destructive ! Utiliser dry_run=False avec prudence.
 
         Args:
@@ -254,61 +260,124 @@ class LogCommands(PluginsUtilsBase):
         """
         dirs_to_scan = directories or self.DEFAULT_LOG_DIRS
         action = "Simulation de la suppression" if dry_run else "Suppression"
-        self.log_warning(f"{action} des logs plus vieux que {older_than_days} jours dans {', '.join(dirs_to_scan)} (pattern: '{pattern}')")
+        self.log_warning(f"{action} des logs plus vieux que {older_than_days} jours dans {', '.join(dirs_to_scan)} (et leurs sous-dossiers, pattern: '{pattern}')")
         if not dry_run:
             self.log_warning("!!! OPÉRATION DESTRUCTIVE ACTIVÉE !!!")
 
-        cmd = ['find'] + dirs_to_scan
-        cmd.extend(['-type', 'f'])
-        cmd.extend(['-name', pattern])
-        cmd.extend(['-mtime', f'+{older_than_days}'])
+        files_to_delete = self.list_log_files(directories=dirs_to_scan, older_than_days=older_than_days, pattern=pattern)
+        total_size_to_delete = sum(Path(f).stat().st_size for f in files_to_delete if Path(f).is_file())
 
         if dry_run:
-            cmd.append('-print') # Afficher les fichiers qui seraient supprimés
+            if files_to_delete:
+                size_mb = total_size_to_delete / (1024 * 1024)
+                self.log_info(f"Simulation: {len(files_to_delete)} fichier(s) seraient supprimé(s), libérant environ {size_mb:.2f} Mo.")
+                for f in files_to_delete[:10]:
+                    self.log_info(f"  - {f}")
+                if len(files_to_delete) > 10:
+                    self.log_info("  - ... et autres.")
+            else:
+                self.log_info("Simulation: Aucun fichier à supprimer trouvé.")
+            return True
         else:
-            cmd.append('-delete') # Supprimer réellement
+            success = True
+            deleted_size = 0
+            for file_path in files_to_delete:
+                try:
+                    file_size = Path(file_path).stat().st_size
+                    os.remove(file_path)
+                    deleted_size += file_size
+                    self.log_debug(f"Supprimé: {file_path}")
+                except OSError as e:
+                    self.log_error(f"Erreur lors de la suppression de {file_path}: {e}")
+                    success = False
+            if success:
+                deleted_size_mb = deleted_size / (1024 * 1024)
+                self.log_success(f"Vieux fichiers logs supprimés avec succès (si trouvés), libérant {deleted_size_mb:.2f} Mo.")
+                return True
+            else:
+                self.log_error("Des erreurs sont survenues lors de la suppression des vieux logs.")
+                return False
 
-        # find -delete nécessite root
-        success, stdout, stderr = self.run(cmd, check=False, needs_sudo=True)
+    def purge_large_logs(self,
+                          patterns: List[str],
+                          directories: Optional[List[str]] = None,
+                          size_threshold_mb: int = 100,
+                          dry_run: bool = True) -> bool:
+        """
+        Supprime les fichiers journaux dépassant une certaine taille et correspondant à un des motifs (incluant les sous-dossiers).
+        ATTENTION: Opération destructive ! Utiliser dry_run=False avec prudence.
+
+        Args: patterns: Liste de motifs de nom de fichier à cibler (glob style, ex: ["*.log", "access.log*"]).
+            directories: Liste de répertoires à scanner (défaut: ['/var/log']).
+            size_threshold_mb: Taille minimale en Mo pour considérer la suppression.
+            dry_run: Si True (défaut), simule seulement la suppression.
+
+        Returns:
+            bool: True si l'opération (ou la simulation) a réussi.
+        """
+        dirs_to_scan = directories or self.DEFAULT_LOG_DIRS
+        action = "Simulation de la suppression" if dry_run else "Suppression"
+        self.log_warning(f"{action} des logs de plus de {size_threshold_mb} Mo dans {', '.join(dirs_to_scan)} "
+                         f"(et leurs sous-dossiers) correspondant aux motifs: {patterns}")
+        if not dry_run:
+            self.log_warning("!!! OPÉRATION DESTRUCTIVE ACTIVÉE !!!")
+
+        files_to_delete = []
+        for pattern in patterns:
+            log_dir_paths = [Path(d) for d in dirs_to_scan if Path(d).is_dir()]
+            for log_path in log_dir_paths:
+                for item in log_path.rglob(pattern): # Use rglob here as well
+                    if item.is_file() and item.stat().st_size >= size_threshold_mb * 1024 * 1024:
+                        files_to_delete.append(str(item.resolve()))
+
+        # Supprimer les doublons si un fichier correspond à plusieurs motifs
+        files_to_delete = list(set(files_to_delete))
+        total_size_to_delete = sum(Path(f).stat().st_size for f in files_to_delete if Path(f).is_file())
 
         if dry_run:
-            if success:
-                 files_found = stdout.splitlines()
-                 if files_found:
-                      self.log_info(f"Simulation: {len(files_found)} fichier(s) seraient supprimé(s):")
-                      for f in files_found[:10]: # Afficher les 10 premiers
-                           self.log_info(f"  - {f}")
-                      if len(files_found) > 10: self.log_info("  - ... et autres.")
-                 else:
-                      self.log_info("Simulation: Aucun fichier à supprimer trouvé.")
-                 return True
+            if files_to_delete:
+                size_mb = total_size_to_delete / (1024 * 1024)
+                self.log_info(f"Simulation: {len(files_to_delete)} fichier(s) seraient supprimé(s) (taille >= {size_threshold_mb} Mo), "
+                              f"libérant environ {size_mb:.2f} Mo.")
+                for f in files_to_delete[:10]:
+                    self.log_info(f"  - {f}")
+                if len(files_to_delete) > 10:
+                    self.log_info("  - ... et autres.")
             else:
-                 self.log_error(f"Échec de la simulation de suppression. Stderr: {stderr}")
-                 return False
-        else: # Suppression réelle
+                self.log_info(f"Simulation: Aucun fichier de plus de {size_threshold_mb} Mo correspondant aux motifs trouvé.")
+            return True
+        else:
+            success = True
+            deleted_size = 0
+            for file_path in files_to_delete:
+                try:
+                    file_size = Path(file_path).stat().st_size
+                    os.remove(file_path)
+                    deleted_size += file_size
+                    self.log_debug(f"Supprimé (large): {file_path}")
+                except OSError as e:
+                    self.log_error(f"Erreur lors de la suppression (large) de {file_path}: {e}")
+                    success = False
             if success:
-                 self.log_success(f"Vieux fichiers logs supprimés avec succès (si trouvés).")
-                 # find -delete n'affiche rien en cas de succès
-                 self.log_info("Utiliser 'list_log_files' pour vérifier les fichiers restants si nécessaire.")
-                 return True
+                deleted_size_mb = deleted_size / (1024 * 1024)
+                self.log_success(f"Fichiers logs de plus de {size_threshold_mb} Mo supprimés avec succès (si trouvés), "
+                                 f"libérant {deleted_size_mb:.2f} Mo.")
+                return True
             else:
-                 self.log_error(f"Échec de la suppression des vieux logs. Stderr: {stderr}")
-                 return False
+                self.log_error(f"Des erreurs sont survenues lors de la suppression des fichiers logs volumineux.")
+                return False
 
     # --- Gestion Journald ---
 
     def journald_vacuum_size(self, max_size_mb: int) -> bool:
         """Réduit la taille des logs journald à une taille maximale."""
-        if not self._cmd_paths.get('journalctl'):
-            self.log_error("Commande 'journalctl' non trouvée.")
-            return False
         size_str = f"{max_size_mb}M"
         self.log_info(f"Réduction de la taille des logs journald à {size_str} (journalctl --vacuum-size)")
-        cmd = [self._cmd_paths['journalctl'], f"--vacuum-size={size_str}"]
-        success, stdout, stderr = self.run(cmd, check=False, needs_sudo=True)
+        cmd = ['journalctl', f"--vacuum-size={size_str}"]
+        success, stdout, stderr = self.run(cmd, check=False, needs_sudo=True, no_output=True)
         if stdout: self.log_info(f"Sortie journalctl vacuum-size:\n{stdout}")
         if success:
-            self.log_success("Nettoyage journald par taille réussi.")
+            self.log_info("Nettoyage journald par taille réussi.")
             return True
         else:
             self.log_error(f"Échec du nettoyage journald par taille. Stderr: {stderr}")
@@ -333,28 +402,22 @@ class LogCommands(PluginsUtilsBase):
     # --- Analyse de Logs ---
 
     def find_large_logs(self, directories: Optional[List[str]] = None, size_threshold_mb: int = 100) -> List[Tuple[str, int]]:
-        """Trouve les fichiers logs dépassant une certaine taille."""
-        files_found = self.list_log_files(directories=directories, min_size_mb=size_threshold_mb, pattern="*") # Chercher tous types de fichiers
+        """Trouve les fichiers logs dépassant une certaine taille (incluant les sous-dossiers)."""
+        found_files = self.list_log_files(directories=directories, min_size_mb=size_threshold_mb, pattern="*") # Chercher tous types de fichiers
         results = []
-        if files_found:
-             self.log_info(f"Analyse de la taille des {len(files_found)} fichier(s) trouvé(s)...")
-             # Utiliser `du -k` pour obtenir la taille réelle
-             cmd_du = ['du', '-k'] + files_found
-             success_du, stdout_du, stderr_du = self.run(cmd_du, check=False, no_output=True, needs_sudo=True)
-             if success_du:
-                  for line in stdout_du.splitlines():
-                       try:
-                            size_k_str, path = line.split(None, 1)
-                            size_mb = int(size_k_str) / 1024
-                            if size_mb >= size_threshold_mb:
-                                 results.append((path.strip(), int(size_mb)))
-                       except (ValueError, IndexError):
-                            continue # Ignorer les lignes mal formées
-                  # Trier par taille décroissante
-                  results.sort(key=lambda x: x[1], reverse=True)
-                  self.log_info(f"{len(results)} fichier(s) log(s) dépassant {size_threshold_mb} Mo trouvés.")
-             else:
-                  self.log_error(f"Impossible d'obtenir la taille via 'du'. Stderr: {stderr_du}")
+        if found_files:
+             self.log_info(f"Analyse de la taille des {len(found_files)} fichier(s) trouvé(s)...")
+             for file_path_str in found_files:
+                  file_path = Path(file_path_str)
+                  try:
+                       size_mb = file_path.stat().st_size / (1024 * 1024)
+                       if size_mb >= size_threshold_mb:
+                            results.append((file_path_str, int(size_mb)))
+                  except OSError as e:
+                       self.log_warning(f"Impossible d'obtenir la taille de {file_path}: {e}")
+             # Trier par taille décroissante
+             results.sort(key=lambda x: x[1], reverse=True)
+             self.log_info(f"{len(results)} fichier(s) log(s) dépassant {size_threshold_mb} Mo trouvés.")
         else:
              self.log_info(f"Aucun fichier trouvé dépassant {size_threshold_mb} Mo.")
 
@@ -378,50 +441,18 @@ class LogCommands(PluginsUtilsBase):
             return []
 
         self.log_info(f"Recherche des {top_n} lignes les plus fréquentes dans {log_path}")
-        # Construire la commande pipeline: cat | grep -vE (ignore) | sort | uniq -c | sort -nr | head -n N
-        # Note: 'cat' n'est pas idéal pour gros fichiers, mais simple pour le pipeline.
-        #       Alternative: traiter en Python (plus lent mais moins de mémoire si très gros fichier).
-        #       On reste sur les commandes pour la cohérence.
+        line_counts: Dict[str, int] = {}
+        ignored_patterns = [re.compile(p) for p in patterns_to_ignore] if patterns_to_ignore else []
 
-        cmd_parts = [f"cat {shlex.quote(str(log_path))}"]
+        for line in self._read_file_lines(log_path):
+            if not any(pattern.search(line) for pattern in ignored_patterns):
+                line_counts[line] = line_counts.get(line, 0) + 1
 
-        # Ajouter grep pour ignorer des patterns si nécessaire
-        if patterns_to_ignore:
-            grep_opts = " ".join(f"-e {shlex.quote(p)}" for p in patterns_to_ignore)
-            cmd_parts.append(f"grep -vE {grep_opts}")
+        sorted_lines = sorted(line_counts.items(), key=lambda item: item[1], reverse=True)
+        top_frequent = [(count, line) for line, count in sorted_lines[:top_n]]
 
-        cmd_parts.extend([
-            "sort",
-            "uniq -c",
-            "sort -nr", # Trier numériquement et inversement
-            f"head -n {top_n}"
-        ])
-
-        cmd_str = " | ".join(cmd_parts)
-        self.log_debug(f"Exécution pipeline: {cmd_str}")
-
-        # Exécuter via shell
-        success, stdout, stderr = self.run(cmd_str, shell=True, check=False, no_output=True, needs_sudo=True) # Lire le log peut nécessiter sudo
-
-        if not success:
-            self.log_error(f"Échec de l'analyse des lignes fréquentes. Stderr: {stderr}")
-            return []
-
-        results = []
-        # Format sortie: "  COUNT LINE"
-        pattern = re.compile(r'^\s*(\d+)\s+(.*)$')
-        for line in stdout.splitlines():
-            match = pattern.match(line)
-            if match:
-                try:
-                    count = int(match.group(1))
-                    log_line = match.group(2)
-                    results.append((count, log_line))
-                except ValueError:
-                    self.log_warning(f"Impossible de parser la ligne fréquente: {line}")
-
-        self.log_info(f"{len(results)} ligne(s) fréquente(s) identifiée(s).")
-        return results
+        self.log_info(f"{len(top_frequent)} ligne(s) fréquente(s) identifiée(s).")
+        return top_frequent
 
     def search_log_errors(self,
                           log_file: Union[str, Path],
@@ -450,57 +481,35 @@ class LogCommands(PluginsUtilsBase):
             self.log_warning("Aucun motif d'erreur spécifié pour la recherche.")
             return []
 
-        # Construire l'expression régulière combinée: '(pattern1|pattern2|...)'
-        regex = '|'.join(f"({p})" for p in patterns)
-        self.log_debug(f"Utilisation du pattern regex: {regex[:100]}...")
+        compiled_patterns = [re.compile(p, re.IGNORECASE) for p in patterns]
+        error_lines = []
 
         if is_journald:
             if not self._cmd_paths.get('journalctl'):
                  self.log_error("Commande 'journalctl' non trouvée.")
                  return []
-            cmd = [self._cmd_paths['journalctl'], '--no-pager', '-p', 'err..alert'] # Priorité erreur ou plus critique
+            cmd = [self._cmd_paths['journalctl'], '--no-pager', '-p', 'err..alert']
             if time_since:
                  cmd.extend(['--since', time_since])
-            # Ajouter le grep pour les motifs spécifiques si fournis (journalctl -g n'est pas regex standard)
-            if error_patterns: # Seulement si des patterns spécifiques sont donnés
-                 cmd_str = " ".join(shlex.quote(c) for c in cmd) + f" | grep -E {shlex.quote(regex)}"
-                 final_cmd: Union[str, List[str]] = cmd_str
-                 use_shell = True
+            success, stdout, stderr = self.run(cmd, check=False, no_output=True, needs_sudo=True)
+            if success:
+                for line in stdout.splitlines():
+                    if any(pattern.search(line) for pattern in compiled_patterns):
+                        error_lines.append(line)
+                        if len(error_lines) >= max_lines:
+                            break
             else:
-                 final_cmd = cmd
-                 use_shell = False
+                self.log_error(f"Erreur lors de la lecture du journald: {stderr}")
         else:
             log_path = Path(target)
             if not log_path.is_file():
                 self.log_error(f"Fichier log introuvable: {log_path}")
                 return []
-            # Utiliser grep -E pour la recherche regex
-            cmd = ['grep', '-E', '-i', regex, str(log_path)] # -i pour ignorer la casse
-            final_cmd = cmd
-            use_shell = False
+            for line in self._read_file_lines(log_path):
+                if any(pattern.search(line) for pattern in compiled_patterns):
+                    error_lines.append(line)
+                    if len(error_lines) >= max_lines:
+                        break
 
-        # Limiter la sortie avec head
-        if max_lines > 0:
-            head_cmd = f"head -n {max_lines}"
-            if use_shell:
-                 final_cmd = f"{final_cmd} | {head_cmd}"
-            else:
-                 # Utiliser un pipe explicite si pas déjà en shell
-                 cmd_str = " ".join(shlex.quote(c) for c in final_cmd)
-                 final_cmd = f"{cmd_str} | {head_cmd}"
-                 use_shell = True
-
-        self.log_debug(f"Exécution recherche erreurs: {final_cmd if isinstance(final_cmd, str) else ' '.join(final_cmd)}")
-        # La lecture de logs peut nécessiter sudo
-        success, stdout, stderr = self.run(final_cmd, shell=use_shell, check=False, no_output=True, needs_sudo=True)
-
-        if not success and stderr:
-            # Ignorer l'erreur si grep ne trouve rien (code retour 1)
-            if not (isinstance(final_cmd, str) and 'grep' in final_cmd and process.returncode == 1):
-                 self.log_error(f"Échec de la recherche d'erreurs. Stderr: {stderr}")
-                 return []
-
-        lines = stdout.splitlines()
-        self.log_info(f"{len(lines)} ligne(s) d'erreur trouvée(s) dans {target}.")
-        return lines
-
+        self.log_info(f"{len(error_lines)} ligne(s) d'erreur trouvée(s) dans {target}.")
+        return error_lines[:max_lines]

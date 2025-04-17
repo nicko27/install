@@ -1,95 +1,40 @@
-name: Copie Dossiers vers support externe
-description: "Copie un dossier ou des utilisateurs vers un support externe"
+name: Dovecot - Installation et configuration
+description: Installe dovecot-gend, sauvegarde les fichiers si présent et ajoute un compte (supplémentaire au besoin)
 version: 1.0
 category: Système
 multiple: true
+ssh_debug: true
+icon: 🛠️
+# Ajout du support pour l'exécution distante
 remote_execution: false
-icon: 🏠
-sudo: true
+needs_sudo: false
 config_fields:
-  src_dir:
-    type: directory
-    label: Dossier source
-    default: /home
-    required: true
-    not_empty: true
-
-  user_all:
-    type: checkbox
-    label: Copier tous le contenu du dossier et ses sous_dossiers
-    default: true
-
-  cu_sort:
-    type: checkbox
-    label: Tri par code unité
-    required: false
-    default: false
-    enabled_if:
-      field: "user_all"
-      value: false
-
-  cu_list:
+  unite:
     type: text
-    label: Code unité séparées par des virgules
-    placeholder: 12027,604,....
-    default: 12027
-    required: false
-    enabled_if:
-      field: "cu_sort"
-      value: true
-
-  user_select:
-    type: checkbox_group
-    label: Sélectionner les utilisateurs à copier
-    depends_on: src_dir
-    dynamic_options:
-      script: get_users.py
-      global: true
-      function: get_users
-      args:
-        - param_name: cuList
-          field: cu_list
-        - param_name: home_dir
-          field: src_dir
-
-
-      value: username
-      description: description
-      auto_select_key: enabled
-      auto_select_value: true
-    default_selected: ["nicolas.voirin"]
-    enabled_if:
-      field: "user_all"
-      value: false
-
-
-
-  dst_dir:
-    type: select
-    label: Support de destination
+    label: Nom du compte sans espace
     required: true
-    dynamic_options:
-      global: true
-      script: get_usb.py
-      function: get_usb
-      args:
-        - value: false
-          param_name: include_system_disk
-        - value: true
-          param_name: only_external
-        - value: false
-          param_name: only_internal
-      dict: devices
-      value: path
-      description: description
+    validate: no_spaces
+    default: "BT"
 
-  mount_if_needed:
-    type: checkbox
-    label: Monter le périphérique si nécessaire (si non monté)
-    default: true
-    depends_on: home_dst_dir
+  admin:
+    type: text
+    label: Entrez le nom des groupes (si besoin) qui pourront administrer, modifier et lire separes par des virgules
+    required: true
+    placeholder: unite_solc.bdrij.ggd27
 
-  machine_dir:
+  modif:
+    type: text
+    label: Entrez le nom des groupes (si besoin) qui pourront modifier et lire separes par des virgules
+    required: false
+    placeholder: unite_solc.bdrij.ggd27
+
+  user:
+    type: text
+    label: Entrez le nom des groupes (si besoin) qui pourront seulement lire separes par des virgules
+    required: false
+    placeholder: unite_solc.bdrij.ggd27
+
+  sauvegarde:
     type: checkbox
-    label: Créer un dossier avec le nom de machine dans la destination
+    label: "Sauvegarder le dossier /partage/Mail_archive avant d'installer"
     default: true

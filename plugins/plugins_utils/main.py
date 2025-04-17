@@ -16,7 +16,9 @@ class Main:
         returnValue,config=self.argparse()
         if not returnValue:
             error_msg=config
-            return returnValue,error_msg
+            self.logger.error(error_msg)
+            return returnValue
+
                 # Vérifier si la configuration est correcte
         if 'config' not in config:
             # Pour la compatibilité avec l'exécution locale, créer la structure attendue
@@ -41,15 +43,19 @@ class Main:
         self.logger.init_logs()
         icon = config.get('icon', '')
         name = config.get('name', '')
-        self.logger.info(f"{icon} {name}")
-        returnValue, msg=self.plugin.run(config,self.logger,self.target_ip)
-        return returnValue, msg
+        self.logger.start(f"Lancement du plugin {icon} {name}")
+        returnValue=self.plugin.run(config,self.logger,self.target_ip)
+        self.logger.end(f"Fin d'exécution du plugin {icon} {name}")
+        self.logger.shutdown()
+
+        return returnValue
 
     def argparse(self):
         try:
             parser = argparse.ArgumentParser()
             parser.add_argument('-c', '--config', help='Fichier de configuration JSON')
             parser.add_argument('json_config', nargs='?', help='Configuration JSON en ligne de commande')
+            parser.add_argument('-t', '--text-mode', action='store_true', help='Active le mode texte des logs')  # Ajout de l'argument
             args, unknown = parser.parse_known_args()
             if args.config:
                 # Lire la configuration depuis le fichier (mode SSH)
@@ -62,7 +68,13 @@ class Main:
                 # Fallback: essayer de parser le premier argument comme JSON
                 config = json.loads(sys.argv[1])
             else:
-                raise ValueError("Aucune configuration fournie. Utilisez -c/--config ou passez un JSON en argument.")
+                raise ValueError(
+                "Aucune configuration fournie. Utilisez -c/--config ou passez un JSON en argument.")
+
+
+            # Ajouter text_mode à la config si spécifié en ligne de commande
+            if args.text_mode:
+                config['text_mode'] = True
             return True, config
         except json.JSONDecodeError as je:
             error_msg = f"Erreur: Configuration JSON invalide: {je}"

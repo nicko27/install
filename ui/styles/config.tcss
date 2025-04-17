@@ -1,5 +1,6 @@
 #config-container-list {
-    margin:0;
+    margin-left:2;
+    margin-right:2;
     padding:0;
     box-sizing: border-box;
 }

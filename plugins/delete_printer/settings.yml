@@ -1,10 +1,10 @@
-name: Suppression d'imprimante(s)
+name: Imprimantes - Suppression
 description: Suppression d'une ou plusieurs imprimantes en fonction de l'IP
 version: 1.0
 category: Système
 multiple: true
 icon: 🖨
-remote_execution: true
+remote_execution: false
 sudo: true
 config_fields:
   printer_all:
@@ -27,5 +27,3 @@ config_fields:
     enabled_if:
       field: "printer_all"
       value: false
-
-

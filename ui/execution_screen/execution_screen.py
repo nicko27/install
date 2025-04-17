@@ -23,7 +23,7 @@ logger = get_logger('execution_screen')
 class ExecutionScreen(Screen):
     """
     Écran contenant le widget d'exécution des plugins.
-    
+
     Cet écran coordonne le processus d'exécution des plugins configurés,
     gère les interactions utilisateur et les transitions entre écrans.
     """
@@ -36,12 +36,12 @@ class ExecutionScreen(Screen):
     # Chemin vers le fichier CSS
     CSS_PATH = str(Path(__file__).parent / "../styles/execution.tcss")
 
-    def __init__(self, plugins_config: Optional[Dict[str, Any]] = None, 
-                auto_execute: bool = False, 
+    def __init__(self, plugins_config: Optional[Dict[str, Any]] = None,
+                auto_execute: bool = False,
                 report_manager = None):
         """
         Initialise l'écran avec la configuration des plugins.
-        
+
         Args:
             plugins_config: Dictionnaire de configuration des plugins
             auto_execute: Si True, lance l'exécution automatiquement
@@ -53,10 +53,11 @@ class ExecutionScreen(Screen):
         self.report_manager = report_manager
         self._execution_running = False
         self._execution_task = None
-        
+        self._current_plugin_widget = None  # Ajout : Garder une référence au widget actuel
+
         logger.debug(f"ExecutionScreen initialisé avec {len(self.plugins_config)} plugins")
         logger.debug(f"Mode auto-exécution: {self.auto_execute}")
-        
+
     async def on_mount(self) -> None:
         """
         Appelé quand l'écran est monté dans l'interface.
@@ -64,7 +65,7 @@ class ExecutionScreen(Screen):
         """
         try:
             logger.debug("Montage de l'écran d'exécution")
-            
+
             # Créer une tâche asynchrone pour l'initialisation avec un délai
             # Cela permet à l'interface de s'afficher complètement avant de commencer l'exécution
             self._init_task = asyncio.create_task(self._delayed_initialization())
@@ -72,7 +73,7 @@ class ExecutionScreen(Screen):
             logger.error(f"Erreur lors du montage de l'écran d'exécution: {e}")
             logger.error(traceback.format_exc())
             self.notify(f"Erreur lors de l'initialisation: {e}", severity="error")
-    
+
     async def _delayed_initialization(self) -> None:
         """
         Initialise l'écran après un délai pour permettre à l'interface de s'afficher.
@@ -82,12 +83,12 @@ class ExecutionScreen(Screen):
             # Attendre que l'interface soit complètement affichée
             logger.debug("Attente pour permettre à l'interface de s'afficher complètement")
             await asyncio.sleep(1.0)  # Délai d'1 seconde
-            
+
             # Vérifier que l'écran est toujours monté
             if not self.is_mounted:
                 logger.debug("L'écran n'est plus monté, annulation de l'initialisation")
                 return
-                
+
             # Maintenant initialiser l'écran
             logger.debug("Début de l'initialisation de l'écran après délai")
             await self.initialize_screen()
@@ -95,7 +96,7 @@ class ExecutionScreen(Screen):
             logger.error(f"Erreur dans l'initialisation différée: {e}")
             logger.error(traceback.format_exc())
             self.notify(f"Erreur lors de l'initialisation: {e}", severity="error")
-    
+
     async def initialize_screen(self) -> None:
         """
         Initialise l'écran après le montage complet.
@@ -104,7 +105,8 @@ class ExecutionScreen(Screen):
         try:
             # Récupérer le widget d'exécution
             widget = self.query_one(ExecutionWidget)
-                
+            self._current_plugin_widget = widget  # Ajout : Sauvegarder la référence
+
             if self.auto_execute:
                 # En mode auto, masquer les boutons Démarrer et Retour définitivement
                 try:
@@ -116,29 +118,26 @@ class ExecutionScreen(Screen):
                         logger.debug("Boutons Démarrer et Retour masqués en mode auto")
                 except Exception as e:
                     logger.error(f"Erreur lors du masquage des boutons en mode auto: {e}")
-                
+
                 # Lancer l'exécution automatiquement
                 if widget:
                     # Forcer un rafraîchissement de l'interface avant de commencer
                     logger.debug("Rafraîchissement de l'interface avant l'exécution automatique")
                     self.refresh()
-                    
+
                     # Attendre un délai pour s'assurer que l'interface est complètement chargée
                     await asyncio.sleep(0.5)
-                    
+
                     # Vérifier que l'écran est toujours monté
                     if not self.is_mounted:
                         logger.debug("L'écran n'est plus monté, annulation de l'exécution automatique")
                         return
-                    
+
                     # Forcer un second rafraîchissement
                     self.refresh()
                     await asyncio.sleep(0.1)
-                        
-                    # Démarrer l'exécution
-                    logger.debug("Démarrage de l'exécution automatique")
                     self._execution_running = True
-                    
+
                     try:
                         # Exécuter directement plutôt que via une tâche
                         logger.debug("Démarrage direct de l'exécution")
@@ -155,12 +154,12 @@ class ExecutionScreen(Screen):
                         # S'assurer que le flag d'exécution est remis à False
                         self._execution_running = False
             await LoggerUtils.flush_pending_messages(self)
-            
+
         except Exception as e:
             logger.error(f"Erreur lors de l'initialisation de l'écran: {e}")
             logger.error(traceback.format_exc())
             self.notify(f"Erreur lors de l'initialisation: {e}", severity="error")
-    
+
     def action_quit(self) -> None:
         """
         Gère l'action de quitter l'écran via la touche ESC.
@@ -168,11 +167,11 @@ class ExecutionScreen(Screen):
         """
         try:
             logger.info("Demande de sortie via touche ESC")
-            
+
             # Vérifier si une exécution est en cours
             if self._execution_running:
                 logger.info("Exécution en cours détectée, lancement de la procédure d'annulation")
-                
+
                 # Arrêter l'exécution en cours
                 if self._execution_task is not None:
                     try:
@@ -180,7 +179,7 @@ class ExecutionScreen(Screen):
                         self._execution_task.cancel()
                     except Exception as e:
                         logger.warning(f"Erreur lors de l'annulation de la tâche: {e}")
-                
+
                 # Arrêter également l'exécution dans le widget
                 try:
                     widget = self.query_one(ExecutionWidget)
@@ -189,13 +188,13 @@ class ExecutionScreen(Screen):
                         widget.is_running = False
                 except Exception as e:
                     logger.warning(f"Impossible d'arrêter l'exécution dans le widget: {e}")
-                
+
                 # Lancer la procédure d'annulation asynchrone
                 asyncio.create_task(self._handle_cancellation())
                 # Notifier l'utilisateur
                 self.notify("Annulation de l'exécution en cours...", severity="warning")
                 return  # Ne pas quitter immédiatement
-                
+
             # Si aucune exécution en cours, quitter l'application
             self.app.exit()
         except Exception as e:
@@ -207,14 +206,14 @@ class ExecutionScreen(Screen):
                 self.app.pop_screen()
             except Exception:
                 pass
-    
+
     async def on_execution_completed(self) -> None:
         """
         Appelé quand l'exécution des plugins est terminée.
         Peut être surchargé pour des actions supplémentaires.
         """
         logger.debug("Exécution terminée")
-        
+
         # Générer un rapport si un gestionnaire est disponible
         if self.report_manager is not None:
             try:
@@ -224,7 +223,7 @@ class ExecutionScreen(Screen):
                 logger.error(f"Erreur lors de la génération du rapport: {e}")
                 logger.error(traceback.format_exc())
                 self.notify(f"Erreur lors de la génération du rapport: {e}", severity="error")
-                
+
     async def _handle_cancellation(self) -> None:
         """
         Gère l'annulation de l'exécution et quitte l'écran après un court délai.
@@ -232,7 +231,7 @@ class ExecutionScreen(Screen):
         try:
             # Marquer l'exécution comme terminée
             self._execution_running = False
-            
+
             # Arrêter tous les plugins en cours
             try:
                 widget = self.query_one(ExecutionWidget)
@@ -241,16 +240,16 @@ class ExecutionScreen(Screen):
                     widget.is_running = False
             except Exception as e:
                 logger.warning(f"Impossible d'arrêter les plugins en cours: {e}")
-            
+
             # Attendre pour que l'annulation prenne effet
             logger.debug("Attente de 1 seconde pour permettre l'arrêt complet de l'exécution")
             await asyncio.sleep(1.0)
-            
+
             # Vérifier que l'écran est toujours monté
             if not self.is_mounted:
                 logger.debug("L'écran n'est plus monté, annulation de la fermeture")
                 return
-            
+
             # Quitter l'écran ou l'application selon le contexte
             if self.auto_execute:
                 logger.info("Mode auto détecté, fermeture de l'application après annulation")
@@ -270,7 +269,7 @@ class ExecutionScreen(Screen):
     def compose(self) -> ComposeResult:
         """
         Compose l'interface de l'écran.
-        
+
         Returns:
             ComposeResult: Résultat de la composition
         """

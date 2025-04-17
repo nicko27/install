@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport"
+              content="width=device-width, initial-scale=1.0">
+        <title>Documentation: plugins_utils/dovecot_commands.py</title>
+        <link rel="stylesheet"
+              href="docs_style.css">
+    </head>
+
+    <body>
+        <div class="container">
+
+            <h1 class="main-title">Documentation: <code>plugins_utils/dovecot_commands.py</code></h1>
+
+            <p class="module-description">
+                Ce module fournit des utilitaires pour la gestion complète des configurations Dovecot.
+                Il permet de manipuler les fichiers de configuration avec une syntaxe à blocs délimités par des accolades,
+                les namespaces, les quotas, les services et les ACL.
+            </p>
+            <p class="dependency-warning">
+                Nécessite les commandes <code>cat</code>, <code>cp</code>, <code>stat</code>, <code>chmod</code>, <code>chown</code>
+                et un serveur Dovecot installé.
+            </p>
+
+            <nav class="toc">
+                <h3 class="toc-title">Accès Rapide aux Méthodes</h3>
+                <ul class="toc-list">
+                    <li class="toc-item"><a href="#read_config"
+                           class="toc-link">read_config</a></li>
+                    <li class="toc-item"><a href="#write_config"
+                           class="toc-link">write_config</a></li>
+                    <li class="toc-item"><a href="#mail_settings"
+                           class="toc-link">get/set_mail_setting</a></li>
+                    <li class="toc-item"><a href="#plugins"
+                           class="toc-link">get_mail_plugins/add_mail_plugin</a></li>
+                    <li class="toc-item"><a href="#namespaces"
+                           class="toc-link">list/add/update/delete_namespace</a></li>
+                    <li class="toc-item"><a href="#comment_namespace"
+                           class="toc-link">comment/uncomment_namespace</a></li>
+                    <li class="toc-item"><a href="#acl"
+                           class="toc-link">Gestion des ACL</a></li>
+                    <li class="toc-item"><a href="#quota"
+                           class="toc-link">Gestion des quotas</a></li>
+                    <li class="toc-item"><a href="#services"
+                           class="toc-link">Gestion des services</a></li>
+                </ul>
+            </nav>
+
+            <h2 class="section-title">Classe Principale</h2>
+
+            <section class="method-section">
+                <h3 class="method-title"
+                    id="DovecotCommands"><code>DovecotCommands(ConfigFileCommands)</code></h3>
+                <p class="description">
+                    Classe pour manipuler les fichiers de configuration Dovecot.
+                    Hérite de <code>ConfigFileCommands</code> pour réutiliser les fonctionnalités de gestion de fichiers.
+                    Permet une manipulation cohérente des configurations avec le modèle "lire, modifier, écrire".
+                </p>
+            </section>
+
+            <h2 class="section-title">Méthodes de Base</h2>
+
+            <section class="method-section">
+                <h4 class="method-title"
+                    id="read_config">
+                    <code>read_config(config_type: str, force_reload: bool = False) -> Optional[Dict]</code>
+                </h4>
+                <p class="description">Lit un fichier de configuration Dovecot et utilise un cache pour éviter de relire les fichiers inutilement.</p>
+                <dl class="param-list">
+                    <dt>config_type</dt>
+                    <dd><span class="param-type">(str)</span>: Type de configuration ('main', 'mail', 'auth', etc.) ou chemin complet.</dd>
+                    <dt>force_reload</dt>
+                    <dd><span class="param-type">(bool)</span>: Si True, force la relecture même si déjà en cache. Défaut: False.</dd>
+                </dl>
+                <div class="return-info">
+                    <span class="font-medium">Retourne:</span><span class="return-type">Optional[Dict]</span> - Structure de configuration parsée ou None en cas d'erreur.
+                </div>
+            </section>
+
+            <section class="method-section">
+                <h4 class="method-title"
+                    id="write_config"><code>write_config(config_type: str, config: Dict, backup: bool = True) -> bool</code></h4>
+                <p class="description">Écrit une structure de configuration Dovecot dans un fichier et met à jour le cache.</p>
+                <p class="sudo-warning">Nécessite des privilèges root selon le fichier.</p>
+                <dl class="param-list">
+                    <dt>config_type</dt>
+                    <dd><span class="param-type">(str)</span>: Type de configuration ('main', 'mail', 'auth', etc.) ou chemin complet.</dd>
+                    <dt>config</dt>
+                    <dd><span class="param-type">(Dict)</span>: Structure de configuration à écrire.</dd>
+                    <dt>backup</dt>
+                    <dd><span class="param-type">(bool)</span>: Si True, crée une sauvegarde du fichier original. Défaut: True.</dd>
+                </dl>
+                <div class="return-info">
+                    <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si l'écriture réussit, False sinon.
+                </div>
+            </section>
+
+            <h2 class="section-title">Paramètres Mail et Plugins</h2>
+
+            <section class="method-section">
+                <h4 class="method-title"
+                    id="mail_settings"><code>get_mail_setting(setting_name: str, default: Any = None) -> Any</code></h4>
+                <p class="description">Récupère un paramètre dans la configuration mail.</p>
+                <dl class="param-list">
+                    <dt>setting_name</dt>
+                    <dd><span class="param-type">(str)</span>: Nom du paramètre à récupérer.</dd>
+                    <dt>default</dt>
+                    <dd><span class="param-type">(Any)</span>: Valeur par défaut si le paramètre n'existe pas.</dd>
+                </dl>
+                <div class="return-info">
+                    <span class="font-medium">Retourne:</span><span class="return-type">Any</span> - Valeur du paramètre ou valeur par défaut.
+                </div>
+            </section>
+
+            <section class="method-section">
+                <h4 class="method-title"><code>set_mail_setting(setting_name: str, value: Any, backup: bool = True) -> bool</code></h4>
+                <p class="description">Définit un paramètre dans la configuration mail.</p>
+                <p class="sudo-warning">Nécessite des privilèges root.</p>
+                <dl class="param-list">
+                    <dt>setting_name</dt>
+                    <dd><span class="param-type">(str)</span>: Nom du paramètre à définir.</dd>
+                    <dt>value</dt>
+                    <dd><span class="param-type">(Any)</span>: Nouvelle valeur du paramètre.</dd>
+                    <dt>backup</dt>
+                    <dd><span class="param-type">(bool)</span>: Si True, crée une sauvegarde du fichier original. Défaut: True.</dd>
+                </dl>
+                <div class="return-info">
+                    <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la mise à jour réussit, False sinon.
+                </div>
+            </section>
+
+            <section class="method-section">
+                <h4 class="method-title"
+                    id="plugins"><code>get_mail_plugins() -> List[str]</code></h4>
+                <p class="description">Récupère la liste des plugins mail activés.</p>
+                <div class="return-info">
+                    <span class="font-medium">Retourne:</span><span class="return-type">List[str]</span> - Liste des plugins activés.
+                </div>
+            </section>
+
+            <section class="method-section">
+                <h4 class="method-title"><code>add_mail_plugin(plugin_name: str, backup: bool = True) -> bool</code></h4>
+                <p class="description">Ajoute un plugin mail s'il n'est pas déjà activé.</p>
+                <p class="sudo-warning">Nécessite des privilèges root.</p>
+                <dl class="param-list">
+                    <dt>plugin_name</dt>
+                    <dd><span class="param-type">(str)</span>: Nom du plugin à ajouter.</dd>
+                    <dt>backup</dt>
+                    <dd><span class="param-type">(bool)</span>: Si True, crée une sauvegarde du fichier original. Défaut: True.</dd>
+                </dl>
+                <div class="return-info">
+                    <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si l'ajout réussit ou si le plugin est déjà activé, False sinon.
+                </div>
+            </section>
+
+            <section class="method-section">
+                <h4 class="method-title"><code>remove_mail_plugin(plugin_name: str, backup: bool = True) -> bool</code></h4>
+                <p class="description">Supprime un plugin mail s'il est activé.</p>
+                <p class="sudo-warning">Nécessite des privilèges root.</p>
+                <dl class="param-list">
+                    <dt>plugin_name</dt>
+                    <dd><span class="param-type">(str)</span>: Nom du plugin à supprimer.</dd>
+                    <dt>backup</dt>
+                    <dd><span class="param-type">(bool)</span>: Si True, crée une sauvegarde du fichier original. Défaut: True.</dd>
+                </dl>
+                <div class="return-info">
+                    <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la suppression réussit ou si le plugin n'est pas activé, False sinon.
+                </div>
+            </section>
+
+            <h2 class="section-title">Gestion des Namespaces</h2>
+
+            <section class="method-section">
+                <h4 class="method-title"
+                    id="namespaces"><code>list_namespaces(config_path: Optional[str] = None) -> Dict[str, Dict]</code></h4>
+                <p class="description">Liste tous les namespaces dans un fichier de configuration.</p>
+                <dl class="param-list">
+                    <dt>config_path</dt>
+                    <dd><span class="param-type">(Optional[str])</span>: Chemin du fichier de configuration ou None pour utiliser le fichier mail par défaut.</dd>
+                </dl>
+                <div class="return-info">
+                    <span class="font-medium">Retourne:</span><span class="return-type">Dict[str, Dict]</span> - Dictionnaire {nom_namespace: config_namespace}.
+                </div>
+            </section>
+
+            <section class="method-section">
+                <h4 class="method-title"><code>get_namespace(namespace_name: str, config_path: Optional[str] = None) -> Optional[Dict]</code></h4>
+                <p class="description">Récupère la configuration d'un namespace spécifique.</p>
+                <dl class="param-list">
+                    <dt>namespace_name</dt>
+                    <dd><span class="param-type">(str)</span>: Nom du namespace à récupérer.</dd>
+                    <dt>config_path</dt>
+                    <dd><span class="param-type">(Optional[str])</span>: Chemin du fichier de configuration ou None pour utiliser le fichier mail par défaut.</dd>
+                </dl>
+                <div class="return-info">
+                    <span class="font-medium">Retourne:</span><span class="return-type">Optional[Dict]</span> - Configuration du namespace ou None s'il n'existe pas.
+                </div>
+            </section>
+
+            <section class="method-section">
+                <h4 class="method-title"><code>add_namespace(namespace_name: str, namespace_config: Dict, config_path: Optional[str] = None, backup: bool = True) -> bool</code></h4>
+                <p class="description">Ajoute un nouveau namespace à la configuration.</p>
+                <p class="sudo-warning">Nécessite des privilèges root.</p>
+                <dl class="param-list">
+                    <dt>namespace_name</dt>
+                    <dd><span class="param-type">(str)</span>: Nom du namespace à ajouter (sans le préfixe "namespace ").</dd>
+                    <dt>namespace_config</dt>
+                    <dd><span class="param-type">(Dict)</span>: Dictionnaire de configuration du namespace.</dd>
+                    <dt>config_path</dt>
+                    <dd><span class="param-type">(Optional[str])</span>: Chemin du fichier de configuration ou None pour utiliser le fichier mail par défaut.</dd>
+                    <dt>backup</dt>
+                    <dd><span class="param-type">(bool)</span>: Si True, crée une sauvegarde du fichier original. Défaut: True.</dd>
+                </dl>
+                <div class="return-info">
+                    <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si l'ajout réussit, False sinon.
+                </div>
+            </section>
+
+            <section class="method-section">
+                <h4 class="method-title"><code>update_namespace(namespace_name: str, updated_config: Dict, config_path: Optional[str] = None, backup: bool = True) -> bool</code></h4>
+                <p class="description">Met à jour un namespace existant.</p>
+                <p class="sudo-warning">Nécessite des privilèges root.</p>
+                <dl class="param-list">
+                    <dt>namespace_name</dt>
+                    <dd><span class="param-type">(str)</span>: Nom du namespace à mettre à jour (sans le préfixe "namespace ").</dd>
+                    <dt>updated_config</dt>
+                    <dd><span class="param-type">(Dict)</span>: Dictionnaire de configuration mis à jour.</dd>
+                    <dt>config_path</dt>
+                    <dd><span class="param-type">(Optional[str])</span>: Chemin du fichier de configuration ou None pour utiliser le fichier mail par défaut.</dd>
+                    <dt>backup</dt>
+                    <dd><span class="param-type">(bool)</span>: Si True, crée une sauvegarde du fichier original. Défaut: True.</dd>
+                </dl>
+                <div class="return-info">
+                    <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la mise à jour réussit, False sinon.
+                </div>
+            </section>
+
+            <section class="method-section">
+                <h4 class="method-title"><code>delete_namespace(namespace_name: str, config_path: Optional[str] = None, backup: bool = True) -> bool</code></h4>
+                <p class="description">Supprime un namespace existant.</p>
+                <p class="sudo-warning">Nécessite des privilèges root.</p>
+                <dl class="param-list">
+                    <dt>namespace_name</dt>
+                    <dd><span class="param-type">(str)</span>: Nom du namespace à supprimer (sans le préfixe "namespace ").</dd>
+                    <dt>config_path</dt>
+                    <dd><span class="param-type">(Optional[str])</span>: Chemin du fichier de configuration ou None pour utiliser le fichier mail par défaut.</dd>
+                    <dt>backup</dt>
+                    <dd><span class="param-type">(bool)</span>: Si True, crée une sauvegarde du fichier original. Défaut: True.</dd>
+                </dl>
+                <div class="return-info">
+                    <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la suppression réussit, False sinon.
+                </div>
+            </section>
+
+            <section class="method-section">
+                <h4 class="method-title"
+                    id="comment_namespace"><code>comment_namespace(namespace_name: str, config_path: Optional[str] = None, backup: bool = True) -> bool</code></h4>
+                <p class="description">Commente un namespace existant dans le fichier de configuration.</p>
+                <p class="sudo-warning">Nécessite des privilèges root.</p>
+                <dl class="param-list">
+                    <dt>namespace_name</dt>
+                    <dd><span class="param-type">(str)</span>: Nom du namespace à commenter (ex: "PUBLIC_FINANCE").</dd>
+                    <dt>config_path</dt>
+                    <dd><span class="param-type">(Optional[str])</span>: Chemin du fichier de configuration ou None pour utiliser le fichier mail par défaut.</dd>
+                    <dt>backup</dt>
+                    <dd><span class="param-type">(bool)</span>: Si True, crée une sauvegarde du fichier original. Défaut: True.</dd>
+                </dl>
+                <div class="return-info">
+                    <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si le commentage réussit, False sinon.
+                </div>
+            </section>
+
+            <section class="method-section">
+                <h4 class="method-title"><code>uncomment_namespace(namespace_pattern: str, config_path: Optional[str] = None, backup: bool = True) -> bool</code></h4>
+                <p class="description">Décommente un namespace commenté dans le fichier de configuration.</p>
+                <p class="sudo-warning">Nécessite des privilèges root.</p>
+                <dl class="param-list">
+                    <dt>namespace_pattern</dt>
+                    <dd><span class="param-type">(str)</span>: Motif pour identifier le namespace (ex: "PUBLIC_FINANCE").</dd>
+                    <dt>config_path</dt>
+                    <dd><span class="param-type">(Optional[str])</span>: Chemin du fichier de configuration ou None pour utiliser le fichier mail par défaut.</dd>
+                    <dt>backup</dt>
+                    <dd><span class="param-type">(bool)</span>: Si True, crée une sauvegarde du fichier original. Défaut: True.</dd>
+                </dl>
+                <div class="return-info">
+                    <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si le décommentage réussit, False sinon.
+                </div>
+            </section>
+
+            <section class="method-section">
+                <h4 class="method-title"><code>create_public_namespace(unite: str, location: Optional[str] = None, config_path: Optional[str] = None, backup: bool = True) -> bool</code></h4>
+                <p class="description">Crée un namespace public pour une unité spécifique.</p>
+                <p class="sudo-warning">Nécessite des privilèges root.</p>
+                <dl class="param-list">
+                    <dt>unite</dt>
+                    <dd><span class="param-type">(str)</span>: Nom de l'unité (ex: "FINANCE").</dd>
+                    <dt>location</dt>
+                    <dd><span class="param-type">(Optional[str])</span>: Chemin de stockage (par défaut: "/partage/Mail_archive/{unite}").</dd>
+                    <dt>config_path</dt>
+                    <dd><span class="param-type">(Optional[str])</span>: Chemin du fichier de configuration ou None pour utiliser le fichier mail par défaut.</dd>
+                    <dt>backup</dt>
+                    <dd><span class="param-type">(bool)</span>: Si True, crée une sauvegarde du fichier original. Défaut: True.</dd>
+                </dl>
+                <div class="return-info">
+                    <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la création réussit, False sinon.
+                </div>
+            </section>
+
+            <h2 class="section-title">Gestion des ACL</h2>
+
+            <section class="method-section">
+                <h4 class="method-title"
+                    id="acl"><code>read_acl_file(acl_path: Optional[str] = None) -> List[Tuple[str, str, str, str]]</code></h4>
+                <p class="description">Lit un fichier d'ACL Dovecot et retourne les règles sous forme de liste.</p>
+                <dl class="param-list">
+                    <dt>acl_path</dt>
+                    <dd><span class="param-type">(Optional[str])</span>: Chemin du fichier ACL ou None pour utiliser l'emplacement par défaut.</dd>
+                </dl>
+                <div class="return-info">
+                    <span class="font-medium">Retourne:</span><span class="return-type">List[Tuple[str, str, str, str]]</span> - Liste de (mailbox, identifier, rights, comment).
+                </div>
+            </section>
+
+            <section class="method-section">
+                <h4 class="method-title"><code>get_acl_entries(mailbox: Optional[str] = None, acl_path: Optional[str] = None) -> List[Tuple[str, str, str, str]]</code></h4>
+                <p class="description">Récupère les entrées ACL, éventuellement filtrées par boîte aux lettres.</p>
+                <dl class="param-list">
+                    <dt>mailbox</dt>
+                    <dd><span class="param-type">(Optional[str])</span>: Nom de la boîte aux lettres pour filtrer ou None pour toutes.</dd>
+                    <dt>acl_path</dt>
+                    <dd><span class="param-type">(Optional[str])</span>: Chemin du fichier ACL ou None pour utiliser l'emplacement par défaut.</dd>
+                </dl>
+                <div class="return-info">
+                    <span class="font-medium">Retourne:</span><span class="return-type">List[Tuple[str, str, str, str]]</span> - Liste de (mailbox, identifier, rights, comment).
+                </div>
+            </section>
+
+            <section class="method-section">
+                <h4 class="method-title"><code>add_acl_entry(mailbox: str, identifier: str, rights: str, comment: str = "", acl_path: Optional[str] = None, backup: bool = True) -> bool</code></h4>
+                <p class="description">Ajoute une entrée ACL.</p>
+                <p class="sudo-warning">Nécessite des privilèges root.</p>
+                <dl class="param-list">
+                    <dt>mailbox</dt>
+                    <dd><span class="param-type">(str)</span>: Nom de la boîte aux lettres (ex: "Archives_FINANCE").</dd>
+                    <dt>identifier</dt>
+                    <dd><span class="param-type">(str)</span>: Identifiant (ex: "group=finance").</dd>
+                    <dt>rights</dt>
+                    <dd><span class="param-type">(str)</span>: Droits d'accès (ex: "lrwts").</dd>
+                    <dt>comment</dt>
+                    <dd><span class="param-type">(str)</span>: Commentaire optionnel. Défaut: "".</dd>
+                    <dt>acl_path</dt>
+                    <dd><span class="param-type">(Optional[str])</span>: Chemin du fichier ACL ou None pour utiliser l'emplacement par défaut.</dd>
+                    <dt>backup</dt>
+                    <dd><span class="param-type">(bool)</span>: Si True, crée une sauvegarde du fichier original. Défaut: True.</dd>
+                </dl>
+                <div class="return-info">
+                    <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si l'ajout réussit, False sinon.
+                </div>
+            </section>
+
+            <section class="method-section">
+                <h4 class="method-title"><code>update_acl_entry(mailbox: str, identifier: str, rights: str, comment: Optional[str] = None, acl_path: Optional[str] = None, backup: bool = True) -> bool</code></h4>
+                <p class="description">Met à jour une entrée ACL existante.</p>
+                <p class="sudo-warning">Nécessite des privilèges root.</p>
+                <dl class="param-list">
+                    <dt>mailbox</dt>
+                    <dd><span class="param-type">(str)</span>: Nom de la boîte aux lettres (ex: "Archives_FINANCE").</dd>
+                    <dt>identifier</dt>
+                    <dd><span class="param-type">(str)</span>: Identifiant (ex: "group=finance").</dd>
+                    <dt>rights</dt>
+                    <dd><span class="param-type">(str)</span>: Nouveaux droits d'accès.</dd>
+                    <dt>comment</dt>
+                    <dd><span class="param-type">(Optional[str])</span>: Nouveau commentaire ou None pour conserver l'existant.</dd>
+                    <dt>acl_path</dt>
+                    <dd><span class="param-type">(Optional[str])</span>: Chemin du fichier ACL ou None pour utiliser l'emplacement par défaut.</dd>
+                    <dt>backup</dt>
+                    <dd><span class="param-type">(bool)</span>: Si True, crée une sauvegarde du fichier original. Défaut: True.</dd>
+                </dl>
+                <div class="return-info">
+                    <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la mise à jour réussit, False sinon.
+                </div>
+            </section>
+
+            <section class="method-section">
+                <h4 class="method-title"><code>delete_acl_entry(mailbox: str, identifier: str, acl_path: Optional[str] = None, backup: bool = True) -> bool</code></h4>
+                <p class="description">Supprime une entrée ACL.</p>
+                <p class="sudo-warning">Nécessite des privilèges root.</p>
+                <dl class="param-list">
+                    <dt>mailbox</dt>
+                    <dd><span class="param-type">(str)</span>: Nom de la boîte aux lettres.</dd>
+                    <dt>identifier</dt>
+                    <dd><span class="param-type">(str)</span>: Identifiant.</dd>
+                    <dt>acl_path</dt>
+                    <dd><span class="param-type">(Optional[str])</span>: Chemin du fichier ACL ou None pour utiliser l'emplacement par défaut.</dd>
+                    <dt>backup</dt>
+                    <dd><span class="param-type">(bool)</span>: Si True, crée une sauvegarde du fichier original. Défaut: True.</dd>
+                </dl>
+                <div class="return-info">
+                    <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si la suppression réussit, False sinon.
+                </div>
+            </section>
+
+            <section class="method-section">
+                <h4 class="method-title"><code>enable_acl_plugin(backup: bool = True) -> bool</code></h4>
+                <p class="description">Active le plugin ACL.</p>
+                <p class="sudo-warning">Nécessite des privilèges root.</p>
+                <dl class="param-list">
+                    <dt>backup</dt>
+                    <dd><span class="param-type">(bool)</span>: Si True, crée une sauvegarde du fichier original. Défaut: True.</dd>
+                </dl>
+                <div class="return-info">
+                    <span class="font-medium">Retourne:</span><span class="return-type">bool</span> - True si l'activation réussit, False sinon.
+                </div>
+            </section>
+
+            <h2 class="section-title">Gestion des Quotas</h2>
+
+            <section class="method-section">
+                <h4 class="method-title"
+                    id="quota"><code>get_quota_rule(rule_name: str = 'quota_rule', default: Any = None) -> Any</code></h4>
+                <p class="description">Récupère une règle de quota.</p>
+                <dl class="param-list">
+                    <dt>rule_name</dt>
+                    <dd><span class="param-type">(str)</span>: Nom de la règle ('quota_rule', 'quota_rule2', etc.).</dd>
+                    <dt>default</dt>
+                    <dd><span class="param-type">(Any)</span>: Valeur par défaut si la règle n'existe pas.</dd>
+                </dl>
+                <div class="return-info">
+                    <span class="font-medium">Retourne:</span><span class="return-type">Any</span> - Valeur de la règle ou valeur par défaut.
+                </div>
+            </section>
+
+            <section class="method-section">
+                <h4 class="method-title"><code>set_quota_rule(rule_value: str, rule_name: str = 'quota_rule', backup: bool = True) -> bool</code></h4>
+                <p class="description">Définit une règle de quota.</p>
+                <p class="sudo-warning">Nécessite des privilèges root.</p>
+                <dl class="param-list">
+                    <dt>rule_value</dt>
+                    <dd><span class="param-type">(str)</span>: Valeur de la règle (ex: '*:storage=1G').</dd>
+                    <dt>rule_name</dt>
+                    <dd><span class="param-type">(str)</span>: Nom de la règle ('quota_rule', 'quota_rule2', etc.).</dd>
+                    <dt>backup</dt>
+                    <dd><span class="param-type">(bool)</span>: Si True, crée une sauvegarde du fichier original. Défaut: True.</dd>
+                </dl>

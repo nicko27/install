@@ -33,7 +33,7 @@ class Plugin:
             log.debug(f"Début de l'exécution du plugin add_printer")
             metierCmd = metier.MetierCommands(log,target_ip,config)
             printerCmd = printers.PrinterCommands(log,target_ip)
-            utilsCmd = utils_cmd.UtilsCmd(log,target_ip)
+            utilsCmd = utils_cmd.UtilsCommands(log,target_ip)
             # Vérifier si nous sommes en mode SSH depuis la configuration
             is_good_sms=metierCmd.is_good_sms()
             is_good_lrpgn=metierCmd.is_good_lrpgn()
@@ -214,28 +214,28 @@ class Plugin:
                         log.info(f"Installation de {name}")
                         options=utilsCmd.merge_dictionaries(ocommun,orecto,oa3,ocouleurs)
                         returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
-                        
+
                 # Résultat final
                 if returnValue:
-                    success_msg = "Ajout de l'imprimante effectué avec succès"
-                    log.success(success_msg)
-                    return True, success_msg
+                    output_msg = "Ajout de l'imprimante effectué avec succès"
                 else:
-                    error_msg = "Erreur lors de l'ajout de l'imprimante"
-                    log.error(error_msg)
-                    return False, error_msg
+                    output_msg = "Erreur lors de l'ajout de l'imprimante"
             else:
-                success_msg = "Ordinateur non concerné"
-                log.success(success_msg)
-                return True, success_msg                
+                output_msg = "Ordinateur non concerné"
 
         except Exception as e:
-            error_msg = f"Erreur inattendue: {str(e)}"
-            log.error(error_msg)
+            output_msg = f"Erreur inattendue: {str(e)}"
             log.debug(traceback.format_exc())
-            return False, error_msg
+        finally:
+            if returnValue:
+                log.success(output_msg)
+            else:
+                log.error(output_msg)
+            return returnValue
 
 if __name__ == "__main__":
     plugin=Plugin()
     m=main.Main(plugin)
-    m.start()
+    resultat=m.start()
+    returnValue=1-resultat
+    sys.exit(returnValue)

@@ -1,9 +1,8 @@
-# install/plugins/plugins_utils/config_files.py
 #!/usr/bin/env python3
 """
 Module utilitaire pour lire et écrire différents formats de fichiers de configuration
-(INI, JSON) et manipuler des fichiers texte ligne par ligne.
-La prise en charge de YAML a été supprimée car ruamel.yaml n'est pas disponible.
+(INI, JSON, fichiers à blocs) et manipuler des fichiers texte ligne par ligne.
+Utilise principalement les fonctionnalités natives de Python.
 """
 
 from plugins_utils.plugins_utils_base import PluginsUtilsBase
@@ -13,128 +12,272 @@ import json
 import configparser
 import tempfile
 import shutil
-import shlex # Pour échapper les arguments de commande
-import time # Ajout de l'import time manquant pour _backup_file
+import io
+import stat
+import time
 from pathlib import Path
 from typing import Union, Optional, List, Dict, Any, Tuple, Generator
 
-# ruamel.yaml n'est pas disponible
-RUAMEL_YAML_AVAILABLE = False
-
 class ConfigFileCommands(PluginsUtilsBase):
     """
-    Classe pour lire et écrire des fichiers de configuration (INI, JSON)
+    Classe pour lire et écrire des fichiers de configuration (INI, JSON, blocs)
     et manipuler des fichiers texte.
-    Hérite de PluginUtilsBase pour l'exécution de commandes (pour les backups/perms).
+    Hérite de PluginUtilsBase pour la journalisation.
     """
 
     def __init__(self, logger=None, target_ip=None):
         """Initialise le gestionnaire de fichiers de configuration."""
         super().__init__(logger, target_ip)
-        # Pas d'initialisation YAML ici
+        self._sudo_mode = False  # Mode sudo par défaut (sera détecté à la demande)
 
-    def _backup_file(self, path: Union[str, Path]) -> Optional[str]:
-        """Crée une sauvegarde d'un fichier."""
+    def _check_sudo_required(self, path: Union[str, Path]) -> bool:
+        """
+        Vérifie si les privilèges sudo sont nécessaires pour accéder à un fichier.
+
+        Args:
+            path: Chemin du fichier à vérifier
+
+        Returns:
+            bool: True si sudo est nécessaire, False sinon
+        """
         file_path = Path(path)
-        if not file_path.exists():
-            # Utiliser self.run pour vérifier l'existence, car os.path peut échouer avec sudo
-            success_test, _, _ = self.run(['test', '-e', str(file_path)], check=False, no_output=True, error_as_warning=True, needs_sudo=True)
-            if not success_test:
-                 self.log_debug(f"Fichier {file_path} non trouvé (vérifié via test -e), pas de sauvegarde nécessaire.")
-                 return None
-            # Si test -e réussit mais exists() échoue, il y a un problème de permission potentiel
-            # On continue quand même la tentative de sauvegarde
 
-        backup_path = file_path.with_suffix(f"{file_path.suffix}.bak_{int(time.time())}")
+        # Si le fichier n'existe pas, vérifier les permissions du répertoire parent
+        if not file_path.exists():
+            parent_dir = file_path.parent
+            # Vérifier si le répertoire parent existe
+            if not parent_dir.exists():
+                return True  # Probablement besoin de sudo pour créer des répertoires système
+
+            # Vérifier si on peut écrire dans le répertoire parent
+            if not os.access(parent_dir, os.W_OK):
+                return True
+            return False
+
+        # Vérifier les permissions de lecture/écriture sur le fichier existant
+        return not (os.access(file_path, os.R_OK) and os.access(file_path, os.W_OK))
+
+    def _read_file_content(self, path: Union[str, Path]) -> Optional[str]:
+        """
+        Lit le contenu d'un fichier, avec gestion sudo si nécessaire.
+
+        Args:
+            path: Chemin du fichier à lire
+
+        Returns:
+            Optional[str]: Contenu du fichier ou None en cas d'erreur
+        """
+        file_path = Path(path)
+        self.log_debug(f"Lecture du fichier: {file_path}")
+
+        # Essayer d'abord avec les droits standards
         try:
-            # Utiliser cp -a pour préserver les métadonnées et gérer sudo
-            cmd_cp = ['cp', '-a', str(file_path), str(backup_path)]
-            success, _, stderr = self.run(cmd_cp, check=False, needs_sudo=True)
-            if not success:
-                 self.log_warning(f"Échec de la création de la sauvegarde {backup_path}. Stderr: {stderr}")
-                 return None
-            self.log_debug(f"Sauvegarde créée: {backup_path}")
-            return str(backup_path)
-        except Exception as e:
-            self.log_error(f"Erreur lors de la création de la sauvegarde pour {file_path}: {e}", exc_info=True)
+            if file_path.exists() and os.access(file_path, os.R_OK):
+                return file_path.read_text(encoding='utf-8')
+        except (PermissionError, OSError) as e:
+            self.log_debug(f"Lecture standard échouée pour {file_path}: {e}")
+
+        # Si on arrive ici, il faut utiliser sudo
+        self._sudo_mode = True
+        success_read, content, stderr_read = self.run(['cat', str(file_path)],
+                                                     check=False, needs_sudo=True,
+                                                     no_output=True, error_as_warning=True)
+
+        if not success_read:
+            if "No such file" in stderr_read or "no such file" in stderr_read.lower():
+                self.log_debug(f"Fichier introuvable: {file_path}")
+            else:
+                self.log_error(f"Impossible de lire le fichier {file_path}. Stderr: {stderr_read}")
             return None
 
-    def _write_file_content(self, path: Union[str, Path], content: str, backup: bool) -> bool:
-        """Écrit du contenu dans un fichier, avec sauvegarde optionnelle et gestion sudo."""
+        return content
+
+    def _get_file_stats(self, path: Union[str, Path]) -> Optional[Dict[str, int]]:
+        """
+        Obtient les statistiques d'un fichier (uid, gid, mode), avec gestion sudo si nécessaire.
+
+        Args:
+            path: Chemin du fichier
+
+        Returns:
+            Optional[Dict[str, int]]: Dictionnaire avec uid, gid, mode ou None en cas d'erreur
+        """
+        file_path = Path(path)
+
+        # Essayer d'abord avec les droits standards
+        try:
+            if file_path.exists():
+                file_stat = file_path.stat()
+                return {
+                    'uid': file_stat.st_uid,
+                    'gid': file_stat.st_gid,
+                    'mode': stat.S_IMODE(file_stat.st_mode)
+                }
+        except (PermissionError, OSError) as e:
+            self.log_debug(f"Impossible d'obtenir les stats standard pour {file_path}: {e}")
+
+        # Si on arrive ici, il faut utiliser sudo
+        self._sudo_mode = True
+        cmd_stat = ['stat', '-c', '%u:%g:%a', str(file_path)]
+        stat_success, stat_stdout, _ = self.run(cmd_stat, check=False, no_output=True,
+                                               error_as_warning=True, needs_sudo=True)
+
+        if stat_success and stat_stdout.strip():
+            try:
+                uid, gid, mode_octal = stat_stdout.strip().split(':')
+                return {
+                    'uid': int(uid),
+                    'gid': int(gid),
+                    'mode': int(mode_octal, 8)  # Convertir le mode octal en entier
+                }
+            except (ValueError, IndexError) as e:
+                self.log_warning(f"Erreur lors du traitement des stats pour {file_path}: {e}")
+
+        return None
+
+    def _backup_file(self, path: Union[str, Path]) -> Optional[str]:
+        """
+        Crée une sauvegarde d'un fichier, avec gestion sudo si nécessaire.
+
+        Args:
+            path: Chemin du fichier à sauvegarder
+
+        Returns:
+            Optional[str]: Chemin de la sauvegarde ou None en cas d'erreur
+        """
+        file_path = Path(path)
+
+        # Si le fichier n'existe pas, pas besoin de sauvegarde
+        if not file_path.exists():
+            # Double vérification avec sudo si nécessaire
+            if self._sudo_mode:
+                success_test, _, _ = self.run(['test', '-e', str(file_path)],
+                                             check=False, no_output=True,
+                                             error_as_warning=True, needs_sudo=True)
+                if not success_test:
+                    self.log_debug(f"Fichier {file_path} non trouvé, pas de sauvegarde nécessaire.")
+                    return None
+            else:
+                self.log_debug(f"Fichier {file_path} non trouvé, pas de sauvegarde nécessaire.")
+                return None
+
+        backup_path = file_path.with_suffix(f"{file_path.suffix}.bak_{int(time.time())}")
+
+        # Essayer d'abord avec les droits standards
+        try:
+            if not self._sudo_mode:
+                shutil.copy2(file_path, backup_path)
+                self.log_debug(f"Sauvegarde créée: {backup_path}")
+                return str(backup_path)
+        except (PermissionError, OSError) as e:
+            self.log_debug(f"Sauvegarde standard échouée pour {file_path}: {e}")
+            self._sudo_mode = True
+
+        # Si on arrive ici, il faut utiliser sudo
+        cmd_cp = ['cp', '-a', str(file_path), str(backup_path)]
+        success, _, stderr = self.run(cmd_cp, check=False, needs_sudo=True)
+
+        if not success:
+            self.log_warning(f"Échec de la création de la sauvegarde {backup_path}. Stderr: {stderr}")
+            return None
+
+        self.log_debug(f"Sauvegarde créée avec sudo: {backup_path}")
+        return str(backup_path)
+
+    def _apply_file_permissions(self, path: Union[str, Path], stats: Dict[str, int]) -> bool:
+        """
+        Applique les permissions et propriétaires à un fichier, avec gestion sudo si nécessaire.
+
+        Args:
+            path: Chemin du fichier
+            stats: Dictionnaire avec uid, gid, mode
+
+        Returns:
+            bool: True si l'opération réussit, False sinon
+        """
+        file_path = Path(path)
+
+        # Essayer d'abord avec les droits standards
+        try:
+            if not self._sudo_mode:
+                file_path.chmod(stats['mode'])
+                os.chown(file_path, stats['uid'], stats['gid'])
+                return True
+        except (PermissionError, OSError) as e:
+            self.log_debug(f"Application des permissions standard échouée pour {file_path}: {e}")
+            self._sudo_mode = True
+
+        # Si on arrive ici, il faut utiliser sudo
+        success_chmod = self.run(['chmod', f"{stats['mode']:o}", str(file_path)],
+                                needs_sudo=True, check=False, no_output=True)[0]
+        success_chown = self.run(['chown', f"{stats['uid']}:{stats['gid']}", str(file_path)],
+                                needs_sudo=True, check=False, no_output=True)[0]
+
+        return success_chmod and success_chown
+
+    def _write_file_content(self, path: Union[str, Path], content: str, backup: bool = True) -> bool:
+        """
+        Écrit du contenu dans un fichier, avec sauvegarde optionnelle et gestion sudo.
+
+        Args:
+            path: Chemin du fichier
+            content: Contenu à écrire
+            backup: Si True, crée une sauvegarde du fichier original
+
+        Returns:
+            bool: True si l'écriture réussit, False sinon
+        """
         file_path = Path(path)
         self.log_debug(f"Écriture dans le fichier: {file_path}")
 
-        backup_file = None
-        original_stat: Optional[str] = None # Modifié pour stocker la chaîne UID:GID:Mode
-        # Tenter de lire les stats avant sauvegarde/écriture pour restaurer perms/owner
-        try:
-            # Utiliser stat via self.run pour gérer sudo si nécessaire
-            cmd_stat = ['stat', '-c', '%u:%g:%a', str(file_path)] # Format UID:GID:OctalPerms
-            stat_success, stat_stdout, _ = self.run(cmd_stat, check=False, no_output=True, error_as_warning=True, needs_sudo=True) # error_as_warning pour ignorer "No such file"
-            if stat_success and stat_stdout.strip():
-                 original_stat = stat_stdout.strip() # Ex: "1000:1000:644"
-                 self.log_debug(f"Statistiques originales de {file_path}: {original_stat}")
-            elif file_path.exists(): # Si le fichier existe mais stat échoue (permissions?)
-                self.log_warning(f"Impossible de lire les statistiques originales de {file_path} (commande stat échouée).")
+        # Vérifier si sudo est nécessaire
+        self._sudo_mode = self._check_sudo_required(file_path)
 
-        except Exception as e_stat_read:
-             self.log_warning(f"Impossible de lire les statistiques originales de {file_path}: {e_stat_read}")
+        # Obtenir les stats originales (pour restauration après écriture)
+        original_stats = None
+        if file_path.exists():
+            original_stats = self._get_file_stats(file_path)
 
-
+        # Créer une sauvegarde si demandé
         if backup:
             backup_file = self._backup_file(file_path)
+
             # Si la sauvegarde réussit et qu'on n'avait pas les stats, les prendre de la sauvegarde
-            if backup_file and not original_stat:
-                 try:
-                      cmd_stat_bak = ['stat', '-c', '%u:%g:%a', backup_file]
-                      stat_success_bak, stat_stdout_bak, _ = self.run(cmd_stat_bak, check=False, no_output=True, needs_sudo=True)
-                      if stat_success_bak and stat_stdout_bak.strip():
-                           original_stat = stat_stdout_bak.strip()
-                           self.log_debug(f"Statistiques originales récupérées de la sauvegarde {backup_file}: {original_stat}")
-                 except Exception as e_stat_bak:
-                      self.log_warning(f"Impossible de lire les statistiques de la sauvegarde {backup_file}: {e_stat_bak}")
+            if backup_file and not original_stats:
+                original_stats = self._get_file_stats(backup_file)
 
-
-        # Écrire dans un fichier temporaire d'abord
-        tmp_file_path: Optional[Path] = None
+        # Utiliser un fichier temporaire pour l'écriture
+        tmp_file_path = None
         try:
-            # Créer un fichier temporaire sécurisé
             fd, tmp_file = tempfile.mkstemp(suffix=".tmp", text=True)
-            os.close(fd) # Fermer le descripteur immédiatement
+            os.close(fd)  # Fermer le descripteur immédiatement
             tmp_file_path = Path(tmp_file)
+
+            # Écrire le contenu dans le fichier temporaire
             tmp_file_path.write_text(content, encoding='utf-8')
             self.log_debug(f"Contenu écrit dans le fichier temporaire: {tmp_file_path}")
 
-            # Déplacer le fichier temporaire vers la destination finale avec sudo
-            # Utiliser `cp` puis `chmod/chown` pour mieux gérer les permissions/propriétaires
-            cmd_cp = ['cp', str(tmp_file_path), str(file_path)]
-            success_cp, _, stderr_cp = self.run(cmd_cp, check=False, needs_sudo=True)
-            if not success_cp:
-                 self.log_error(f"Échec de la copie vers {file_path}. Stderr: {stderr_cp}")
-                 # Ne supprime pas le fichier temporaire ici pour investigation potentielle
-                 return False # Ne pas continuer si la copie échoue
-
-            # Tenter de restaurer propriétaire/groupe/permissions si on a les infos
-            if original_stat:
-                 try:
-                      uid, gid, mode_octal = original_stat.split(':')
-                      # Vérifier si mode_octal est valide avant de l'utiliser
-                      if re.match(r'^[0-7]{3,4}$', mode_octal):
-                            self.run(['chown', f"{uid}:{gid}", str(file_path)], needs_sudo=True, check=False)
-                            self.run(['chmod', mode_octal, str(file_path)], needs_sudo=True, check=False)
-                            self.log_debug(f"Permissions/propriétaire restaurés sur {file_path} vers {original_stat}")
-                      else:
-                          self.log_warning(f"Mode octal invalide '{mode_octal}' obtenu de stat, utilisation de 644 par défaut.")
-                          self.run(['chown', f"{uid}:{gid}", str(file_path)], needs_sudo=True, check=False)
-                          self.run(['chmod', '644', str(file_path)], needs_sudo=True, check=False)
-                 except Exception as e_restore:
-                      self.log_warning(f"Impossible de restaurer les permissions/propriétaire originaux ({original_stat}): {e_restore}")
-                      # Appliquer des permissions par défaut si la restauration échoue
-                      self.run(['chmod', '644', str(file_path)], needs_sudo=True, check=False)
+            # Déplacer le fichier temporaire vers la destination finale
+            if self._sudo_mode:
+                # Utiliser une commande avec sudo
+                cmd_cp = ['cp', str(tmp_file_path), str(file_path)]
+                success_cp, _, stderr_cp = self.run(cmd_cp, check=False, needs_sudo=True)
+                if not success_cp:
+                    self.log_error(f"Échec de la copie vers {file_path}. Stderr: {stderr_cp}")
+                    return False
             else:
-                 # Définir des permissions par défaut raisonnables (ex: 644) si aucune info originale
-                 self.log_debug(f"Aucune information originale sur les permissions/propriétaire trouvée, application de 644 par défaut.")
-                 self.run(['chmod', '644', str(file_path)], needs_sudo=True, check=False)
+                # Utiliser les fonctions Python standard
+                shutil.copy2(tmp_file_path, file_path)
+
+            # Restaurer les permissions et propriétaires originaux
+            if original_stats:
+                success_perm = self._apply_file_permissions(file_path, original_stats)
+                if not success_perm:
+                    self.log_warning(f"Impossible de restaurer les permissions originales pour {file_path}")
+            else:
+                # Appliquer des permissions par défaut si aucune info originale
+                default_stats = {'uid': os.getuid(), 'gid': os.getgid(), 'mode': 0o644}
+                self._apply_file_permissions(file_path, default_stats)
 
             self.log_success(f"Fichier {file_path} écrit/mis à jour avec succès.")
             return True
@@ -142,25 +285,39 @@ class ConfigFileCommands(PluginsUtilsBase):
         except Exception as e:
             self.log_error(f"Erreur lors de l'écriture dans {file_path}: {e}", exc_info=True)
             return False
+
         finally:
             # Nettoyer le fichier temporaire
             if tmp_file_path and tmp_file_path.exists():
-                try: tmp_file_path.unlink()
+                try:
+                    tmp_file_path.unlink()
                 except Exception as e_unlink:
-                     self.log_warning(f"Impossible de supprimer le fichier temporaire {tmp_file_path}: {e_unlink}")
+                    self.log_warning(f"Impossible de supprimer le fichier temporaire {tmp_file_path}: {e_unlink}")
 
     # --- Méthodes INI ---
+
     def _manual_ini_parse(self, content: str) -> Dict[str, Dict[str, str]]:
-        """Parse manuellement un fichier INI simple ligne par ligne."""
+        """
+        Parse manuellement un fichier INI simple ligne par ligne.
+
+        Args:
+            content: Contenu du fichier INI
+
+        Returns:
+            Dict[str, Dict[str, str]]: Structure INI parsée
+        """
         self.log_debug("Tentative de parsing INI manuel simplifié.")
-        data = {'DEFAULT': {}} # Utiliser une section DEFAULT par défaut
+        data = {'DEFAULT': {}}  # Utiliser une section DEFAULT par défaut
         current_section = 'DEFAULT'
+
         for line in content.splitlines():
             line_strip = line.strip()
+
             # Ignorer commentaires et lignes vides
             if not line_strip or line_strip.startswith('#') or line_strip.startswith(';'):
                 continue
-            # Détecter les sections (simpliste)
+
+            # Détecter les sections
             if line_strip.startswith('[') and line_strip.endswith(']'):
                 section_name = line_strip[1:-1].strip()
                 if section_name:
@@ -168,164 +325,210 @@ class ConfigFileCommands(PluginsUtilsBase):
                     if current_section not in data:
                         data[current_section] = {}
                 continue
+
             # Chercher le premier '=' comme délimiteur clé/valeur
             if '=' in line_strip:
                 key, value = line_strip.split('=', 1)
                 key = key.strip()
                 value = value.strip()
-                # Optionnel : supprimer les guillemets autour de la valeur
+
+                # Supprimer les guillemets autour de la valeur
                 if (value.startswith('"') and value.endswith('"')) or \
                    (value.startswith("'") and value.endswith("'")):
                     value = value[1:-1]
-                if key: # Ignorer si clé vide
+
+                if key:  # Ignorer si clé vide
                     data[current_section][key] = value
-            # Ignorer les lignes qui ne sont ni section ni clé=valeur
-            # else:
-            #    self.log_warning(f"Ligne ignorée lors du parsing manuel : '{line_strip}'")
+
         # Supprimer la section DEFAULT si elle est vide et qu'il y a d'autres sections
         if 'DEFAULT' in data and not data['DEFAULT'] and len(data) > 1:
             del data['DEFAULT']
+
         return data
 
-
     def read_ini_file(self, path: Union[str, Path]) -> Optional[Dict[str, Dict[str, str]]]:
-        """Lit un fichier INI et le retourne sous forme de dictionnaire imbriqué.
-           Gère les fichiers sans section d'en-tête via [DEFAULT].
-           Tente un parsing manuel si configparser échoue silencieusement.
+        """
+        Lit un fichier INI et le retourne sous forme de dictionnaire imbriqué.
+        Gère les fichiers sans section d'en-tête via [DEFAULT].
+        Tente un parsing manuel si configparser échoue silencieusement.
+
+        Args:
+            path: Chemin du fichier INI
+
+        Returns:
+            Optional[Dict[str, Dict[str, str]]]: Structure INI parsée ou None en cas d'erreur
         """
         file_path = Path(path)
         self.log_debug(f"Lecture du fichier INI: {file_path}")
-        # Lire le contenu du fichier (peut nécessiter sudo)
-        success_read, content, stderr_read = self.run(['cat', str(file_path)], check=False, needs_sudo=False, no_output=True, error_as_warning=True)
-        if not success_read:
-             if "no such file" in stderr_read.lower():
-                  self.log_error(f"Fichier INI introuvable: {file_path}")
-             else:
-                  self.log_error(f"Impossible de lire le fichier INI {file_path}. Stderr: {stderr_read}")
-             return None
+
+        # Lire le contenu du fichier
+        content = self._read_file_content(file_path)
+        if content is None:
+            return None
 
         # 1. Essayer avec configparser (non strict)
         config = configparser.ConfigParser(interpolation=None, strict=False)
-        config_dict: Optional[Dict[str, Dict[str, str]]] = None
-        processed_content = content # Garder une copie pour le parsing manuel
+        config_dict = None
+        processed_content = content  # Garder une copie pour le parsing manuel
+
         try:
+            # Vérifier s'il faut ajouter une section DEFAULT
             needs_default_section = True
             has_content = False
+
             for line in content.splitlines():
                 line_strip = line.strip()
-                if not line_strip or line_strip.startswith('#') or line_strip.startswith(';'): continue
+                if not line_strip or line_strip.startswith('#') or line_strip.startswith(';'):
+                    continue
+
                 has_content = True
-                if line_strip.startswith('['): needs_default_section = False; break
+                if line_strip.startswith('['):
+                    needs_default_section = False
+                    break
 
             if has_content and needs_default_section:
-                self.log_debug(f"Aucune section détectée via configparser, ajout de [DEFAULT].")
+                self.log_debug("Aucune section détectée via configparser, ajout de [DEFAULT].")
                 processed_content = "[DEFAULT]\n" + content
 
+            # Utiliser un StringIO pour éviter les problèmes de fichiers
             config.read_string(processed_content)
+
             # Convertir en dictionnaire standard
             parsed_dict = {section: dict(config.items(section)) for section in config.sections()}
 
+            # Ajouter la section DEFAULT si elle existe et contient des données
+            if config.defaults():
+                parsed_dict['DEFAULT'] = dict(config.defaults())
+
             # Vérifier si le parsing a réussi mais retourné un dict vide alors qu'il y avait du contenu
-            if has_content and not parsed_dict:
-                self.log_warning(f"Configparser a retourné un résultat vide pour {file_path} malgré du contenu. Tentative de parsing manuel.")
-                # Passer au parsing manuel
+            if has_content and not parsed_dict and not config.defaults():
+                self.log_debug("Configparser a retourné un résultat vide malgré du contenu. Tentative de parsing manuel.")
             else:
-                config_dict = parsed_dict # Le parsing a fonctionné (même si vide pour fichier vide)
+                config_dict = parsed_dict  # Le parsing a fonctionné
 
         except configparser.Error as e:
             # Erreur de parsing explicite, tenter le parsing manuel
-            self.log_warning(f"Erreur de parsing INI standard dans {file_path}: {e}. Tentative de parsing manuel.")
+            self.log_warning(f"Erreur de parsing INI standard: {e}. Tentative de parsing manuel.")
         except Exception as e:
             # Autre erreur inattendue, tenter le parsing manuel
-            self.log_warning(f"Erreur inattendue lors du parsing INI standard pour {file_path}: {e}. Tentative de parsing manuel.")
+            self.log_warning(f"Erreur inattendue lors du parsing INI standard: {e}. Tentative de parsing manuel.")
 
         # 2. Essayer le parsing manuel si configparser a échoué ou retourné vide pour un fichier non vide
         if config_dict is None or (has_content and not config_dict):
             try:
-                config_dict = self._manual_ini_parse(content) # Utiliser le contenu original
-                if not config_dict or ('DEFAULT' in config_dict and not config_dict['DEFAULT'] and len(config_dict)==1): # Vérifier si le parsing manuel a aussi échoué
-                     # Retourner vide dans ce cas plutôt que None, car le fichier existe et a été lu
-                     config_dict = {}
+                config_dict = self._manual_ini_parse(content)  # Utiliser le contenu original
+
+                if not config_dict or ('DEFAULT' in config_dict and not config_dict['DEFAULT'] and len(config_dict) == 1):
+                    # Si le parsing manuel a aussi échoué, retourner un dict vide
+                    config_dict = {}
                 else:
-                     self.log_debug(f"Parsing INI réussi via la méthode manuelle pour {file_path}.")
+                    self.log_debug("Parsing INI réussi via la méthode manuelle.")
 
             except Exception as manual_e:
-                self.log_error(f"Le parsing manuel a également échoué pour {file_path}: {manual_e}", exc_info=True)
-                return None # Échec des deux méthodes
+                self.log_error(f"Le parsing manuel a également échoué: {manual_e}", exc_info=True)
+                return None  # Échec des deux méthodes
 
         self.log_debug(f"Contenu INI final lu: {config_dict}")
-        return config_dict if config_dict is not None else {} # Retourner {} si fichier vide ou parsing échoué mais fichier lu
+        return config_dict if config_dict is not None else {}
 
     def get_ini_value(self, path: Union[str, Path], section: str, key: str, default: Optional[str] = None) -> Optional[str]:
-        """Récupère une valeur spécifique d'un fichier INI."""
+        """
+        Récupère une valeur spécifique d'un fichier INI.
+
+        Args:
+            path: Chemin du fichier INI
+            section: Nom de la section
+            key: Nom de la clé
+            default: Valeur par défaut si la clé n'existe pas
+
+        Returns:
+            Optional[str]: Valeur de la clé ou valeur par défaut
+        """
         config_dict = self.read_ini_file(path)
         if config_dict is None:
-            # Si la lecture échoue mais que le fichier n'existe pas, retourner default
-             # Utiliser self.run car Path().exists() peut échouer avec sudo
-             success_test, _, _ = self.run(['test', '-e', str(path)], check=False, no_output=True, error_as_warning=True, needs_sudo=True)
-             if not success_test:
-                  return default
-             return None # Erreur de lecture/parsing
+            # Vérifier si le fichier n'existe pas
+            file_path = Path(path)
+            if not file_path.exists():
+                return default
+            return None  # Erreur de lecture/parsing
+
         # Si la section DEFAULT a été ajoutée implicitement, la vérifier aussi
         value = config_dict.get(section, {}).get(key)
         if value is None and section != 'DEFAULT':
-             value = config_dict.get('DEFAULT', {}).get(key)
+            value = config_dict.get('DEFAULT', {}).get(key)
 
         return value if value is not None else default
 
     def set_ini_value(self, path: Union[str, Path], section: str, key: str, value: Optional[str],
-                      create_section: bool = True, backup: bool = True) -> bool:
-        """Définit ou supprime une valeur dans un fichier INI."""
+                     create_section: bool = True, backup: bool = True) -> bool:
+        """
+        Définit ou supprime une valeur dans un fichier INI.
+
+        Args:
+            path: Chemin du fichier INI
+            section: Nom de la section
+            key: Nom de la clé
+            value: Nouvelle valeur ou None pour supprimer la clé
+            create_section: Si True, crée la section si elle n'existe pas
+            backup: Si True, crée une sauvegarde du fichier original
+
+        Returns:
+            bool: True si la modification réussit, False sinon
+        """
         file_path = Path(path)
         action = "Suppression de" if value is None else "Définition de"
         self.log_debug(f"{action} la clé INI '{key}' dans la section '[{section}]' du fichier: {file_path}")
-        if value is not None: self.log_debug(f"  Nouvelle valeur: '{value}'")
+        if value is not None:
+            self.log_debug(f"  Nouvelle valeur: '{value}'")
 
+        # Utiliser un ConfigParser pour préserver la structure et les commentaires
         config = configparser.ConfigParser(interpolation=None)
-        # Lire le contenu existant (si possible), en gérant l'absence de section
+
+        # Lire le contenu existant
         current_content = ""
-        read_success = False
-        if file_path.exists(): # Utiliser exists() ici, la lecture avec cat gérera sudo
-             read_success, content_read, stderr_read = self.run(['cat', str(file_path)], check=False, needs_sudo=True, no_output=True, error_as_warning=True)
-             if read_success:
-                  current_content = content_read
-             elif "no such file" not in stderr_read.lower():
-                  self.log_warning(f"Impossible de lire le contenu existant de {file_path} avant modification. Stderr: {stderr_read}")
-                  # Continuer avec un parser vide, le fichier sera écrasé
+        if file_path.exists():
+            content_read = self._read_file_content(file_path)
+            if content_read:
+                current_content = content_read
 
         # Prétraitement pour ajouter [DEFAULT] si nécessaire
         original_needs_default = False
         processed_content = current_content
-        if read_success and current_content:
+
+        if current_content:
             needs_default_section = True
             has_content = False
+
             for line in current_content.splitlines():
                 line_strip = line.strip()
-                if not line_strip or line_strip.startswith('#') or line_strip.startswith(';'): continue
+                if not line_strip or line_strip.startswith('#') or line_strip.startswith(';'):
+                    continue
+
                 has_content = True
-                if line_strip.startswith('['): needs_default_section = False; break
+                if line_strip.startswith('['):
+                    needs_default_section = False
+                    break
+
             if has_content and needs_default_section:
                 processed_content = "[DEFAULT]\n" + current_content
                 original_needs_default = True
 
         try:
-            config.read_string(processed_content)
-        except configparser.Error as e:
-            self.log_warning(f"Erreur de parsing INI lors de la lecture de {file_path}: {e}. Le contenu existant sera perdu si l'écriture réussit.")
-            config = configparser.ConfigParser(interpolation=None) # Réinitialiser
+            # Lire le contenu existant
+            if processed_content:
+                config.read_string(processed_content)
 
-        # Vérifier/Créer la section (utiliser la section demandée, même si c'était sous [DEFAULT])
-        target_section = section if section else 'DEFAULT' # Utiliser DEFAULT si section est vide/None
-        if not config.has_section(target_section):
-            if create_section:
-                self.log_debug(f"Création de la section INI: [{target_section}]")
-                config.add_section(target_section)
-            else:
-                self.log_error(f"La section INI '[{target_section}]' n'existe pas et create_section=False.")
-                return False
+            # Vérifier/Créer la section
+            target_section = section if section else 'DEFAULT'
+            if not config.has_section(target_section) and target_section != 'DEFAULT':
+                if create_section:
+                    self.log_debug(f"Création de la section INI: [{target_section}]")
+                    config.add_section(target_section)
+                else:
+                    self.log_error(f"La section INI '[{target_section}]' n'existe pas et create_section=False.")
+                    return False
 
-        # Définir ou supprimer la valeur
-        try:
+            # Définir ou supprimer la valeur
             if value is None:
                 if config.has_option(target_section, key):
                     config.remove_option(target_section, key)
@@ -333,55 +536,52 @@ class ConfigFileCommands(PluginsUtilsBase):
                 else:
                     self.log_debug(f"Clé '{key}' n'existait pas dans la section '[{target_section}]'.")
             else:
-                config.set(target_section, key, str(value)) # Assurer que la valeur est une chaîne
+                config.set(target_section, key, str(value))  # Assurer que la valeur est une chaîne
                 self.log_debug(f"Clé '{key}' définie à '{value}' dans la section '[{target_section}]'.")
-        except Exception as e:
-             self.log_error(f"Erreur lors de la modification de la configuration INI en mémoire: {e}")
-             return False
 
-        # Écrire le contenu modifié dans une chaîne
-        try:
-            from io import StringIO
-            string_io = StringIO()
+            # Écrire le contenu modifié dans une chaîne
+            string_io = io.StringIO()
             config.write(string_io)
             new_content = string_io.getvalue()
 
             # Si l'original n'avait pas de section, et qu'on a écrit seulement dans [DEFAULT],
             # on retire l'en-tête [DEFAULT] du contenu final.
-            if original_needs_default and config.sections() == ['DEFAULT']:
-                 lines = new_content.splitlines()
-                 if lines[0].strip() == '[DEFAULT]':
-                      new_content = "\n".join(lines[1:])
-                      self.log_debug("En-tête [DEFAULT] retiré avant l'écriture car fichier original sans section.")
+            if original_needs_default and not config.sections():
+                lines = new_content.splitlines()
+                if lines and lines[0].strip() == '[DEFAULT]':
+                    new_content = "\n".join(lines[1:])
+                    self.log_debug("En-tête [DEFAULT] retiré avant l'écriture car fichier original sans section.")
+
+            # Écrire le fichier final
+            return self._write_file_content(file_path, new_content, backup=backup)
 
         except Exception as e:
-             self.log_error(f"Erreur lors de la génération du contenu INI: {e}")
-             return False
-
-        # Écrire le fichier final
-        return self._write_file_content(file_path, new_content, backup=backup)
-
-    # --- Méthodes YAML (Supprimées car ruamel.yaml n'est pas disponible) ---
-    # def read_yaml_file(...): pass
-    # def write_yaml_file(...): pass
+            self.log_error(f"Erreur lors de la modification de la configuration INI: {e}", exc_info=True)
+            return False
 
     # --- Méthodes JSON ---
 
     def read_json_file(self, path: Union[str, Path]) -> Optional[Any]:
-        """Lit un fichier JSON et le retourne comme objet Python."""
+        """
+        Lit un fichier JSON et le retourne comme objet Python.
+
+        Args:
+            path: Chemin du fichier JSON
+
+        Returns:
+            Optional[Any]: Contenu JSON parsé ou None en cas d'erreur
+        """
         file_path = Path(path)
         self.log_debug(f"Lecture du fichier JSON: {file_path}")
-        # Lire le contenu (peut nécessiter sudo)
-        success_read, content, stderr_read = self.run(['cat', str(file_path)], check=False, needs_sudo=True, no_output=True, error_as_warning=True) # error_as_warning
-        if not success_read:
-             if "no such file" in stderr_read.lower():
-                  self.log_error(f"Fichier JSON introuvable: {file_path}")
-             else:
-                  self.log_error(f"Impossible de lire le fichier JSON {file_path}. Stderr: {stderr_read}")
-             return None
+
+        # Lire le contenu du fichier
+        content = self._read_file_content(file_path)
+        if content is None:
+            return None
+
         try:
             data = json.loads(content)
-            self.log_debug(f"Contenu JSON lu avec succès.")
+            self.log_debug("Contenu JSON lu avec succès.")
             return data
         except json.JSONDecodeError as e:
             self.log_error(f"Erreur de parsing JSON dans {file_path}: {e}")
@@ -391,45 +591,71 @@ class ConfigFileCommands(PluginsUtilsBase):
             return None
 
     def write_json_file(self, path: Union[str, Path], data: Any, indent: Optional[int] = 2, backup: bool = True) -> bool:
-        """Écrit un objet Python dans un fichier JSON."""
+        """
+        Écrit un objet Python dans un fichier JSON.
+
+        Args:
+            path: Chemin du fichier JSON
+            data: Données à écrire
+            indent: Nombre d'espaces pour l'indentation (None pour minifier)
+            backup: Si True, crée une sauvegarde du fichier original
+
+        Returns:
+            bool: True si l'écriture réussit, False sinon
+        """
         file_path = Path(path)
         self.log_debug(f"Écriture des données JSON dans: {file_path}")
 
-        # Générer le contenu JSON dans une chaîne
         try:
             # Utiliser ensure_ascii=False pour un meilleur support UTF-8
             json_content = json.dumps(data, indent=indent, ensure_ascii=False) + "\n"
+            return self._write_file_content(file_path, json_content, backup=backup)
         except Exception as e:
-             self.log_error(f"Erreur lors de la génération du contenu JSON: {e}")
-             return False
-
-        # Écrire le fichier final
-        return self._write_file_content(file_path, json_content, backup=backup)
+            self.log_error(f"Erreur lors de la génération ou écriture du contenu JSON: {e}", exc_info=True)
+            return False
 
     # --- Méthodes Fichiers Texte Génériques ---
 
     def read_file_lines(self, path: Union[str, Path]) -> Optional[List[str]]:
-        """Lit toutes les lignes d'un fichier texte."""
+        """
+        Lit toutes les lignes d'un fichier texte.
+
+        Args:
+            path: Chemin du fichier
+
+        Returns:
+            Optional[List[str]]: Liste des lignes ou None en cas d'erreur
+        """
         file_path = Path(path)
         self.log_debug(f"Lecture des lignes du fichier: {file_path}")
-        # Lire avec sudo si nécessaire
-        success_read, content, stderr_read = self.run(['cat', str(file_path)], check=False, needs_sudo=True, no_output=True, error_as_warning=True) # error_as_warning
-        if not success_read:
-             if "no such file" in stderr_read.lower():
-                  self.log_error(f"Fichier introuvable: {file_path}")
-             else:
-                  self.log_error(f"Impossible de lire le fichier {file_path}. Stderr: {stderr_read}")
-             return None
+
+        # Lire le contenu du fichier
+        content = self._read_file_content(file_path)
+        if content is None:
+            return None
+
         # Retourner les lignes en gardant les fins de ligne originales
         return content.splitlines(keepends=True)
 
     def get_line_containing(self, path: Union[str, Path], pattern: str, first_match_only: bool = True) -> Union[Optional[str], List[str], None]:
-        """Trouve la première ou toutes les lignes contenant un motif regex."""
+        """
+        Trouve la première ou toutes les lignes contenant un motif regex.
+
+        Args:
+            path: Chemin du fichier
+            pattern: Motif regex à rechercher
+            first_match_only: Si True, renvoie seulement la première ligne correspondante
+
+        Returns:
+            Union[Optional[str], List[str], None]: Ligne correspondante, liste de lignes ou None
+        """
         lines = self.read_file_lines(path)
-        if lines is None: return None
+        if lines is None:
+            return None
 
         self.log_debug(f"Recherche du pattern '{pattern}' dans {path}")
         found_lines = []
+
         try:
             regex = re.compile(pattern)
             for line in lines:
@@ -439,25 +665,44 @@ class ConfigFileCommands(PluginsUtilsBase):
                     if first_match_only:
                         return line_clean
                     found_lines.append(line_clean)
+
             return found_lines if found_lines else ([] if not first_match_only else None)
+
         except re.error as e:
-             self.log_error(f"Erreur de regex dans le pattern '{pattern}': {e}")
-             return None
+            self.log_error(f"Erreur de regex dans le pattern '{pattern}': {e}")
+            return None
 
     def replace_line(self, path: Union[str, Path], pattern: str, new_line: str, replace_all: bool = False, backup: bool = True) -> bool:
-        """Remplace la première ou toutes les lignes correspondant à un motif regex."""
+        """
+        Remplace la première ou toutes les lignes correspondant à un motif regex.
+
+        Args:
+            path: Chemin du fichier
+            pattern: Motif regex à rechercher
+            new_line: Nouvelle ligne à utiliser en remplacement
+            replace_all: Si True, remplace toutes les occurrences, sinon uniquement la première
+            backup: Si True, crée une sauvegarde du fichier original
+
+        Returns:
+            bool: True si le remplacement réussit, False sinon
+        """
         file_path = Path(path)
         self.log_debug(f"Remplacement des lignes correspondant à '{pattern}' dans {file_path}")
+
+        # Lire le contenu du fichier
         lines = self.read_file_lines(file_path)
-        if lines is None: return False
+        if lines is None:
+            return False
 
         new_lines = []
         modified = False
         replaced_count = 0
+
         try:
             regex = re.compile(pattern)
             # S'assurer que la nouvelle ligne a une fin de ligne
             new_line_with_eol = new_line.rstrip('\n') + '\n'
+
             for line in lines:
                 # Utiliser search pour trouver le pattern n'importe où dans la ligne
                 if regex.search(line) and (replace_all or replaced_count == 0):
@@ -466,31 +711,46 @@ class ConfigFileCommands(PluginsUtilsBase):
                     replaced_count += 1
                     self.log_debug(f"  Ligne remplacée: {line.strip()} -> {new_line.strip()}")
                 else:
-                    new_lines.append(line) # Garder la ligne originale avec sa fin de ligne
+                    new_lines.append(line)  # Garder la ligne originale avec sa fin de ligne
 
             if not modified:
-                 self.log_debug("Aucune ligne correspondante trouvée pour remplacement.")
-                 return True # Pas d'erreur si rien à remplacer
+                self.log_debug("Aucune ligne correspondante trouvée pour remplacement.")
+                return True  # Pas d'erreur si rien à remplacer
 
             # Écrire le contenu modifié
             return self._write_file_content(file_path, "".join(new_lines), backup=backup)
 
         except re.error as e:
-             self.log_error(f"Erreur de regex dans le pattern '{pattern}': {e}")
-             return False
+            self.log_error(f"Erreur de regex dans le pattern '{pattern}': {e}")
+            return False
         except Exception as e:
-             self.log_error(f"Erreur lors du remplacement dans {file_path}: {e}", exc_info=True)
-             return False
+            self.log_error(f"Erreur lors du remplacement dans {file_path}: {e}", exc_info=True)
+            return False
 
     def comment_line(self, path: Union[str, Path], pattern: str, comment_char: str = '#', backup: bool = True) -> bool:
-        """Commente les lignes correspondant à un motif regex."""
+        """
+        Commente les lignes correspondant à un motif regex.
+
+        Args:
+            path: Chemin du fichier
+            pattern: Motif regex à rechercher
+            comment_char: Caractère de commentaire à utiliser
+            backup: Si True, crée une sauvegarde du fichier original
+
+        Returns:
+            bool: True si le commentage réussit, False sinon
+        """
         file_path = Path(path)
         self.log_debug(f"Commentage des lignes correspondant à '{pattern}' dans {file_path}")
+
+        # Lire le contenu du fichier
         lines = self.read_file_lines(file_path)
-        if lines is None: return False
+        if lines is None:
+            return False
 
         new_lines = []
         modified = False
+
         try:
             regex = re.compile(pattern)
             for line in lines:
@@ -503,82 +763,123 @@ class ConfigFileCommands(PluginsUtilsBase):
                     modified = True
                     self.log_debug(f"  Ligne commentée: {line_strip}")
                 else:
-                    new_lines.append(line) # Garder la ligne originale
+                    new_lines.append(line)  # Garder la ligne originale
 
             if not modified:
-                 self.log_debug("Aucune ligne à commenter trouvée.")
-                 return True
+                self.log_debug("Aucune ligne à commenter trouvée.")
+                return True
 
             # Écrire le contenu modifié
             return self._write_file_content(file_path, "".join(new_lines), backup=backup)
 
         except re.error as e:
-             self.log_error(f"Erreur de regex dans le pattern '{pattern}': {e}")
-             return False
+            self.log_error(f"Erreur de regex dans le pattern '{pattern}': {e}")
+            return False
         except Exception as e:
-             self.log_error(f"Erreur lors du commentage dans {file_path}: {e}", exc_info=True)
-             return False
+            self.log_error(f"Erreur lors du commentage dans {file_path}: {e}", exc_info=True)
+            return False
 
     def uncomment_line(self, path: Union[str, Path], pattern: str, comment_char: str = '#', backup: bool = True) -> bool:
-        """Décommente les lignes correspondant à un motif regex."""
+        """
+        Décommente les lignes correspondant à un motif regex.
+
+        Args:
+            path: Chemin du fichier
+            pattern: Motif regex à rechercher
+            comment_char: Caractère de commentaire à supprimer
+            backup: Si True, crée une sauvegarde du fichier original
+
+        Returns:
+            bool: True si le décommentage réussit, False sinon
+        """
         file_path = Path(path)
         self.log_debug(f"Décommentage des lignes correspondant à '{pattern}' dans {file_path}")
+
+        # Lire le contenu du fichier
         lines = self.read_file_lines(file_path)
-        if lines is None: return False
+        if lines is None:
+            return False
 
         new_lines = []
         modified = False
+
         try:
             regex = re.compile(pattern)
             # Regex pour trouver le commentaire au début (avec ou sans espace après)
             comment_regex = re.compile(r"^(\s*)" + re.escape(comment_char) + r"\s*(.*)")
+
             for line in lines:
                 match_comment = comment_regex.match(line)
                 # Vérifier si la ligne est commentée ET si le contenu décommenté correspond au pattern
                 if match_comment:
-                     indent, uncommented_content = match_comment.groups()
-                     if regex.search(uncommented_content): # Vérifier le pattern sur le contenu décommenté
-                          new_lines.append(f"{indent}{uncommented_content}\n") # Restaurer indentation
-                          modified = True
-                          self.log_debug(f"  Ligne décommentée: {line.strip()}")
-                     else:
-                          new_lines.append(line) # Ne correspond pas au pattern, garder commenté
+                    indent, uncommented_content = match_comment.groups()
+                    if regex.search(uncommented_content):  # Vérifier le pattern sur le contenu décommenté
+                        new_lines.append(f"{indent}{uncommented_content}\n")  # Restaurer indentation
+                        modified = True
+                        self.log_debug(f"  Ligne décommentée: {line.strip()}")
+                    else:
+                        new_lines.append(line)  # Ne correspond pas au pattern, garder commenté
                 else:
-                    new_lines.append(line) # Pas commenté, garder tel quel
+                    new_lines.append(line)  # Pas commenté, garder tel quel
 
             if not modified:
-                 self.log_debug("Aucune ligne à décommenter trouvée.")
-                 return True
+                self.log_debug("Aucune ligne à décommenter trouvée.")
+                return True
 
             # Écrire le contenu modifié
             return self._write_file_content(file_path, "".join(new_lines), backup=backup)
 
         except re.error as e:
-             self.log_error(f"Erreur de regex dans le pattern '{pattern}': {e}")
-             return False
+            self.log_error(f"Erreur de regex dans le pattern '{pattern}': {e}")
+            return False
         except Exception as e:
-             self.log_error(f"Erreur lors du décommentage dans {file_path}: {e}", exc_info=True)
-             return False
+            self.log_error(f"Erreur lors du décommentage dans {file_path}: {e}", exc_info=True)
+            return False
 
     def append_line(self, path: Union[str, Path], line_to_append: str, ensure_newline: bool = True) -> bool:
-        """Ajoute une ligne à la fin d'un fichier."""
+        """
+        Ajoute une ligne à la fin d'un fichier.
+
+        Args:
+            path: Chemin du fichier
+            line_to_append: Ligne à ajouter
+            ensure_newline: Si True, s'assure que la ligne a un saut de ligne à la fin
+
+        Returns:
+            bool: True si l'ajout réussit, False sinon
+        """
         file_path = Path(path)
         self.log_debug(f"Ajout de la ligne à la fin de {file_path}: {line_to_append[:50]}...")
 
+        # Préparer le contenu à ajouter
         content_to_append = line_to_append
         if ensure_newline and not content_to_append.endswith('\n'):
             content_to_append += '\n'
 
-        # Utiliser tee -a pour ajouter (gère sudo)
-        cmd_append = ['tee', '-a', str(file_path)]
-        # Passer le contenu via stdin
-        success, stdout, stderr = self.run(cmd_append, input_data=content_to_append, check=False, needs_sudo=True)
+        # Vérifier si sudo est nécessaire
+        self._sudo_mode = self._check_sudo_required(file_path)
 
-        if success:
+        # Si le fichier n'existe pas ou n'est pas accessible en écriture, utiliser _write_file_content
+        if not file_path.exists() or self._sudo_mode:
+            # Lire le contenu existant si le fichier existe
+            existing_content = ""
+            if file_path.exists():
+                existing_content_read = self._read_file_content(file_path)
+                if existing_content_read is not None:
+                    existing_content = existing_content_read
+
+            # Ajouter la nouvelle ligne et écrire le fichier
+            new_content = existing_content + content_to_append
+            return self._write_file_content(file_path, new_content, backup=False)
+
+        # Si le fichier existe et est accessible en écriture, utiliser la méthode d'écriture standard
+        try:
+            with file_path.open('a', encoding='utf-8') as f:
+                f.write(content_to_append)
             self.log_success(f"Ligne ajoutée avec succès à {file_path}.")
             return True
-        else:
-            self.log_error(f"Échec de l'ajout de la ligne à {file_path}. Stderr: {stderr}")
+        except Exception as e:
+            self.log_error(f"Erreur lors de l'ajout de la ligne à {file_path}: {e}", exc_info=True)
             return False
 
     def ensure_line_exists(self, path: Union[str, Path], line_to_ensure: str, pattern_to_check: Optional[str] = None, backup: bool = True) -> bool:
@@ -586,46 +887,391 @@ class ConfigFileCommands(PluginsUtilsBase):
         S'assure qu'une ligne spécifique existe dans un fichier, l'ajoute sinon.
 
         Args:
-            path: Chemin du fichier.
-            line_to_ensure: La ligne exacte qui doit exister (sera ajoutée si absente).
-            pattern_to_check: Regex pour vérifier l'existence. Si None, utilise line_to_ensure littéralement.
-            backup: Créer une sauvegarde si le fichier est modifié.
+            path: Chemin du fichier
+            line_to_ensure: La ligne exacte qui doit exister (sera ajoutée si absente)
+            pattern_to_check: Regex pour vérifier l'existence. Si None, utilise line_to_ensure littéralement
+            backup: Si True, crée une sauvegarde du fichier original
 
         Returns:
-            bool: True si la ligne existe ou a été ajoutée avec succès.
+            bool: True si la ligne existe ou a été ajoutée avec succès
         """
         file_path = Path(path)
         self.log_debug(f"Vérification/Ajout de la ligne dans {file_path}: {line_to_ensure[:50]}...")
 
-        # 1. Lire le contenu actuel
+        # Lire le contenu actuel
         current_content = ""
-        read_success, content_read, stderr_read = self.run(['cat', str(file_path)], check=False, needs_sudo=True, no_output=True, error_as_warning=True)
-        if read_success:
-             current_content = content_read
-        elif "no such file" not in stderr_read.lower():
-             # Erreur autre que fichier non trouvé
-             self.log_error(f"Impossible de lire {file_path} pour vérification. Stderr: {stderr_read}")
-             return False
-        # Si le fichier n'existe pas, current_content reste ""
+        if file_path.exists():
+            content_read = self._read_file_content(file_path)
+            if content_read is not None:
+                current_content = content_read
 
-        # 2. Vérifier l'existence
+        # Vérifier l'existence
         line_exists = False
         try:
             check_pattern = pattern_to_check if pattern_to_check else r'^' + re.escape(line_to_ensure.strip()) + r'\s*$'
             if re.search(check_pattern, current_content, re.MULTILINE):
                 line_exists = True
         except re.error as e:
-             self.log_error(f"Erreur de regex dans le pattern '{pattern_to_check}': {e}")
-             return False
+            self.log_error(f"Erreur de regex dans le pattern '{pattern_to_check}': {e}")
+            return False
 
-        # 3. Ajouter si nécessaire
+        # Ajouter si nécessaire
         if line_exists:
             return True
         else:
             # Ajouter la ligne avec un saut de ligne avant si nécessaire
             new_content = current_content
             if current_content and not current_content.endswith('\n'):
-                 new_content += '\n'
+                new_content += '\n'
             new_content += line_to_ensure.rstrip('\n') + '\n'
 
             return self._write_file_content(file_path, new_content, backup=backup)
+
+    # --- Méthodes pour les fichiers de configuration à blocs (type Dovecot) ---
+    def _parse_block_config(self, content: str) -> dict:
+        """
+        Parse un fichier de configuration utilisant une structure en blocs avec accolades.
+        Supporte les configurations comme Dovecot, Nginx, etc.
+        Version améliorée avec meilleure gestion des blocs anonymes et accolades.
+
+        Args:
+            content: Contenu du fichier à parser
+
+        Returns:
+            dict: Structure hiérarchique représentant la configuration
+        """
+        self.log_debug("Parsing d'un fichier de configuration à blocs")
+
+        # Structure pour stocker la configuration parsée
+        config = {}
+
+        # Pile pour suivre les blocs imbriqués actuels
+        stack = [config]
+
+        # Contexte actuel (bloc parent)
+        current_context = config
+
+        # État du parsing
+        in_string = False
+        in_comment = False
+        multiline_comment = False
+        escape_next = False
+        line_num = 1
+        buffer = ""
+        current_key = None
+
+        # Compteur pour générer des clés uniques pour les sections anonymes
+        anonymous_block_counter = 0
+
+        # Parcourir chaque caractère
+        i = 0
+        while i < len(content):
+            char = content[i]
+
+            # Gestion des sauts de ligne pour le comptage
+            if char == '\n':
+                line_num += 1
+                in_comment = False  # Fin d'un commentaire en ligne
+
+            # Gestion des commentaires
+            if not in_string and not multiline_comment and not in_comment:
+                # Commentaire en ligne (#)
+                if char == '#':
+                    in_comment = True
+                    i += 1
+                    continue
+
+                # Commentaire multiligne (/* */)
+                if char == '/' and i + 1 < len(content) and content[i + 1] == '*':
+                    multiline_comment = True
+                    i += 2
+                    continue
+
+            # Fin d'un commentaire multiligne
+            if multiline_comment and char == '*' and i + 1 < len(content) and content[i + 1] == '/':
+                multiline_comment = False
+                i += 2
+                continue
+
+            # Ignorer les caractères dans les commentaires
+            if in_comment or multiline_comment:
+                i += 1
+                continue
+
+            # Gestion des chaînes entre guillemets
+            if (char == '"' or char == "'") and not escape_next:
+                in_string = not in_string
+
+            # Gestion des caractères échappés
+            if char == '\\' and not escape_next:
+                escape_next = True
+                i += 1
+                continue
+            else:
+                escape_next = False
+
+            # Si nous sommes dans une chaîne, ajouter le caractère au buffer
+            if in_string:
+                buffer += char
+                i += 1
+                continue
+
+            # Début d'un nouveau bloc
+            if char == '{':
+                if current_key:
+                    # Créer un nouveau bloc sous la clé actuelle
+                    new_block = {}
+
+                    # Si la clé existe déjà et contient une valeur simple
+                    if current_key in current_context:
+                        if isinstance(current_context[current_key], dict):
+                            # La clé existe déjà et c'est un dictionnaire
+                            # Dans ce cas, nous devons transformer la structure en liste de blocs
+                            if not isinstance(current_context[current_key], list):
+                                current_context[current_key] = [current_context[current_key]]
+                            current_context[current_key].append(new_block)
+                        else:
+                            # Garder la valeur primitive comme propriété spéciale du bloc
+                            value = current_context[current_key]
+                            current_context[current_key] = new_block
+                            new_block["_value"] = value.strip() if isinstance(value, str) else value
+                    else:
+                        # Nouvelle clé
+                        current_context[current_key] = new_block
+
+                    # Pousser le nouveau bloc sur la pile
+                    stack.append(new_block)
+                    current_context = new_block
+                    current_key = None
+                else:
+                    # Bloc anonyme - créer un nom unique
+                    anonymous_block_counter += 1
+                    anonymous_key = f"_anonymous_block_{anonymous_block_counter}"
+                    self.log_debug(f"Bloc anonyme trouvé à la ligne {line_num}, utilisation de la clé {anonymous_key}")
+
+                    new_block = {}
+                    current_context[anonymous_key] = new_block
+
+                    # Pousser le nouveau bloc sur la pile
+                    stack.append(new_block)
+                    current_context = new_block
+
+                buffer = ""
+
+            # Fin d'un bloc
+            elif char == '}':
+                # Traiter toute donnée restante dans le buffer avant de fermer le bloc
+                if buffer.strip() and current_key:
+                    current_context[current_key] = buffer.strip()
+                    buffer = ""
+                    current_key = None
+
+                # Remonter d'un niveau
+                if len(stack) > 1:  # Éviter de dépasser la racine
+                    stack.pop()
+                    current_context = stack[-1]
+                else:
+                    self.log_debug(f"Accolade fermante excessive à la ligne {line_num}, ignorée")
+
+                buffer = ""
+
+            # Séparateur de clé-valeur
+            elif char == '=' and current_key is None and not in_string:
+                current_key = buffer.strip()
+                buffer = ""
+
+            # Fin d'instruction (point-virgule)
+            elif char == ';' and not in_string:
+                if current_key is not None:
+                    value = buffer.strip()
+                    # Gérer les valeurs multiples pour la même clé
+                    if current_key in current_context:
+                        existing = current_context[current_key]
+                        if isinstance(existing, list):
+                            if isinstance(existing[0], dict):
+                                # Liste de blocs - ajouter la valeur comme bloc avec _value
+                                new_block = {"_value": value}
+                                existing.append(new_block)
+                            else:
+                                # Liste de valeurs - ajouter simplement la valeur
+                                existing.append(value)
+                        elif isinstance(existing, dict):
+                            # Convertir en liste de blocs
+                            current_context[current_key] = [existing, {"_value": value}]
+                        else:
+                            # Convertir en liste de valeurs
+                            current_context[current_key] = [existing, value]
+                    else:
+                        current_context[current_key] = value
+
+                    current_key = None
+                    buffer = ""
+                elif buffer.strip():
+                    # Instruction sans clé (directive simple)
+                    value = buffer.strip()
+                    # Générer une clé spéciale pour les directives simples
+                    directive_key = f"_directive_{len(current_context)}"
+                    current_context[directive_key] = value
+                    buffer = ""
+
+            # Espace blanc entre directives/blocs
+            elif char.isspace() and not buffer.strip() and current_key is None:
+                pass  # Ignorer les espaces entre directives
+
+            # Tout autre caractère est ajouté au buffer
+            else:
+                buffer += char
+
+            i += 1
+
+        # Gérer les données restantes dans le buffer
+        if buffer.strip() and current_key is not None:
+            current_context[current_key] = buffer.strip()
+
+        # Vérifier les blocs non fermés (la pile devrait normalement ne contenir que la racine)
+        if len(stack) > 1:
+            self.log_warning(f"Fichier de configuration incomplet : {len(stack) - 1} blocs non fermés")
+
+        return config
+
+    def _format_block_config(self, config: dict, indent: int = 0, in_block: bool = False) -> str:
+        """
+        Formate une structure de configuration en blocs en texte.
+
+        Args:
+            config: Structure de configuration
+            indent: Niveau d'indentation actuel
+            in_block: Si True, nous sommes dans un bloc nommé
+
+        Returns:
+            str: Représentation textuelle formatée
+        """
+        lines = []
+        indent_str = "    " * indent
+
+        # Valeur spéciale pour le bloc lui-même
+        if "_value" in config:
+            special_value = config.pop("_value")
+            if special_value:
+                lines.append(f"{special_value}")
+
+        for key, value in config.items():
+            # Ignorer les clés spéciales commençant par _
+            if key.startswith("_directive_"):
+                lines.append(f"{indent_str}{value};")
+                continue
+
+            if isinstance(value, dict):
+                lines.append(f"{indent_str}{key} {{")
+                lines.append(self._format_block_config(value, indent + 1, True))
+                lines.append(f"{indent_str}}}")
+            elif isinstance(value, list):
+                # Gérer les listes de valeurs ou de blocs
+                if all(isinstance(item, dict) for item in value):
+                    # Liste de blocs
+                    for item in value:
+                        lines.append(f"{indent_str}{key} {{")
+                        lines.append(self._format_block_config(item, indent + 1, True))
+                        lines.append(f"{indent_str}}}")
+                else:
+                    # Liste de valeurs
+                    for item in value:
+                        lines.append(f"{indent_str}{key} = {item};")
+            else:
+                # Valeur simple
+                lines.append(f"{indent_str}{key} = {value};")
+
+        return "\n".join(lines)
+
+    def read_block_config_file(self, path: Union[str, Path]) -> Optional[Dict]:
+        """
+        Lit un fichier de configuration utilisant une structure en blocs avec accolades.
+
+        Args:
+            path: Chemin du fichier à lire
+
+        Returns:
+            Optional[Dict]: Structure de configuration parsée ou None en cas d'erreur
+        """
+        file_path = Path(path)
+        self.log_debug(f"Lecture du fichier de configuration à blocs: {file_path}")
+
+        # Lire le contenu du fichier
+        content = self._read_file_content(file_path)
+        if content is None:
+            return None
+
+        try:
+            # Parser le contenu
+            config = self._parse_block_config(content)
+            print(config)
+            return config
+        except Exception as e:
+            self.log_error(f"Erreur lors du parsing du fichier de configuration {file_path}: {e}", exc_info=True)
+            return None
+
+    def write_block_config_file(self, path: Union[str, Path], config: dict, backup: bool = True) -> bool:
+        """
+        Écrit une structure de configuration en blocs dans un fichier.
+
+        Args:
+            path: Chemin du fichier à écrire
+            config: Structure de configuration à écrire
+            backup: Si True, crée une sauvegarde du fichier original
+
+        Returns:
+            bool: True si l'écriture réussit, False sinon
+        """
+        file_path = Path(path)
+        self.log_debug(f"Écriture de la configuration en blocs dans: {file_path}")
+
+        try:
+            # Formater la configuration
+            content = self._format_block_config(config)
+
+            # Écrire le fichier
+            return self._write_file_content(file_path, content, backup=backup)
+        except Exception as e:
+            self.log_error(f"Erreur lors de l'écriture du fichier de configuration {file_path}: {e}", exc_info=True)
+            return False
+
+    def update_block_config(self, path: Union[str, Path], key_path: str, value: Any, backup: bool = True) -> bool:
+        """
+        Met à jour une valeur dans un fichier de configuration à blocs.
+
+        Args:
+            path: Chemin du fichier de configuration
+            key_path: Chemin de la clé à mettre à jour (format 'section/sous-section/clé')
+            value: Nouvelle valeur à définir
+            backup: Si True, crée une sauvegarde du fichier original
+
+        Returns:
+            bool: True si la mise à jour réussit, False sinon
+        """
+        config = self.read_block_config_file(path)
+        if config is None:
+            self.log_error(f"Impossible de lire le fichier de configuration pour mise à jour: {path}")
+            return False
+
+        # Parcourir le chemin pour trouver et mettre à jour la valeur
+        keys = key_path.split('/')
+        current = config
+
+        # Naviguer jusqu'au parent de la clé à mettre à jour
+        for i, key in enumerate(keys[:-1]):
+            if key not in current:
+                # Créer les sections manquantes
+                current[key] = {}
+            elif not isinstance(current[key], dict):
+                # Convertir une valeur simple en dictionnaire si nécessaire
+                old_value = current[key]
+                current[key] = {"_value": old_value}
+
+            current = current[key]
+
+        # Mettre à jour la valeur
+        last_key = keys[-1]
+        current[last_key] = value
+
+        # Écrire la configuration mise à jour
+        return self.write_block_config_file(path, config, backup=backup)

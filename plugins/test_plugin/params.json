@@ -1,0 +1,16 @@
+{
+    "plugin_name": "text_plugin",
+    "instance_id": 2,
+    "name": "Dovecot - Installation et configuration",
+    "show_name": "text_plugin",
+    "icon": "\ud83d\udee0\ufe0f",
+    "config": {
+        "name": "BT",
+        "admin": "unite_solc.bdrij.ggd27",
+        "modif": "unite_solc.bdrij.ggd28",
+        "user": "unite_solc.bdrij.ggd29",
+        "sauvegarde": true,
+        "remote_execution": false
+    },
+    "remote_execution": false
+}

@@ -13,7 +13,7 @@ from typing import Union, Optional, List, Dict, Any, Tuple
 # Unités de taille LVM courantes
 LVM_UNITS = {'k', 'm', 'g', 't', 'p', 'e'} # Kilo, Mega, Giga, Tera, Peta, Exa (puissances de 1024)
 
-class UtilsCmd(PluginsUtilsBase):
+class UtilsCommands(PluginsUtilsBase):
     """
     Classe pour des fonctions utilitaires
     Hérite de PluginUtilsBase pour l'exécution de commandes.

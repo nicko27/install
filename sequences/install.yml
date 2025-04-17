@@ -1,0 +1,13 @@
+name: Installation d'un nouveau PC
+description: Séquence pour supprimer une ou des imprimantes puis en installer une
+shortcut:
+  - install
+  - i
+plugins:
+  - name: ocs_inventory
+  - name: puppet
+  - name: install_update
+  - name: antivirus
+  - name: add_printer
+  - name: shim_signed
+  - name: mok

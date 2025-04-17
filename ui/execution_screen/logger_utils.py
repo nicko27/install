@@ -1,6 +1,6 @@
 """
 Utilitaires de journalisation pour le module d'exécution.
-Traite les messages standardisés pour l'affichage dans l'interface utilisateur.
+Version optimisée pour améliorer la réactivité de l'interface et le traitement des messages.
 """
 
 import time
@@ -9,860 +9,498 @@ import json
 import asyncio
 from datetime import datetime
 import traceback
-from typing import Optional
+from typing import Optional, Dict, Any, List, Deque, Union # Ajout Union
 from collections import deque
-from textual.widgets import Static
-from textual.containers import ScrollableContainer
 
-from ..utils.logging import get_logger
-from ..utils.messaging import (Message, MessageType, MessageFormatter)
+# Imports Textual prudents (essayer/échouer pour compatibilité si Textual n'est pas là?)
+try:
+    from textual.widgets import Static
+    from textual.containers import ScrollableContainer
+    # Importer ProgressBar si votre PluginContainer l'utilise directement
+    # from textual.widgets import ProgressBar
+    TEXTUAL_AVAILABLE = True
+except ImportError:
+    TEXTUAL_AVAILABLE = False
+    # Définir des classes factices si Textual n'est pas disponible
+    class Static: pass
+    class ScrollableContainer: pass
+    # class ProgressBar: pass
+
+# Imports internes (adapter les chemins si nécessaire)
+try:
+    from ..utils.logging import get_logger
+    from ..utils.messaging import Message, MessageType, MessageFormatter
+except ImportError:
+    # Fallback si exécuté hors contexte
+    import logging
+    get_logger = logging.getLogger
+    # Définir des classes Message factices
+    class MessageType:
+        INFO, WARNING, ERROR, DEBUG, SUCCESS, PROGRESS, PROGRESS_TEXT, UNKNOWN, START, END = range(10)
+    class Message:
+        def __init__(self, type=MessageType.INFO, content="", source=None, instance_id=None, target_ip=None, **kwargs):
+            self.type = type; self.content = content; self.source = source;
+            self.instance_id = instance_id; self.target_ip = target_ip
+            # Ajouter d'autres attributs potentiels pour éviter les erreurs
+            for k, v in kwargs.items(): setattr(self, k, v)
+    class MessageFormatter:
+        @staticmethod
+        def format_for_rich_textual(msg): return f"[{msg.type}] {msg.content}"
+        @staticmethod
+        def format_for_log_file(msg): return f"{msg.content}"
+
 
 logger = get_logger('executor_logger')
 
 
 class LoggerUtils:
-    """Classe utilitaire pour la gestion des logs dans l'interface et le fichier de log"""
-    
-    # Cache pour éviter les duplications
-    _message_cache = deque(maxlen=100)
-    _processed_lines = set()
-    
-    # File d'attente pour les messages quand l'interface n'est pas prête
-    _pending_messages = []
-    
-    # Dictionnaire pour suivre les barres de progression textuelles actives
-    _active_text_progress_bars = {}
-    
+    """Classe utilitaire optimisée pour la gestion des logs dans l'interface Textual."""
+
+    # Files d'attente et caches
+    _pending_messages: Deque[Message] = deque()
+    _priority_queue: Deque[Message] = deque()
+    _message_cache = deque(maxlen=200) # Pour déduplication de logs
+    _seen_messages = {} # Pour déduplication de logs
+    _seen_messages_maxlen = 50
+
+    # Throttling et rafraîchissement
     _logs_timer_running = False
+    _last_update_time = time.time()
+    _refresh_interval = 0.05 # Augmenté légèrement pour éviter trop de refresh UI
+    _message_count = 0
+    _refresh_scheduled = False
+
+    # Traitement par lots
+    _batch_size = 10 # Augmenté pour traiter plus de messages par flush
+    _batch_time = 0.1 # Temps max entre flushes
 
     @staticmethod
     async def _periodic_logs_display(app):
-        """
-        Affiche périodiquement les messages en attente.
-        Fonctionne comme un timer en arrière-plan.
-        """
+        """Affiche périodiquement les messages en attente."""
+        if not TEXTUAL_AVAILABLE: return # Ne rien faire si Textual n'est pas là
         try:
             LoggerUtils._logs_timer_running = True
+            last_flush_time = time.time()
+
             while LoggerUtils._logs_timer_running:
-                # Tenter d'afficher les messages en attente
-                await LoggerUtils.flush_pending_messages(app)
-                # Attendre un court délai avant la prochaine tentative
-                await asyncio.sleep(0.2)  # 200ms entre chaque tentative
+                current_time = time.time()
+                queue_size = len(LoggerUtils._pending_messages) + len(LoggerUtils._priority_queue)
+                should_flush = queue_size >= LoggerUtils._batch_size
+                time_to_flush = (current_time - last_flush_time) >= LoggerUtils._batch_time
+
+                if queue_size > 0 and (should_flush or time_to_flush):
+                    await LoggerUtils.flush_pending_messages(app)
+                    last_flush_time = current_time
+
+                # Attente courte pour céder le contrôle
+                await asyncio.sleep(0.01)
+
         except Exception as e:
-            logger.error(f"Erreur dans le timer d'affichage des logs: {e}")
+            logger.error(f"Erreur dans le timer d'affichage des logs: {e}", exc_info=True)
         finally:
             LoggerUtils._logs_timer_running = False
 
     @staticmethod
     async def start_logs_timer(app):
-        """
-        Démarre un timer qui tente périodiquement d'afficher les logs en attente.
-        Assure que les logs s'affichent en temps réel même si l'interface n'est pas
-        complètement initialisée au début.
-        """
-        if not LoggerUtils._logs_timer_running:
-            # Créer une tâche asynchrone pour le timer
+        """Démarre le timer d'affichage."""
+        if not LoggerUtils._logs_timer_running and TEXTUAL_AVAILABLE:
             asyncio.create_task(LoggerUtils._periodic_logs_display(app))
             logger.debug("Timer d'affichage des logs démarré")
 
     @staticmethod
     async def stop_logs_timer():
-        """Arrête le timer d'affichage des logs."""
+        """Arrête le timer d'affichage."""
         LoggerUtils._logs_timer_running = False
         logger.debug("Timer d'affichage des logs arrêté")
 
     @staticmethod
     def _is_duplicate_message(message_obj: Message) -> bool:
-        """
-        Vérifie si un message est un doublon.
-        
-        Args:
-            message_obj: Message à vérifier
-        
-        Returns:
-            bool: True si le message est un doublon, False sinon
-        """
-        # Pour les messages de progression, ne pas vérifier les doublons
-        if message_obj.type == MessageType.PROGRESS:
+        """Vérifie si un message est un doublon (pour logs standard)."""
+        # Ne pas dédupliquer les erreurs, fins, ou progressions
+        if message_obj.type in [MessageType.PROGRESS, MessageType.PROGRESS_TEXT, MessageType.ERROR, MessageType.END]:
             return False
-            
-        # Créer une clé unique basée sur le type et le contenu
-        message_key = (message_obj.type, message_obj.content)
-        
-        # Si le message a déjà été traité récemment, le considérer comme un doublon
-        if message_key in LoggerUtils._processed_lines:
-            return True
-        
-        # Ajouter le message aux lignes traitées
-        LoggerUtils._processed_lines.add(message_key)
-        
-        return False
+        if not isinstance(message_obj.content, str): # Ne dédupliquer que les str
+             return False
 
-    @staticmethod
-    async def _update_progress_widget(app, message_obj: Message, plugin_widget=None, step_text=None):
-        """
-        Met à jour la progression d'un widget de plugin.
-        
-        Args:
-            app: Application contenant les éléments d'UI
-            message_obj: Message de progression
-            plugin_widget: Widget spécifique à mettre à jour (optionnel)
-            step_text: Texte à afficher pour l'étape (optionnel)
-        
-        Returns:
-            bool: True si un widget a été mis à jour, False sinon
-        """
-        # Si pas de progression, rien à faire
-        if not hasattr(message_obj, 'progress'):
-            return False
-            
-        progress = message_obj.progress
-        
-        # Génère le texte d'étape s'il n'est pas fourni
-        if step_text is None:
-            step_text = (f"Étape {message_obj.step}/{message_obj.total_steps}" 
-                         if hasattr(message_obj, 'total_steps') and hasattr(message_obj, 'step') and message_obj.total_steps > 1
-                         else f"{int(progress*100)}%")
-        
-        # Si nous avons un widget spécifique, l'utiliser
-        if plugin_widget:
-            plugin_widget.update_progress(progress, step_text)
-            return True
-            
-        # Sinon, chercher le widget correspondant dans l'application
-        if hasattr(message_obj, 'plugin_name'):
-            plugin_widgets = app.query("PluginContainer")
-            
-            # D'abord essayer avec instance_id si disponible
-            if hasattr(message_obj, 'instance_id'):
-                match_found = False
-                for plugin_id, widget in app.plugins.items() if hasattr(app, 'plugins') else []:
-                    # Vérifier si l'identifiant d'instance correspond à plugin_id
-                    if message_obj.instance_id in plugin_id:
-                        widget.update_progress(progress, step_text)
-                        match_found = True
-                        logger.debug(f"Widget trouvé par plugin_id contenant instance_id: {message_obj.instance_id}")
-                        return True
-                            
-                # Si aucun widget trouvé par instance_id, essayer par nom de plugin
-                if not match_found:
-                    for widget in plugin_widgets:
-                        if hasattr(widget, 'plugin_name') and widget.plugin_name == message_obj.plugin_name:
-                            widget.update_progress(progress, step_text)
-                            logger.debug(f"Widget trouvé par plugin_name: {message_obj.plugin_name}")
-                            return True
-            # Si pas d'instance_id, essayer juste avec le nom du plugin
-            else:
-                for widget in plugin_widgets:
-                    if hasattr(widget, 'plugin_name') and widget.plugin_name == message_obj.plugin_name:
-                        widget.update_progress(progress, step_text)
-                        logger.debug(f"Widget trouvé par plugin_name: {message_obj.plugin_name}")
-                        return True
-        
-        return False
+        # Clé basée sur type, contenu, source, instance, target
+        message_key = (message_obj.type, message_obj.content, message_obj.source, message_obj.instance_id, message_obj.target_ip)
 
-    @staticmethod
-    async def _update_global_progress(app, progress: float, executed: int, total_plugins: int):
-        """
-        Met à jour la progression globale de l'application.
-        
-        Args:
-            app: Application contenant la barre de progression globale
-            progress: Progression du plugin actuel (0.0 à 1.0)
-            executed: Nombre de plugins déjà exécutés
-            total_plugins: Nombre total de plugins à exécuter
-        """
-        # Calcul de la progression globale
-        global_progress = (executed + progress) / total_plugins
-        logger.debug(f"Mise à jour de la progression globale: executed={executed}, progress={progress}, total_plugins={total_plugins}, global_progress={global_progress}")
-        
-        # Vérifier si app a la méthode update_global_progress
-        if hasattr(app, 'update_global_progress'):
-            logger.debug(f"Appel de app.update_global_progress({global_progress})")
+        now = time.monotonic()
+        last_time, count = LoggerUtils._seen_messages.get(message_key, (0.0, 0))
+
+        # Règle : ignorer si vu > 2 fois dans la dernière seconde
+        if now - last_time < 1.0 and count >= 3:
+            LoggerUtils._seen_messages[message_key] = (now, count + 1)
+            # Logguer un résumé occasionnel
+            if count % 20 == 0:
+                summary_msg = f"Message répété {count+1} fois: {message_obj.content}"
+                # Créer un message warning (difficile d'appeler add_log d'ici)
+                logger.warning(f"[DEDUP] {summary_msg}")
+            return True # C'est un doublon à ignorer
+
+        # Mettre à jour le cache
+        LoggerUtils._seen_messages[message_key] = (now, count + 1)
+        if len(LoggerUtils._seen_messages) > LoggerUtils._seen_messages_maxlen:
             try:
-                app.update_global_progress(global_progress)
-            except Exception as e:
-                logger.error(f"Erreur lors de la mise à jour de la progression globale: {e}")
-        else:
-            logger.warning(f"app n'a pas de méthode update_global_progress: {type(app)}")
+                oldest_key = min(LoggerUtils._seen_messages, key=lambda k: LoggerUtils._seen_messages[k][0])
+                del LoggerUtils._seen_messages[oldest_key]
+            except ValueError: pass # Ignorer si vide
+
+        return False # Pas un doublon (ou première occurrence)
 
     @staticmethod
-    async def _display_text_progress_bar(app, progress_key: str, bar_display: str, status: str = "running", color: str = "blue"):
-        """
-        Affiche ou met à jour une barre de progression textuelle.
-        
-        Args:
-            app: Application ou widget contenant les éléments d'UI
-            progress_key: Clé unique identifiant cette barre de progression
-            bar_display: Texte complet de la barre à afficher
-            status: État de la barre ("running" ou "stop")
-            color: Couleur de la barre
-        """
+    async def _find_plugin_widget(app, message_obj: Message) -> Optional[Any]:
+        """Trouve le widget PluginContainer."""
+        if not TEXTUAL_AVAILABLE: return None
+        # Vérifier les prérequis
+        if not all(hasattr(message_obj, attr) for attr in ['source', 'instance_id']) or \
+           not hasattr(app, 'plugins') or message_obj.source is None or message_obj.instance_id is None:
+            logger.debug(f"Données widget manquantes: source={getattr(message_obj, 'source', 'N/A')}, instance={getattr(message_obj, 'instance_id', 'N/A')}")
+            return None
+
+        target_plugin_id_part = f"{message_obj.source}_{message_obj.instance_id}"
+        logger.debug(f"Recherche widget contenant: {target_plugin_id_part}")
+
+        found_widget = None
+        # Chercher par ID dans le dictionnaire des plugins de l'app
+        for plugin_id, widget in app.plugins.items():
+            if target_plugin_id_part in plugin_id:
+                 # Duck typing pour vérifier si c'est le bon type de widget
+                 if hasattr(widget, 'update_progress') and hasattr(widget, 'plugin_name') and hasattr(widget, 'instance_id'):
+                    logger.debug(f"Widget trouvé par ID: {plugin_id}")
+                    found_widget = widget
+                    break
+
+        # Fallback si non trouvé par ID (moins fiable)
+        if not found_widget:
+            logger.debug("Widget non trouvé par ID, recherche par classe/attributs...")
+            try:
+                for widget in app.query("PluginContainer"): # Attention: peut être coûteux
+                    if hasattr(widget, 'plugin_name') and widget.plugin_name == message_obj.source and \
+                       hasattr(widget, 'instance_id') and str(widget.instance_id) == str(message_obj.instance_id):
+                       if hasattr(widget, 'update_progress'):
+                            logger.debug(f"Widget trouvé par classe/attributs: {getattr(widget, 'id', 'NO ID')}")
+                            found_widget = widget
+                            break
+            except Exception as query_err: logger.warning(f"Erreur recherche PluginContainer: {query_err}")
+
+        if not found_widget: logger.warning(f"Widget plugin non trouvé pour {target_plugin_id_part}")
+        return found_widget
+
+    @staticmethod
+    async def _update_plugin_widget_display(app, message_obj: Message):
+        """Met à jour la barre NUMÉRIQUE et le TEXTE de statut du widget plugin."""
+        if not TEXTUAL_AVAILABLE: return
+        plugin_widget = await LoggerUtils._find_plugin_widget(app, message_obj)
+        if not plugin_widget: return
+
         try:
-            # Vérifier si app est valide
-            if app is None:
-                logger.error("Erreur: app est None dans _display_text_progress_bar")
-                return
-            
-            # Essayer de trouver le widget de logs
-            logs = None
-            try:
-                logs = app.query_one("#logs-text", Static)
-            except Exception as e:
-                logger.debug(f"Widget de logs non trouvé dans _display_text_progress_bar: {e}")
-                # Stocker la barre pour l'afficher plus tard quand l'interface sera prête
-                LoggerUtils._active_text_progress_bars[progress_key] = {
-                    "bar_display": bar_display,
-                    "status": status,
-                    "color": color,
-                    "line_index": None
-                }
-                return
-                
-            if not logs:
-                logger.debug("Widget de logs non trouvé dans _display_text_progress_bar")
-                return
-            
-            # Échapper les caractères spéciaux pour éviter les problèmes de markup
-            safe_bar_display = bar_display.replace("[", "\\[").replace("]", "\\]")
-            
-            # Générer l'horodatage et le type de message
-            timestamp = time.strftime("%H:%M:%S")
-            level_str = "PROGRESS"  # Conserver l'indication PROGRESS
-                
-            if status == "stop":
-                # Supprimer cette barre du suivi
-                if progress_key in LoggerUtils._active_text_progress_bars:
-                    # Récupérer les infos de la barre
-                    bar_info = LoggerUtils._active_text_progress_bars[progress_key]
-                    line_index = bar_info.get("line_index")
-                    del LoggerUtils._active_text_progress_bars[progress_key]
-                    
-                    # Vérifier si c'est la dernière barre active pour ce plugin
-                    plugin_id = progress_key.split('_')[0] if '_' in progress_key else progress_key
-                    active_bars_for_plugin = [k for k in LoggerUtils._active_text_progress_bars.keys() 
-                                            if k.startswith(f"{plugin_id}_") or k == plugin_id]
-                    
-                    if not active_bars_for_plugin and line_index is not None:
-                        # C'est la dernière barre pour ce plugin
-                        current_text = logs.renderable or ""
-                        if current_text:
-                            # Si nous connaissons l'index de ligne, nous pouvons être plus précis
-                            lines = current_text.split("\n")
-                            if 0 <= line_index < len(lines):
-                                # Supprimer cette ligne uniquement
-                                del lines[line_index]
-                                new_text = "\n".join(lines)
-                                if new_text and not new_text.endswith("\n"):
-                                    new_text += "\n"
-                                logs.update(new_text)
-            else:  # status == "running"
-                current_text = logs.renderable or ""
-                
-                # Vérifier si cette barre est déjà active
-                is_active = progress_key in LoggerUtils._active_text_progress_bars
-                
-                if is_active:
-                    # Récupérer les informations de la barre active
-                    bar_info = LoggerUtils._active_text_progress_bars[progress_key]
-                    line_index = bar_info.get("line_index")
-                    
-                    if line_index is not None and "\n" in current_text:
-                        # Diviser le texte en lignes
-                        lines = current_text.split("\n")
-                        
-                        # Vérifier que l'index est valide
-                        if 0 <= line_index < len(lines):
-                            # Vérifier si cette ligne contient déjà une barre de progression
-                            # Format: [cyan]hh:mm:ss[/cyan]  [blue]PROGRESS[/blue]  [color]bar_display[/color]
-                            
-                            # Nous cherchons à remplacer uniquement la partie après "PROGRESS]  "
-                            old_line = lines[line_index]
-                            progress_marker = "[/blue]  "
-                            progress_pos = old_line.find(progress_marker)
-                            
-                            if progress_pos != -1:
-                                # Trouvé l'indicateur PROGRESS
-                                prefix = old_line[:progress_pos + len(progress_marker)]
-                                # Remplacer tout ce qui suit par la nouvelle barre
-                                lines[line_index] = f"{prefix}[{color}]{safe_bar_display}[/{color}]"
-                            else:
-                                # Format inconnu, créer une nouvelle ligne complète
-                                formatted_bar = f"[cyan]{timestamp}[/cyan]  [blue]{level_str:7}[/blue]  [{color}]{safe_bar_display}[/{color}]"
-                                lines[line_index] = formatted_bar
-                            
-                            # Reconstruire le texte
-                            new_text = "\n".join(lines)
-                            logs.update(new_text)
-                        else:
-                            # L'index n'est plus valide
-                            is_active = False
-                    else:
-                        # Pas d'index valide ou pas de sauts de ligne
-                        is_active = False
-                
-                if not is_active:
-                    # Ajouter une nouvelle barre avec préfixe complet
-                    formatted_bar = f"[cyan]{timestamp}[/cyan]  [blue]{level_str:7}[/blue]  [{color}]{safe_bar_display}[/{color}]"
-                    
-                    # Ajouter la barre comme nouvelle ligne
-                    if current_text and not current_text.endswith("\n"):
-                        current_text += "\n"
-                    new_text = current_text + formatted_bar
-                    logs.update(new_text)
-                    
-                    # Déterminer l'index de la ligne pour cette barre
-                    line_index = len(new_text.split("\n")) - 1 if "\n" in new_text else 0
-                    
-                    # Stocker les informations de la barre
-                    LoggerUtils._active_text_progress_bars[progress_key] = {
-                        "line_index": line_index,
-                        "color": color,
-                        "bar_display": bar_display,
-                        "status": status
-                    }
-                
-                # Forcer le défilement vers le bas
-                logs_container = app.query_one("#logs-container", ScrollableContainer)
-                if logs_container:
-                    logs_container.scroll_end(animate=False)
-                    
+            percent = 0.0
+            status_text = ""
+
+            if message_obj.type == MessageType.PROGRESS:
+                if hasattr(message_obj, 'progress'): percent = message_obj.progress * 100
+                if hasattr(message_obj, 'total_steps') and message_obj.total_steps > 1 and hasattr(message_obj, 'step'):
+                    status_text = f"Étape {message_obj.step}/{message_obj.total_steps}"
+                elif percent > 0: status_text = f"{int(percent)}%"
+                # logger.debug(f"MAJ Widget NUMÉRIQUE {getattr(plugin_widget,'id','?')}: Pct={percent:.1f}%, Text='{status_text}'")
+
+            elif message_obj.type == MessageType.PROGRESS_TEXT:
+                if hasattr(message_obj, 'data') and isinstance(message_obj.data, dict):
+                    data = message_obj.data
+                    status = data.get("status", "running")
+                    if status == "stop":
+                        percent = 100.0
+                        status_text = f"{data.get('pre_text', 'Tâche')} terminée." # Message de fin clair
+                        # logger.debug(f"MAJ Widget TEXTE (stop) {getattr(plugin_widget,'id','?')}: Pct={percent:.1f}%, Text='{status_text}'")
+                    else: # status == "running"
+                        percent = float(data.get("percentage", 0))
+                        pre_text = data.get("pre_text", "")
+                        post_text = data.get("post_text", "")
+                        # Combiner pre/post text
+                        status_text = f"{pre_text}: {post_text}".strip(': ')
+                        if not status_text: status_text = f"{int(percent)}%" # Fallback
+                        # logger.debug(f"MAJ Widget TEXTE (run) {getattr(plugin_widget,'id','?')}: Pct={percent:.1f}%, Text='{status_text}'")
+
+            # Appeler la méthode de mise à jour du widget (elle doit exister!)
+            if hasattr(plugin_widget, 'update_progress'):
+                percent = max(0.0, min(100.0, percent)) # Clamp 0-100
+                plugin_widget.update_progress(percent, status_text)
+            else: logger.warning(f"Widget {getattr(plugin_widget,'id','?')} n'a pas de méthode 'update_progress'")
+
         except Exception as e:
-            logger.error(f"Erreur lors de l'affichage de la barre de progression textuelle: {str(e)}")
-            logger.error(traceback.format_exc())
+            widget_id_str = getattr(plugin_widget, 'id', 'ID inconnu')
+            logger.error(f"Erreur MAJ widget plugin {widget_id_str}: {e}", exc_info=True)
 
     @staticmethod
-    async def display_message(app, message_obj: Message):
-        """
-        Affiche un message dans la zone de logs.
-        Ne traite pas les messages de progression - utilisez process_output_line pour cela.
-        
-        Args:
-            app: Application ou widget contenant les éléments d'UI
-            message_obj: Objet Message à afficher
-        """
+    async def process_output_line(app, line: str, plugin_widget=None, target_ip: Optional[str] = None, is_priority: bool = False):
+        """Traite une ligne de sortie JSONL et met à jour l'UI."""
+        if not line or not TEXTUAL_AVAILABLE: return
+        # plugin_widget n'est plus utilisé, on le trouve via _find_plugin_widget
+
+        # Vérifier l'écran actuel pour la mise en file d'attente
         try:
-            # Ignorer les messages de type DEBUG dans l'affichage Textual
-            if message_obj.type == MessageType.DEBUG:
-                # On les enregistre quand même dans le fichier log
-                logger.debug(MessageFormatter.format_for_log_file(message_obj))
+            screen_name = app.screen.__class__.__name__ if hasattr(app, 'screen') else "Unknown"
+            needs_queue = "ExecutionScreen" not in screen_name
+        except Exception: # Erreur si app n'est pas prêt
+             needs_queue = True
+
+        message_obj: Optional[Message] = None
+        try:
+            log_entry = json.loads(line)
+            log_level = log_entry.get("level", "info").lower()
+            message_content = log_entry.get("message", "")
+            plugin_name = log_entry.get("plugin_name")
+            instance_id = log_entry.get("instance_id")
+
+            # Créer l'objet Message de base
+            message_obj = Message(
+                type=MessageType.UNKNOWN, content=str(message_content),
+                source=plugin_name, instance_id=instance_id, target_ip=target_ip
+            )
+
+            # Traiter les types de progression
+            if log_level == "progress":
+                message_obj.type = MessageType.PROGRESS
+                data = message_content.get("data", {}) if isinstance(message_content, dict) else {}
+                message_obj.progress = float(data.get("percentage", 0.0))
+                message_obj.step = data.get("current_step", 0)
+                message_obj.total_steps = data.get("total_steps", 1)
+                if not needs_queue: await LoggerUtils._update_plugin_widget_display(app, message_obj)
+                return # Ne pas afficher comme log texte
+
+            elif log_level == "progress-text":
+                message_obj.type = MessageType.PROGRESS_TEXT
+                data = message_content.get("data", {}) if isinstance(message_content, dict) else {}
+                message_obj.data = data
+                if not needs_queue: await LoggerUtils._update_plugin_widget_display(app, message_obj)
+                return # Ne pas afficher comme log texte
+
+            # Traiter les logs standards
+            else:
+                message_obj.type = {
+                    "info": MessageType.INFO, "warning": MessageType.WARNING, "error": MessageType.ERROR,
+                    "success": MessageType.SUCCESS, "debug": MessageType.DEBUG, "start": MessageType.START,
+                    "end": MessageType.END
+                }.get(log_level, MessageType.INFO)
+                # Adapter contenu
+                if message_obj.type == MessageType.END and not str(message_obj.content).startswith("✓"):
+                    message_obj.content = f"✓ {message_obj.content}"
+                if isinstance(message_content, dict): message_obj.content = str(message_content)
+
+                # Mettre en queue ou afficher
+                if needs_queue:
+                    queue_target = LoggerUtils._priority_queue if is_priority else LoggerUtils._pending_messages
+                    queue_target.append(message_obj)
+                else:
+                    await LoggerUtils.display_message(app, message_obj, is_priority)
+
+        except json.JSONDecodeError:
+            # Ligne non-JSON: traiter comme texte brut
+            message_obj = Message(type=MessageType.INFO, content=line, target_ip=target_ip)
+            line_lower = line.lower()
+            if any(term in line_lower for term in ['error', 'erreur', 'failed', 'échec', 'traceback']): message_obj.type = MessageType.ERROR
+            elif any(term in line_lower for term in ['success', 'succès', 'terminé']): message_obj.type = MessageType.SUCCESS
+            elif any(term in line_lower for term in ['warning', 'attention', 'avertissement']): message_obj.type = MessageType.WARNING
+
+            if needs_queue:
+                queue_target = LoggerUtils._priority_queue if is_priority else LoggerUtils._pending_messages
+                queue_target.append(message_obj)
+            else:
+                await LoggerUtils.display_message(app, message_obj, is_priority)
+
+        except Exception as e:
+            logger.error(f"Erreur process_output_line: {e}", exc_info=True)
+            # Essayer de logguer l'erreur elle-même
+            try:
+                error_message = Message(type=MessageType.ERROR, content=f"Erreur traitement log: {str(e)}", target_ip=target_ip)
+                if needs_queue: LoggerUtils._pending_messages.append(error_message)
+                else: await LoggerUtils.display_message(app, error_message)
+            except: pass
+
+    @staticmethod
+    async def display_message(app, message_obj: Message, is_priority: bool = False):
+        """Affiche un message formaté dans #logs-text."""
+        if not TEXTUAL_AVAILABLE: return
+        try:
+            # Ignorer les types de progression qui sont gérés ailleurs
+            if message_obj.type in [MessageType.PROGRESS, MessageType.PROGRESS_TEXT]:
                 return
-            
-            # Vérifier les doublons
+
+            # Ne pas afficher DEBUG sauf si mode debug activé (logique applicative)
+            # if message_obj.type == MessageType.DEBUG and not getattr(app, 'debug_mode', False): return
+
+            # Vérifier les doublons (logs standard uniquement)
             if LoggerUtils._is_duplicate_message(message_obj):
                 return
-            
-            # Vérifier si nous sommes dans le thread principal
-            if hasattr(app, '_thread_id') and app._thread_id != threading.get_ident():
-                if hasattr(app, 'call_from_thread'):
-                    await app.call_from_thread(LoggerUtils.display_message, app, message_obj)
-                    return
-                else:
-                    logger.info(f"Thread différent sans call_from_thread: {message_obj.content}")
-                    return
-            
-            # Vérifier le type d'écran actuel
-            screen_name = app.screen.__class__.__name__ if hasattr(app, 'screen') else "Unknown"
-            if "Choice" in screen_name or "ExecutionScreen" not in screen_name:
-                # Nous sommes dans un mauvais écran, mettre le message en file d'attente
-                LoggerUtils._pending_messages.append(message_obj)
-                logger.debug(f"Message mis en file d'attente (écran: {screen_name}): {message_obj.content}")
-                return
-                
-            # Ignorer les messages de type PROGRESS, ils sont traités par process_output_line
-            if message_obj.type == MessageType.PROGRESS:
-                logger.debug("Message de type PROGRESS ignoré dans display_message")
-                return
-            
-            # Pour les messages de type PROGRESS_TEXT, utiliser la fonction spéciale
-            if hasattr(message_obj, 'type') and message_obj.type == MessageType.PROGRESS_TEXT:
-                # Extraire les données du message
-                if hasattr(message_obj, 'data') and isinstance(message_obj.data, dict):
-                    status = message_obj.data.get("status", "running")
-                    # Créer une clé unique pour cette barre
-                    progress_key = f"{message_obj.source}_{message_obj.instance_id}"
-                    # Afficher la barre de progression textuelle
-                    await LoggerUtils._display_text_progress_bar(app, progress_key, message_obj.content, status)
-                return
-            
-            # Vérifier si app est valide
-            if app is None:
-                logger.error("Erreur: app est None dans display_message")
-                return
-                    
-            # Vérifier si message_obj contient un target_ip (important pour le debug SSH)
-            has_target_ip = message_obj.target_ip is not None
-            if has_target_ip:
-                logger.debug(f"Message avec target_ip: {message_obj.target_ip}")
-                    
-            # Utiliser le formateur de message du module messaging
+
+            # Formater pour Rich/Textual
             formatted_message = MessageFormatter.format_for_rich_textual(message_obj)
-            
-            # Mise à jour des logs dans l'interface
+            if not formatted_message: return
+
+            # Mettre à jour le widget #logs-text
             try:
                 logs = app.query_one("#logs-text", Static)
-                if logs:
-                    current_text = logs.renderable or ""
-                    
-                    # Vérifier s'il y a des barres de progression actives
-                    has_active_bars = bool(LoggerUtils._active_text_progress_bars)
-                    
-                    if has_active_bars:
-                        # Terminer toutes les barres de progression actives
-                        LoggerUtils._active_text_progress_bars.clear()
-                        # Ajouter un saut de ligne avant le message
-                        if current_text and not current_text.endswith("\n"):
-                            current_text += "\n"
-                    elif current_text and not current_text.endswith("\n"):
-                        current_text += "\n"
-                        
-                    logs.update(current_text + formatted_message)
-                    
-                    # Forcer le défilement vers le bas
-                    logs_container = app.query_one("#logs-container", ScrollableContainer)
-                    if logs_container:
-                        logs_container.scroll_end(animate=False)
-                
-                # S'assurer que logs-container est visible
+                current_text = logs.renderable if logs.renderable else "" # Assurer str
+                # Éviter les doubles sauts de ligne
+                if current_text and not current_text.endswith("\n"): current_text += "\n"
+                logs.update(current_text + formatted_message) # Le formateur ajoute \n? Non, ajoutons ici.
+
+                # Gérer le défilement et le rafraîchissement
                 logs_container = app.query_one("#logs-container", ScrollableContainer)
-                if logs_container and "hidden" in logs_container.classes:
-                    logs_container.remove_class("hidden")
-                    if hasattr(app, 'show_logs'):
-                        app.show_logs = True
-            except Exception as e:
-                # Si on ne peut pas accéder à l'interface, stocker le message pour plus tard
-                logger.debug(f"Impossible d'accéder à l'interface pour afficher le message: {e}")
-                LoggerUtils._pending_messages.append(message_obj)
-                # Limiter la taille de la file d'attente
-                if len(LoggerUtils._pending_messages) > 100:
-                    LoggerUtils._pending_messages = LoggerUtils._pending_messages[-100:]
-            
-            # Journalisation dans le fichier
-            log_methods = {
-                MessageType.INFO: logger.info,
-                MessageType.WARNING: logger.warning,
-                MessageType.ERROR: logger.error,
-                MessageType.DEBUG: logger.debug,
-                MessageType.SUCCESS: logger.info,
-                MessageType.PROGRESS: logger.debug,  # Utiliser debug pour les messages de progression
-                MessageType.PROGRESS_TEXT: logger.debug,  # Utiliser debug pour les barres textuelles
-                MessageType.UNKNOWN: logger.info
-            }
-            
-            # Utiliser le formateur de message pour fichier de log du module messaging
-            content = MessageFormatter.format_for_log_file(message_obj)
-                
-            log_method = log_methods.get(message_obj.type, logger.info)
-            log_method(content)
-            
+                logs_container.scroll_end(animate=False)
+
+                # Planifier rafraîchissement UI (limité)
+                now = time.time()
+                if (now - LoggerUtils._last_update_time) >= LoggerUtils._refresh_interval:
+                    if not LoggerUtils._refresh_scheduled:
+                        LoggerUtils._refresh_scheduled = True
+                        LoggerUtils._schedule_refresh(app)
+                    LoggerUtils._last_update_time = now
+            except Exception as e_ui:
+                 logger.debug(f"Impossible MAJ widget logs: {e_ui}. Message mis en attente.")
+                 # Mettre en attente si l'UI n'est pas prête
+                 queue_target = LoggerUtils._priority_queue if is_priority else LoggerUtils._pending_messages
+                 queue_target.append(message_obj)
+
+
         except Exception as e:
-            logger.error(f"Erreur lors de l'affichage d'un message: {str(e)}")
-            logger.error(f"Message: {str(message_obj.__dict__)}")
-            logger.error(traceback.format_exc())
-            try:
-                # Tenter une approche plus simple en cas d'erreur
-                logs = app.query_one("#logs-text")
-                if logs:
-                    error_text = f"\nERREUR DE LOG: {message_obj.content}"
-                    logs.update(logs.renderable + error_text)
-            except:
-                pass
+            logger.error(f"Erreur display_message: {e}", exc_info=True)
 
     @staticmethod
     async def flush_pending_messages(app):
-        """Affiche tous les messages en attente lorsque l'interface est prête."""
-        if not LoggerUtils._pending_messages:
+        """Traite les messages Message en attente."""
+        if not TEXTUAL_AVAILABLE or (not LoggerUtils._pending_messages and not LoggerUtils._priority_queue):
             return
-        
-        # Essayer de trouver ou créer le widget logs-text
-        logs = None
+
         try:
-            try:
-                # Essayer d'abord de trouver le widget existant
-                logs = app.query_one("#logs-text")
-            except Exception:
-                # S'il n'existe pas, essayer de trouver le conteneur et créer le widget
-                try:
-                    logs_container = app.query_one("#logs-container")
-                    if logs_container:
-                        # Créer le widget de logs s'il n'existe pas
-                        from textual.widgets import Static
-                        logs_text = Static(id="logs-text", classes="logs")
-                        logs_container.mount(logs_text)
-                        logs = logs_text
-                        logger.debug("Widget logs-text créé dynamiquement")
-                except Exception as ce:
-                    # Si on ne peut pas créer le widget, on abandonne cette tentative
-                    return
+            # S'assurer que le widget de logs existe
+            logs = app.query_one("#logs-text", Static)
+            logs_container = app.query_one("#logs-container", ScrollableContainer)
         except Exception:
-            # Si on ne peut toujours pas accéder au widget, on abandonne cette tentative
+            logger.debug("Widget logs non trouvé pendant flush.")
             return
-            
-        if not logs:
-            # Si on n'a pas réussi à trouver ou créer le widget, on abandonne
-            return
-        
-        # Maintenant on peut afficher les messages
-        num_messages = len(LoggerUtils._pending_messages)
-        if num_messages == 0:
-            return
-            
-        logger.debug(f"Affichage de {num_messages} messages en attente")
 
-        # Récupérer une copie des messages en attente et vider la file
-        all_pending_messages = LoggerUtils._pending_messages.copy()
-        LoggerUtils._pending_messages.clear()
-    
-        # Filtrer les messages de debug
-        pending_messages = [msg for msg in all_pending_messages if msg.type != MessageType.DEBUG]
-    
-        # Construire un message combiné pour tous les messages en attente
-        combined_text = ""
-        for message in pending_messages:
-            formatted_message = MessageFormatter.format_for_rich_textual(message)
-            combined_text += formatted_message + "\n"
-        
-        # Mettre à jour le widget logs directement
-        if combined_text:
-            current_text = logs.renderable or ""
-            if current_text and not current_text.endswith("\n"):
-                current_text += "\n"
-            logs.update(current_text + combined_text)
-            
-            # Forcer le défilement vers le bas
-            try:
-                logs_container = app.query_one("#logs-container")
-                if logs_container:
-                    logs_container.scroll_end(animate=False)
-            except:
-                pass
-        
-        logger.debug("Messages en attente affichés avec succès")
+        messages_to_process: List[Message] = []
+        while LoggerUtils._priority_queue: messages_to_process.append(LoggerUtils._priority_queue.popleft())
+        while LoggerUtils._pending_messages: messages_to_process.append(LoggerUtils._pending_messages.popleft())
 
+        if messages_to_process:
+            logger.debug(f"Flush de {len(messages_to_process)} messages en attente...")
+            # Construire le texte formaté pour tous les messages non-progression
+            log_lines_to_add = []
+            for msg_obj in messages_to_process:
+                 if msg_obj.type not in [MessageType.PROGRESS, MessageType.PROGRESS_TEXT]:
+                      # Vérifier doublon avant formatage
+                      if not LoggerUtils._is_duplicate_message(msg_obj):
+                          formatted = MessageFormatter.format_for_rich_textual(msg_obj)
+                          if formatted: log_lines_to_add.append(formatted)
+                 elif not app.is_screen_installed("execution_screen"): # Si pas sur l'écran, MAJ widget ne fonctionnera pas
+                      pass # Ignorer la mise à jour de progression si écran non actif
+                 else: # Essayer de mettre à jour le widget de progression même pendant flush
+                      # (peut être redondant si process_output_line l'a déjà fait)
+                      await LoggerUtils._update_plugin_widget_display(app, msg_obj)
+
+
+            # Mettre à jour le widget logs si des lignes texte existent
+            if log_lines_to_add:
+                current_text = logs.renderable if logs.renderable else ""
+                if current_text and not current_text.endswith("\n"): current_text += "\n"
+                # Ajouter toutes les nouvelles lignes
+                logs.update(current_text + "\n".join(log_lines_to_add)) # Assurer une seule MAJ du widget
+                logs_container.scroll_end(animate=False)
+
+            # Planifier un rafraîchissement UI
+            if not LoggerUtils._refresh_scheduled:
+                LoggerUtils._refresh_scheduled = True
+                LoggerUtils._schedule_refresh(app)
+
+    @staticmethod
+    def _schedule_refresh(app):
+        """Planifie un rafraîchissement différé."""
+        if hasattr(app, 'call_later'):
+            # Utiliser call_later pour différer et éviter les appels trop rapprochés
+            app.call_later(lambda: LoggerUtils._do_refresh(app))
+        else: # Fallback si call_later n'existe pas
+            LoggerUtils._do_refresh(app)
+
+    @staticmethod
+    def _do_refresh(app):
+        """Effectue le rafraîchissement."""
+        try:
+            if hasattr(app, 'is_mounted') and app.is_mounted: # Vérifier si monté
+                if hasattr(app, 'refresh'): app.refresh()
+        except Exception as e: logger.debug(f"Erreur refresh: {e}")
+        finally: LoggerUtils._refresh_scheduled = False
 
     @staticmethod
     async def add_log(app, message: str, level: str = "info", target_ip: Optional[str] = None):
-        """Ajoute un message au log de l'application"""
+        """Ajoute un message au log via LoggerUtils."""
         try:
-            # Créer le message au format JSON pour l'interface
-            log_entry = {
-                "timestamp": datetime.now().isoformat(),
-                "level": level,
-                "message": message
-            }
-            
-            if target_ip:
-                log_entry["target_ip"] = target_ip
-                
-            # Convertir en JSON
-            log_json = json.dumps(log_entry)
-            
-            # Traiter avec process_output_line pour assurer un traitement cohérent
-            await LoggerUtils.process_output_line(app, log_json, None, target_ip)
-                
-            # Envoyer également à la méthode add_log_message de l'application si disponible
-            if hasattr(app, "add_log_message"):
-                await app.add_log_message(log_json)
-                
-            # Logger pour le débogage
-            logger.debug(f"Log ajouté: {log_entry}")
-        except Exception as e:
-            logger.error(f"Erreur lors de l'ajout du log: {e}")
-            logger.error(traceback.format_exc())
+            message_type = {
+                "info": MessageType.INFO, "warning": MessageType.WARNING, "error": MessageType.ERROR,
+                "success": MessageType.SUCCESS, "debug": MessageType.DEBUG, "start": MessageType.START,
+                "end": MessageType.END
+            }.get(level.lower(), MessageType.INFO)
 
-    @staticmethod
-    async def process_output_line(app, line: str, plugin_widget=None, target_ip: Optional[str] = None):
-        """Traite une ligne de sortie au format JSONL"""
-        try:
-            # Si la ligne est vide, rien à faire
-            if not line:
-                return
-                
-            # Vérifier le type d'écran actuel
+            if message_type == MessageType.END and not message.startswith("✓"): message = f"✓ {message}"
+
+            message_obj = Message(type=message_type, content=message, target_ip=target_ip)
+            is_priority = message_type in [MessageType.ERROR, MessageType.END]
+
+            # Vérifier écran et mettre en queue ou afficher
             screen_name = app.screen.__class__.__name__ if hasattr(app, 'screen') else "Unknown"
-            if "Choice" in screen_name or "ExecutionScreen" not in screen_name:
-                # Traiter le message différemment ou le mettre en file d'attente
-                # pour éviter les erreurs avec l'interface
-                logger.debug(f"Message reçu dans un écran non-ExecutionScreen ({screen_name})")
-                
-                # Tenter de parser comme un message JSON et le stocker
-                try:
-                    log_entry = json.loads(line)
-                    if log_entry.get("level") == "debug":
-                        logger.debug(str(log_entry.get("message", "")))
-                        return
-                    
-                    level = log_entry.get("level", "info")
-                    message_content = log_entry.get("message", "")
-                    
-                    # Créer un objet Message et le mettre en file d'attente
-                    message_type = MessageType.INFO  # Valeur par défaut
-                    if level == "error": message_type = MessageType.ERROR
-                    elif level == "warning": message_type = MessageType.WARNING
-                    elif level == "success": message_type = MessageType.SUCCESS
-                    elif level == "debug": message_type = MessageType.DEBUG
-                    
-                    message_obj = Message(
-                        type=message_type,
-                        content=str(message_content),
-                        source=log_entry.get("plugin_name"),
-                        instance_id=log_entry.get("instance_id"),
-                        target_ip=target_ip
-                    )
-                    
-                    LoggerUtils._pending_messages.append(message_obj)
-                except:
-                    # Si ce n'est pas du JSON valide, l'ignorer
-                    pass
-                
-                return
-                
-            # Essayer d'abord d'afficher les messages en attente
-            await LoggerUtils.flush_pending_messages(app)
-                    
-            # Tenter de parser la ligne comme JSON
-            try:
-                log_entry = json.loads(line)
-                
-                # Vérifier s'il s'agit d'un message imbriqué
-                if log_entry.get('plugin_name') == 'ssh_wrapper' and isinstance(log_entry.get('message'), str):
-                    if log_entry['message'].startswith('{') and log_entry['message'].endswith('}'):
-                        try:
-                            # Extraire le message interne
-                            inner_message = json.loads(log_entry['message'])
-                            # Si c'est un message JSON valide, le traiter récursivement avec le même target_ip
-                            await LoggerUtils.process_output_line(app, log_entry['message'], plugin_widget, target_ip)
-                            return  # Ne pas continuer le traitement après avoir traité le message imbriqué
-                        except (json.JSONDecodeError, Exception) as e:
-                            # Si l'extraction échoue, continuer avec le traitement normal
-                            logger.debug(f"Échec de l'extraction du message imbriqué: {e}")
-                
-                # Si c'est un message de progression standard
-                if log_entry.get("level") == "progress":
-                    message_data = log_entry.get("message", {})
-                    
-                    # Vérifier si c'est un dictionnaire ou une chaîne
-                    if isinstance(message_data, str):
-                        try:
-                            # Essayer de parser comme JSON si c'est une chaîne
-                            message_data = json.loads(message_data)
-                        except (json.JSONDecodeError, Exception):
-                            # Si ce n'est pas du JSON valide, créer un dictionnaire par défaut
-                            message_data = {"data": {"percentage": 0.0}}
-                    
-                    # Récupérer le pourcentage directement du message
-                    if isinstance(message_data, dict) and "data" in message_data:
-                        percentage = message_data["data"].get("percentage", 0.0)
-                        current_step = message_data["data"].get("current_step", 0)
-                        total_steps = message_data["data"].get("total_steps", 1)
-                    else:
-                        percentage = 0.0
-                        current_step = 0
-                        total_steps = 1
-                    
-                    # Créer un objet Message avec les informations de progression
-                    message_obj = Message(
-                        type=MessageType.PROGRESS,
-                        content="",  # Pas de message texte pour la progression
-                        source=log_entry.get("plugin_name"),
-                        progress=float(percentage),  # Le pourcentage est déjà entre 0 et 1
-                        step=current_step,
-                        total_steps=total_steps,
-                        instance_id=log_entry.get("instance_id"),
-                        target_ip=target_ip
-                    )
-                    
-                    # Mettre à jour le widget de progression immédiatement
-                    try:
-                        # Le pourcentage est déjà entre 0 et 1, pas besoin de diviser par 100
-                        await LoggerUtils._update_progress_widget(app, message_obj, plugin_widget, 
-                                                                f"Étape {current_step}/{total_steps}")
-                    except Exception as progress_error:
-                        logger.error(f"Erreur lors de la mise à jour de la progression: {progress_error}")
-                    
-                    # Ne pas afficher le message de progression dans les logs pour éviter la duplication
-                    return
-                    
-                # Si c'est un message de progression textuelle
-                elif log_entry.get("level") == "progress-text":
-                    # Extraire les données du message
-                    message_data = log_entry.get("message", {})
-                    
-                    # S'assurer que nous avons un dictionnaire data
-                    if isinstance(message_data, dict) and "data" in message_data:
-                        data = message_data["data"]
-                    else:
-                        # Fallback si les données ne sont pas correctement formatées
-                        data = {}
-                    
-                    status = data.get("status", "running")
-                    pre_text = data.get("pre_text", "")
-                    post_text = data.get("post_text", "")
-                    pb_id = data.get("id", "default")  # ID de la barre, "default" par défaut
-                    color = data.get("color", "blue")  # Couleur, "blue" par défaut
-                    
-                    # Pour contourner le problème d'affichage, utiliser directement la barre
-                    # fournie par l'émetteur au lieu de la reconstruire
-                    bar = data.get("bar", "")
-                    percentage = data.get("percentage", 0)
-                    
-                    # Créer une clé unique pour cette barre de progression
-                    # Inclure l'ID de la barre dans la clé pour supporter plusieurs barres par plugin
-                    progress_key = f"{log_entry.get('plugin_name')}_{log_entry.get('instance_id')}_{pb_id}"
-                    
-                    # Construire l'affichage de la barre
-                    if status == "running":
-                        # Format: pre_text [Barre visuelle] post_text Pourcentage%
-                        bar_display = f"{pre_text} {bar} {post_text} {percentage}%"
-                        
-                        # Créer un message de type PROGRESS_TEXT
-                        message_obj = Message(
-                            type=MessageType.PROGRESS_TEXT,
-                            content=bar_display,
-                            source=log_entry.get("plugin_name"),
-                            instance_id=log_entry.get("instance_id"),
-                            target_ip=target_ip,
-                            data={
-                                "status": status,
-                                "id": pb_id,
-                                "color": color,
-                                "bar": bar,
-                                "percentage": percentage
-                            }
-                        )
-                        
-                        # Essayer d'afficher la barre de progression avec la couleur spécifiée
-                        await LoggerUtils._display_text_progress_bar(app, progress_key, bar_display, status, color)
-                    else:  # status == "stop"
-                        # Indiquer la fin de la barre
-                        await LoggerUtils._display_text_progress_bar(app, progress_key, "", "stop", color)
-                    
-                    return
-                else:
-                    # Pour les autres types de messages
-                    level = log_entry.get("level", "info")
-                    # Convertir le niveau en MessageType
-                    message_type = {
-                        "info": MessageType.INFO,
-                        "warning": MessageType.WARNING,
-                        "error": MessageType.ERROR,
-                        "success": MessageType.SUCCESS,
-                        "debug": MessageType.DEBUG
-                    }.get(level, MessageType.INFO)
-                    
-                    # Récupérer le message, qui peut être un objet ou une chaîne
-                    message_content = log_entry.get("message", "")
-                    if isinstance(message_content, dict):
-                        # Si c'est un dictionnaire, essayer d'extraire la partie pertinente
-                        message_content = str(message_content)
-                    
-                    message_obj = Message(
-                        type=message_type,
-                        content=message_content,
-                        source=log_entry.get("plugin_name"),
-                        instance_id=log_entry.get("instance_id"),
-                        target_ip=target_ip
-                    )
-                    
-                    # Essayer d'afficher le message, s'il échoue il sera mis en file d'attente
-                    await LoggerUtils.display_message(app, message_obj)
-                    
-            except json.JSONDecodeError:
-                # Si ce n'est pas du JSON, logger un avertissement
-                logger.warning(f"Ligne non-JSON reçue: {line}")
-                # En mode SSH, on veut quand même afficher les lignes non-JSON
-                if target_ip:
-                    message_obj = Message(
-                        type=MessageType.INFO,
-                        content=line,
-                        target_ip=target_ip
-                    )
-                    await LoggerUtils.display_message(app, message_obj)
-        except Exception as e:
-            logger.error(f"Erreur lors du traitement de la ligne: {e}")
-            logger.error(traceback.format_exc())
+            if "ExecutionScreen" not in screen_name:
+                 queue_target = LoggerUtils._priority_queue if is_priority else LoggerUtils._pending_messages
+                 queue_target.append(message_obj)
+            else:
+                 await LoggerUtils.display_message(app, message_obj, is_priority)
 
+        except Exception as e:
+            logger.error(f"Erreur add_log: {e}", exc_info=True)
+
+    # --- Autres méthodes ---
     @staticmethod
     async def clear_logs(app):
-        """Effacement des logs"""
+        """Effacement des logs et réinitialisation."""
         try:
-            # Vider la file d'attente des messages en attente
-            LoggerUtils._pending_messages.clear()
-            
-            # Réinitialiser le cache et les barres actives
-            LoggerUtils._processed_lines.clear()
-            LoggerUtils._active_text_progress_bars.clear()
-            
-            # Essayer d'effacer les logs dans l'interface
-            try:
-                logs_widget = app.query_one("#logs-text")
-                if logs_widget:
-                    logs_widget.update("")
-            except Exception as e:
-                logger.debug(f"Impossible d'effacer les logs dans l'interface: {e}")
-        except Exception as e:
-            logger.error(f"Erreur lors de l'effacement des logs: {str(e)}")
-    
+            LoggerUtils._pending_messages.clear(); LoggerUtils._priority_queue.clear()
+            LoggerUtils._processed_lines.clear(); LoggerUtils._seen_messages.clear()
+            LoggerUtils._message_count = 0
+            if TEXTUAL_AVAILABLE:
+                try: app.query_one("#logs-text", Static).update("")
+                except Exception: pass # Ignorer si widget non trouvé
+        except Exception as e: logger.error(f"Erreur clear_logs: {e}")
+
     @staticmethod
     def toggle_logs(app) -> None:
-        """Afficher/Masquer les logs"""
+        """Afficher/Masquer les logs."""
+        if not TEXTUAL_AVAILABLE: return
         try:
             logs_container = app.query_one("#logs-container")
-            if logs_container:
-                if "hidden" in logs_container.classes:
-                    logs_container.remove_class("hidden")
-                    if hasattr(app, 'show_logs'):
-                        app.show_logs = True
-                else:
-                    logs_container.add_class("hidden")
-                    if hasattr(app, 'show_logs'):
-                        app.show_logs = False
-        except Exception as e:
-            logger.error(f"Erreur lors du toggle des logs: {str(e)}")
-            
+            logs_container.toggle_class("hidden")
+            if hasattr(app, 'show_logs'): app.show_logs = not logs_container.has_class("hidden")
+            if not LoggerUtils._refresh_scheduled:
+                 LoggerUtils._refresh_scheduled = True
+                 LoggerUtils._schedule_refresh(app)
+        except Exception as e: logger.error(f"Erreur toggle_logs: {e}")
+
     @staticmethod
     async def ensure_logs_widget_exists(app):
-        """
-        S'assure que le widget de logs existe et est prêt à recevoir des messages.
-        Si ce n'est pas le cas, tente de le créer.
-        
-        Args:
-            app: Application ou widget contenant l'interface
-            
-        Returns:
-            bool: True si le widget existe ou a été créé, False sinon
-        """
+        """S'assure que le widget de logs existe."""
+        if not TEXTUAL_AVAILABLE: return False
         try:
-            # Vérifier si le widget existe
-            try:
-                logs = app.query_one("#logs-text", Static)
-                if logs:
-                    return True
-            except Exception:
-                pass
-                
-            # Si on arrive ici, le widget n'existe pas ou n'est pas accessible
-            # Essayer de récupérer le conteneur de logs
-            try:
-                logs_container = app.query_one("#logs-container", ScrollableContainer)
-                if logs_container:
-                    # Créer le widget de logs
-                    from textual.widgets import Static
-                    logs_text = Static(id="logs-text", classes="logs")
-                    logs_container.mount(logs_text)
-                    logger.info("Widget de logs créé avec succès")
-                    
-                    # S'assurer que le conteneur est visible
-                    logs_container.remove_class("hidden")
-                    if hasattr(app, 'show_logs'):
-                        app.show_logs = True
-                        
-                    return True
-            except Exception as e:
-                logger.debug(f"Impossible de créer le widget de logs: {e}")
-                
-            return False
-            
-        except Exception as e:
-            logger.error(f"Erreur lors de la vérification/création du widget de logs: {e}")
-            return False
+            app.query_one("#logs-text", Static); return True
+        except Exception: pass # N'existe pas encore
+        try: # Essayer de le créer
+            logs_container = app.query_one("#logs-container", ScrollableContainer)
+            logs_text = Static(id="logs-text", classes="logs")
+            await logs_container.mount(logs_text) # Utiliser await pour mount
+            logs_container.remove_class("hidden")
+            if hasattr(app, 'show_logs'): app.show_logs = True
+            if not LoggerUtils._refresh_scheduled:
+                 LoggerUtils._refresh_scheduled = True
+                 LoggerUtils._schedule_refresh(app)
+            return True
+        except Exception as e: logger.debug(f"Impossible créer widget logs: {e}")
+        return False

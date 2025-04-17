@@ -21,12 +21,12 @@ class CheckboxGroupField(ConfigField):
         self.options = []
         self.selected_values = []
         self.raw_data = None
-        
+
         # Initialiser la dépendance si elle est définie dans la configuration
         self.depends_on = field_config.get('depends_on')
         if self.depends_on:
             logger.debug(f"Champ {self.field_id} dépend de {self.depends_on}")
-        
+
         # Initialiser les valeurs par défaut si elles sont définies
         self.default_selected = field_config.get('default_selected', [])
         if self.default_selected:
@@ -74,7 +74,7 @@ class CheckboxGroupField(ConfigField):
 
         # Fallback if no options defined
         return [("No options defined", "no_options_defined")]
-        
+
     def _get_dynamic_options(self) -> list:
         """Récupère les options dynamiques depuis un script externe"""
         dynamic_config = self.field_config['dynamic_options']
@@ -129,7 +129,7 @@ class CheckboxGroupField(ConfigField):
                 result = getattr(module, func_name)()
 
             logger.debug(f"Result from {func_name}: {result}")
-            
+
             # Stocker les données brutes pour une utilisation ultérieure
             self.raw_data = result
 
@@ -139,7 +139,7 @@ class CheckboxGroupField(ConfigField):
             logger.error(f"Error loading dynamic options: {e}")
             logger.error(traceback.format_exc())
             return [(f"Error: {str(e)}", "script_exception")]
-    
+
     def _prepare_function_args(self, dynamic_config):
         """Prépare les arguments pour l'appel de fonction dynamique"""
         args = []
@@ -150,13 +150,14 @@ class CheckboxGroupField(ConfigField):
                 if 'field' in arg_config:
                     # Get value from another field
                     field_id = arg_config['field']
-                    if field_id in self.fields_by_id:
-                        field_value = self.fields_by_id[field_id].get_value()
-                        param_name = arg_config.get('param_name')
-                        if param_name:
-                            kwargs[param_name] = field_value
-                        else:
-                            args.append(field_value)
+                    for elt in self.fields_by_id:
+                        if elt.startswith(f"{field_id}_"):
+                            field_value = self.fields_by_id[elt].get_value()
+                            param_name = arg_config.get('param_name')
+                            if param_name:
+                                kwargs[param_name] = field_value
+                            else:
+                                args.append(field_value)
                 elif 'value' in arg_config:
                     # Static value
                     param_name = arg_config.get('param_name')
@@ -164,9 +165,9 @@ class CheckboxGroupField(ConfigField):
                         kwargs[param_name] = arg_config['value']
                     else:
                         args.append(arg_config['value'])
-        
+
         return args, kwargs
-    
+
     def _process_dynamic_result(self, result, dynamic_config):
         """Traite le résultat d'une fonction dynamique"""
         # Process the result
@@ -182,29 +183,29 @@ class CheckboxGroupField(ConfigField):
                 # Extract value_key and label_key if specified
                 value_key = dynamic_config.get('value')
                 label_key = dynamic_config.get('description')
-                
+
                 # Récupérer les clés pour la sélection automatique
                 auto_select_key = dynamic_config.get('auto_select_key')
                 auto_select_value = dynamic_config.get('auto_select_value', True)
-                
+
                 options = []
                 for item in data:
                     if isinstance(item, dict):
                         if value_key and label_key and value_key in item and label_key in item:
                             value = str(item[value_key])
                             options.append((str(item[label_key]), value))
-                            
+
                             # Vérifier si cet élément doit être sélectionné par défaut
                             if auto_select_key and auto_select_key in item and item[auto_select_key] == auto_select_value:
                                 if value not in self.selected_values:
                                     self.selected_values.append(value)
                                     logger.debug(f"Auto-sélection de {value} basée sur {auto_select_key}={auto_select_value}")
-                                    
+
                         elif value_key and value_key in item:
                             # Use value as label if no label_key specified
                             value = str(item[value_key])
                             options.append((value, value))
-                            
+
                             # Vérifier si cet élément doit être sélectionné par défaut
                             if auto_select_key and auto_select_key in item and item[auto_select_key] == auto_select_value:
                                 if value not in self.selected_values:
@@ -214,7 +215,7 @@ class CheckboxGroupField(ConfigField):
                         # For simple values, use as both label and value
                         value = str(item)
                         options.append((value, value))
-                
+
                 # Appliquer les valeurs par défaut définies dans la configuration
                 if self.default_selected:
                     for default_value in self.default_selected:
@@ -285,11 +286,11 @@ class CheckboxGroupField(ConfigField):
     def get_value(self):
         """Return the list of selected values"""
         return self.selected_values
-        
+
     def update_dynamic_options(self):
         """Met à jour les options dynamiques du champ"""
         new_options = self._get_options()
-        
+
         # Si les options sont None ou vides, le champ doit être supprimé
         if new_options is None:
             logger.debug(f"Aucune option disponible pour {self.field_id}, le champ sera supprimé")
@@ -304,25 +305,25 @@ class CheckboxGroupField(ConfigField):
                 # Supprimer le widget de l'interface
                 self.remove()
             return
-            
+
         # Mettre à jour les options
         self.options = new_options
-        
+
         # Sauvegarder les valeurs sélectionnées qui sont toujours valides
         self.selected_values = [val for val in self.selected_values if any(opt[1] == val for opt in self.options)]
-        
+
         # Supprimer les anciens checkboxes
         for checkbox in self.checkboxes.values():
             checkbox.remove()
         self.checkboxes.clear()
-        
+
         # Créer les nouveaux checkboxes
         container = self.query_one('.checkbox-group-container')
         if container:
             # Supprimer le label "Aucune option disponible" s'il existe
             for label in container.query('.no-options-label'):
                 label.remove()
-                
+
             # Créer les nouveaux checkboxes
             for option_label, option_value in self.options:
                 checkbox_id = f"checkbox_group_{self.source_id}_{self.field_id}_{option_value}".replace(".", "_")

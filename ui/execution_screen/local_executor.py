@@ -1,7 +1,3 @@
-"""
-Module pour l'exécution locale des plugins.
-"""
-
 import os
 import sys
 import json
@@ -11,6 +7,7 @@ import traceback
 from typing import Dict, Tuple
 from ruamel.yaml import YAML
 
+# Assuming these imports are correctly placed relative to local_executor.py
 from ..utils.logging import get_logger
 from ..utils.messaging import Message, MessageType, parse_message
 from ..choice_screen.plugin_utils import get_plugin_folder_name
@@ -43,7 +40,16 @@ class LocalExecutor:
                 await LoggerUtils.add_log(self.app, message, level=level, target_ip=target_ip)
 
             # Exécuter la coroutine dans la boucle d'événements
-            asyncio.create_task(add_log_async())
+            # Vérifier si une boucle est déjà en cours d'exécution
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(add_log_async())
+            except RuntimeError: # Pas de boucle en cours (peut arriver dans certains contextes)
+                 # Fallback : essayer de l'exécuter de manière synchrone ou le logger
+                 logger.warning("Aucune boucle asyncio en cours pour log_message, log direct.")
+                 # Vous pourriez vouloir logger différemment ici ou l'ignorer
+                 print(f"LOG [{level.upper()}]: {message}") # Log simple en fallback
+
         except Exception as e:
             logger.error(f"Erreur lors de l'ajout du message au log: {e}")
 
@@ -51,12 +57,15 @@ class LocalExecutor:
         """Exécute un plugin localement
 
         Args:
-            folder_name: Le nom du dossier du plugin
-            config: La configuration du plugin
+            plugin_widget: Le widget Textual représentant le plugin (peut être None).
+            folder_name: Le nom du dossier du plugin.
+            config: La configuration du plugin.
 
         Returns:
-            Tuple contenant le succès (bool) et la sortie (str)
+            Tuple contenant le succès (bool) et la sortie (str).
         """
+        stdout_text = "" # Initialiser pour le bloc finally
+        stderr_text = "" # Initialiser pour le bloc finally
         try:
             logger.info(f"Exécution locale du plugin {folder_name}")
 
@@ -111,7 +120,7 @@ class LocalExecutor:
                 base_cmd = ["bash", exec_path, config.get('name', 'test'), config.get('intensity', 'light')]
                 logger.debug(f"Commande bash: {' '.join(base_cmd)}")
             else:
-                python_path = sys.executable if sys.executable.strip() else "/usr/bin/python3"
+                python_path = sys.executable if sys.executable and sys.executable.strip() else "/usr/bin/python3"
                 base_cmd = [python_path, exec_path, json.dumps(config)]
                 logger.debug(f"Commande Python: {' '.join(base_cmd)}")
 
@@ -133,13 +142,18 @@ class LocalExecutor:
                 collected_lines = stderr_lines if is_stderr else stdout_lines
                 counter = 0
                 while True:
-                    line = await stream.readline()
-                    if not line:
-                        logger.debug(f"Stream reader ending after {counter} lines")
-                        break
+                    try:
+                        line = await stream.readline()
+                        if not line:
+                            logger.debug(f"Stream reader ending after {counter} lines (EOF)")
+                            break
+                    except Exception as read_err:
+                        logger.error(f"Erreur lors de la lecture du stream {'stderr' if is_stderr else 'stdout'}: {read_err}")
+                        break # Arrêter la lecture en cas d'erreur
+
                     counter += 1
-                    line_decoded = line.decode().strip()
-                    logger.debug(f"RAW LINE RECEIVED: {line_decoded}")
+                    line_decoded = line.decode(errors='replace').strip() # Remplacer les erreurs de décodage
+                    logger.debug(f"RAW LINE RECEIVED ({'stderr' if is_stderr else 'stdout'}): {line_decoded}")
                     if line_decoded:
                         collected_lines.append(line_decoded)
 
@@ -150,7 +164,7 @@ class LocalExecutor:
                             if is_stderr:
                                 # Pour stderr, toujours traiter comme une erreur
                                 error_msg = log_entry.get('message', line_decoded)
-                                logger.error(f"Erreur du plugin: {error_msg}")
+                                logger.error(f"Erreur du plugin (stderr JSON): {error_msg}")
                                 self.log_message(error_msg, level="error", target_ip=None)
                             else:
                                 if self.app:
@@ -159,22 +173,25 @@ class LocalExecutor:
                                         self.app,
                                         line_decoded,  # Passer la ligne JSON complète
                                         plugin_widget,
-                                        target_ip=None
+                                        target_ip=None,
+                                        is_priority=True # Prioriser messages du plugin actif
                                     )
                         except json.JSONDecodeError:
                             # Fallback pour les lignes non-JSON
                             if is_stderr:
+                                logger.error(f"Erreur du plugin (stderr TEXT): {line_decoded}")
                                 self.log_message(line_decoded, level="error", target_ip=None)
                             else:
                                 if self.app:
                                     await LoggerUtils.process_output_line(
                                         self.app,
-                                        line_decoded,
+                                        line_decoded, # Passer la ligne texte brute
                                         plugin_widget,
-                                        target_ip=None
+                                        target_ip=None,
+                                        is_priority=True # Prioriser messages du plugin actif
                                     )
 
-            # Lancer la lecture des flux stdout et stderr
+            # Lancer la lecture des flux stdout et stderr et attendre qu'ils se terminent
             await asyncio.gather(
                 read_stream(process.stdout),
                 read_stream(process.stderr, True)
@@ -182,100 +199,105 @@ class LocalExecutor:
 
             # Attendre la fin du processus
             exit_code = await process.wait()
+            logger.info(f"Plugin {folder_name} terminé avec le code de sortie: {exit_code}")
 
-            # Combiner les lignes en texte
+            # Combiner les lignes en texte (pour le retour de fonction)
             stdout_text = "\n".join(stdout_lines)
             stderr_text = "\n".join(stderr_lines)
 
+            # --- Flush LoggerUtils avant de retourner le résultat ---
+            logger.debug("Flushing pending LoggerUtils messages before returning...")
+            if self.app:
+                try:
+                    await LoggerUtils.flush_pending_messages(self.app)
+                    logger.debug("LoggerUtils flush complete.")
+                except Exception as flush_err:
+                    logger.error(f"Erreur lors du flush de LoggerUtils: {flush_err}")
+            # --- Fin du Flush ---
+
             # Vérifier le code de retour
-            if process.returncode != 0:
-                error_msg = stderr_text if stderr_text else "Erreur inconnue (code retour non-zéro)"
+            if exit_code != 0:
+                error_msg = stderr_text if stderr_text else f"Erreur inconnue (code retour {exit_code})"
                 logger.error(f"Erreur lors de l'exécution du plugin {folder_name}: {error_msg}")
 
                 # Récupérer l'IP cible si elle existe dans le widget
                 target_ip = getattr(plugin_widget, 'target_ip', None) if plugin_widget else None
-                # Ajouter un message d'erreur dans les logs de l'interface
+                # Ajouter un message d'erreur dans les logs de l'interface (déjà fait dans read_stream, mais redondance OK)
                 self.log_message(
-                    f"Erreur lors de l'exécution du plugin {folder_name}: {error_msg}",
+                    f"Erreur lors de l'exécution du plugin {folder_name} (code: {exit_code}): {error_msg}",
                     level="error",
                     target_ip=target_ip
                 )
 
                 return False, error_msg
 
-            # Analyser la sortie pour détecter un format de retour spécifique
-            # Certains plugins peuvent retourner un code 0 mais indiquer un échec dans leur sortie
-            # Format attendu: "SUCCESS: message" ou "ERROR: message"
+            # Analyser la sortie pour détecter un format de retour spécifique (même si code retour 0)
             if stdout_text:
                 # Afficher toutes les lignes de stdout pour le débogage
-                for line in stdout_text.splitlines():
+                for line in stdout_lines: # Utiliser stdout_lines car stdout_text peut être modifié
                     if line.strip():
-                        logger.debug(f"Plugin {folder_name} stdout: {line.strip()}")
-                        # Traiter spécifiquement les lignes de débogage
+                        logger.debug(f"Plugin {folder_name} stdout line: {line.strip()}")
+                        # Traiter spécifiquement les lignes de débogage du plugin
                         if line.strip().startswith("DEBUG:"):
                             debug_msg = line.strip()[6:].strip()
                             logger.debug(f"Message de débogage du plugin {folder_name}: {debug_msg}")
-                            # Récupérer l'IP cible si elle existe dans le widget
                             target_ip = getattr(plugin_widget, 'target_ip', None) if plugin_widget else None
-                            # Ajouter ce message au log pour qu'il soit visible dans l'UI
                             self.log_message(f"[DEBUG] {debug_msg}", level="debug", target_ip=target_ip)
 
                 # Traiter les lignes individuellement pour détecter les messages d'erreur
-                for line in stdout_text.splitlines():
+                for line in stdout_lines:
                     if line.strip().startswith("ERROR:"):
                         error_msg = line.strip()
                         logger.error(f"Plugin {folder_name} a signalé une erreur: {error_msg}")
-                        # Récupérer l'IP cible si elle existe dans le widget
                         target_ip = getattr(plugin_widget, 'target_ip', None) if plugin_widget else None
-                        # Ajouter ce message au log pour qu'il soit visible dans l'UI
                         self.log_message(f"[ERREUR] {error_msg[6:].strip()}", level="error", target_ip=target_ip)
-                        return False, error_msg
+                        # Pas besoin de flush ici car déjà fait avant le return
+                        return False, error_msg # Retourner échec si ERROR: trouvé
 
-                # Si aucune ligne individuelle ne commence par ERROR:, vérifier le texte complet
+                # Si aucune ligne individuelle ne commence par ERROR:, vérifier le texte complet (moins courant)
                 if stdout_text.strip().startswith("ERROR:"):
                     error_msg = stdout_text.strip()
                     logger.error(f"Plugin {folder_name} a signalé une erreur: {error_msg}")
-                    # Récupérer l'IP cible si elle existe dans le widget
                     target_ip = getattr(plugin_widget, 'target_ip', None) if plugin_widget else None
-                    # Ajouter ce message au log pour qu'il soit visible dans l'UI
                     self.log_message(f"[ERREUR] {error_msg[6:].strip()}", level="error", target_ip=target_ip)
+                    # Pas besoin de flush ici car déjà fait avant le return
                     return False, error_msg
 
-                # Vérifier si la sortie contient une indication de succès/échec au format JSON ou texte
-                if "\"success\": False" in stdout_text or "'success': False" in stdout_text:
+                # Vérifier si la sortie contient une indication d'échec au format JSON
+                if "\"success\": false" in stdout_text.lower() or "'success': false" in stdout_text.lower():
                     error_msg = stdout_text.strip()
                     logger.error(f"Plugin {folder_name} a signalé un échec dans sa sortie JSON: {error_msg}")
-                    return False, error_msg
+                    # Pas besoin de flush ici car déjà fait avant le return
+                    return False, error_msg # Retourner échec
 
-            # Vérifier si la sortie contient des erreurs qui n'ont pas été détectées précédemment
+            # Vérifier si la sortie contient des termes d'erreur génériques (dernier recours)
             has_error_in_output = any([
-                "[ERROR]" in stdout_text,
-                "Error:" in stdout_text and not "No Error:" in stdout_text,
-                "Exception:" in stdout_text,
-                "Traceback (most recent call last)" in stdout_text
+                "[error]" in stdout_text.lower(),
+                "error:" in stdout_text.lower() and "no error:" not in stdout_text.lower(),
+                "exception:" in stdout_text.lower(),
+                "traceback (most recent call last)" in stdout_text.lower()
             ])
 
             if has_error_in_output:
-                error_msg = "Des erreurs ont été détectées dans la sortie du plugin"
-                logger.error(f"Plugin {folder_name} a généré des erreurs dans sa sortie: {error_msg}")
-                # Récupérer l'IP cible si elle existe dans le widget
+                error_msg = "Des erreurs génériques ont été détectées dans la sortie du plugin."
+                logger.error(f"Plugin {folder_name} a généré des erreurs dans sa sortie: {error_msg}\n---SORTIE---\n{stdout_text}\n------------")
                 target_ip = getattr(plugin_widget, 'target_ip', None) if plugin_widget else None
-                # Ajouter ce message au log pour qu'il soit visible dans l'UI
                 self.log_message(f"[ERREUR] {error_msg}", level="error", target_ip=target_ip)
-                return False, stdout_text
+                # Pas besoin de flush ici car déjà fait avant le return
+                return False, stdout_text # Retourner la sortie complète comme message d'erreur
 
             # Succès
+            logger.info(f"Plugin {folder_name} exécuté avec succès.")
 
             # Vérifier si la sortie contient des messages de succès explicites
             if "SUCCESS:" in stdout_text:
-                success_msg = next((line.strip() for line in stdout_text.splitlines() if "SUCCESS:" in line), None)
+                success_msg = next((line.strip() for line in stdout_lines if "SUCCESS:" in line), None)
                 if success_msg:
                     logger.info(f"Message de succès du plugin {folder_name}: {success_msg}")
-                    # Récupérer l'IP cible si elle existe dans le widget
                     target_ip = getattr(plugin_widget, 'target_ip', None) if plugin_widget else None
-                    # Ajouter ce message au log pour qu'il soit visible dans l'UI
                     self.log_message(f"[SUCCÈS] {success_msg[8:].strip()}", level="success", target_ip=target_ip)
 
+            # Pas besoin de flush ici car déjà fait avant le return
             return True, stdout_text
 
         except Exception as e:
@@ -296,11 +318,29 @@ class LocalExecutor:
             except Exception as log_error:
                 logger.error(f"Erreur lors de l'ajout du message d'erreur aux logs: {log_error}")
 
+            # --- Flush LoggerUtils même en cas d'exception ---
+            logger.debug("Flushing pending LoggerUtils messages after exception...")
+            if self.app:
+                try:
+                    await LoggerUtils.flush_pending_messages(self.app)
+                    logger.debug("LoggerUtils flush complete after exception.")
+                except Exception as flush_err:
+                    logger.error(f"Error flushing LoggerUtils after exception: {flush_err}")
+            # --- Fin du Flush ---
+
             return False, error_msg
 
     @staticmethod
     def update_global_progress(app, progress: float):
         """Mise à jour de la progression globale"""
-        progress_bar = app.query_one("#global-progress")
-        if progress_bar:
-            progress_bar.update(total=100.0, progress=progress * 100)
+        # S'assurer que progress est bien entre 0 et 1
+        progress = max(0.0, min(1.0, progress))
+        try:
+            progress_bar = app.query_one("#global-progress")
+            if progress_bar:
+                # Mettre à jour la barre de progression
+                # Utiliser total=1.0 car progress est déjà entre 0 et 1
+                progress_bar.update(total=1.0, progress=progress)
+                logger.debug(f"Global progress updated to {progress*100:.1f}%")
+        except Exception as e:
+            logger.debug(f"Could not update global progress bar: {e}")

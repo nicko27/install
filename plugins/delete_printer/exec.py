@@ -33,7 +33,7 @@ class Plugin:
             log.debug(f"Début de l'exécution du plugin add_printer")
             metierCmd = metier.MetierCommands(log,target_ip,config)
             printerCmd = printers.PrinterCommands(log,target_ip)
-            utilsCmd = utils_cmd.UtilsCmd(log,target_ip)
+            utilsCmd = utils_cmd.UtilsCommands(log,target_ip)
             printer_config = config['config']
             printer_all =printer_config.get('printer_all')
             printer_ip = printer_config.get('printer_ip')
@@ -47,24 +47,25 @@ class Plugin:
                 else:
                     returnValue = printerCmd.remove_printer_by_ip(printer_ip)
                 log.next_step()
+
+                # Résultat final
                 if returnValue:
-                    success_msg = "Suppression(s) effectué(es) avec succès"
-                    log.success(success_msg)
-                    return True, success_msg
+                    output_msg = "Suppression(s) effectué(es) avec succès"
                 else:
-                    error_msg = "Erreur lors de la suppression"
-                    log.error(error_msg)
-                    return False, error_msg
+                    output_msg = "Erreur lors de la suppression"
             else:
-                success_msg = "Ordinateur non concerné"
-                log.success(success_msg)
-                return True, success_msg                
+                output_msg = "Ordinateur non concerné"
+
 
         except Exception as e:
-            error_msg = f"Erreur inattendue: {str(e)}"
-            log.error(error_msg)
+            output_msg = f"Erreur inattendue: {str(e)}"
             log.debug(traceback.format_exc())
-            return False, error_msg
+        finally:
+            if returnValue:
+                log.success(output_msg)
+            else:
+                log.error(output_msg)
+            return returnValue
 
 if __name__ == "__main__":
     plugin=Plugin()

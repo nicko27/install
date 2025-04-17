@@ -52,7 +52,7 @@ class Plugin:
                         total_steps+=1
                 log.info("Ajout de l'utilisateur scan")
                 log.set_total_steps(total_steps)
-                
+
                 error = usersCmd.add_user(user, password,home_dir=None,create_home=False)
                 log.next_step()
                 if not error:
@@ -77,59 +77,60 @@ class Plugin:
                                     success=False
                                 log.next_step()
                             if not success:
-                                error_msg="Erreur lors de la creation du dossier {scan_directory}".format(scan_directory=scan_directory)
+                                output_msg="Erreur lors de la creation du dossier {scan_directory}".format(scan_directory=scan_directory)
                             else:
                                 log.info(f"Creation du dossier {scan_directory} effectuée avec succès")
                                 success=securityCmd.set_permissions(scan_directory,mode="u+t",recursive=True)
                                 if not success:
-                                    error_msg="Erreur lors de la mise en place des droits sur {scan_directory}".format(scan_directory=scan_directory)
+                                    output_msg="Erreur lors de la mise en place des droits sur {scan_directory}".format(scan_directory=scan_directory)
                                 else:
                                     log.next_step()
                                     log.info(f"Mise en place des droits sur {scan_directory} effectuée avec succès")
                                     success=securityCmd.set_ownership(scan_directory,"nobody","nogroup",recursive=True)
                                     if not success:
-                                        error_msg="Erreur lors de l'affectation de nobody:nogroup sur {scan_directory}".format(scan_directory=scan_directory)
+                                        output_msg="Erreur lors de l'affectation de nobody:nogroup sur {scan_directory}".format(scan_directory=scan_directory)
                                     else:
                                         log.next_step()
                                         log.info(f"Affectation de  nobody:nogroup sur {scan_directory} effectuée avec succès")
                                         success=securityCmd.set_acl(scan_directory,"u::rwx",recursive=True,modify=True)
                                         if not success:
-                                            error_msg="Erreur lors de la mise en place des ACLs sur {scan_directory}".format(scan_directory=scan_directory)
+                                            output_msg="Erreur lors de la mise en place des ACLs sur {scan_directory}".format(scan_directory=scan_directory)
                                         else:
                                             log.next_step()
                                             success= securityCmd.set_acl(scan_directory,"u::rx",recursive=False,modify=True)
                                             if not success:
-                                                error_msg="Erreur lors de la mise en place des ACLs sur {scan_directory}".format(scan_directory=scan_directory)
+                                                output_msg="Erreur lors de la mise en place des ACLs sur {scan_directory}".format(scan_directory=scan_directory)
                                             else:
                                                 log.next_step()
                                                 log.info(f"Mise en place des ACLs sur {scan_directory} effectuée avec succès")
                         else:
-                            error_msg="Erreur lors de l'activation samba de l'utilisateur {user}".format(user=user)
+                            output_msg="Erreur lors de l'activation samba de l'utilisateur {user}".format(user=user)
                     else:
-                        error_msg="Erreur lors de l'ajout de l'utilisateur {user} pour samba".format(user=user)
+                        output_msg="Erreur lors de l'ajout de l'utilisateur {user} pour samba".format(user=user)
                 else:
-                    error_msg = "Erreur lors de l'ajout de l'utilisateur {user}".format(user=user)
+                    output_msg = "Erreur lors de l'ajout de l'utilisateur {user}".format(user=user)
                 if success==True and error==False:
-                    success_msg = "Configuration effectuée avec succès"
-                    return True, success_msg
+                    output_msg = "Configuration effectuée avec succès"
+                    returnValue=True
                 else:
-                    log.error(error_msg)
-                    error_msg = "Erreur lors de la configuration pour le scan"
-                    return False, error_msg
-                
-                
+                    output_msg = "Erreur lors de la configuration pour le scan"
+                    returnValue=False
             else:
-                success_msg = "Ordinateur non concerné"
-                log.success(success_msg)
-                return True, success_msg                
+                output_msg = "Ordinateur non concerné"
 
         except Exception as e:
-            error_msg = f"Erreur inattendue: {str(e)}"
-            log.error(error_msg)
+            output_msg = f"Erreur inattendue: {str(e)}"
             log.debug(traceback.format_exc())
-            return False, error_msg
+        finally:
+            if returnValue:
+                log.success(output_msg)
+            else:
+                log.error(output_msg)
+            return returnValue
 
 if __name__ == "__main__":
     plugin=Plugin()
     m=main.Main(plugin)
-    m.start()
+    resultat=m.start()
+    returnValue=1-resultat
+    sys.exit(returnValue)

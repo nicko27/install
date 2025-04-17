@@ -124,12 +124,12 @@ class Choice(App):
         try:
             # 1. Récupérer les plugins valides
             valid_plugins = self._discover_valid_plugins(plugins_dir)
-
+            valid_plugins.sort(key=lambda x: x[0].lower())
             # 2. Ajouter les séquences comme plugins spéciaux
             self._add_sequences_to_plugins(valid_plugins)
 
             # 3. Trier et créer les cartes
-            valid_plugins.sort(key=lambda x: x[0].lower())
+            #valid_plugins.sort(key=lambda x: x[0].lower())
             for display_name, plugin_name in valid_plugins:
                 plugin_cards.append(PluginCard(plugin_name))
 
@@ -200,7 +200,6 @@ class Choice(App):
         # Récupérer les séquences disponibles
         sequences = self.sequence_handler.get_available_sequences()
         logger.info(f"Séquences disponibles: {len(sequences)}")
-
         # Ajouter chaque séquence à la liste des plugins
         for seq in sequences:
             seq_name = seq['name']
@@ -340,7 +339,7 @@ class Choice(App):
             self._add_plugin(message.plugin_name, message.source)
         else:
             self._remove_plugin(message.plugin_name)
-            
+
 
     def _add_plugin(self, plugin_name: str, source_card: PluginCard) -> None:
         """
@@ -394,7 +393,7 @@ class Choice(App):
 
         # Mettre à jour l'affichage
         self._update_selected_plugins_display()
-        
+
     def on_plugin_card_add_plugin_instance(self, message: PluginCard.AddPluginInstance) -> None:
         """
         Gère l'ajout d'une instance pour les plugins multiples.

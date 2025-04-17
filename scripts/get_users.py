@@ -45,7 +45,7 @@ except ImportError as e:
     logger = logging.getLogger('get_users')
     logger.error(f"Erreur d'importation du module de logging: {e}")
 
-def get_users(home_dir: str = '', cuList: str = "") -> Tuple[bool, Union[List[Dict[str, Any]], str]]:
+def get_users(home_dir: str = '',cuSort: bool = False, cuList: str = "") -> Tuple[bool, Union[List[Dict[str, Any]], str]]:
     """
     Récupère la liste des utilisateurs à partir d'un répertoire home spécifique.
 
@@ -78,12 +78,15 @@ def get_users(home_dir: str = '', cuList: str = "") -> Tuple[bool, Union[List[Di
     base_dn="dmdName=Personnes,dc=gendarmerie,dc=defense,dc=gouv,dc=fr"
     server="ldap.gendarmerie.fr"
 
+
     ldap_user_list=[]
-    for cu in cu_list.split(","):
-        cuSearch=f"(codeUnite={cu})"
-        returnValue,resultats=ldapCmd.search(base_dn,server=server,attributes=None,filter_str=cuSearch)
-        for r in resultats:
-            ldap_user_list.append(r['uid'])
+    if cuSort == True:
+        if 'cu_list' in locals():
+            for cu in cu_list.split(","):
+                cuSearch=f"(codeUnite={cu})"
+                returnValue,resultats=ldapCmd.search(base_dn,server=server,attributes=None,filter_str=cuSearch)
+                for r in resultats:
+                    ldap_user_list.append(r['uid'])
 
 
     try:
