@@ -17,6 +17,7 @@ while [ "$#" -gt 0 ]; do
     shift
 done
 
+
 if [ -z "$EXTRACT_DIR" ]; then
     echo "Error: --extract_dir parameter is required"
     exit 1
@@ -43,7 +44,6 @@ for whl in "$WHL_DIR"/*.whl; do
     unzip -q "$whl" -d "$EXTRACT_DIR/libs/$pakname" 2>/dev/null
 done
 
-echo "Tous les fichiers .whl ont été extraits dans le dossier libs/"
 
 # Vérifier si le binaire textual est disponible
 if [ "$DEBUG" -eq 1 ]; then
@@ -51,10 +51,8 @@ if [ "$DEBUG" -eq 1 ]; then
         echo "Lancement de l'application en mode debug avec textual"
         textual run "$EXTRACT_DIR/main.py" --dev
     else
-        echo "Binaire textual non trouvé, utilisation de python3 en mode debug"
         python3 -m textual "$EXTRACT_DIR/main.py"
     fi
 else
-    echo "Lancement de l'application en mode normal"
     python3 "$EXTRACT_DIR/main.py"
 fi
