@@ -470,8 +470,8 @@ class ConfigField(VerticalGroup):
         # Création de l'en-tête avec le libellé
         with HorizontalGroup(classes="field-header", id=f"header_{self.field_id}"):
             if self.field_config.get('required', False):
-                yield Label(label, classes="field-label")
-                yield Label(" *", classes="required-field")
+                # Combiner le label et l'astérisque dans un seul Label pour éviter les sauts de ligne
+                yield Label(f"{label} *", classes="field-label required-field-container")
             else:
                 yield Label(label, classes="field-label")
 

@@ -1,0 +1,8 @@
+name: BEUZEVILLE
+description:
+variables:
+  printer_ip: 150.27.49.220
+  printer_model: KM301i
+  printer_name: BP
+  printer_a3: false
+  printer_all: true

@@ -1,0 +1,8 @@
+name: CIE LOUVIERS
+description:
+variables:
+  printer_ip: 150.27.25.227
+  printer_model: KM251iCA
+  printer_name: haut
+  printer_a3: false
+  printer_all: true

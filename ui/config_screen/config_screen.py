@@ -587,55 +587,100 @@ class PluginConfig(Screen):
     def update_all_dependencies(self) -> None:
         """
         Met à jour toutes les dépendances entre champs.
+        Compatible avec la nouvelle structure standardisée des dépendances.
         """
         try:
             logger.debug("Mise à jour de toutes les dépendances")
 
             # Parcourir tous les conteneurs
             for container_id, container in self.containers_by_id.items():
-                if hasattr(container, 'update_dependent_fields'):
-                    # Mettre à jour les dépendances pour chaque champ du conteneur
-                    for field_id, field in container.fields_by_id.items():
-                        container.update_dependent_fields(field)
-                        logger.debug(f"Dépendances mises à jour pour {field_id}")
+                # Vérifier si c'est un ConfigContainer avec notre nouvelle structure de dépendances
+                if hasattr(container, 'dependency_map'):
+                    # Nouvelle méthode pour ConfigContainer modifié
+                    self._update_dependencies_new(container)
+                elif hasattr(container, 'update_dependent_fields'):
+                    # Ancienne méthode pour compatibilité
+                    self._update_dependencies_legacy(container)
+                else:
+                    logger.debug(f"Le conteneur {container_id} n'a pas de mécanisme de dépendances")
         except Exception as e:
             logger.error(f"Erreur lors de la mise à jour des dépendances: {e}")
-
-    async def on_button_pressed(self, event: Button.Pressed) -> None:
-        """
-        Gère les clics sur les boutons.
-
-        Args:
-            event: Événement de bouton pressé
-        """
-        logger.debug(f"Bouton pressé: {event.button.id}")
-
-        try:
-            if event.button.id == "config-return":
-                logger.debug("Retour à l'écran précédent")
-                self.app.pop_screen()
-
-            elif event.button.id == "config-execute":
-                logger.debug("Validation et passage à l'exécution")
-
-                # Vérifier tous les champs
-                if self._validate_all_fields():
-                    # Collecter les configurations
-                    self.collect_configurations()
-                    logger.debug(f"Configuration finale: {len(self.current_config)} plugins")
-
-                    # Créer l'écran d'exécution
-                    try:
-                        from ..execution_screen.execution_screen import ExecutionScreen
-                        execution_screen = ExecutionScreen(self.current_config)
-                        self.app.switch_screen(execution_screen)
-                    except Exception as e:
-                        logger.error(f"Erreur lors du passage à l'écran d'exécution: {e}")
-                        logger.error(traceback.format_exc())
-                        self.notify("Erreur lors du passage à l'exécution", severity="error")
-        except Exception as e:
-            logger.error(f"Erreur dans on_button_pressed: {e}")
+            import traceback
             logger.error(traceback.format_exc())
+
+    def _update_dependencies_new(self, container) -> None:
+        """
+        Met à jour les dépendances avec la nouvelle structure standardisée.
+        
+        Args:
+            container: Un conteneur utilisant la nouvelle structure dependency_map
+        """
+        # Stratégie : déclencher la mise à jour pour chaque champ source de dépendances
+        processed_fields = set()
+        
+        # Pour chaque type de dépendance
+        for dep_type in container.dependency_map:
+            # Pour chaque champ source dans le cache des dépendances
+            if hasattr(container, '_dependency_cache') and dep_type in container._dependency_cache:
+                for source_field_id in container._dependency_cache[dep_type]:
+                    # Éviter de traiter plusieurs fois le même champ
+                    if source_field_id in processed_fields:
+                        continue
+                        
+                    # Récupérer le champ source
+                    if source_field_id in container.fields_by_id:
+                        source_field = container.fields_by_id[source_field_id]
+                        # Déclencher la mise à jour des dépendances
+                        container.update_dependent_fields(source_field)
+                        processed_fields.add(source_field_id)
+
+    def _update_dependencies_legacy(self, container) -> None:
+        """
+        Met à jour les dépendances avec l'ancienne structure.
+        
+        Args:
+            container: Un conteneur utilisant l'ancienne structure de dépendances
+        """
+        # Ancienne méthode : mise à jour pour chaque champ du conteneur
+        for field_id, field in container.fields_by_id.items():
+            container.update_dependent_fields(field)
+            logger.debug(f"Dépendances mises à jour pour {field_id}")
+            
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
+            """
+            Gère les clics sur les boutons.
+
+            Args:
+                event: Événement de bouton pressé
+            """
+            logger.debug(f"Bouton pressé: {event.button.id}")
+
+            try:
+                if event.button.id == "config-return":
+                    logger.debug("Retour à l'écran précédent")
+                    self.app.pop_screen()
+
+                elif event.button.id == "config-execute":
+                    logger.debug("Validation et passage à l'exécution")
+
+                    # Vérifier tous les champs
+                    if self._validate_all_fields():
+                        # Collecter les configurations
+                        self.collect_configurations()
+                        logger.debug(f"Configuration finale: {len(self.current_config)} plugins")
+
+                        # Créer l'écran d'exécution
+                        try:
+                            from ..execution_screen.execution_screen import ExecutionScreen
+                            execution_screen = ExecutionScreen(self.current_config)
+                            self.app.switch_screen(execution_screen)
+                        except Exception as e:
+                            logger.error(f"Erreur lors du passage à l'écran d'exécution: {e}")
+                            logger.error(traceback.format_exc())
+                            self.notify("Erreur lors du passage à l'exécution", severity="error")
+            except Exception as e:
+                logger.error(f"Erreur dans on_button_pressed: {e}")
+                logger.error(traceback.format_exc())
 
     def _validate_all_fields(self) -> bool:
         """

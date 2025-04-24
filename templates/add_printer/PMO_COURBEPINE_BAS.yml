@@ -1,8 +1,8 @@
-name: Amfreville Bas
+name: PMO COURBEPINE BAS
 description:
 variables:
-  printer_ip: 150.27.26.220
-  printer_model: KMC227
+  printer_ip: 150.27.42.220
+  printer_model: KM227C
   printer_name: BAS
   printer_a3: false
   printer_all: true

@@ -335,26 +335,8 @@ class ConfigContainer(VerticalGroup):
                             self.mirror_dynamic_options[dep_field_id] = []
                         if field_id not in self.mirror_dynamic_options[dep_field_id]:
                             self.mirror_dynamic_options[dep_field_id].append(field_id)
-                            
-                        # Enregistrer aussi avec l'ID unique du champ dépendant
-                        field_unique_id = f"{field_id}_{self.source_id}"
-                        if field_unique_id != field_id:
-                            if dep_field_id not in self.mirror_dynamic_options:
-                                self.mirror_dynamic_options[dep_field_id] = []
-                            if field_unique_id not in self.mirror_dynamic_options[dep_field_id]:
-                                self.mirror_dynamic_options[dep_field_id].append(field_unique_id)
-                            
-                        # Enregistrer aussi avec l'ID unique du champ source
-                        dep_unique_id = f"{dep_field_id}_{self.source_id}"
-                        if dep_unique_id != dep_field_id:
-                            if dep_unique_id not in self.mirror_dynamic_options:
-                                self.mirror_dynamic_options[dep_unique_id] = []
-                            if field_id not in self.mirror_dynamic_options[dep_unique_id]:
-                                self.mirror_dynamic_options[dep_unique_id].append(field_id)
-                            if field_unique_id not in self.mirror_dynamic_options[dep_unique_id]:
-                                self.mirror_dynamic_options[dep_unique_id].append(field_unique_id)
 
-                        logger.debug(f"Dépendance dynamic_options: {field_id} ({field_unique_id}) dépend de {dep_field_id} ({dep_unique_id}) (via field)")
+                        logger.debug(f"Dépendance dynamic_options: {field_id} dépend de {dep_field_id}")
                     # Support de l'ancien format avec 'field_id'
                     elif 'field_id' in arg:
                         dep_field_id = arg['field_id']
@@ -371,14 +353,7 @@ class ConfigContainer(VerticalGroup):
                             self.mirror_dynamic_options[dep_field_id] = []
                         if field_id not in self.mirror_dynamic_options[dep_field_id]:
                             self.mirror_dynamic_options[dep_field_id].append(field_id)
-                            
-                        # Enregistrer aussi avec l'ID unique du champ dépendant
-                        field_unique_id = f"{field_id}_{self.source_id}"
-                        if field_unique_id != field_id:
-                            if dep_field_id not in self.mirror_dynamic_options:
-                                self.mirror_dynamic_options[dep_field_id] = []
-                            if field_unique_id not in self.mirror_dynamic_options[dep_field_id]:
-                                self.mirror_dynamic_options[dep_field_id].append(field_unique_id)
+
                             
                         # Enregistrer aussi avec l'ID unique du champ source
                         dep_unique_id = f"{dep_field_id}_{self.source_id}"
@@ -387,10 +362,8 @@ class ConfigContainer(VerticalGroup):
                                 self.mirror_dynamic_options[dep_unique_id] = []
                             if field_id not in self.mirror_dynamic_options[dep_unique_id]:
                                 self.mirror_dynamic_options[dep_unique_id].append(field_id)
-                            if field_unique_id not in self.mirror_dynamic_options[dep_unique_id]:
-                                self.mirror_dynamic_options[dep_unique_id].append(field_unique_id)
 
-                        logger.debug(f"Dépendance dynamic_options: {field_id} ({field_unique_id}) dépend de {dep_field_id} ({dep_unique_id}) (via field_id)")
+                        logger.debug(f"Dépendance dynamic_options: {field_id} dépend de {dep_field_id} ({dep_unique_id}) (via field_id)")
 
         # Afficher le contenu des dictionnaires miroirs pour le débogage
         logger.debug(f"Analyse des dépendances terminée: {len(self.enabled_if_map)} enabled_if, " +
@@ -417,7 +390,6 @@ class ConfigContainer(VerticalGroup):
             self._updating_dependencies = True
             
             # S'assurer que les dépendances sont correctement analysées
-            self._analyze_field_dependencies()
             logger.debug("Dépendances réanalysées avant la mise à jour")
 
             # Récupérer les identifiants du champ source
@@ -430,7 +402,7 @@ class ConfigContainer(VerticalGroup):
 
             logger.debug(f"Mise à jour des champs dépendant de {source_field_id} (unique_id: {source_unique_id})")
 
-            # . METTRE À JOUR LES OPTIONS DYNAMIQUES
+            # 1. METTRE À JOUR LES OPTIONS DYNAMIQUES
             self._update_dynamic_options_dependencies(source_field_id, source_unique_id, source_field)
 
             # 2. METTRE À JOUR LES VALEURS DÉPENDANTES
@@ -479,10 +451,10 @@ class ConfigContainer(VerticalGroup):
                     del self.dynamic_options_map[field_id]
 
                 # Supprimer des structures miroirs
-                for mirror_dict in [self.mirror_enabled_if, self.mirror_value_deps, self.mirror_dynamic_options]:
-                    for dep_id, deps in list(mirror_dict.items()):
-                        if field_id in deps:
-                            deps.remove(field_id)
+#                for mirror_dict in [self.mirror_enabled_if, self.mirror_value_deps, self.mirror_dynamic_options]:
+#                    for dep_id, deps in list(mirror_dict.items()):
+#                        if field_id in deps:
+#                            deps.remove(field_id)
 
                 # Supprimer du dictionnaire des champs
                 del self.fields_by_id[field_id]

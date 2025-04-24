@@ -1,426 +1,769 @@
-2025-04-24 15:58:42,864 - pcUtils.checkbox_group_field - DEBUG - Using function: get_users
-2025-04-24 15:58:42,864 - pcUtils.checkbox_group_field - DEBUG - Arguments préparés pour user_select: args=[], kwargs={'cu_list': None, 'home_dir': '/home', 'cuSort': None, 'execute': False}
-2025-04-24 15:58:42,864 - pcUtils.checkbox_group_field - DEBUG - Calling get_users with args=[], kwargs={'cu_list': None, 'home_dir': '/home', 'cuSort': None, 'execute': False}
-2025-04-24 15:58:42,864 - pcUtils.get_users - DEBUG - get_users called with home_dir=/home
-2025-04-24 15:58:42,864 - pcUtils.get_users - DEBUG - Script path: /media/nico/Drive/pcUtils_internet/ui/config_screen/../../scripts/get_users.py
-2025-04-24 15:58:42,864 - pcUtils.get_users - DEBUG - Current working directory: /media/nico/Drive/pcUtils_internet
-2025-04-24 15:58:42,864 - pcUtils.checkbox_group_field - DEBUG - Result from get_users: (True, [])
-2025-04-24 15:58:42,864 - pcUtils.checkbox_group_field - DEBUG - Checkbox group options for user_select: None
-2025-04-24 15:58:42,865 - pcUtils.checkbox_group_field - WARNING - No options available for checkbox group user_select
-2025-04-24 15:58:42,866 - pcUtils.select_field - DEBUG - Chargement des options dynamiques pour dst_dir
-2025-04-24 15:58:42,866 - pcUtils.get_usb - DEBUG - Recherche des périphériques (include_system_disk=False, only_external=True, only_internal=False, kwargs={})
-2025-04-24 15:58:42,866 - pcUtils.get_usb - DEBUG - Exécution de la commande lsblk
-2025-04-24 15:58:42,872 - pcUtils.get_usb - DEBUG - Disque système identifié: nvme0n1
-2025-04-24 15:58:42,872 - pcUtils.get_usb - DEBUG - Exclusion du disque système: nvme0n1
-2025-04-24 15:58:42,872 - pcUtils.get_usb - DEBUG - Trouvé 1 périphériques de stockage
-2025-04-24 15:58:42,872 - pcUtils.select_field - DEBUG - Options chargées pour dst_dir: 1 options
-2025-04-24 15:58:42,872 - pcUtils.select_field - DEBUG - Correspondance partielle trouvée pour dst_dir: /dev/sda1
-2025-04-24 15:58:42,874 - pcUtils.checkbox_field - DEBUG - Création de la checkbox machine_dir avec valeur True
-2025-04-24 15:58:42,919 - pcUtils.directory_field - DEBUG - Montage du champ répertoire src_dir
-2025-04-24 15:58:42,919 - pcUtils.text_field - DEBUG - Montage du champ src_dir
-2025-04-24 15:58:42,919 - pcUtils.text_field - DEBUG - Application de la valeur en attente '/home' pour src_dir
-2025-04-24 15:58:42,920 - pcUtils.text_field - DEBUG - Widget déjà à la valeur '/home' pour src_dir, rien à faire
-2025-04-24 15:58:42,920 - pcUtils.text_field - DEBUG - Montage du champ src_dir
-2025-04-24 15:58:42,920 - pcUtils.text_field - DEBUG - Pas de valeur en attente pour src_dir, valeur actuelle: '/home'
-2025-04-24 15:58:42,920 - pcUtils.text_field - DEBUG - on_input_changed: valeur déjà à jour pour src_dir: '/home'
-2025-04-24 15:58:42,925 - pcUtils.text_field - DEBUG - Montage du champ cu_list
-2025-04-24 15:58:42,926 - pcUtils.text_field - DEBUG - Application de la valeur en attente '12027' pour cu_list
-2025-04-24 15:58:42,926 - pcUtils.text_field - DEBUG - Widget déjà à la valeur '12027' pour cu_list, rien à faire
-2025-04-24 15:58:42,926 - pcUtils.text_field - DEBUG - on_input_changed: valeur déjà à jour pour cu_list: '12027'
-2025-04-24 15:58:42,930 - pcUtils.select_field - DEBUG - on_select_changed: valeur déjà à jour pour dst_dir: '/dev/sda1'
-2025-04-24 15:58:42,930 - pcUtils.select_field - DEBUG - set_value(/dev/sda1) pour dst_dir
-2025-04-24 15:58:42,930 - pcUtils.select_field - DEBUG - Valeur déjà à '/dev/sda1' pour dst_dir
-2025-04-24 15:58:42,931 - pcUtils.config_field - DEBUG - Valeur de dst_dir changée à /dev/sda1
-2025-04-24 15:58:42,931 - pcUtils.config_field - DEBUG - Notification des changements aux parents pour dst_dir
-2025-04-24 15:58:42,931 - pcUtils.config_field - DEBUG - Mise à jour des champs dépendants via PluginConfigContainer(id='plugin_test_plugin_1')
-2025-04-24 15:58:42,931 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 8 champs
-2025-04-24 15:58:42,931 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'user_select_1', 'dst_dir_1', 'machine_dir_1']
-2025-04-24 15:58:42,931 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:42,931 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:42,931 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: user_select_1 dépend de 2 conditions avec opérateur AND
-2025-04-24 15:58:42,931 - pcUtils.config_container - DEBUG - Dépendance depends_on multiple: user_select_1 dépend de 2 champs avec opérateur AND
-2025-04-24 15:58:42,931 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de cu_list (cu_list_test_plugin) (via field)
-2025-04-24 15:58:42,931 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de src_dir (src_dir_test_plugin) (via field)
-2025-04-24 15:58:42,931 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de cu_sort (cu_sort_test_plugin) (via field)
-2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de user_home (user_home_test_plugin) (via field)
-2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 3 enabled_if, 1 value_deps, 2 dynamic_options
-2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1', 'user_select_1'], 'cu_sort': ['cu_list_1'], 'user_home': ['user_select_1']}
-2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - mirror_value_deps: {'src_dir': ['user_select_1'], 'user_home': ['user_select_1']}
-2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {'cu_list': ['user_select_1', 'user_select_1_test_plugin'], 'cu_list_test_plugin': ['user_select_1', 'user_select_1_test_plugin'], 'src_dir': ['user_select_1', 'user_select_1_test_plugin'], 'src_dir_test_plugin': ['user_select_1', 'user_select_1_test_plugin'], 'cu_sort': ['user_select_1', 'user_select_1_test_plugin'], 'cu_sort_test_plugin': ['user_select_1', 'user_select_1_test_plugin'], 'user_home': ['user_select_1', 'user_select_1_test_plugin'], 'user_home_test_plugin': ['user_select_1', 'user_select_1_test_plugin']}
-2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
-2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de dst_dir (unique_id: dst_dir_1)
-2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - Vérification des dépendances pour dst_dir (unique: dst_dir_1)
-2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 8 clés: ['cu_list', 'cu_list_test_plugin', 'src_dir', 'src_dir_test_plugin', 'cu_sort', 'cu_sort_test_plugin', 'user_home', 'user_home_test_plugin']
-2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour dst_dir dans mirror_dynamic_options
-2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour dst_dir_1 dans mirror_dynamic_options
-2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour dst_dir ou dst_dir_1
-2025-04-24 15:58:42,933 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour dst_dir
-2025-04-24 15:58:42,933 - plugin_config_container - DEBUG - Montage du conteneur pour test_plugin
-2025-04-24 15:58:42,935 - pcUtils.config_screen - DEBUG - PluginConfig.on_mount() completed
-2025-04-24 15:58:43,188 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 8 champs
-2025-04-24 15:58:43,188 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'user_select_1', 'dst_dir_1', 'machine_dir_1']
-2025-04-24 15:58:43,188 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:43,188 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:43,189 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: user_select_1 dépend de 2 conditions avec opérateur AND
-2025-04-24 15:58:43,189 - pcUtils.config_container - DEBUG - Dépendance depends_on multiple: user_select_1 dépend de 2 champs avec opérateur AND
-2025-04-24 15:58:43,189 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de cu_list (cu_list_test_plugin) (via field)
-2025-04-24 15:58:43,189 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de src_dir (src_dir_test_plugin) (via field)
-2025-04-24 15:58:43,189 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de cu_sort (cu_sort_test_plugin) (via field)
-2025-04-24 15:58:43,189 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de user_home (user_home_test_plugin) (via field)
-2025-04-24 15:58:43,189 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 3 enabled_if, 1 value_deps, 2 dynamic_options
-2025-04-24 15:58:43,189 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1', 'user_select_1'], 'cu_sort': ['cu_list_1'], 'user_home': ['user_select_1']}
-2025-04-24 15:58:43,189 - pcUtils.config_container - DEBUG - mirror_value_deps: {'src_dir': ['user_select_1'], 'user_home': ['user_select_1']}
-2025-04-24 15:58:43,189 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {'cu_list': ['user_select_1', 'user_select_1_test_plugin'], 'cu_list_test_plugin': ['user_select_1', 'user_select_1_test_plugin'], 'src_dir': ['user_select_1', 'user_select_1_test_plugin'], 'src_dir_test_plugin': ['user_select_1', 'user_select_1_test_plugin'], 'cu_sort': ['user_select_1', 'user_select_1_test_plugin'], 'cu_sort_test_plugin': ['user_select_1', 'user_select_1_test_plugin'], 'user_home': ['user_select_1', 'user_select_1_test_plugin'], 'user_home_test_plugin': ['user_select_1', 'user_select_1_test_plugin']}
-2025-04-24 15:58:43,189 - plugin_config_container - DEBUG - Application des valeurs prédéfinies pour test_plugin
-2025-04-24 15:58:43,190 - plugin_config_container - WARNING - Pas de configuration trouvée pour l'instance test_1
-2025-04-24 15:58:43,190 - pcUtils.config_screen - DEBUG - Création des champs de configuration
-2025-04-24 15:58:43,190 - pcUtils.config_screen - DEBUG - Nombre de containers trouvés: 1
-2025-04-24 15:58:43,191 - pcUtils.config_screen - DEBUG - Container ajouté: plugin_test_plugin_1
-2025-04-24 15:58:43,191 - pcUtils.config_screen - DEBUG - Champ ajouté: src_dir_1
-2025-04-24 15:58:43,191 - pcUtils.config_screen - DEBUG - Champ ajouté: user_home_1
-2025-04-24 15:58:43,191 - pcUtils.config_screen - DEBUG - Champ ajouté: user_all_1
-2025-04-24 15:58:43,191 - pcUtils.config_screen - DEBUG - Champ ajouté: cu_sort_1
-2025-04-24 15:58:43,191 - pcUtils.config_screen - DEBUG - Champ ajouté: cu_list_1
-2025-04-24 15:58:43,191 - pcUtils.config_screen - DEBUG - Champ ajouté: user_select_1
-2025-04-24 15:58:43,191 - pcUtils.config_screen - DEBUG - Champ ajouté: dst_dir_1
-2025-04-24 15:58:43,191 - pcUtils.config_screen - DEBUG - Champ ajouté: machine_dir_1
-2025-04-24 15:58:43,191 - pcUtils.config_screen - DEBUG - Total de 1 containers et 8 champs
-2025-04-24 15:58:43,192 - pcUtils.choice_screen - DEBUG - Écran de configuration affiché
-2025-04-24 15:58:43,192 - pcUtils.choice_screen - DEBUG - Configuration récupérée: 1 plugins
-2025-04-24 15:58:43,192 - pcUtils.choice_screen - DEBUG - Config mise à jour pour test_plugin (ID: 1)
-2025-04-24 15:58:43,193 - pcUtils.plugin_list_item - DEBUG - Plugin avec config: test_plugin
-2025-04-24 15:58:43,193 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: test_plugin
-2025-04-24 15:58:43,193 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: test_plugin
-2025-04-24 15:58:43,193 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: test_plugin
-2025-04-24 15:58:43,194 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/test_plugin_test
-2025-04-24 15:58:43,194 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/test_plugin
-2025-04-24 15:58:43,194 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: test_plugin
-2025-04-24 15:58:43,194 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/test_plugin/settings.yml
-2025-04-24 15:58:43,214 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour test_plugin
-2025-04-24 15:58:43,214 - pcUtils.plugin_list_item - DEBUG - Info du plugin/séquence chargées pour test_plugin
-2025-04-24 15:58:43,214 - pcUtils.selected_plugins_panel - DEBUG - Panneau mis à jour avec 1 plugins
-2025-04-24 15:58:43,215 - pcUtils.choice_screen - DEBUG - Affichage des plugins sélectionnés mis à jour
-2025-04-24 15:58:43,217 - pcUtils.plugin_list_item - DEBUG - Composition de l'élément test_plugin (is_sequence: False)
-2025-04-24 15:58:44,510 - pcUtils.checkbox_field - DEBUG - Valeur de la checkbox user_home changée de False à True
-2025-04-24 15:58:44,511 - pcUtils.config_field - DEBUG - Notification des changements aux parents pour user_home
-2025-04-24 15:58:44,511 - pcUtils.config_field - DEBUG - Mise à jour des champs dépendants via PluginConfigContainer(id='plugin_test_plugin_1')
-2025-04-24 15:58:44,511 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 8 champs
-2025-04-24 15:58:44,511 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'user_select_1', 'dst_dir_1', 'machine_dir_1']
-2025-04-24 15:58:44,511 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:44,511 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:44,511 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: user_select_1 dépend de 2 conditions avec opérateur AND
-2025-04-24 15:58:44,511 - pcUtils.config_container - DEBUG - Dépendance depends_on multiple: user_select_1 dépend de 2 champs avec opérateur AND
-2025-04-24 15:58:44,511 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de cu_list (cu_list_test_plugin) (via field)
-2025-04-24 15:58:44,511 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de src_dir (src_dir_test_plugin) (via field)
-2025-04-24 15:58:44,512 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de cu_sort (cu_sort_test_plugin) (via field)
-2025-04-24 15:58:44,512 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de user_home (user_home_test_plugin) (via field)
-2025-04-24 15:58:44,512 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 3 enabled_if, 1 value_deps, 2 dynamic_options
-2025-04-24 15:58:44,512 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1', 'user_select_1'], 'cu_sort': ['cu_list_1'], 'user_home': ['user_select_1']}
-2025-04-24 15:58:44,512 - pcUtils.config_container - DEBUG - mirror_value_deps: {'src_dir': ['user_select_1'], 'user_home': ['user_select_1']}
-2025-04-24 15:58:44,512 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {'cu_list': ['user_select_1', 'user_select_1_test_plugin'], 'cu_list_test_plugin': ['user_select_1', 'user_select_1_test_plugin'], 'src_dir': ['user_select_1', 'user_select_1_test_plugin'], 'src_dir_test_plugin': ['user_select_1', 'user_select_1_test_plugin'], 'cu_sort': ['user_select_1', 'user_select_1_test_plugin'], 'cu_sort_test_plugin': ['user_select_1', 'user_select_1_test_plugin'], 'user_home': ['user_select_1', 'user_select_1_test_plugin'], 'user_home_test_plugin': ['user_select_1', 'user_select_1_test_plugin']}
-2025-04-24 15:58:44,512 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
-2025-04-24 15:58:44,512 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
-2025-04-24 15:58:44,513 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
-2025-04-24 15:58:44,513 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 8 clés: ['cu_list', 'cu_list_test_plugin', 'src_dir', 'src_dir_test_plugin', 'cu_sort', 'cu_sort_test_plugin', 'user_home', 'user_home_test_plugin']
-2025-04-24 15:58:44,513 - pcUtils.config_container - DEBUG - Trouvé 2 dépendances pour user_home: ['user_select_1', 'user_select_1_test_plugin']
-2025-04-24 15:58:44,513 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
-2025-04-24 15:58:44,513 - pcUtils.config_container - DEBUG - Mise à jour de 2 champs avec options dynamiques dépendant de user_home: ['user_select_1', 'user_select_1_test_plugin']
-2025-04-24 15:58:44,513 - pcUtils.config_container - DEBUG - Argument dynamique: cu_list=None depuis cu_list
-2025-04-24 15:58:44,513 - pcUtils.config_container - DEBUG - Argument dynamique: home_dir=None depuis src_dir
-2025-04-24 15:58:44,513 - pcUtils.config_container - DEBUG - Argument dynamique: cuSort=None depuis cu_sort
-2025-04-24 15:58:44,513 - pcUtils.config_container - DEBUG - Argument dynamique: execute=True depuis user_home
-2025-04-24 15:58:44,513 - pcUtils.checkbox_group_field - DEBUG - Mise à jour des options pour user_select avec arguments: {'execute': True}
-2025-04-24 15:58:44,513 - pcUtils.checkbox_group_field - DEBUG - Loading dynamic options with config: {'script': 'get_users.py', 'global': True, 'function': 'get_users', 'args': [{'param_name': 'cu_list', 'field': 'cu_list'}, {'param_name': 'home_dir', 'field': 'src_dir'}, {'param_name': 'cuSort', 'field': 'cu_sort'}, {'param_name': 'execute', 'field': 'user_home'}], 'value': 'username', 'description': 'description', 'auto_select_key': 'enabled', 'auto_select_value': True}
-2025-04-24 15:58:44,513 - pcUtils.checkbox_group_field - DEBUG - Loading script from: /media/nico/Drive/pcUtils_internet/ui/config_screen/../../scripts/get_users.py
-2025-04-24 15:58:44,513 - pcUtils.checkbox_group_field - DEBUG - Script exists: True
-2025-04-24 15:58:44,513 - pcUtils.checkbox_group_field - DEBUG - Python path: ['/media/nico/Drive/pcUtils_internet/ui', '/media/nico/Drive/pcUtils_internet/ui', '/media/nico/Drive/pcUtils_internet/plugins', '/media/nico/Drive/pcUtils_internet/libs/markdown_it_py-3.0.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/bcrypt-4.3.0-cp39-abi3-manylinux_2_34_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pypdf-5.4.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/ruamel.yaml-0.18.10-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/platformdirs-4.3.7-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/cffi-1.17.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pycparser-2.22-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/rich-14.0.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/mdit_py_plugins-0.4.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/dnspython-2.7.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/linkify_it_py-2.0.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/PyNaCl-1.5.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64', '/media/nico/Drive/pcUtils_internet/libs/textual-3.1.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/paramiko-3.5.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/uc_micro_py-1.0.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/mdurl-0.1.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/puremagic-1.28-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/typing_extensions-4.13.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/pygments-2.19.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/cryptography-44.0.2-cp39-abi3-manylinux_2_34_x86_64', '/media/nico/Drive/pcUtils_internet/libs/psutils-3.3.9-py3-none-any', '/media/nico/Drive/pcUtils_internet', '/usr/lib/python310.zip', '/usr/lib/python3.10', '/usr/lib/python3.10/lib-dynload', '/usr/local/lib/python3.10/dist-packages', '/usr/lib/python3/dist-packages', '/media/nico/Drive/pcUtils_internet/ui/config_screen/../../scripts', '/media/nico/Drive/pcUtils_internet/ui/config_screen/../../scripts']
-2025-04-24 15:58:44,514 - pcUtils.checkbox_group_field - DEBUG - Using function: get_users
-2025-04-24 15:58:44,514 - pcUtils.checkbox_group_field - DEBUG - Utilisation des arguments dynamiques pour user_select: {'execute': True}
-2025-04-24 15:58:44,514 - pcUtils.checkbox_group_field - DEBUG - Valeur pour execute déjà fournie dans les arguments dynamiques
-2025-04-24 15:58:44,514 - pcUtils.checkbox_group_field - DEBUG - Arguments préparés pour user_select: args=[], kwargs={'execute': True, 'cu_list': None, 'home_dir': '/home', 'cuSort': None}
-2025-04-24 15:58:44,514 - pcUtils.checkbox_group_field - DEBUG - Calling get_users with args=[], kwargs={'execute': True, 'cu_list': None, 'home_dir': '/home', 'cuSort': None}
-2025-04-24 15:58:44,514 - pcUtils.get_users - DEBUG - get_users called with home_dir=/home
-2025-04-24 15:58:44,514 - pcUtils.get_users - DEBUG - Script path: /media/nico/Drive/pcUtils_internet/ui/config_screen/../../scripts/get_users.py
-2025-04-24 15:58:44,514 - pcUtils.get_users - DEBUG - Current working directory: /media/nico/Drive/pcUtils_internet
-2025-04-24 15:58:44,515 - pcUtils.get_users - DEBUG - get_users found 2 users: ['jack', 'nico']
-2025-04-24 15:58:44,515 - pcUtils.checkbox_group_field - DEBUG - Result from get_users: (True, [{'username': 'jack', 'home_path': '/home/jack', 'description': 'jack', 'uid': 1002, 'gid': 1002, 'shell': '/bin/bash', 'enabled': False, 'full_name': 'jack', 'group': 'jack'}, {'username': 'nico', 'home_path': '/home/nico', 'description': 'nico', 'uid': 1000, 'gid': 1000, 'shell': '/bin/bash', 'enabled': False, 'full_name': 'nico', 'group': 'nico'}])
-2025-04-24 15:58:44,515 - pcUtils.checkbox_group_field - ERROR - Erreur lors de la gestion du label pour user_select: No nodes match '#header_user_select' on CheckboxGroupField()
-2025-04-24 15:58:44,516 - pcUtils.checkbox_group_field - DEBUG - Label recréé pour le champ user_select: Sélectionner les comptes utilisateurs à copier
-2025-04-24 15:58:44,520 - pcUtils.config_container - DEBUG - Options mises à jour pour user_select_1: None
-2025-04-24 15:58:44,520 - pcUtils.config_container - DEBUG - Le champ user_select_1 n'a plus d'options, planifié pour suppression
-2025-04-24 15:58:44,520 - pcUtils.config_container - DEBUG - Mise à jour de 1 champs dont la valeur dépend de user_home=True
-2025-04-24 15:58:44,528 - pcUtils.config_container - DEBUG - Valeur sauvegardée pour user_select: []
-2025-04-24 15:58:44,528 - pcUtils.checkbox_group_field - DEBUG - Nettoyage de l'affichage pour user_select
-2025-04-24 15:58:44,528 - pcUtils.checkbox_group_field - DEBUG - Options sauvegardées pour user_select: [('jack', 'jack'), ('nico', 'nico')]
-2025-04-24 15:58:44,528 - pcUtils.checkbox_group_field - DEBUG - Valeurs sélectionnées sauvegardées pour user_select: []
-2025-04-24 15:58:44,529 - pcUtils.checkbox_group_field - DEBUG - Label masqué pour user_select
-2025-04-24 15:58:44,529 - pcUtils.checkbox_group_field - DEBUG - Conteneur de checkboxes vidé pour user_select
-2025-04-24 15:58:44,529 - pcUtils.config_container - DEBUG - Méthode clear_display appelée pour user_select
-2025-04-24 15:58:44,529 - pcUtils.config_container - DEBUG - État du champ user_select mis à jour: enabled=False
-2025-04-24 15:58:44,529 - pcUtils.config_container - DEBUG - Mise à jour de 1 champs enabled_if dépendant de user_home=True
-2025-04-24 15:58:44,529 - pcUtils.config_container - DEBUG - Condition pour user_select_1: user_home=True vs True -> True
-2025-04-24 15:58:44,536 - pcUtils.config_field - DEBUG - Notification des changements aux parents pour user_select
-2025-04-24 15:58:44,536 - pcUtils.config_field - DEBUG - Mise à jour des champs dépendants via PluginConfigContainer(id='plugin_test_plugin_1')
-2025-04-24 15:58:44,536 - pcUtils.config_container - DEBUG - Valeur restaurée via set_value pour user_select: []
-2025-04-24 15:58:44,536 - pcUtils.checkbox_group_field - DEBUG - Restauration de l'affichage pour user_select
-2025-04-24 15:58:44,537 - pcUtils.checkbox_group_field - DEBUG - Options restaurées pour user_select: [('jack', 'jack'), ('nico', 'nico')]
-2025-04-24 15:58:44,537 - pcUtils.checkbox_group_field - DEBUG - Valeurs sélectionnées restaurées pour user_select: []
-2025-04-24 15:58:44,537 - pcUtils.checkbox_group_field - DEBUG - Label affiché pour user_select
-2025-04-24 15:58:44,538 - pcUtils.checkbox_group_field - DEBUG - Checkbox recréée pour user_select: jack (jack)
-2025-04-24 15:58:44,540 - pcUtils.checkbox_group_field - DEBUG - Checkbox recréée pour user_select: nico (nico)
-2025-04-24 15:58:44,540 - pcUtils.config_container - DEBUG - Méthode restore_display appelée pour user_select
-2025-04-24 15:58:44,540 - pcUtils.config_container - DEBUG - Valeur restaurée pour user_select: []
-2025-04-24 15:58:44,540 - pcUtils.config_container - DEBUG - État du champ user_select mis à jour: enabled=True
-2025-04-24 15:58:44,540 - pcUtils.config_container - DEBUG - Champ user_select_1 activé avec opérateur AND (1 conditions évaluées)
-2025-04-24 15:58:44,540 - pcUtils.config_container - DEBUG - Traitement de 1 champs à supprimer
-2025-04-24 15:58:44,540 - pcUtils.config_container - DEBUG - Champ user_select_1 supprimé
-2025-04-24 15:58:44,540 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
-2025-04-24 15:58:44,639 - pcUtils.config_screen - DEBUG - Checkbox changée: checkbox_test_plugin_user_home -> True
-2025-04-24 15:58:44,639 - pcUtils.config_screen - DEBUG - Notification des dépendances pour le champ user_home_1
-2025-04-24 15:58:44,639 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
-2025-04-24 15:58:44,639 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
-2025-04-24 15:58:44,639 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
-2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
-2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
-2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
-2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
-2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
-2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
-2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
-2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
-2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
-2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
-2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
-2025-04-24 15:58:46,965 - pcUtils.checkbox_group_field - DEBUG - Checkbox changed: user_select_jack -> True
-2025-04-24 15:58:46,966 - pcUtils.checkbox_group_field - DEBUG - Found matching checkbox for option: jack
-2025-04-24 15:58:46,966 - pcUtils.checkbox_group_field - DEBUG - Updated selected values: ['jack']
-2025-04-24 15:58:46,967 - pcUtils.config_screen - DEBUG - Checkbox changée: user_select_jack -> True
-2025-04-24 15:58:47,626 - pcUtils.checkbox_group_field - DEBUG - Checkbox changed: user_select_jack -> False
-2025-04-24 15:58:47,626 - pcUtils.checkbox_group_field - DEBUG - Found matching checkbox for option: jack
-2025-04-24 15:58:47,626 - pcUtils.checkbox_group_field - DEBUG - Updated selected values: []
-2025-04-24 15:58:47,629 - pcUtils.config_screen - DEBUG - Checkbox changée: user_select_jack -> False
-2025-04-24 15:58:52,808 - pcUtils.checkbox_field - DEBUG - Valeur de la checkbox user_home changée de True à False
-2025-04-24 15:58:52,809 - pcUtils.config_field - DEBUG - Notification des changements aux parents pour user_home
-2025-04-24 15:58:52,809 - pcUtils.config_field - DEBUG - Mise à jour des champs dépendants via PluginConfigContainer(id='plugin_test_plugin_1')
-2025-04-24 15:58:52,810 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
-2025-04-24 15:58:52,810 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
-2025-04-24 15:58:52,811 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:52,811 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:52,812 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
-2025-04-24 15:58:52,812 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
-2025-04-24 15:58:52,813 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
-2025-04-24 15:58:52,813 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
-2025-04-24 15:58:52,814 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
-2025-04-24 15:58:52,815 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
-2025-04-24 15:58:52,815 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
-2025-04-24 15:58:52,815 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
-2025-04-24 15:58:52,816 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
-2025-04-24 15:58:52,816 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
-2025-04-24 15:58:52,817 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
-2025-04-24 15:58:52,817 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
-2025-04-24 15:58:52,828 - pcUtils.config_screen - DEBUG - Checkbox changée: checkbox_test_plugin_user_home -> False
-2025-04-24 15:58:52,828 - pcUtils.config_screen - DEBUG - Notification des dépendances pour le champ user_home_1
-2025-04-24 15:58:52,829 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
-2025-04-24 15:58:52,829 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
-2025-04-24 15:58:52,829 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:52,829 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:52,830 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
-2025-04-24 15:58:52,830 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
-2025-04-24 15:58:52,830 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
-2025-04-24 15:58:52,830 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
-2025-04-24 15:58:52,830 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
-2025-04-24 15:58:52,830 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
-2025-04-24 15:58:52,831 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
-2025-04-24 15:58:52,831 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
-2025-04-24 15:58:52,831 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
-2025-04-24 15:58:52,831 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
-2025-04-24 15:58:52,831 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
-2025-04-24 15:58:52,831 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
-2025-04-24 15:58:53,758 - pcUtils.checkbox_field - DEBUG - Valeur de la checkbox user_home changée de False à True
-2025-04-24 15:58:53,758 - pcUtils.config_field - DEBUG - Notification des changements aux parents pour user_home
-2025-04-24 15:58:53,759 - pcUtils.config_field - DEBUG - Mise à jour des champs dépendants via PluginConfigContainer(id='plugin_test_plugin_1')
-2025-04-24 15:58:53,759 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
-2025-04-24 15:58:53,760 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
-2025-04-24 15:58:53,760 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:53,760 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:53,761 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
-2025-04-24 15:58:53,761 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
-2025-04-24 15:58:53,762 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
-2025-04-24 15:58:53,762 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
-2025-04-24 15:58:53,762 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
-2025-04-24 15:58:53,762 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
-2025-04-24 15:58:53,763 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
-2025-04-24 15:58:53,763 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
-2025-04-24 15:58:53,763 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
-2025-04-24 15:58:53,764 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
-2025-04-24 15:58:53,764 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
-2025-04-24 15:58:53,764 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
-2025-04-24 15:58:53,775 - pcUtils.config_screen - DEBUG - Checkbox changée: checkbox_test_plugin_user_home -> True
-2025-04-24 15:58:53,775 - pcUtils.config_screen - DEBUG - Notification des dépendances pour le champ user_home_1
-2025-04-24 15:58:53,775 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
-2025-04-24 15:58:53,776 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
-2025-04-24 15:58:53,776 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:53,776 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:53,776 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
-2025-04-24 15:58:53,776 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
-2025-04-24 15:58:53,777 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
-2025-04-24 15:58:53,777 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
-2025-04-24 15:58:53,777 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
-2025-04-24 15:58:53,777 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
-2025-04-24 15:58:53,777 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
-2025-04-24 15:58:53,777 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
-2025-04-24 15:58:53,777 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
-2025-04-24 15:58:53,778 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
-2025-04-24 15:58:53,778 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
-2025-04-24 15:58:53,778 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
-2025-04-24 15:58:54,289 - pcUtils.checkbox_field - DEBUG - Valeur de la checkbox user_home changée de True à False
-2025-04-24 15:58:54,289 - pcUtils.config_field - DEBUG - Notification des changements aux parents pour user_home
-2025-04-24 15:58:54,290 - pcUtils.config_field - DEBUG - Mise à jour des champs dépendants via PluginConfigContainer(id='plugin_test_plugin_1')
-2025-04-24 15:58:54,290 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
-2025-04-24 15:58:54,291 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
-2025-04-24 15:58:54,291 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:54,292 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:54,292 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
-2025-04-24 15:58:54,293 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
-2025-04-24 15:58:54,293 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
-2025-04-24 15:58:54,294 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
-2025-04-24 15:58:54,294 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
-2025-04-24 15:58:54,294 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
-2025-04-24 15:58:54,295 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
-2025-04-24 15:58:54,295 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
-2025-04-24 15:58:54,295 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
-2025-04-24 15:58:54,296 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
-2025-04-24 15:58:54,296 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
-2025-04-24 15:58:54,296 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
-2025-04-24 15:58:54,309 - pcUtils.config_screen - DEBUG - Checkbox changée: checkbox_test_plugin_user_home -> False
-2025-04-24 15:58:54,309 - pcUtils.config_screen - DEBUG - Notification des dépendances pour le champ user_home_1
-2025-04-24 15:58:54,309 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
-2025-04-24 15:58:54,310 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
-2025-04-24 15:58:54,310 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:54,310 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:54,310 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
-2025-04-24 15:58:54,310 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
-2025-04-24 15:58:54,311 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
-2025-04-24 15:58:54,311 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
-2025-04-24 15:58:54,311 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
-2025-04-24 15:58:54,311 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
-2025-04-24 15:58:54,311 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
-2025-04-24 15:58:54,311 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
-2025-04-24 15:58:54,311 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
-2025-04-24 15:58:54,312 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
-2025-04-24 15:58:54,312 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
-2025-04-24 15:58:54,312 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
-2025-04-24 15:58:54,805 - pcUtils.checkbox_field - DEBUG - Valeur de la checkbox user_home changée de False à True
-2025-04-24 15:58:54,806 - pcUtils.config_field - DEBUG - Notification des changements aux parents pour user_home
-2025-04-24 15:58:54,806 - pcUtils.config_field - DEBUG - Mise à jour des champs dépendants via PluginConfigContainer(id='plugin_test_plugin_1')
-2025-04-24 15:58:54,807 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
-2025-04-24 15:58:54,807 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
-2025-04-24 15:58:54,808 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:54,808 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:54,809 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
-2025-04-24 15:58:54,809 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
-2025-04-24 15:58:54,810 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
-2025-04-24 15:58:54,810 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
-2025-04-24 15:58:54,811 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
-2025-04-24 15:58:54,811 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
-2025-04-24 15:58:54,811 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
-2025-04-24 15:58:54,812 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
-2025-04-24 15:58:54,812 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
-2025-04-24 15:58:54,813 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
-2025-04-24 15:58:54,813 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
-2025-04-24 15:58:54,813 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
-2025-04-24 15:58:54,826 - pcUtils.config_screen - DEBUG - Checkbox changée: checkbox_test_plugin_user_home -> True
-2025-04-24 15:58:54,826 - pcUtils.config_screen - DEBUG - Notification des dépendances pour le champ user_home_1
-2025-04-24 15:58:54,826 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
-2025-04-24 15:58:54,827 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
-2025-04-24 15:58:54,827 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:54,827 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 15:58:54,827 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
-2025-04-24 15:58:54,827 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
-2025-04-24 15:58:54,827 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
-2025-04-24 15:58:54,828 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
-2025-04-24 15:58:54,828 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
-2025-04-24 15:58:54,828 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
-2025-04-24 15:58:54,828 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
-2025-04-24 15:58:54,828 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
-2025-04-24 15:58:54,828 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
-2025-04-24 15:58:54,828 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
-2025-04-24 15:58:54,829 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
-2025-04-24 15:58:54,829 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
-2025-04-24 16:09:12,796 - pcUtils.checkbox_field - DEBUG - Valeur de la checkbox user_home changée de True à False
-2025-04-24 16:09:12,796 - pcUtils.config_field - DEBUG - Notification des changements aux parents pour user_home
-2025-04-24 16:09:12,797 - pcUtils.config_field - DEBUG - Mise à jour des champs dépendants via PluginConfigContainer(id='plugin_test_plugin_1')
-2025-04-24 16:09:12,797 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
-2025-04-24 16:09:12,797 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
-2025-04-24 16:09:12,797 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 16:09:12,797 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 16:09:12,797 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
-2025-04-24 16:09:12,797 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
-2025-04-24 16:09:12,797 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
-2025-04-24 16:09:12,797 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
-2025-04-24 16:09:12,798 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
-2025-04-24 16:09:12,798 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
-2025-04-24 16:09:12,798 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
-2025-04-24 16:09:12,798 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
-2025-04-24 16:09:12,798 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
-2025-04-24 16:09:12,798 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
-2025-04-24 16:09:12,798 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
-2025-04-24 16:09:12,798 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
-2025-04-24 16:09:12,803 - pcUtils.config_screen - DEBUG - Checkbox changée: checkbox_test_plugin_user_home -> False
-2025-04-24 16:09:12,803 - pcUtils.config_screen - DEBUG - Notification des dépendances pour le champ user_home_1
-2025-04-24 16:09:12,803 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
-2025-04-24 16:09:12,803 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
-2025-04-24 16:09:12,803 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 16:09:12,803 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
-2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
-2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
-2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
-2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
-2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
-2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
-2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
-2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
-2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
-2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
-2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
-2025-04-24 16:09:13,397 - pcUtils.checkbox_field - DEBUG - Valeur de la checkbox user_home changée de False à True
-2025-04-24 16:09:13,397 - pcUtils.config_field - DEBUG - Notification des changements aux parents pour user_home
-2025-04-24 16:09:13,397 - pcUtils.config_field - DEBUG - Mise à jour des champs dépendants via PluginConfigContainer(id='plugin_test_plugin_1')
-2025-04-24 16:09:13,397 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
-2025-04-24 16:09:13,397 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
-2025-04-24 16:09:13,398 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 16:09:13,398 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 16:09:13,398 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
-2025-04-24 16:09:13,398 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
-2025-04-24 16:09:13,398 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
-2025-04-24 16:09:13,398 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
-2025-04-24 16:09:13,398 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
-2025-04-24 16:09:13,398 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
-2025-04-24 16:09:13,398 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
-2025-04-24 16:09:13,398 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
-2025-04-24 16:09:13,399 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
-2025-04-24 16:09:13,399 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
-2025-04-24 16:09:13,399 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
-2025-04-24 16:09:13,399 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
-2025-04-24 16:09:13,407 - pcUtils.config_screen - DEBUG - Checkbox changée: checkbox_test_plugin_user_home -> True
-2025-04-24 16:09:13,407 - pcUtils.config_screen - DEBUG - Notification des dépendances pour le champ user_home_1
-2025-04-24 16:09:13,408 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
-2025-04-24 16:09:13,408 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
-2025-04-24 16:09:13,408 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 16:09:13,408 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
-2025-04-24 16:09:13,408 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
-2025-04-24 16:09:13,408 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
-2025-04-24 16:09:13,408 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
-2025-04-24 16:09:13,408 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
-2025-04-24 16:09:13,408 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
-2025-04-24 16:09:13,409 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
-2025-04-24 16:09:13,409 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
-2025-04-24 16:09:13,409 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
-2025-04-24 16:09:13,409 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
-2025-04-24 16:09:13,409 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
-2025-04-24 16:09:13,409 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
-2025-04-24 16:09:13,409 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
-2025-04-24 16:09:15,388 - pcUtils.choice_screen - DEBUG - Quitter l'application
+2025-04-24 17:00:28,007 - pcUtils.main - DEBUG - Répertoire de base de l'application: /media/nico/Drive/pcUtils_internet
+2025-04-24 17:00:28,008 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/psutils-3.3.9-py3-none-any au sys.path
+2025-04-24 17:00:28,008 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/cryptography-44.0.2-cp39-abi3-manylinux_2_34_x86_64 au sys.path
+2025-04-24 17:00:28,008 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/pygments-2.19.1-py3-none-any au sys.path
+2025-04-24 17:00:28,008 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/typing_extensions-4.13.2-py3-none-any au sys.path
+2025-04-24 17:00:28,008 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/puremagic-1.28-py3-none-any au sys.path
+2025-04-24 17:00:28,008 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64 au sys.path
+2025-04-24 17:00:28,008 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/mdurl-0.1.2-py3-none-any au sys.path
+2025-04-24 17:00:28,008 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/uc_micro_py-1.0.3-py3-none-any au sys.path
+2025-04-24 17:00:28,008 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/paramiko-3.5.1-py3-none-any au sys.path
+2025-04-24 17:00:28,008 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/textual-3.1.1-py3-none-any au sys.path
+2025-04-24 17:00:28,008 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/PyNaCl-1.5.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64 au sys.path
+2025-04-24 17:00:28,008 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/linkify_it_py-2.0.3-py3-none-any au sys.path
+2025-04-24 17:00:28,008 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/dnspython-2.7.0-py3-none-any au sys.path
+2025-04-24 17:00:28,008 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/mdit_py_plugins-0.4.2-py3-none-any au sys.path
+2025-04-24 17:00:28,008 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/rich-14.0.0-py3-none-any au sys.path
+2025-04-24 17:00:28,008 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/pycparser-2.22-py3-none-any au sys.path
+2025-04-24 17:00:28,008 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/cffi-1.17.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64 au sys.path
+2025-04-24 17:00:28,008 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/platformdirs-4.3.7-py3-none-any au sys.path
+2025-04-24 17:00:28,008 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/ruamel.yaml-0.18.10-py3-none-any au sys.path
+2025-04-24 17:00:28,008 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/pypdf-5.4.0-py3-none-any au sys.path
+2025-04-24 17:00:28,009 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/bcrypt-4.3.0-cp39-abi3-manylinux_2_34_x86_64 au sys.path
+2025-04-24 17:00:28,009 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /media/nico/Drive/pcUtils_internet/libs/markdown_it_py-3.0.0-py3-none-any au sys.path
+2025-04-24 17:00:28,009 - pcUtils.main - DEBUG - sys.path complet: ['/media/nico/Drive/pcUtils_internet/libs/markdown_it_py-3.0.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/bcrypt-4.3.0-cp39-abi3-manylinux_2_34_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pypdf-5.4.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/ruamel.yaml-0.18.10-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/platformdirs-4.3.7-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/cffi-1.17.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pycparser-2.22-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/rich-14.0.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/mdit_py_plugins-0.4.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/dnspython-2.7.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/linkify_it_py-2.0.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/PyNaCl-1.5.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64', '/media/nico/Drive/pcUtils_internet/libs/textual-3.1.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/paramiko-3.5.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/uc_micro_py-1.0.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/mdurl-0.1.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/puremagic-1.28-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/typing_extensions-4.13.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/pygments-2.19.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/cryptography-44.0.2-cp39-abi3-manylinux_2_34_x86_64', '/media/nico/Drive/pcUtils_internet/libs/psutils-3.3.9-py3-none-any', '/media/nico/Drive/pcUtils_internet', '/usr/lib/python310.zip', '/usr/lib/python3.10', '/usr/lib/python3.10/lib-dynload', '/usr/local/lib/python3.10/dist-packages', '/usr/lib/python3/dist-packages']
+2025-04-24 17:00:28,022 - pcUtils.main - DEBUG - ruamel.yaml importé avec succès depuis /media/nico/Drive/pcUtils_internet/libs/ruamel.yaml-0.18.10-py3-none-any/ruamel/yaml/__init__.py
+2025-04-24 17:00:28,256 - pcUtils.argument_parser - DEBUG - Arguments de ligne de commande: Namespace(auto=False, sequence=None, shortcut=None, plugin=None, config=None, params=None, verbose=0, quiet=False, log_file=None)
+2025-04-24 17:00:28,256 - pcUtils.app_manager - DEBUG - Initialisation du gestionnaire d'application
+2025-04-24 17:00:28,256 - pcUtils.app_manager - INFO - Démarrage en mode normal (interface complète)
+2025-04-24 17:00:28,261 - pcUtils.choice_screen - DEBUG - Initialisation de l'application Choice
+2025-04-24 17:00:28,261 - pcUtils.sequence_handler - DEBUG - Initialisation du gestionnaire de séquences: sequences
+2025-04-24 17:00:28,261 - template_handler - DEBUG - Initialisation du gestionnaire de templates
+2025-04-24 17:00:28,261 - asyncio - DEBUG - Using selector: EpollSelector
+2025-04-24 17:00:28,284 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: lara_install
+2025-04-24 17:00:28,284 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: lara_install
+2025-04-24 17:00:28,284 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: lara_install
+2025-04-24 17:00:28,284 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/lara_install_test
+2025-04-24 17:00:28,284 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/lara_install
+2025-04-24 17:00:28,284 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: lara_install
+2025-04-24 17:00:28,284 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/lara_install/settings.yml
+2025-04-24 17:00:28,295 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour lara_install
+2025-04-24 17:00:28,295 - template_handler - DEBUG - Aucun dossier de templates trouvé pour lara_install
+2025-04-24 17:00:28,295 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: lara_install, templates: 0
+2025-04-24 17:00:28,296 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: antivirus
+2025-04-24 17:00:28,296 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: antivirus
+2025-04-24 17:00:28,296 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: antivirus
+2025-04-24 17:00:28,296 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/antivirus_test
+2025-04-24 17:00:28,296 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/antivirus
+2025-04-24 17:00:28,296 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: antivirus
+2025-04-24 17:00:28,296 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/antivirus/settings.yml
+2025-04-24 17:00:28,298 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour antivirus
+2025-04-24 17:00:28,299 - template_handler - DEBUG - Aucun dossier de templates trouvé pour antivirus
+2025-04-24 17:00:28,299 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: antivirus, templates: 0
+2025-04-24 17:00:28,299 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: mok
+2025-04-24 17:00:28,299 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: mok
+2025-04-24 17:00:28,299 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: mok
+2025-04-24 17:00:28,299 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/mok_test
+2025-04-24 17:00:28,299 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/mok
+2025-04-24 17:00:28,299 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: mok
+2025-04-24 17:00:28,299 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/mok/settings.yml
+2025-04-24 17:00:28,301 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour mok
+2025-04-24 17:00:28,301 - template_handler - DEBUG - Aucun dossier de templates trouvé pour mok
+2025-04-24 17:00:28,301 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: mok, templates: 0
+2025-04-24 17:00:28,302 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: dovecot_suppr
+2025-04-24 17:00:28,302 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: dovecot_suppr
+2025-04-24 17:00:28,302 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: dovecot_suppr
+2025-04-24 17:00:28,302 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/dovecot_suppr_test
+2025-04-24 17:00:28,302 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/dovecot_suppr
+2025-04-24 17:00:28,302 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: dovecot_suppr
+2025-04-24 17:00:28,302 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/dovecot_suppr/settings.yml
+2025-04-24 17:00:28,304 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour dovecot_suppr
+2025-04-24 17:00:28,304 - template_handler - DEBUG - Aucun dossier de templates trouvé pour dovecot_suppr
+2025-04-24 17:00:28,304 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: dovecot_suppr, templates: 0
+2025-04-24 17:00:28,305 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: shim_signed
+2025-04-24 17:00:28,305 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: shim_signed
+2025-04-24 17:00:28,305 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: shim_signed
+2025-04-24 17:00:28,305 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/shim_signed_test
+2025-04-24 17:00:28,305 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/shim_signed
+2025-04-24 17:00:28,305 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: shim_signed
+2025-04-24 17:00:28,305 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/shim_signed/settings.yml
+2025-04-24 17:00:28,307 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour shim_signed
+2025-04-24 17:00:28,307 - template_handler - DEBUG - Aucun dossier de templates trouvé pour shim_signed
+2025-04-24 17:00:28,307 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: shim_signed, templates: 0
+2025-04-24 17:00:28,307 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: install_update
+2025-04-24 17:00:28,307 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: install_update
+2025-04-24 17:00:28,307 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: install_update
+2025-04-24 17:00:28,307 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/install_update_test
+2025-04-24 17:00:28,307 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/install_update
+2025-04-24 17:00:28,308 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: install_update
+2025-04-24 17:00:28,308 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/install_update/settings.yml
+2025-04-24 17:00:28,310 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour install_update
+2025-04-24 17:00:28,310 - template_handler - DEBUG - Aucun dossier de templates trouvé pour install_update
+2025-04-24 17:00:28,310 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: install_update, templates: 0
+2025-04-24 17:00:28,310 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: dovecot_utilisateur
+2025-04-24 17:00:28,310 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: dovecot_utilisateur
+2025-04-24 17:00:28,310 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: dovecot_utilisateur
+2025-04-24 17:00:28,310 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/dovecot_utilisateur_test
+2025-04-24 17:00:28,310 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/dovecot_utilisateur
+2025-04-24 17:00:28,310 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: dovecot_utilisateur
+2025-04-24 17:00:28,310 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/dovecot_utilisateur/settings.yml
+2025-04-24 17:00:28,314 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour dovecot_utilisateur
+2025-04-24 17:00:28,314 - template_handler - DEBUG - Aucun dossier de templates trouvé pour dovecot_utilisateur
+2025-04-24 17:00:28,314 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: dovecot_utilisateur, templates: 0
+2025-04-24 17:00:28,314 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: ocs_inventory
+2025-04-24 17:00:28,314 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: ocs_inventory
+2025-04-24 17:00:28,314 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: ocs_inventory
+2025-04-24 17:00:28,315 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/ocs_inventory_test
+2025-04-24 17:00:28,315 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/ocs_inventory
+2025-04-24 17:00:28,315 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: ocs_inventory
+2025-04-24 17:00:28,315 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/ocs_inventory/settings.yml
+2025-04-24 17:00:28,317 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour ocs_inventory
+2025-04-24 17:00:28,317 - template_handler - DEBUG - Aucun dossier de templates trouvé pour ocs_inventory
+2025-04-24 17:00:28,317 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: ocs_inventory, templates: 0
+2025-04-24 17:00:28,317 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: ubiquity_conformity
+2025-04-24 17:00:28,317 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: ubiquity_conformity
+2025-04-24 17:00:28,317 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: ubiquity_conformity
+2025-04-24 17:00:28,317 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/ubiquity_conformity_test
+2025-04-24 17:00:28,317 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/ubiquity_conformity
+2025-04-24 17:00:28,318 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: ubiquity_conformity
+2025-04-24 17:00:28,318 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/ubiquity_conformity/settings.yml
+2025-04-24 17:00:28,320 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour ubiquity_conformity
+2025-04-24 17:00:28,320 - template_handler - DEBUG - Aucun dossier de templates trouvé pour ubiquity_conformity
+2025-04-24 17:00:28,320 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: ubiquity_conformity, templates: 0
+2025-04-24 17:00:28,320 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: dovecot_install
+2025-04-24 17:00:28,320 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: dovecot_install
+2025-04-24 17:00:28,320 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: dovecot_install
+2025-04-24 17:00:28,320 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/dovecot_install_test
+2025-04-24 17:00:28,320 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/dovecot_install
+2025-04-24 17:00:28,320 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: dovecot_install
+2025-04-24 17:00:28,320 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/dovecot_install/settings.yml
+2025-04-24 17:00:28,328 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour dovecot_install
+2025-04-24 17:00:28,329 - template_handler - DEBUG - Aucun dossier de templates trouvé pour dovecot_install
+2025-04-24 17:00:28,329 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: dovecot_install, templates: 0
+2025-04-24 17:00:28,329 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: scan
+2025-04-24 17:00:28,329 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: scan
+2025-04-24 17:00:28,329 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: scan
+2025-04-24 17:00:28,329 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_test
+2025-04-24 17:00:28,329 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/scan
+2025-04-24 17:00:28,329 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: scan
+2025-04-24 17:00:28,329 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/scan/settings.yml
+2025-04-24 17:00:28,337 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour scan
+2025-04-24 17:00:28,337 - template_handler - DEBUG - Aucun dossier de templates trouvé pour scan
+2025-04-24 17:00:28,337 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: scan, templates: 0
+2025-04-24 17:00:28,338 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: puppet
+2025-04-24 17:00:28,338 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: puppet
+2025-04-24 17:00:28,338 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: puppet
+2025-04-24 17:00:28,338 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/puppet_test
+2025-04-24 17:00:28,338 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/puppet
+2025-04-24 17:00:28,338 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: puppet
+2025-04-24 17:00:28,338 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/puppet/settings.yml
+2025-04-24 17:00:28,340 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour puppet
+2025-04-24 17:00:28,340 - template_handler - DEBUG - Aucun dossier de templates trouvé pour puppet
+2025-04-24 17:00:28,340 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: puppet, templates: 0
+2025-04-24 17:00:28,340 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: add_printer
+2025-04-24 17:00:28,340 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-24 17:00:28,340 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-24 17:00:28,340 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-24 17:00:28,340 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-24 17:00:28,340 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-24 17:00:28,340 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/add_printer/settings.yml
+2025-04-24 17:00:28,349 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour add_printer
+2025-04-24 17:00:28,349 - template_handler - DEBUG - Fichier de schéma non trouvé
+2025-04-24 17:00:28,352 - template_handler - DEBUG - Template chargé: PACY COULEURS.yml
+2025-04-24 17:00:28,354 - template_handler - DEBUG - Template chargé: THIBERVILLE.yml
+2025-04-24 17:00:28,355 - template_handler - DEBUG - Template chargé: BR LOUVIERS.yml
+2025-04-24 17:00:28,357 - template_handler - DEBUG - Template chargé: CRENS.yml
+2025-04-24 17:00:28,359 - template_handler - DEBUG - Template chargé: BMO EVREUX.yml
+2025-04-24 17:00:28,360 - template_handler - DEBUG - Template chargé: PSIG EVREUX.yml
+2025-04-24 17:00:28,362 - template_handler - DEBUG - Template chargé: GAILLON BAS.yml
+2025-04-24 17:00:28,364 - template_handler - DEBUG - Template chargé: PMO GAILLON ANNEXE.yml
+2025-04-24 17:00:28,365 - template_handler - DEBUG - Template chargé: AMFREVILLE HAUT.yml
+2025-04-24 17:00:28,367 - template_handler - DEBUG - Template chargé: BOURGTHEROULDE COULOIR.yml
+2025-04-24 17:00:28,369 - template_handler - DEBUG - Template chargé: BEAUMONT.yml
+2025-04-24 17:00:28,370 - template_handler - DEBUG - Template chargé: PACY NOIR BLANC.yml
+2025-04-24 17:00:28,372 - template_handler - DEBUG - Template chargé: PSIG PONT AUDEMER.yml
+2025-04-24 17:00:28,374 - template_handler - DEBUG - Template chargé: PMO COURBEPINE BAS.yml
+2025-04-24 17:00:28,375 - template_handler - DEBUG - Template chargé: MONTFORT.yml
+2025-04-24 17:00:28,377 - template_handler - DEBUG - Template chargé: CPTM BOD.yml
+2025-04-24 17:00:28,379 - template_handler - DEBUG - Template chargé: GISORS PLANTON.yml
+2025-04-24 17:00:28,380 - template_handler - DEBUG - Template chargé: BP PONT AUDEMER ACCUEIL.yml
+2025-04-24 17:00:28,382 - template_handler - DEBUG - Template chargé: SOLC.yml
+2025-04-24 17:00:28,384 - template_handler - DEBUG - Template chargé: NONANCOURT ANNEXE.yml
+2025-04-24 17:00:28,385 - template_handler - DEBUG - Template chargé: RUGLES.yml
+2025-04-24 17:00:28,387 - template_handler - DEBUG - Template chargé: BR BERNAY NOIR BLANC.yml
+2025-04-24 17:00:28,389 - template_handler - DEBUG - Template chargé: BMO VERNEUIL.yml
+2025-04-24 17:00:28,390 - template_handler - DEBUG - Template chargé: SAINT GEORGES.yml
+2025-04-24 17:00:28,392 - template_handler - DEBUG - Template chargé: BDRIJ.yml
+2025-04-24 17:00:28,394 - template_handler - DEBUG - Template chargé: PSIG LOUVIERS.yml
+2025-04-24 17:00:28,395 - template_handler - DEBUG - Template chargé: CONCHES BAS.yml
+2025-04-24 17:00:28,397 - template_handler - DEBUG - Template chargé: ETREPAGNY.yml
+2025-04-24 17:00:28,399 - template_handler - DEBUG - Template chargé: PSIG BERNAY.yml
+2025-04-24 17:00:28,400 - template_handler - DEBUG - Template chargé: SAI.yml
+2025-04-24 17:00:28,402 - template_handler - DEBUG - Template chargé: CORMEILLES.yml
+2025-04-24 17:00:28,404 - template_handler - DEBUG - Template chargé: BTA LES ANDELYS COULEURS.yml
+2025-04-24 17:00:28,405 - template_handler - DEBUG - Template chargé: solc.yml
+2025-04-24 17:00:28,407 - template_handler - DEBUG - Template chargé: CORG.yml
+2025-04-24 17:00:28,409 - template_handler - DEBUG - Template chargé: BRIONNE.yml
+2025-04-24 17:00:28,410 - template_handler - DEBUG - Template chargé: CIE LES ANDELYS.yml
+2025-04-24 17:00:28,412 - template_handler - DEBUG - Template chargé: EDSR.yml
+2025-04-24 17:00:28,414 - template_handler - DEBUG - Template chargé: BR BERNAY COULEURS.yml
+2025-04-24 17:00:28,415 - template_handler - DEBUG - Template chargé: PSIG LES ANDELYS.yml
+2025-04-24 17:00:28,418 - template_handler - DEBUG - Template chargé: BP BERNAY.yml
+2025-04-24 17:00:28,420 - template_handler - DEBUG - Template chargé: BROGLIE.yml
+2025-04-24 17:00:28,422 - template_handler - DEBUG - Template chargé: GCCGD.yml
+2025-04-24 17:00:28,423 - template_handler - DEBUG - Template chargé: CONCHES HAUT.yml
+2025-04-24 17:00:28,425 - template_handler - DEBUG - Template chargé: NONANCOURT BT.yml
+2025-04-24 17:00:28,427 - template_handler - DEBUG - Template chargé: BMO LES ANDELYS.yml
+2025-04-24 17:00:28,429 - template_handler - DEBUG - Template chargé: BR EVREUX.yml
+2025-04-24 17:00:28,430 - template_handler - DEBUG - Template chargé: CRD.yml
+2025-04-24 17:00:28,432 - template_handler - DEBUG - Template chargé: BOURGTHEROULDE CBA.yml
+2025-04-24 17:00:28,434 - template_handler - DEBUG - Template chargé: MESNIL EN OUCHE.yml
+2025-04-24 17:00:28,435 - template_handler - DEBUG - Template chargé: CIE BERNAY.yml
+2025-04-24 17:00:28,437 - template_handler - DEBUG - Template chargé: PMO GAILLON PLANTON.yml
+2025-04-24 17:00:28,439 - template_handler - DEBUG - Template chargé: ASA.yml
+2025-04-24 17:00:28,440 - template_handler - DEBUG - Template chargé: BP BERNAY SRADIO.yml
+2025-04-24 17:00:28,442 - template_handler - DEBUG - Template chargé: ROUTOT.yml
+2025-04-24 17:00:28,444 - template_handler - DEBUG - Template chargé: LE NEUBOURG.yml
+2025-04-24 17:00:28,446 - template_handler - DEBUG - Template chargé: VEXIN.yml
+2025-04-24 17:00:28,447 - template_handler - DEBUG - Template chargé: CIE LOUVIERS.yml
+2025-04-24 17:00:28,449 - template_handler - DEBUG - Template chargé: CIE PONT AUDEMER.yml
+2025-04-24 17:00:28,451 - template_handler - DEBUG - Template chargé: PMO BOURG ACHARD HAUT.yml
+2025-04-24 17:00:28,452 - template_handler - DEBUG - Template chargé: DAMVILLE.yml
+2025-04-24 17:00:28,454 - template_handler - DEBUG - Template chargé: CIE EVREUX.yml
+2025-04-24 17:00:28,456 - template_handler - DEBUG - Template chargé: CDOS.yml
+2025-04-24 17:00:28,457 - template_handler - DEBUG - Template chargé: FLEURY.yml
+2025-04-24 17:00:28,459 - template_handler - DEBUG - Template chargé: PMO COURBEPINE HAUT.yml
+2025-04-24 17:00:28,461 - template_handler - DEBUG - Template chargé: BR LES ANDELYS.yml
+2025-04-24 17:00:28,462 - template_handler - DEBUG - Template chargé: PMO BOURG ACHARD BAS.yml
+2025-04-24 17:00:28,464 - template_handler - DEBUG - Template chargé: IVRY.yml
+2025-04-24 17:00:28,466 - template_handler - DEBUG - Template chargé: GAILLON ANNEXE.yml
+2025-04-24 17:00:28,467 - template_handler - DEBUG - Template chargé: PONT DE LARCHE NOIR BLANC.yml
+2025-04-24 17:00:28,469 - template_handler - DEBUG - Template chargé: BTA LES ANDELYS NOIR BLANC.yml
+2025-04-24 17:00:28,471 - template_handler - DEBUG - Template chargé: SAINT ANDRE.yml
+2025-04-24 17:00:28,472 - template_handler - DEBUG - Template chargé: PONT DE LARCHE COULEURS.yml
+2025-04-24 17:00:28,474 - template_handler - DEBUG - Template chargé: LYONS.yml
+2025-04-24 17:00:28,476 - template_handler - DEBUG - Template chargé: BRETEUIL.yml
+2025-04-24 17:00:28,477 - template_handler - DEBUG - Template chargé: SLF.yml
+2025-04-24 17:00:28,479 - template_handler - DEBUG - Template chargé: VERNEUIL.yml
+2025-04-24 17:00:28,481 - template_handler - DEBUG - Template chargé: AMFREVILLE BAS.yml
+2025-04-24 17:00:28,482 - template_handler - DEBUG - Template chargé: MPF.yml
+2025-04-24 17:00:28,484 - template_handler - DEBUG - Template chargé: BEUZEVILLE.yml
+2025-04-24 17:00:28,486 - template_handler - DEBUG - Template chargé: BP PONT AUDEMER ANTHOPO.yml
+2025-04-24 17:00:28,487 - template_handler - DEBUG - Template chargé: GISORS COULEURS.yml
+2025-04-24 17:00:28,489 - template_handler - DEBUG - Template chargé: GIC.yml
+2025-04-24 17:00:28,491 - template_handler - DEBUG - Template chargé: GAILLON HAUT.yml
+2025-04-24 17:00:28,492 - template_handler - DEBUG - Template chargé: BR PONT AUDEMER.yml
+2025-04-24 17:00:28,492 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: add_printer, templates: 84
+2025-04-24 17:00:28,493 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: test_plugin
+2025-04-24 17:00:28,493 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: test_plugin
+2025-04-24 17:00:28,493 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: test_plugin
+2025-04-24 17:00:28,493 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/test_plugin_test
+2025-04-24 17:00:28,493 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/test_plugin
+2025-04-24 17:00:28,493 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: test_plugin
+2025-04-24 17:00:28,493 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/test_plugin/settings.yml
+2025-04-24 17:00:28,512 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour test_plugin
+2025-04-24 17:00:28,512 - template_handler - DEBUG - Aucun dossier de templates trouvé pour test_plugin
+2025-04-24 17:00:28,512 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: test_plugin, templates: 0
+2025-04-24 17:00:28,512 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: detox
+2025-04-24 17:00:28,512 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: detox
+2025-04-24 17:00:28,512 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: detox
+2025-04-24 17:00:28,512 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox_test
+2025-04-24 17:00:28,512 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox
+2025-04-24 17:00:28,512 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: detox
+2025-04-24 17:00:28,512 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/detox/settings.yml
+2025-04-24 17:00:28,515 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour detox
+2025-04-24 17:00:28,516 - template_handler - DEBUG - Aucun dossier de templates trouvé pour detox
+2025-04-24 17:00:28,516 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: detox, templates: 0
+2025-04-24 17:00:28,516 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: logs_plugin
+2025-04-24 17:00:28,516 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: logs_plugin
+2025-04-24 17:00:28,516 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: logs_plugin
+2025-04-24 17:00:28,516 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/logs_plugin_test
+2025-04-24 17:00:28,516 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/logs_plugin
+2025-04-24 17:00:28,516 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: logs_plugin
+2025-04-24 17:00:28,516 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/logs_plugin/settings.yml
+2025-04-24 17:00:28,518 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour logs_plugin
+2025-04-24 17:00:28,518 - template_handler - DEBUG - Aucun dossier de templates trouvé pour logs_plugin
+2025-04-24 17:00:28,518 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: logs_plugin, templates: 0
+2025-04-24 17:00:28,518 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: delete_printer
+2025-04-24 17:00:28,518 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: delete_printer
+2025-04-24 17:00:28,518 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: delete_printer
+2025-04-24 17:00:28,518 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer_test
+2025-04-24 17:00:28,519 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer
+2025-04-24 17:00:28,519 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: delete_printer
+2025-04-24 17:00:28,519 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/delete_printer/settings.yml
+2025-04-24 17:00:28,524 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour delete_printer
+2025-04-24 17:00:28,524 - template_handler - DEBUG - Aucun dossier de templates trouvé pour delete_printer
+2025-04-24 17:00:28,524 - pcUtils.choice_screen - DEBUG - Plugin valide trouvé: delete_printer, templates: 0
+2025-04-24 17:00:28,524 - pcUtils.choice_screen - INFO - Plugins valides trouvés: 17
+2025-04-24 17:00:28,533 - pcUtils.sequence_handler - DEBUG - Cache des séquences rafraîchi: 2 séquences trouvées
+2025-04-24 17:00:28,533 - pcUtils.choice_screen - INFO - Séquences disponibles: 2
+2025-04-24 17:00:28,533 - pcUtils.choice_screen - DEBUG - Séquence ajoutée: Installation d'un nouveau PC (install.yml)
+2025-04-24 17:00:28,533 - pcUtils.choice_screen - DEBUG - Séquence ajoutée: Séquence remplacement imprimante(s) (imp_remp.yml)
+2025-04-24 17:00:28,533 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: antivirus
+2025-04-24 17:00:28,533 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: antivirus
+2025-04-24 17:00:28,533 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: antivirus
+2025-04-24 17:00:28,533 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/antivirus_test
+2025-04-24 17:00:28,533 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/antivirus
+2025-04-24 17:00:28,533 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: antivirus
+2025-04-24 17:00:28,534 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/antivirus/settings.yml
+2025-04-24 17:00:28,536 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour antivirus
+2025-04-24 17:00:28,536 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: scan
+2025-04-24 17:00:28,536 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: scan
+2025-04-24 17:00:28,536 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: scan
+2025-04-24 17:00:28,536 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/scan_test
+2025-04-24 17:00:28,536 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/scan
+2025-04-24 17:00:28,536 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: scan
+2025-04-24 17:00:28,536 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/scan/settings.yml
+2025-04-24 17:00:28,544 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour scan
+2025-04-24 17:00:28,544 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: test_plugin
+2025-04-24 17:00:28,544 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: test_plugin
+2025-04-24 17:00:28,544 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: test_plugin
+2025-04-24 17:00:28,544 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/test_plugin_test
+2025-04-24 17:00:28,544 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/test_plugin
+2025-04-24 17:00:28,544 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: test_plugin
+2025-04-24 17:00:28,544 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/test_plugin/settings.yml
+2025-04-24 17:00:28,564 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour test_plugin
+2025-04-24 17:00:28,564 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: detox
+2025-04-24 17:00:28,565 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: detox
+2025-04-24 17:00:28,565 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: detox
+2025-04-24 17:00:28,565 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox_test
+2025-04-24 17:00:28,565 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox
+2025-04-24 17:00:28,565 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: detox
+2025-04-24 17:00:28,565 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/detox/settings.yml
+2025-04-24 17:00:28,568 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour detox
+2025-04-24 17:00:28,568 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: dovecot_utilisateur
+2025-04-24 17:00:28,568 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: dovecot_utilisateur
+2025-04-24 17:00:28,568 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: dovecot_utilisateur
+2025-04-24 17:00:28,569 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/dovecot_utilisateur_test
+2025-04-24 17:00:28,569 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/dovecot_utilisateur
+2025-04-24 17:00:28,569 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: dovecot_utilisateur
+2025-04-24 17:00:28,569 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/dovecot_utilisateur/settings.yml
+2025-04-24 17:00:28,572 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour dovecot_utilisateur
+2025-04-24 17:00:28,572 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: dovecot_install
+2025-04-24 17:00:28,572 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: dovecot_install
+2025-04-24 17:00:28,572 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: dovecot_install
+2025-04-24 17:00:28,572 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/dovecot_install_test
+2025-04-24 17:00:28,573 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/dovecot_install
+2025-04-24 17:00:28,573 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: dovecot_install
+2025-04-24 17:00:28,573 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/dovecot_install/settings.yml
+2025-04-24 17:00:28,580 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour dovecot_install
+2025-04-24 17:00:28,580 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: dovecot_suppr
+2025-04-24 17:00:28,581 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: dovecot_suppr
+2025-04-24 17:00:28,581 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: dovecot_suppr
+2025-04-24 17:00:28,581 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/dovecot_suppr_test
+2025-04-24 17:00:28,581 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/dovecot_suppr
+2025-04-24 17:00:28,581 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: dovecot_suppr
+2025-04-24 17:00:28,581 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/dovecot_suppr/settings.yml
+2025-04-24 17:00:28,583 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour dovecot_suppr
+2025-04-24 17:00:28,583 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: add_printer
+2025-04-24 17:00:28,584 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: add_printer
+2025-04-24 17:00:28,584 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: add_printer
+2025-04-24 17:00:28,584 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer_test
+2025-04-24 17:00:28,584 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/add_printer
+2025-04-24 17:00:28,584 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: add_printer
+2025-04-24 17:00:28,584 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/add_printer/settings.yml
+2025-04-24 17:00:28,593 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour add_printer
+2025-04-24 17:00:28,594 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: delete_printer
+2025-04-24 17:00:28,594 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: delete_printer
+2025-04-24 17:00:28,594 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: delete_printer
+2025-04-24 17:00:28,594 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer_test
+2025-04-24 17:00:28,594 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/delete_printer
+2025-04-24 17:00:28,594 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: delete_printer
+2025-04-24 17:00:28,594 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/delete_printer/settings.yml
+2025-04-24 17:00:28,600 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour delete_printer
+2025-04-24 17:00:28,601 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: lara_install
+2025-04-24 17:00:28,601 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: lara_install
+2025-04-24 17:00:28,601 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: lara_install
+2025-04-24 17:00:28,601 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/lara_install_test
+2025-04-24 17:00:28,601 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/lara_install
+2025-04-24 17:00:28,601 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: lara_install
+2025-04-24 17:00:28,601 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/lara_install/settings.yml
+2025-04-24 17:00:28,603 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour lara_install
+2025-04-24 17:00:28,603 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: install_update
+2025-04-24 17:00:28,603 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: install_update
+2025-04-24 17:00:28,603 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: install_update
+2025-04-24 17:00:28,603 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/install_update_test
+2025-04-24 17:00:28,603 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/install_update
+2025-04-24 17:00:28,603 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: install_update
+2025-04-24 17:00:28,603 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/install_update/settings.yml
+2025-04-24 17:00:28,605 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour install_update
+2025-04-24 17:00:28,606 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: mok
+2025-04-24 17:00:28,606 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: mok
+2025-04-24 17:00:28,606 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: mok
+2025-04-24 17:00:28,606 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/mok_test
+2025-04-24 17:00:28,606 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/mok
+2025-04-24 17:00:28,606 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: mok
+2025-04-24 17:00:28,606 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/mok/settings.yml
+2025-04-24 17:00:28,608 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour mok
+2025-04-24 17:00:28,608 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: logs_plugin
+2025-04-24 17:00:28,608 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: logs_plugin
+2025-04-24 17:00:28,608 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: logs_plugin
+2025-04-24 17:00:28,608 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/logs_plugin_test
+2025-04-24 17:00:28,608 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/logs_plugin
+2025-04-24 17:00:28,608 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: logs_plugin
+2025-04-24 17:00:28,608 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/logs_plugin/settings.yml
+2025-04-24 17:00:28,610 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour logs_plugin
+2025-04-24 17:00:28,610 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: ocs_inventory
+2025-04-24 17:00:28,610 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: ocs_inventory
+2025-04-24 17:00:28,610 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: ocs_inventory
+2025-04-24 17:00:28,610 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/ocs_inventory_test
+2025-04-24 17:00:28,610 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/ocs_inventory
+2025-04-24 17:00:28,610 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: ocs_inventory
+2025-04-24 17:00:28,611 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/ocs_inventory/settings.yml
+2025-04-24 17:00:28,612 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour ocs_inventory
+2025-04-24 17:00:28,613 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: puppet
+2025-04-24 17:00:28,613 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: puppet
+2025-04-24 17:00:28,613 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: puppet
+2025-04-24 17:00:28,613 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/puppet_test
+2025-04-24 17:00:28,613 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/puppet
+2025-04-24 17:00:28,613 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: puppet
+2025-04-24 17:00:28,613 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/puppet/settings.yml
+2025-04-24 17:00:28,615 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour puppet
+2025-04-24 17:00:28,615 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: shim_signed
+2025-04-24 17:00:28,615 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: shim_signed
+2025-04-24 17:00:28,615 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: shim_signed
+2025-04-24 17:00:28,615 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/shim_signed_test
+2025-04-24 17:00:28,616 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/shim_signed
+2025-04-24 17:00:28,616 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: shim_signed
+2025-04-24 17:00:28,616 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/shim_signed/settings.yml
+2025-04-24 17:00:28,617 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour shim_signed
+2025-04-24 17:00:28,618 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: ubiquity_conformity
+2025-04-24 17:00:28,618 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: ubiquity_conformity
+2025-04-24 17:00:28,618 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: ubiquity_conformity
+2025-04-24 17:00:28,618 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/ubiquity_conformity_test
+2025-04-24 17:00:28,618 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/ubiquity_conformity
+2025-04-24 17:00:28,618 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: ubiquity_conformity
+2025-04-24 17:00:28,618 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/ubiquity_conformity/settings.yml
+2025-04-24 17:00:28,620 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour ubiquity_conformity
+2025-04-24 17:00:28,620 - pcUtils.sequence_handler - DEBUG - Initialisation du gestionnaire de séquences: sequences
+2025-04-24 17:00:28,625 - pcUtils.sequence_handler - INFO - Séquence chargée et mise en cache: Installation d'un nouveau PC
+2025-04-24 17:00:28,625 - pcUtils.sequence_handler - DEBUG - Initialisation du gestionnaire de séquences: sequences
+2025-04-24 17:00:28,630 - pcUtils.sequence_handler - INFO - Séquence chargée et mise en cache: Séquence remplacement imprimante(s)
+2025-04-24 17:00:28,630 - pcUtils.sequence_handler - DEBUG - Initialisation du gestionnaire de séquences: sequences
+2025-04-24 17:00:30,023 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: detox
+2025-04-24 17:00:30,023 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: detox
+2025-04-24 17:00:30,023 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: detox
+2025-04-24 17:00:30,023 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox_test
+2025-04-24 17:00:30,024 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox
+2025-04-24 17:00:30,024 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: detox
+2025-04-24 17:00:30,024 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/detox/settings.yml
+2025-04-24 17:00:30,034 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour detox
+2025-04-24 17:00:30,039 - pcUtils.choice_screen - DEBUG - Changement sélection: detox -> True
+2025-04-24 17:00:30,039 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: detox
+2025-04-24 17:00:30,039 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: detox
+2025-04-24 17:00:30,039 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: detox
+2025-04-24 17:00:30,039 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox_test
+2025-04-24 17:00:30,040 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox
+2025-04-24 17:00:30,040 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: detox
+2025-04-24 17:00:30,040 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/detox/settings.yml
+2025-04-24 17:00:30,046 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour detox
+2025-04-24 17:00:30,046 - pcUtils.choice_screen - DEBUG - Plugin ajouté: detox (ID: 1)
+2025-04-24 17:00:30,048 - pcUtils.plugin_list_item - DEBUG - Plugin avec config: detox
+2025-04-24 17:00:30,048 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: detox
+2025-04-24 17:00:30,048 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: detox
+2025-04-24 17:00:30,048 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: detox
+2025-04-24 17:00:30,048 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox_test
+2025-04-24 17:00:30,048 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox
+2025-04-24 17:00:30,048 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: detox
+2025-04-24 17:00:30,048 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/detox/settings.yml
+2025-04-24 17:00:30,053 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour detox
+2025-04-24 17:00:30,053 - pcUtils.plugin_list_item - DEBUG - Info du plugin/séquence chargées pour detox
+2025-04-24 17:00:30,054 - pcUtils.selected_plugins_panel - DEBUG - Panneau mis à jour avec 1 plugins
+2025-04-24 17:00:30,054 - pcUtils.choice_screen - DEBUG - Affichage des plugins sélectionnés mis à jour
+2025-04-24 17:00:30,055 - pcUtils.plugin_list_item - DEBUG - Composition de l'élément detox (is_sequence: False)
+2025-04-24 17:00:31,057 - pcUtils.choice_screen - DEBUG - Bouton cliqué: configure_selected
+2025-04-24 17:00:31,057 - pcUtils.choice_screen - DEBUG - Début de la configuration des plugins sélectionnés
+2025-04-24 17:00:31,058 - pcUtils.config_screen - DEBUG - === Début Initialisation de PluginConfig ===
+2025-04-24 17:00:31,058 - pcUtils.sequence_config_manager - DEBUG - Gestionnaire de configuration des séquences initialisé
+2025-04-24 17:00:31,058 - pcUtils.config_screen - DEBUG - Création ConfigManager
+2025-04-24 17:00:31,058 - pcUtils.config_manager - DEBUG - ConfigManager initialisé
+2025-04-24 17:00:31,058 - pcUtils.config_screen - DEBUG - Chargement config SSH depuis: /media/nico/Drive/pcUtils_internet/ui/ssh_manager/ssh_fields.yml
+2025-04-24 17:00:31,078 - pcUtils.config_manager - DEBUG - Configuration globale 'ssh' chargée: 5 clés
+2025-04-24 17:00:31,078 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: detox
+2025-04-24 17:00:31,078 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: detox
+2025-04-24 17:00:31,079 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox_test
+2025-04-24 17:00:31,079 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox
+2025-04-24 17:00:31,079 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: detox
+2025-04-24 17:00:31,079 - pcUtils.config_screen - DEBUG - Chargement config plugin depuis: /media/nico/Drive/pcUtils_internet/plugins/detox/settings.yml
+2025-04-24 17:00:31,082 - pcUtils.config_manager - DEBUG - Configuration plugin 'detox' chargée: 9 clés
+2025-04-24 17:00:31,082 - pcUtils.config_screen - DEBUG - Configuration par défaut chargée pour detox_1: {'src_dir': '/home'}
+2025-04-24 17:00:31,082 - pcUtils.sequence_config_manager - DEBUG - === DÉBUT FUSION DES CONFIGURATIONS ===
+2025-04-24 17:00:31,082 - pcUtils.sequence_config_manager - DEBUG - Plugins à configurer: 1
+2025-04-24 17:00:31,082 - pcUtils.sequence_config_manager - DEBUG - Configuration initiale: {}
+2025-04-24 17:00:31,083 - pcUtils.sequence_config_manager - DEBUG - Traitement du plugin detox_1 (instance 1 de detox)
+2025-04-24 17:00:31,083 - pcUtils.sequence_config_manager - DEBUG - Configuration finale pour detox_1: 0 paramètres
+2025-04-24 17:00:31,083 - pcUtils.sequence_config_manager - DEBUG - === CONFIGURATIONS FINALES: 1 plugins configurés ===
+2025-04-24 17:00:31,083 - pcUtils.config_screen - DEBUG - Configurations finales après fusion: {'detox_1': {'plugin_name': 'detox', 'instance_id': 1, 'name': 'detox', 'config': {}}}
+2025-04-24 17:00:31,083 - pcUtils.config_screen - DEBUG - PluginConfig initialized successfully
+2025-04-24 17:00:31,121 - pcUtils.config_screen - DEBUG - PluginConfig.compose() started
+2025-04-24 17:00:31,122 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: detox
+2025-04-24 17:00:31,122 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: detox
+2025-04-24 17:00:31,122 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox_test
+2025-04-24 17:00:31,122 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox
+2025-04-24 17:00:31,122 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: detox
+2025-04-24 17:00:31,125 - pcUtils.config_screen - DEBUG - Has remote plugins: False
+2025-04-24 17:00:31,126 - pcUtils.config_screen - DEBUG - Creating config for plugin: detox_1
+2025-04-24 17:00:31,126 - plugin_config_container - DEBUG - Initialisation du conteneur de configuration pour detox
+2025-04-24 17:00:31,126 - template_manager - DEBUG - Répertoire des templates: /media/nico/Drive/pcUtils_internet/templates
+2025-04-24 17:00:31,126 - template_manager - DEBUG - Aucun schéma de validation trouvé, utilisation des validations par défaut
+2025-04-24 17:00:31,126 - template_manager - DEBUG - Gestionnaire de templates initialisé avec répertoire: /media/nico/Drive/pcUtils_internet/templates
+2025-04-24 17:00:31,126 - plugin_config_container - DEBUG - Gestionnaire de templates initialisé pour detox
+2025-04-24 17:00:31,128 - pcUtils.config_screen - DEBUG - PluginConfig.compose() completed
+2025-04-24 17:00:31,148 - plugin_config_container - DEBUG - Composition du conteneur pour detox
+2025-04-24 17:00:31,148 - template_manager - DEBUG - Aucun dossier de templates trouvé pour detox
+2025-04-24 17:00:31,148 - plugin_config_container - DEBUG - Aucun template trouvé pour detox
+2025-04-24 17:00:31,148 - plugin_config_container - DEBUG - Création du champ src_dir (unique_id: src_dir_1) de type directory
+2025-04-24 17:00:31,148 - pcUtils.text_field - DEBUG - set_value(/home) pour src_dir, update_input=True
+2025-04-24 17:00:31,148 - pcUtils.text_field - DEBUG - Valeur interne mise à jour pour src_dir: '' → '/home'
+2025-04-24 17:00:31,148 - pcUtils.text_field - DEBUG - Widget input non créé pour src_dir, stockage de '/home' en attente
+2025-04-24 17:00:31,149 - pcUtils.text_field - DEBUG - set_value réussi pour src_dir
+2025-04-24 17:00:31,149 - pcUtils.config_field - DEBUG - Champ src_dir initialisé avec valeur: /home
+2025-04-24 17:00:31,149 - pcUtils.directory_field - DEBUG - Champ répertoire src_dir initialisé (zenity: True, display: True)
+2025-04-24 17:00:31,149 - plugin_config_container - DEBUG - Champ src_dir créé et ajouté aux dictionnaires (unique_id: src_dir_1)
+2025-04-24 17:00:31,158 - pcUtils.text_field - DEBUG - Création du widget input pour src_dir avec valeur: '/home'
+2025-04-24 17:00:31,195 - pcUtils.directory_field - DEBUG - Montage du champ répertoire src_dir
+2025-04-24 17:00:31,195 - pcUtils.text_field - DEBUG - Montage du champ src_dir
+2025-04-24 17:00:31,195 - pcUtils.text_field - DEBUG - Application de la valeur en attente '/home' pour src_dir
+2025-04-24 17:00:31,195 - pcUtils.text_field - DEBUG - Widget déjà à la valeur '/home' pour src_dir, rien à faire
+2025-04-24 17:00:31,195 - pcUtils.text_field - DEBUG - Montage du champ src_dir
+2025-04-24 17:00:31,195 - pcUtils.text_field - DEBUG - Pas de valeur en attente pour src_dir, valeur actuelle: '/home'
+2025-04-24 17:00:31,195 - pcUtils.text_field - DEBUG - on_input_changed: valeur déjà à jour pour src_dir: '/home'
+2025-04-24 17:00:31,197 - plugin_config_container - DEBUG - Montage du conteneur pour detox
+2025-04-24 17:00:31,198 - pcUtils.config_screen - DEBUG - PluginConfig.on_mount() completed
+2025-04-24 17:00:31,272 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour detox avec 1 champs
+2025-04-24 17:00:31,272 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1']
+2025-04-24 17:00:31,272 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 0 enabled_if, 0 value_deps, 0 dynamic_options
+2025-04-24 17:00:31,272 - pcUtils.config_container - DEBUG - mirror_enabled_if: {}
+2025-04-24 17:00:31,273 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
+2025-04-24 17:00:31,273 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
+2025-04-24 17:00:31,273 - plugin_config_container - DEBUG - Application des valeurs prédéfinies pour detox
+2025-04-24 17:00:31,273 - plugin_config_container - DEBUG - Configuration trouvée pour detox_1: 4 clés
+2025-04-24 17:00:31,273 - plugin_config_container - DEBUG - Valeurs trouvées dans 'config': 0 paramètres
+2025-04-24 17:00:31,273 - pcUtils.config_screen - DEBUG - Création des champs de configuration
+2025-04-24 17:00:31,273 - pcUtils.config_screen - DEBUG - Nombre de containers trouvés: 1
+2025-04-24 17:00:31,273 - pcUtils.config_screen - DEBUG - Container ajouté: plugin_detox_1
+2025-04-24 17:00:31,273 - pcUtils.config_screen - DEBUG - Champ ajouté: src_dir_1
+2025-04-24 17:00:31,273 - pcUtils.config_screen - DEBUG - Total de 1 containers et 1 champs
+2025-04-24 17:00:31,274 - pcUtils.choice_screen - DEBUG - Écran de configuration affiché
+2025-04-24 17:00:31,274 - pcUtils.choice_screen - DEBUG - Configuration récupérée: 1 plugins
+2025-04-24 17:00:31,274 - pcUtils.choice_screen - DEBUG - Config mise à jour pour detox (ID: 1)
+2025-04-24 17:00:31,276 - pcUtils.plugin_list_item - DEBUG - Plugin avec config: detox
+2025-04-24 17:00:31,276 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: detox
+2025-04-24 17:00:31,276 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: detox
+2025-04-24 17:00:31,276 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: detox
+2025-04-24 17:00:31,276 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox_test
+2025-04-24 17:00:31,276 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox
+2025-04-24 17:00:31,276 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: detox
+2025-04-24 17:00:31,276 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/detox/settings.yml
+2025-04-24 17:00:31,283 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour detox
+2025-04-24 17:00:31,283 - pcUtils.plugin_list_item - DEBUG - Info du plugin/séquence chargées pour detox
+2025-04-24 17:00:31,284 - pcUtils.selected_plugins_panel - DEBUG - Panneau mis à jour avec 1 plugins
+2025-04-24 17:00:31,284 - pcUtils.choice_screen - DEBUG - Affichage des plugins sélectionnés mis à jour
+2025-04-24 17:00:31,287 - pcUtils.plugin_list_item - DEBUG - Composition de l'élément detox (is_sequence: False)
+2025-04-24 17:00:32,039 - pcUtils.config_screen - DEBUG - Bouton pressé: config-execute
+2025-04-24 17:00:32,039 - pcUtils.config_screen - DEBUG - Validation et passage à l'exécution
+2025-04-24 17:00:32,039 - pcUtils.config_screen - DEBUG - Collecte des configurations
+2025-04-24 17:00:32,039 - pcUtils.config_screen - DEBUG - Collecte pour detox_1
+2025-04-24 17:00:32,039 - pcUtils.config_screen - DEBUG - Champ avec unique_id src_dir_1 ajouté pour la collecte
+2025-04-24 17:00:32,040 - pcUtils.config_screen - DEBUG - Collecte de 1 champs pour l'instance spécifique detox_1
+2025-04-24 17:00:32,040 - pcUtils.config_screen - DEBUG - Collecte de 1 champs pour detox
+2025-04-24 17:00:32,040 - pcUtils.config_screen - DEBUG - Champ detox.src_dir (var: src_dir) = /home
+2025-04-24 17:00:32,040 - pcUtils.config_screen - DEBUG - Configuration collectée pour detox_1
+2025-04-24 17:00:32,040 - pcUtils.config_screen - DEBUG - Configuration finale: 1 plugins
+2025-04-24 17:00:32,040 - pcUtils.config_screen - DEBUG - Configuration finale: 1 plugins
+2025-04-24 17:00:32,040 - pcUtils.execution_screen - DEBUG - ExecutionScreen initialisé avec 1 plugins
+2025-04-24 17:00:32,040 - pcUtils.execution_screen - DEBUG - Mode auto-exécution: False
+2025-04-24 17:00:32,082 - pcUtils.execution_widget - DEBUG - ExecutionWidget initialisé avec 1 plugins
+2025-04-24 17:00:32,082 - pcUtils.execution_widget - DEBUG - Plugins disponibles: ['detox_1']
+2025-04-24 17:00:32,088 - pcUtils.execution_widget - DEBUG - Création des conteneurs pour 1 plugins
+2025-04-24 17:00:32,088 - pcUtils.plugin_container - DEBUG - Creating container with ID: plugin-detox_1
+2025-04-24 17:00:32,088 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: detox_1
+2025-04-24 17:00:32,089 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: detox_1
+2025-04-24 17:00:32,089 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox_1_test
+2025-04-24 17:00:32,089 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox_1
+2025-04-24 17:00:32,089 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox_1
+2025-04-24 17:00:32,089 - pcUtils.plugin_utils - WARNING - Aucun dossier correspondant trouvé pour detox_1, utilisation du nom tel quel
+2025-04-24 17:00:32,165 - pcUtils.plugin_container - DEBUG - Conteneur detox_1 monté
+2025-04-24 17:00:32,166 - pcUtils.execution_widget - DEBUG - ExecutionWidget monté, app=Choice(title='Choice', classes={'-dark-mode'}, pseudo_classes={'focus', 'dark'})
+2025-04-24 17:00:32,166 - pcUtils.execution_screen - DEBUG - Montage de l'écran d'exécution
+2025-04-24 17:00:32,241 - pcUtils.execution_screen - DEBUG - Attente pour permettre à l'interface de s'afficher complètement
+2025-04-24 17:00:32,250 - pcUtils.execution_widget - DEBUG - Progression mise à jour: 0%
+2025-04-24 17:00:32,274 - pcUtils.choice_screen - DEBUG - Bouton cliqué: config-execute
+2025-04-24 17:00:33,258 - pcUtils.execution_screen - DEBUG - Début de l'initialisation de l'écran après délai
+2025-04-24 17:00:33,305 - pcUtils.execution_widget - DEBUG - Clic sur le bouton back-button
+2025-04-24 17:00:33,305 - pcUtils.execution_widget - DEBUG - Retour à l'écran de configuration
+2025-04-24 17:00:33,305 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: detox
+2025-04-24 17:00:33,305 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: detox
+2025-04-24 17:00:33,306 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox_test
+2025-04-24 17:00:33,306 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox
+2025-04-24 17:00:33,306 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: detox
+2025-04-24 17:00:33,306 - pcUtils.execution_widget - DEBUG - Plugin ajouté pour retour: detox_1
+2025-04-24 17:00:33,306 - pcUtils.config_screen - DEBUG - === Début Initialisation de PluginConfig ===
+2025-04-24 17:00:33,306 - pcUtils.sequence_config_manager - DEBUG - Gestionnaire de configuration des séquences initialisé
+2025-04-24 17:00:33,306 - pcUtils.config_screen - DEBUG - Création ConfigManager
+2025-04-24 17:00:33,306 - pcUtils.config_manager - DEBUG - ConfigManager initialisé
+2025-04-24 17:00:33,307 - pcUtils.config_screen - DEBUG - Chargement config SSH depuis: /media/nico/Drive/pcUtils_internet/ui/ssh_manager/ssh_fields.yml
+2025-04-24 17:00:33,324 - pcUtils.config_manager - DEBUG - Configuration globale 'ssh' chargée: 5 clés
+2025-04-24 17:00:33,324 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: detox
+2025-04-24 17:00:33,324 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: detox
+2025-04-24 17:00:33,324 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox_test
+2025-04-24 17:00:33,324 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox
+2025-04-24 17:00:33,324 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: detox
+2025-04-24 17:00:33,324 - pcUtils.config_screen - DEBUG - Chargement config plugin depuis: /media/nico/Drive/pcUtils_internet/plugins/detox/settings.yml
+2025-04-24 17:00:33,327 - pcUtils.config_manager - DEBUG - Configuration plugin 'detox' chargée: 9 clés
+2025-04-24 17:00:33,327 - pcUtils.config_screen - DEBUG - Configuration par défaut chargée pour detox_1: {'src_dir': '/home'}
+2025-04-24 17:00:33,328 - pcUtils.sequence_config_manager - DEBUG - === DÉBUT FUSION DES CONFIGURATIONS ===
+2025-04-24 17:00:33,328 - pcUtils.sequence_config_manager - DEBUG - Plugins à configurer: 1
+2025-04-24 17:00:33,328 - pcUtils.sequence_config_manager - DEBUG - Configuration initiale: {}
+2025-04-24 17:00:33,328 - pcUtils.sequence_config_manager - DEBUG - Traitement du plugin detox_1 (instance 1 de detox)
+2025-04-24 17:00:33,328 - pcUtils.sequence_config_manager - DEBUG - Configuration finale pour detox_1: 0 paramètres
+2025-04-24 17:00:33,328 - pcUtils.sequence_config_manager - DEBUG - === CONFIGURATIONS FINALES: 1 plugins configurés ===
+2025-04-24 17:00:33,328 - pcUtils.config_screen - DEBUG - Configurations finales après fusion: {'detox_1': {'plugin_name': 'detox', 'instance_id': 1, 'name': 'detox', 'config': {}}}
+2025-04-24 17:00:33,328 - pcUtils.config_screen - DEBUG - PluginConfig initialized successfully
+2025-04-24 17:00:33,328 - pcUtils.execution_widget - DEBUG - Configuration préservée: 1 plugins
+2025-04-24 17:00:33,329 - pcUtils.config_screen - DEBUG - PluginConfig.compose() started
+2025-04-24 17:00:33,329 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: detox
+2025-04-24 17:00:33,329 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: detox
+2025-04-24 17:00:33,329 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox_test
+2025-04-24 17:00:33,330 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox
+2025-04-24 17:00:33,330 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: detox
+2025-04-24 17:00:33,333 - pcUtils.config_screen - DEBUG - Has remote plugins: False
+2025-04-24 17:00:33,333 - pcUtils.config_screen - DEBUG - Creating config for plugin: detox_1
+2025-04-24 17:00:33,334 - pcUtils.config_screen - DEBUG - Valeur prédéfinie trouvée pour detox_1.src_dir = /home
+2025-04-24 17:00:33,334 - plugin_config_container - DEBUG - Initialisation du conteneur de configuration pour detox
+2025-04-24 17:00:33,334 - template_manager - DEBUG - Répertoire des templates: /media/nico/Drive/pcUtils_internet/templates
+2025-04-24 17:00:33,334 - template_manager - DEBUG - Aucun schéma de validation trouvé, utilisation des validations par défaut
+2025-04-24 17:00:33,334 - template_manager - DEBUG - Gestionnaire de templates initialisé avec répertoire: /media/nico/Drive/pcUtils_internet/templates
+2025-04-24 17:00:33,334 - plugin_config_container - DEBUG - Gestionnaire de templates initialisé pour detox
+2025-04-24 17:00:33,337 - pcUtils.config_screen - DEBUG - PluginConfig.compose() completed
+2025-04-24 17:00:33,349 - plugin_config_container - DEBUG - Composition du conteneur pour detox
+2025-04-24 17:00:33,350 - template_manager - DEBUG - Aucun dossier de templates trouvé pour detox
+2025-04-24 17:00:33,350 - plugin_config_container - DEBUG - Aucun template trouvé pour detox
+2025-04-24 17:00:33,350 - plugin_config_container - DEBUG - Création du champ src_dir (unique_id: src_dir_1) de type directory
+2025-04-24 17:00:33,350 - pcUtils.text_field - DEBUG - set_value(/home) pour src_dir, update_input=True
+2025-04-24 17:00:33,350 - pcUtils.text_field - DEBUG - Valeur interne mise à jour pour src_dir: '' → '/home'
+2025-04-24 17:00:33,350 - pcUtils.text_field - DEBUG - Widget input non créé pour src_dir, stockage de '/home' en attente
+2025-04-24 17:00:33,350 - pcUtils.text_field - DEBUG - set_value réussi pour src_dir
+2025-04-24 17:00:33,350 - pcUtils.config_field - DEBUG - Champ src_dir initialisé avec valeur: /home
+2025-04-24 17:00:33,350 - pcUtils.directory_field - DEBUG - Champ répertoire src_dir initialisé (zenity: True, display: True)
+2025-04-24 17:00:33,351 - plugin_config_container - DEBUG - Champ src_dir créé et ajouté aux dictionnaires (unique_id: src_dir_1)
+2025-04-24 17:00:33,358 - pcUtils.text_field - DEBUG - Valeur trouvée dans config pour src_dir: '/home'
+2025-04-24 17:00:33,358 - pcUtils.text_field - DEBUG - Création du widget input pour src_dir avec valeur: '/home'
+2025-04-24 17:00:33,364 - pcUtils.directory_field - DEBUG - Montage du champ répertoire src_dir
+2025-04-24 17:00:33,365 - pcUtils.text_field - DEBUG - Montage du champ src_dir
+2025-04-24 17:00:33,365 - pcUtils.text_field - DEBUG - Application de la valeur en attente '/home' pour src_dir
+2025-04-24 17:00:33,365 - pcUtils.text_field - DEBUG - Widget déjà à la valeur '/home' pour src_dir, rien à faire
+2025-04-24 17:00:33,365 - pcUtils.text_field - DEBUG - Montage du champ src_dir
+2025-04-24 17:00:33,365 - pcUtils.text_field - DEBUG - Pas de valeur en attente pour src_dir, valeur actuelle: '/home'
+2025-04-24 17:00:33,365 - pcUtils.text_field - DEBUG - on_input_changed: valeur déjà à jour pour src_dir: '/home'
+2025-04-24 17:00:33,366 - plugin_config_container - DEBUG - Montage du conteneur pour detox
+2025-04-24 17:00:33,368 - pcUtils.config_screen - DEBUG - Restauration de la configuration préservée
+2025-04-24 17:00:33,469 - pcUtils.config_screen - DEBUG - PluginConfig.on_mount() completed
+2025-04-24 17:00:33,613 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour detox avec 1 champs
+2025-04-24 17:00:33,613 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1']
+2025-04-24 17:00:33,613 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 0 enabled_if, 0 value_deps, 0 dynamic_options
+2025-04-24 17:00:33,613 - pcUtils.config_container - DEBUG - mirror_enabled_if: {}
+2025-04-24 17:00:33,613 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
+2025-04-24 17:00:33,614 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
+2025-04-24 17:00:33,614 - plugin_config_container - DEBUG - Application des valeurs prédéfinies pour detox
+2025-04-24 17:00:33,614 - plugin_config_container - DEBUG - Configuration trouvée pour detox_1: 7 clés
+2025-04-24 17:00:33,614 - plugin_config_container - DEBUG - Valeurs trouvées dans 'config': 2 paramètres
+2025-04-24 17:00:33,614 - pcUtils.text_field - DEBUG - set_value(/home) pour src_dir, update_input=True
+2025-04-24 17:00:33,614 - pcUtils.text_field - DEBUG - Valeur interne déjà à '/home' pour src_dir
+2025-04-24 17:00:33,614 - plugin_config_container - DEBUG - Valeur appliquée avec succès via set_value pour src_dir
+2025-04-24 17:00:33,614 - plugin_config_container - WARNING - Aucun champ trouvé pour la variable 'remote_execution'
+2025-04-24 17:00:33,614 - pcUtils.config_screen - DEBUG - Création des champs de configuration
+2025-04-24 17:00:33,615 - pcUtils.config_screen - DEBUG - Nombre de containers trouvés: 1
+2025-04-24 17:00:33,615 - pcUtils.config_screen - DEBUG - Container ajouté: plugin_detox_1
+2025-04-24 17:00:33,615 - pcUtils.config_screen - DEBUG - Champ ajouté: src_dir_1
+2025-04-24 17:00:33,615 - pcUtils.config_screen - DEBUG - Total de 1 containers et 1 champs
+2025-04-24 17:00:33,615 - pcUtils.config_screen - DEBUG - Début de la restauration pour 1 plugins
+2025-04-24 17:00:33,615 - pcUtils.config_screen - DEBUG - Restauration pour detox_1
+2025-04-24 17:00:33,615 - pcUtils.config_screen - DEBUG - Mise à jour de toutes les dépendances
+2025-04-24 17:00:33,615 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
+2025-04-24 17:00:33,615 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de src_dir (unique_id: src_dir_1)
+2025-04-24 17:00:33,615 - pcUtils.config_container - DEBUG - Vérification des dépendances pour src_dir (unique: src_dir_1)
+2025-04-24 17:00:33,615 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
+2025-04-24 17:00:33,615 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour src_dir dans mirror_dynamic_options
+2025-04-24 17:00:33,615 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour src_dir_1 dans mirror_dynamic_options
+2025-04-24 17:00:33,615 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour src_dir ou src_dir_1
+2025-04-24 17:00:33,616 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour src_dir
+2025-04-24 17:00:33,616 - pcUtils.config_screen - DEBUG - Dépendances mises à jour pour src_dir_1
+2025-04-24 17:00:33,616 - pcUtils.config_screen - DEBUG - Restauration terminée
+2025-04-24 17:00:33,641 - pcUtils.choice_screen - DEBUG - Bouton cliqué: back-button
+2025-04-24 17:00:34,258 - pcUtils.directory_field - DEBUG - Bouton Browse pressé pour src_dir
+2025-04-24 17:00:34,258 - pcUtils.directory_field - DEBUG - Lancement de zenity avec les arguments: ['zenity', '--file-selection', '--directory', '--filename', '/home', '--title', 'Dossier source']
+2025-04-24 17:00:34,261 - pcUtils.config_screen - DEBUG - Bouton pressé: browse_src_dir
+2025-04-24 17:00:34,262 - pcUtils.choice_screen - DEBUG - Bouton cliqué: browse_src_dir
+2025-04-24 17:00:40,772 - pcUtils.directory_field - DEBUG - Répertoire sélectionné: '/media/nico/Drive/pcUtils_internet/templates'
+2025-04-24 17:00:40,773 - pcUtils.text_field - DEBUG - set_value(/media/nico/Drive/pcUtils_internet/templates) pour src_dir, update_input=True
+2025-04-24 17:00:40,773 - pcUtils.text_field - DEBUG - Valeur interne mise à jour pour src_dir: '/home' → '/media/nico/Drive/pcUtils_internet/templates'
+2025-04-24 17:00:40,773 - pcUtils.text_field - DEBUG - Mise à jour du widget pour src_dir: '/home' → '/media/nico/Drive/pcUtils_internet/templates'
+2025-04-24 17:00:40,773 - pcUtils.config_field - DEBUG - Notification des changements aux parents pour src_dir
+2025-04-24 17:00:40,775 - pcUtils.config_field - DEBUG - Mise à jour des champs dépendants via PluginConfigContainer(id='plugin_detox_1')
+2025-04-24 17:00:40,775 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
+2025-04-24 17:00:40,775 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de src_dir (unique_id: src_dir_1)
+2025-04-24 17:00:40,775 - pcUtils.config_container - DEBUG - Vérification des dépendances pour src_dir (unique: src_dir_1)
+2025-04-24 17:00:40,775 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
+2025-04-24 17:00:40,775 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour src_dir dans mirror_dynamic_options
+2025-04-24 17:00:40,775 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour src_dir_1 dans mirror_dynamic_options
+2025-04-24 17:00:40,775 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour src_dir ou src_dir_1
+2025-04-24 17:00:40,776 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour src_dir
+2025-04-24 17:00:40,776 - pcUtils.text_field - DEBUG - set_value réussi pour src_dir
+2025-04-24 17:00:40,777 - pcUtils.text_field - DEBUG - on_input_changed: valeur déjà à jour pour src_dir: '/media/nico/Drive/pcUtils_internet/templates'
+2025-04-24 17:00:42,378 - pcUtils.config_screen - DEBUG - Bouton pressé: config-execute
+2025-04-24 17:00:42,378 - pcUtils.config_screen - DEBUG - Validation et passage à l'exécution
+2025-04-24 17:00:42,378 - pcUtils.config_screen - DEBUG - Collecte des configurations
+2025-04-24 17:00:42,378 - pcUtils.config_screen - DEBUG - Collecte pour detox_1
+2025-04-24 17:00:42,378 - pcUtils.config_screen - DEBUG - Champ avec unique_id src_dir_1 ajouté pour la collecte
+2025-04-24 17:00:42,378 - pcUtils.config_screen - DEBUG - Collecte de 1 champs pour l'instance spécifique detox_1
+2025-04-24 17:00:42,379 - pcUtils.config_screen - DEBUG - Collecte de 1 champs pour detox
+2025-04-24 17:00:42,379 - pcUtils.config_screen - DEBUG - Champ detox.src_dir (var: src_dir) = /media/nico/Drive/pcUtils_internet/templates
+2025-04-24 17:00:42,379 - pcUtils.config_screen - DEBUG - Configuration collectée pour detox_1
+2025-04-24 17:00:42,379 - pcUtils.config_screen - DEBUG - Configuration finale: 1 plugins
+2025-04-24 17:00:42,379 - pcUtils.config_screen - DEBUG - Configuration finale: 1 plugins
+2025-04-24 17:00:42,379 - pcUtils.execution_screen - DEBUG - ExecutionScreen initialisé avec 1 plugins
+2025-04-24 17:00:42,379 - pcUtils.execution_screen - DEBUG - Mode auto-exécution: False
+2025-04-24 17:00:42,436 - pcUtils.execution_widget - DEBUG - ExecutionWidget initialisé avec 1 plugins
+2025-04-24 17:00:42,436 - pcUtils.execution_widget - DEBUG - Plugins disponibles: ['detox_1']
+2025-04-24 17:00:42,442 - pcUtils.execution_widget - DEBUG - Création des conteneurs pour 1 plugins
+2025-04-24 17:00:42,442 - pcUtils.plugin_container - DEBUG - Creating container with ID: plugin-detox_1
+2025-04-24 17:00:42,442 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: detox_1
+2025-04-24 17:00:42,442 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: detox_1
+2025-04-24 17:00:42,442 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox_1_test
+2025-04-24 17:00:42,442 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox_1
+2025-04-24 17:00:42,442 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox_1
+2025-04-24 17:00:42,442 - pcUtils.plugin_utils - WARNING - Aucun dossier correspondant trouvé pour detox_1, utilisation du nom tel quel
+2025-04-24 17:00:42,498 - pcUtils.plugin_container - DEBUG - Conteneur detox_1 monté
+2025-04-24 17:00:42,499 - pcUtils.execution_widget - DEBUG - ExecutionWidget monté, app=Choice(title='Choice', classes={'-dark-mode'}, pseudo_classes={'focus', 'dark'})
+2025-04-24 17:00:42,500 - pcUtils.execution_screen - DEBUG - Montage de l'écran d'exécution
+2025-04-24 17:00:42,623 - pcUtils.execution_screen - DEBUG - Attente pour permettre à l'interface de s'afficher complètement
+2025-04-24 17:00:42,632 - pcUtils.execution_widget - DEBUG - Progression mise à jour: 0%
+2025-04-24 17:00:42,671 - pcUtils.choice_screen - DEBUG - Bouton cliqué: config-execute
+2025-04-24 17:00:43,463 - pcUtils.execution_widget - DEBUG - Clic sur le bouton start-button
+2025-04-24 17:00:43,464 - pcUtils.execution_widget - INFO - Démarrage de l'exécution
+2025-04-24 17:00:43,465 - pcUtils.execution_widget - DEBUG - Boutons masqués
+2025-04-24 17:00:43,466 - pcUtils.execution_widget - DEBUG - Progression mise à jour: 0%
+2025-04-24 17:00:43,466 - pcUtils.execution_widget - DEBUG - Plugin ajouté: detox_1
+2025-04-24 17:00:43,466 - pcUtils.execution_widget - DEBUG - Préparation terminée: 1 plugins à exécuter
+2025-04-24 17:00:43,467 - pcUtils.execution_widget - DEBUG - Progression mise à jour: 0.0%
+2025-04-24 17:00:43,468 - pcUtils.execution_widget - DEBUG - Exécution du plugin detox_1
+2025-04-24 17:00:43,468 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: detox
+2025-04-24 17:00:43,468 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: detox
+2025-04-24 17:00:43,468 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox_test
+2025-04-24 17:00:43,468 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/detox
+2025-04-24 17:00:43,468 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: detox
+2025-04-24 17:00:43,468 - pcUtils.execution_widget - DEBUG - Dossier du plugin detox (ID: 1): detox
+2025-04-24 17:00:43,468 - pcUtils.execution_widget - DEBUG - Configuration: {'src_dir': '/media/nico/Drive/pcUtils_internet/templates', 'remote_execution': False}
+2025-04-24 17:00:43,468 - pcUtils.execution_widget - DEBUG - Création d'un exécuteur local pour detox_1
+2025-04-24 17:00:43,469 - pcUtils.local_executor - DEBUG - LocalExecutor initialisé, debugger_mode=False
+2025-04-24 17:00:43,469 - pcUtils.local_executor - INFO - Exécution locale du plugin detox
+2025-04-24 17:00:43,469 - pcUtils.local_executor - DEBUG - Chemin du plugin: /media/nico/Drive/pcUtils_internet/plugins/detox
+2025-04-24 17:00:43,469 - pcUtils.local_executor - INFO - Détecté comme plugin Python
+2025-04-24 17:00:43,469 - pcUtils.local_executor - DEBUG - Fichier d'exécution: /media/nico/Drive/pcUtils_internet/plugins/detox/exec.py
+2025-04-24 17:00:43,473 - pcUtils.local_executor - DEBUG - Paramètres du plugin chargés: {'name': 'Detox', 'description': 'Nettoyage des noms de fichiers et dossiers incluant les sous dossiers, suppression des espaces et caractères spéciaux', 'version': 1.0, 'category': 'Système', 'multiple': True, 'remote_execution': False, 'icon': '🛠️', 'sudo': True, 'config_fields': {'src_dir': {'type': 'directory', 'label': 'Dossier source', 'default': '/home', 'required': True, 'not_empty': True}}}
+2025-04-24 17:00:43,473 - pcUtils.file_content_handler - INFO - Aucune configuration files_content trouvée
+2025-04-24 17:00:43,473 - pcUtils.local_executor - INFO - Exécution de la commande: /usr/bin/python3 /media/nico/Drive/pcUtils_internet/plugins/detox/exec.py {"plugin_name": "detox", "instance_id": 1, "name": "Detox", "show_name": "detox", "icon": "\ud83d\udee0\ufe0f", "config": {"src_dir": "/media/nico/Drive/pcUtils_internet/templates", "remote_execution": false}, "remote_execution": false}
+2025-04-24 17:00:43,473 - pcUtils.local_executor - DEBUG - Ajout d'un message au log: start:Début de l'exécution du plugin detox...
+2025-04-24 17:00:43,623 - pcUtils.execution_screen - DEBUG - Début de l'initialisation de l'écran après délai
+2025-04-24 17:00:47,204 - pcUtils.local_executor - INFO - Plugin detox terminé avec succès
+2025-04-24 17:00:47,204 - pcUtils.local_executor - DEBUG - Ajout d'un message au log: success:Plugin detox exécuté avec succès...
+2025-04-24 17:00:47,207 - pcUtils.plugin_container - DEBUG - Sortie stockée pour le plugin detox_1
+2025-04-24 17:00:47,208 - pcUtils.execution_widget - DEBUG - Progression mise à jour: 100.0%
+2025-04-24 17:00:47,211 - logger_utils - INFO - Arrêt du timer de logs demandé
+2025-04-24 17:00:47,212 - pcUtils.execution_widget - DEBUG - Notification de fin d'exécution
+2025-04-24 17:00:47,212 - pcUtils.execution_screen - DEBUG - Exécution terminée
+2025-04-24 17:00:47,214 - logger_utils - INFO - Boucle de traitement des logs terminée
+2025-04-24 17:00:47,326 - pcUtils.execution_widget - DEBUG - Boutons réaffichés après exécution
+2025-04-24 17:00:47,430 - pcUtils.choice_screen - DEBUG - Bouton cliqué: start-button
+2025-04-24 17:00:55,918 - pcUtils.execution_screen - INFO - Demande de sortie via touche ESC
