@@ -2,7 +2,7 @@ name: Shim Signed
 description: "Mise à jour de shim-signed via script gendarmerie"
 version: 1.0
 category: Système
-multiple: true
+multiple: false
 remote_execution: false
 icon: 🛠️
 sudo: true

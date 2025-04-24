@@ -2,7 +2,7 @@ name: MOK
 description: "Installation du MOK si nécessaire"
 version: 1.0
 category: Système
-multiple: true
+multiple: false
 remote_execution: false
 icon: 🛠️
 sudo: true

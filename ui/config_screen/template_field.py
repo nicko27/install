@@ -117,17 +117,10 @@ class TemplateField(VerticalGroup):
         """
         template = self.templates.get(template_name, {})
         
-        # Utiliser le nom formaté et la description si disponible
+        # Utiliser le nom formaté ou le nom du fichier
         name = template.get('name', template_name)
-        description = template.get('description', '')
         
-        if description:
-            # Si c'est le template par défaut, l'indiquer
-            if template_name == 'default':
-                return f"{name} (défaut) - {description}"
-            return f"{name} - {description}"
-        
-        # Si pas de description, utiliser juste le nom
+        # Si c'est le template par défaut, l'indiquer
         if template_name == 'default':
             return f"{name} (défaut)"
         return name
@@ -314,14 +307,23 @@ class TemplateField(VerticalGroup):
         """
         Méthode appelée lorsque le widget est monté dans l'interface.
         """
-        # Récupérer le widget Select et configurer les gestionnaires d'événements
         try:
+            # Récupérer le widget Select et configurer les gestionnaires d'événements
             select = self.query_one(f"#{self.select_id}", Select)
             logger.debug(f"Widget Select trouvé avec ID: {self.select_id}")
             
             # Utiliser les deux méthodes complémentaires pour être sûr de capturer l'événement
             select.on_changed = self.on_select_changed
             self.watch(select, "changed", self._on_select_changed_watch)
+            
+            # Sélectionner "Aucun template" par défaut (valeur vide)
+            logger.debug("Sélection de 'Aucun template' par défaut")
+            select.value = ""
+            
+            # Réinitialiser explicitement les champs aux valeurs par défaut
+            # pour s'assurer que les valeurs des templates ne sont pas appliquées
+            logger.debug("Réinitialisation explicite des champs aux valeurs par défaut lors du montage")
+            self.call_after_refresh(self._reset_fields_to_defaults)
             
             logger.debug("Gestionnaires d'événements configurés pour le sélecteur de template")
         except Exception as e:
@@ -338,23 +340,21 @@ class TemplateField(VerticalGroup):
         value = None
         if hasattr(event, 'value'):
             value = event.value
-        elif hasattr(event, 'control') and hasattr(event.control, 'value'):
-            value = event.control.value
-            
-        if value is None:
-            logger.warning("Événement de changement sans valeur valide")
-            return
-            
-        # Ne rien faire si c'est le même template
-        if value == self.current_template:
-            logger.debug(f"Template '{value}' déjà sélectionné, aucune action")
-            return
-            
-        logger.debug(f"Changement de template: '{self.current_template}' -> '{value}'")
+        elif hasattr(event, 'select') and hasattr(event.select, 'value'):
+            value = event.select.value
+        
+        logger.debug(f"Template sélectionné pour {self.plugin_name}: {value}")
+        
+        # Mettre à jour la sélection actuelle
         self.current_template = value
         
-        # Appliquer le template sélectionné
-        self._apply_template(value)
+        # Si "Aucun template" est sélectionné (valeur vide), réinitialiser les champs à leurs valeurs par défaut
+        if not value:
+            logger.debug("Aucun template sélectionné, réinitialisation des champs aux valeurs par défaut")
+            self._reset_fields_to_defaults()
+        else:
+            # Appliquer le template sélectionné
+            self._apply_template(value)
         
     def _on_select_changed_watch(self, event: Select.Changed) -> None:
         """
@@ -366,3 +366,57 @@ class TemplateField(VerticalGroup):
         logger.debug(f"Événement watch déclenché pour le template")
         # Déléguer à la méthode principale
         self.on_select_changed(event)
+        
+    def _reset_fields_to_defaults(self) -> None:
+        """
+        Réinitialise tous les champs du plugin à leurs valeurs par défaut.
+        Cette méthode est appelée lorsque l'option "Aucun template" est sélectionnée.
+        """
+        logger.info(f"Réinitialisation des champs aux valeurs par défaut pour {self.plugin_name}")
+        
+        # Récupérer tous les champs du plugin
+        plugin_fields = {}
+        for field_id, field in self.fields_by_id.items():
+            if hasattr(field, 'source_id') and field.source_id == self.plugin_name:
+                plugin_fields[field_id] = field
+                
+        if not plugin_fields:
+            logger.warning(f"Aucun champ trouvé pour le plugin {self.plugin_name}")
+            return
+            
+        logger.debug(f"Réinitialisation de {len(plugin_fields)} champs pour {self.plugin_name}")
+        
+        # Pour chaque champ, réinitialiser à la valeur par défaut
+        for field_id, field in plugin_fields.items():
+            try:
+                # Ignorer le champ de template lui-même
+                if field_id == 'template' or field == self:
+                    continue
+                    
+                # Utiliser la méthode restore_default si disponible
+                if hasattr(field, 'restore_default'):
+                    logger.debug(f"Appel de restore_default() pour le champ {field_id}")
+                    success = field.restore_default()
+                    if not success:
+                        logger.warning(f"Échec de restore_default() pour {field_id}")
+                # Sinon, essayer d'accéder à default_value
+                elif hasattr(field, 'default_value'):
+                    logger.debug(f"Réinitialisation du champ {field_id} à la valeur par défaut: {field.default_value}")
+                    field.value = field.default_value
+                # Sinon, essayer d'accéder à field_config['default']
+                elif hasattr(field, 'field_config') and 'default' in field.field_config:
+                    default_value = field.field_config['default']
+                    logger.debug(f"Réinitialisation du champ {field_id} à la valeur par défaut de la config: {default_value}")
+                    if hasattr(field, 'set_value'):
+                        field.set_value(default_value, update_input=True, update_dependencies=True)
+                    else:
+                        field.value = default_value
+                else:
+                    logger.warning(f"Impossible de réinitialiser le champ {field_id}, aucune méthode disponible")
+            except Exception as e:
+                logger.error(f"Erreur lors de la réinitialisation du champ {field_id}: {e}")
+                
+        # Mettre à jour les dépendances entre champs
+        if hasattr(self, 'parent') and hasattr(self.parent, 'update_all_dependencies'):
+            logger.debug("Mise à jour des dépendances entre champs")
+            self.parent.update_all_dependencies()

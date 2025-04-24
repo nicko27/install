@@ -62,16 +62,6 @@ def get_usb(include_system_disk: bool = False, only_external: bool = False, only
     """
     logger.debug(f"Recherche des périphériques (include_system_disk={include_system_disk}, only_external={only_external}, only_internal={only_internal}, kwargs={kwargs})")
 
-    # Convertir les valeurs string en booléens si nécessaire (pour la compatibilité avec settings.yml)
-    if isinstance(include_system_disk, str):
-        include_system_disk = include_system_disk.lower() in ('true', 't', 'yes', 'y', '1')
-
-    if isinstance(only_external, str):
-        only_external = only_external.lower() in ('true', 't', 'yes', 'y', '1')
-
-    if isinstance(only_internal, str):
-        only_internal = only_internal.lower() in ('true', 't', 'yes', 'y', '1')
-
     # Vérifier la cohérence des paramètres
     if only_external and only_internal:
         logger.warning("Les paramètres only_external et only_internal sont tous deux True, aucun filtre ne sera appliqué")

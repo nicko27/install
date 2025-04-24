@@ -64,10 +64,10 @@ def is_debugger_active() -> bool:
     if hasattr(sys, 'gettrace') and sys.gettrace():
         internal_logger.debug("Débogueur détecté via sys.gettrace()")
         return True
-        
+
     # Méthode 2: Vérifier les variables d'environnement
     debug_env_vars = [
-        'PYTHONBREAKPOINT', 'VSCODE_DEBUG', 'PYCHARM_DEBUG', 
+        'PYTHONBREAKPOINT', 'VSCODE_DEBUG', 'PYCHARM_DEBUG',
         'PYDEVD_USE_FRAME_EVAL', 'DEBUG', 'TEXTUAL_DEBUG',
         'PYDEVD_LOAD_VALUES_ASYNC', 'DEBUGPY_LAUNCHER_PORT'
     ]
@@ -75,14 +75,14 @@ def is_debugger_active() -> bool:
         if os.environ.get(var):
             internal_logger.debug(f"Débogueur détecté via variable d'environnement: {var}")
             return True
-        
+
     # Méthode 3: Vérifier les modules de débogage connus
     debug_modules = ['pydevd', 'debugpy', '_pydevd_bundle', 'pdb']
     for mod in debug_modules:
         if mod in sys.modules:
             internal_logger.debug(f"Débogueur détecté via module: {mod}")
             return True
-        
+
     # Méthode 4: Vérifier si nous sommes sous IPython
     try:
         if 'IPython' in sys.modules:
@@ -95,12 +95,12 @@ def is_debugger_active() -> bool:
             return True
     except Exception:
         pass
-        
+
     # Méthode 5: Vérifier si la variable d'environnement FORCE_DEBUG_MODE est définie
     if os.environ.get('FORCE_DEBUG_MODE'):
         internal_logger.debug("Mode débogueur forcé via FORCE_DEBUG_MODE")
         return True
-        
+
     return False
 
 
@@ -119,7 +119,7 @@ class PluginLogger:
                  bar_width: int = 20):
         """
         Initialise le logger.
-        
+
         Args:
             plugin_name: Nom du plugin (utilisé dans les logs)
             instance_id: ID d'instance (utilisé dans les logs)
@@ -155,7 +155,7 @@ class PluginLogger:
         # Forcer mode texte si debugger actif pour éviter les blocages
         if self.debugger_mode and not self.text_mode:
             internal_logger.info("Mode débogueur détecté, forçage du mode texte")
-            self.text_mode = True
+            self.text_mode = False
 
         # Afficher des infos de configuration pour aider au débogage
         internal_logger.info(f"PluginLogger: plugin={plugin_name}, instance={instance_id}, "
@@ -201,12 +201,12 @@ class PluginLogger:
         # Thread de traitement
         self._running = True
         self._message_thread: Optional[threading.Thread] = None
-        
+
         # Ne jamais démarrer le thread en mode débogueur pour éviter les blocages
         # ou utiliser un traitement synchrone avec des timeouts courts
         if not self.debugger_mode:
             self._message_thread = threading.Thread(
-                target=self._process_message_queue, 
+                target=self._process_message_queue,
                 daemon=True  # Toujours daemon pour éviter de bloquer à la sortie
             )
             self._message_thread.start()
@@ -257,7 +257,7 @@ class PluginLogger:
             try:
                 log_dir_path.mkdir(parents=True, exist_ok=True)
                 internal_logger.debug(f"Répertoire logs créé/vérifié: {log_dir_path}")
-                
+
                 # Permissions larges en mode SSH ou root pour l'accès par l'interface
                 if self.ssh_mode or (hasattr(os, 'geteuid') and os.geteuid() == 0):
                     try:
@@ -293,7 +293,7 @@ class PluginLogger:
     def _process_message_queue(self):
         """Processus de traitement continu des messages en file d'attente - version améliorée."""
         internal_logger.debug("Thread de traitement des messages démarré")
-        
+
         while self._running:
             try:
                 batch = []
@@ -334,13 +334,13 @@ class PluginLogger:
                 internal_logger.error(f"Erreur traitement queue: {e}", exc_info=True)
                 # En cas d'erreur, pause courte pour éviter boucle d'erreurs à haute fréquence
                 time.sleep(0.1)
-        
+
         internal_logger.debug("Thread de traitement des messages terminé")
 
     def _process_message_batch(self, messages: List[Tuple[str, Any, Optional[str], bool, int, float]]):
         """
         Traite un lot de messages, écrivant sur stdout et/ou fichier.
-        
+
         Args:
             messages: Liste de tuples (level, message, target_ip, force_flush, message_id, timestamp)
         """
@@ -429,7 +429,7 @@ class PluginLogger:
     def _emit_log(self, level: str, message: Any, target_ip: Optional[str] = None, force_flush: bool = False):
         """
         Met un message dans la file d'attente pour traitement chronologique ou le traite immédiatement en mode débogueur.
-        
+
         Args:
             level: Niveau du message (info, error, etc.)
             message: Contenu du message (str ou dict pour la progression)
@@ -483,7 +483,7 @@ class PluginLogger:
     def info(self, message: str, target_ip: Optional[str] = None, force_flush: bool = False):
         """
         Enregistre un message d'information.
-        
+
         Args:
             message: Le message à enregistrer
             target_ip: Adresse IP cible optionnelle (pour SSH)
@@ -494,7 +494,7 @@ class PluginLogger:
     def warning(self, message: str, target_ip: Optional[str] = None, force_flush: bool = False):
         """
         Enregistre un message d'avertissement.
-        
+
         Args:
             message: Le message à enregistrer
             target_ip: Adresse IP cible optionnelle (pour SSH)
@@ -502,10 +502,10 @@ class PluginLogger:
         """
         self._emit_log("warning", message, target_ip, force_flush)
 
-    def error(self, message: str, target_ip: Optional[str] = None, force_flush: bool = True):
+    def error(self, message: str, target_ip: Optional[str] = None, force_flush: bool = False):
         """
         Enregistre un message d'erreur.
-        
+
         Args:
             message: Le message à enregistrer
             target_ip: Adresse IP cible optionnelle (pour SSH)
@@ -513,10 +513,10 @@ class PluginLogger:
         """
         self._emit_log("error", message, target_ip, force_flush)
 
-    def success(self, message: str, target_ip: Optional[str] = None, force_flush: bool = True):
+    def success(self, message: str, target_ip: Optional[str] = None, force_flush: bool = False):
         """
         Enregistre un message de succès.
-        
+
         Args:
             message: Le message à enregistrer
             target_ip: Adresse IP cible optionnelle (pour SSH)
@@ -527,7 +527,7 @@ class PluginLogger:
     def debug(self, message: str, target_ip: Optional[str] = None):
         """
         Enregistre un message de débogage (uniquement si debug_mode=True).
-        
+
         Args:
             message: Le message à enregistrer
             target_ip: Adresse IP cible optionnelle (pour SSH)
@@ -535,10 +535,10 @@ class PluginLogger:
         if self.debug_mode:
             self._emit_log("debug", message, target_ip)
 
-    def start(self, message: str, target_ip: Optional[str] = None, force_flush: bool = True):
+    def start(self, message: str, target_ip: Optional[str] = None, force_flush: bool = False):
         """
         Enregistre un message de début d'opération.
-        
+
         Args:
             message: Le message à enregistrer
             target_ip: Adresse IP cible optionnelle (pour SSH)
@@ -546,10 +546,10 @@ class PluginLogger:
         """
         self._emit_log("start", message, target_ip, force_flush)
 
-    def end(self, message: str, target_ip: Optional[str] = None, force_flush: bool = True):
+    def end(self, message: str, target_ip: Optional[str] = None, force_flush: bool = False):
         """
         Enregistre un message de fin d'opération.
-        
+
         Args:
             message: Le message à enregistrer
             target_ip: Adresse IP cible optionnelle (pour SSH)
@@ -562,7 +562,7 @@ class PluginLogger:
     def set_total_steps(self, total: int, pb_id: Optional[str] = None):
         """
         Définit le nombre total d'étapes pour une progression numérique.
-        
+
         Args:
             total: Nombre total d'étapes
             pb_id: Identifiant optionnel de la barre de progression
@@ -577,11 +577,11 @@ class PluginLogger:
     def next_step(self, pb_id: Optional[str] = None, current_step: Optional[int] = None) -> int:
         """
         Avance la progression numérique ou la définit.
-        
+
         Args:
             pb_id: Identifiant optionnel de la barre de progression
             current_step: Si fourni, définit directement l'étape actuelle
-            
+
         Returns:
             int: Étape actuelle après mise à jour
         """
@@ -611,17 +611,17 @@ class PluginLogger:
         # Mettre en file d'attente la mise à jour
         self._emit_progress_update(bar_id)
         return current
-        
+
     def _emit_progress_update(self, bar_id: str):
         """
         Met en queue le message JSONL pour la progression numérique.
-        
+
         Args:
             bar_id: Identifiant de la barre de progression
         """
-        if bar_id not in self.progressbars: 
+        if bar_id not in self.progressbars:
             return
-            
+
         if self.text_mode:
             # En mode texte, on n'émet pas de progression numérique (utilisez les barres visuelles)
             return
@@ -647,7 +647,7 @@ class PluginLogger:
     def enable_visual_bars(self, enable: bool = True):
         """
         Active/désactive l'utilisation des barres de progression visuelles.
-        
+
         Args:
             enable: Si True, active les barres visuelles
         """
@@ -663,7 +663,7 @@ class PluginLogger:
                    bar_width: Optional[int] = None):
         """
         Crée et affiche une nouvelle barre de progression visuelle.
-        
+
         Args:
             id: Identifiant unique de la barre
             total: Nombre total d'étapes
@@ -675,9 +675,9 @@ class PluginLogger:
             empty_char: Caractère pour les parties vides
             bar_width: Largeur de la barre en caractères
         """
-        if not self.use_visual_bars: 
+        if not self.use_visual_bars:
             return # Ne rien faire si désactivé
-            
+
         if id in self.bars:
             internal_logger.warning(f"Recréation barre visuelle existante: {id}")
 
@@ -708,7 +708,7 @@ class PluginLogger:
                    color: Optional[str] = None):
         """
         Met à jour une barre visuelle existante avec throttling.
-        
+
         Args:
             id: Identifiant de la barre
             current: Étape actuelle
@@ -745,13 +745,13 @@ class PluginLogger:
                  pre_text: Optional[str] = None, post_text: Optional[str] = None) -> int:
         """
         Avance ou définit l'étape d'une barre visuelle avec throttling.
-        
+
         Args:
             id: Identifiant de la barre
             current_step: Définit directement l'étape (si None, avance de 1)
             pre_text: Nouveau texte avant la barre (optionnel)
             post_text: Nouveau texte après la barre (optionnel)
-            
+
         Returns:
             int: Étape actuelle après mise à jour
         """
@@ -787,12 +787,12 @@ class PluginLogger:
     def _emit_bar(self, id: str, current: int):
         """
         Construit et émet le message pour la barre visuelle.
-        
+
         Args:
             id: Identifiant de la barre
             current: Position actuelle
         """
-        if id not in self.bars: 
+        if id not in self.bars:
             return
 
         bar_data = self.bars[id]
@@ -859,13 +859,13 @@ class PluginLogger:
     def delete_bar(self, id: str):
         """
         Supprime une barre de progression visuelle.
-        
+
         Args:
             id: Identifiant de la barre à supprimer
         """
-        if not self.use_visual_bars: 
+        if not self.use_visual_bars:
             return
-            
+
         if id in self.bars:
             bar_data = self.bars.pop(id) # Retirer du dict immédiatement
             internal_logger.debug(f"Suppression barre visuelle: {id}")
@@ -887,11 +887,11 @@ class PluginLogger:
                 # Mode JSONL : Envoyer un message de statut "stop" via la queue
                 stop_message = {
                     "type": "progress-text",
-                    "data": { 
-                        "id": id, 
+                    "data": {
+                        "id": id,
                         "status": "stop",
                         "pre_text": bar_data.get("pre_text", "Tâche"),
-                        "percentage": 100 
+                        "percentage": 100
                     }
                 }
                 self._emit_log("progress-text", stop_message, force_flush=True)
@@ -901,7 +901,7 @@ class PluginLogger:
     def set_default_bar_style(self, filled_char: str, empty_char: str):
         """
         Définit le style par défaut pour les nouvelles barres visuelles.
-        
+
         Args:
             filled_char: Caractère pour les parties remplies
             empty_char: Caractère pour les parties vides
@@ -912,7 +912,7 @@ class PluginLogger:
     def set_default_bar_width(self, width: int):
         """
         Définit la largeur par défaut pour les nouvelles barres visuelles.
-        
+
         Args:
             width: Largeur en caractères (minimum 5)
         """
@@ -921,11 +921,11 @@ class PluginLogger:
     def flush(self):
         """
         Force le traitement immédiat des messages en attente.
-        
+
         Cette méthode doit être appelée avant la fin du programme
         pour s'assurer que tous les messages sont traités.
         """
-        if self.debugger_mode: 
+        if self.debugger_mode:
             internal_logger.debug("Flush ignoré en mode débogueur (déjà synchrone)")
             return
 
@@ -958,7 +958,7 @@ class PluginLogger:
     def shutdown(self):
         """
         Arrête proprement le thread de traitement des messages.
-        
+
         Cette méthode doit être appelée avant la fin du programme
         pour s'assurer que le thread est correctement arrêté.
         """
@@ -979,7 +979,7 @@ class PluginLogger:
                   # Attendre que la queue soit vide avec timeout de sécurité
                   # pour éviter de bloquer à la sortie
                   wait_start = time.monotonic()
-                  while (not self._message_queue.empty() and 
+                  while (not self._message_queue.empty() and
                          self._message_thread.is_alive() and
                          time.monotonic() - wait_start < 0.5):
                       time.sleep(0.05)

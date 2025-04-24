@@ -11,6 +11,7 @@ import os
 from typing import Union, Optional, Dict, Any, List, Tuple
 import re
 
+
 class DovecotCommands(ConfigFileCommands):
     """
     Classe pour manipuler les fichiers de configuration Dovecot.
@@ -83,9 +84,13 @@ class DovecotCommands(ConfigFileCommands):
             return self.loaded_configs[str(config_path)]
 
         self.log_debug(f"Lecture de la configuration Dovecot: {config_path}")
-        with open(config_path,"r+") as fd:
-            config_content=fd.read()
-        config = self._parse_dovecot_config(config_content)
+
+        # Utiliser _read_file_content de ConfigFileCommands
+        content = self._read_file_content(config_path)
+        if content is None:
+            return None
+
+        config = self.parse_dovecot_config(content)
 
         if config is not None:
             # Mettre en cache
@@ -93,103 +98,244 @@ class DovecotCommands(ConfigFileCommands):
 
         return config
 
-
-    def _parse_dovecot_config(self, content: str) -> dict:
+    def _strip_comment(self, line: str) -> str:
         """
-        Parse un fichier de configuration Dovecot en utilisant une approche lexicale
-        et une structure de données arborescente.
+        Supprime les commentaires d'une ligne, en préservant les # à l'intérieur des guillemets.
 
         Args:
-            content: Contenu du fichier à parser
+            line: La ligne à traiter
 
         Returns:
-            dict: Structure hiérarchique représentant la configuration
+            La ligne sans les commentaires
         """
+        pattern = r'^((?:[^#"]*|"[^"]*")*?)(?:#.*)?$'
+        match = re.match(pattern, line)
+        if match:
+            return match.group(1).strip()
+        return ""
 
-        self.log_debug("Parsing d'un fichier de configuration Dovecot (refonte)")
+    def _parse_line(self, line: str) -> Tuple[str, str]:
+        """
+        Parse une ligne d'assignation (key = value).
 
+        Args:
+            line: La ligne à parser
+
+        Returns:
+            Tuple contenant (clé, valeur)
+        """
+        if '=' not in line:
+            return line.strip(), ""
+
+        parties = line.split('=', 1)
+        key = parties[0].strip()
+        value = parties[1].strip()
+
+        # Supprimer les points-virgules en fin de valeur
+        if value.endswith(';'):
+            value = value[:-1].strip()
+
+        return key, value
+
+    def parse_dovecot_config(self, content: Union[str, List[str]]) -> Dict[str, Any]:
+        """
+        Parse un fichier de configuration Dovecot complet avec une structure hiérarchique.
+
+        Args:
+            content: Contenu du fichier (chaîne ou liste de lignes)
+
+        Returns:
+            Dict[str, Any]: Structure hiérarchique représentant la configuration
+        """
+        self.log_debug("Parsing d'un fichier de configuration Dovecot")
+
+        # Convertir le contenu en liste de lignes si nécessaire
+        if isinstance(content, str):
+            content_lines = content.splitlines()
+        else:
+            content_lines = content
+
+        # Structure finale
         config = {}
-        stack = [config]  # Pile pour suivre les dictionnaires imbriqués
-        namespace_pattern = re.compile(r'namespace\s+(\S+)\s*{')
-        assignment_pattern = re.compile(r'(\S+)\s*=\s*(.+?)(?:$|;|\s+#)', re.DOTALL)
-        block_start_pattern = re.compile(r'(\S+)\s*{')
-        block_end_pattern = re.compile(r'}')
 
-        lines = content.splitlines()
-        for line_num, line in enumerate(lines, 1):
-            line = line.strip()
+        # Variables pour le suivi des blocs
+        block_stack = []  # Pile pour suivre les blocs imbriqués [(type, name), ...]
+        current_content = []  # Contenu du bloc courant
+        in_block = False
 
-            if not line or line.startswith('#'):
+        # Analyser ligne par ligne
+        for line in content_lines:
+            # Nettoyer la ligne
+            clean_line = self._strip_comment(line.strip())
+            if not clean_line:
                 continue
 
-            # Fin de bloc
-            if block_end_pattern.match(line):
-                if len(stack) > 1:
-                    stack.pop()
-                continue
+            # Détecter le début d'un bloc
+            if '{' in clean_line and not in_block:
+                in_block = True
 
-            # Début de namespace
-            namespace_match = namespace_pattern.match(line)
-            if namespace_match:
-                namespace_name = namespace_match.group(1)
-                current_dict = stack[-1]
-                current_dict.setdefault('namespace', {}).setdefault(namespace_name, {})
-                stack.append(current_dict['namespace'][namespace_name])
-                continue
+                # Extraire le type et le nom du bloc
+                # Pour les lignes comme "namespace USER {" ou "plugin {"
+                block_header = clean_line.split('{')[0].strip()
+                parts = block_header.split(None, 1)
 
-            # Début de bloc
-            block_match = block_start_pattern.match(line)
-            if block_match:
-                block_name = block_match.group(1)
-                current_dict = stack[-1]
-                current_dict[block_name] = {}
-                stack.append(current_dict[block_name])
-                continue
+                if len(parts) >= 2:
+                    # C'est un bloc avec type et nom, comme "namespace USER"
+                    block_type, block_name = parts
+                else:
+                    # C'est un bloc sans nom spécifique, comme "plugin"
+                    block_type = parts[0]
+                    block_name = ""
 
-            # Assignation
-            assignment_match = assignment_pattern.match(line)
-            if assignment_match:
-                key, value = assignment_match.groups()
-                current_dict = stack[-1]
-                current_dict[key.strip()] = value.strip()
-                continue
+                # Empiler ce bloc
+                block_stack.append((block_type, block_name))
+                current_content = []
 
-            # Autre (ligne non reconnue)
-            self.log_warning(f"Ligne non reconnue à la ligne {line_num}: {line}")
+                # Traiter tout ce qui suit l'accolade sur cette ligne
+                remainder = clean_line.split('{', 1)[1].strip()
+                if remainder and remainder != '}':
+                    current_content.append(remainder)
+
+                # Si le bloc se termine sur la même ligne
+                if '}' in remainder:
+                    in_block = False
+                    self._process_block_content(config, block_stack.pop(), current_content)
+
+            # Détecter la fin d'un bloc
+            elif '}' in clean_line and in_block:
+                # Ajouter le contenu jusqu'à l'accolade fermante
+                if '{' not in clean_line:  # Ignorer les nouvelles ouvertures sur la même ligne
+                    content_before_brace = clean_line.split('}')[0].strip()
+                    if content_before_brace:
+                        current_content.append(content_before_brace)
+
+                # Fermer ce bloc et le traiter
+                in_block = False
+                if block_stack:
+                    self._process_block_content(config, block_stack.pop(), current_content)
+
+                # Vérifier s'il y a du contenu après l'accolade fermante
+                remainder = clean_line.split('}', 1)[1].strip()
+                if remainder:
+                    if '{' in remainder:
+                        # Nouvelle ouverture de bloc
+                        self.log_warning(f"Nouvelle ouverture de bloc sur la même ligne: {remainder}")
+                    else:
+                        # Traiter comme une ligne normale
+                        key, value = self._parse_line(remainder)
+                        if key:
+                            config[key] = value
+
+            # Ligne à l'intérieur d'un bloc
+            elif in_block:
+                current_content.append(clean_line)
+
+            # Ligne normale hors bloc
+            else:
+                key, value = self._parse_line(clean_line)
+                if key:
+                    config[key] = value
+
+        # Vérifier si tous les blocs ont été fermés
+        if block_stack:
+            self.log_warning(f"Des blocs n'ont pas été fermés: {block_stack}")
 
         return config
 
-
-    def _parse_block_content(self, content: List[str]) -> dict:
+    def _process_block_content(self, config: Dict[str, Any], block_info: Tuple[str, str], content: List[str]):
         """
-        Parse le contenu d'un bloc (namespace ou autre).
+        Traite le contenu d'un bloc et l'ajoute à la configuration.
 
         Args:
+            config: Dictionnaire de configuration à mettre à jour
+            block_info: Tuple (type_bloc, nom_bloc)
             content: Liste des lignes de contenu du bloc
-
-        Returns:
-            dict: Dictionnaire représentant le contenu du bloc
         """
-        block_dict = {}
-        assignment_pattern = re.compile(r'(\S+)\s*=\s*(.+?)(?:$|;|\s+#)', re.DOTALL)
+        block_type, block_name = block_info
+        block_config = {}
 
-        for content_line in content:
-            content_line = content_line.strip()
-            if not content_line or content_line.startswith('#'):
+        # Parcourir le contenu du bloc
+        i = 0
+        while i < len(content):
+            line = content[i]
+            i += 1
+
+            # Ignorer les accolades isolées
+            if line == '{' or line == '}':
                 continue
 
-            match = assignment_pattern.match(content_line)
-            if match:
-                key, value = match.groups()
-                block_dict[key.strip()] = value.strip()
+            # Sous-bloc
+            if '{' in line:
+                # Extraire l'en-tête du sous-bloc
+                sub_header = line.split('{')[0].strip()
+                sub_parts = sub_header.split(None, 1)
 
-        return block_dict
+                if len(sub_parts) >= 2:
+                    sub_type, sub_name = sub_parts
+                else:
+                    sub_type = sub_parts[0]
+                    sub_name = ""
 
+                # Collecter le contenu du sous-bloc
+                sub_content = []
+                brace_level = 1
+
+                # Ajouter le reste de la ligne d'ouverture
+                remainder = line.split('{', 1)[1].strip()
+                if remainder and remainder != '}':
+                    sub_content.append(remainder)
+
+                # Si le bloc ne se termine pas sur la même ligne
+                if '}' not in remainder:
+                    while i < len(content) and brace_level > 0:
+                        sub_line = content[i]
+                        i += 1
+
+                        if '{' in sub_line:
+                            brace_level += 1
+                        if '}' in sub_line:
+                            brace_level -= 1
+
+                        # Si c'est la dernière accolade, ne pas inclure ce qui suit
+                        if brace_level == 0 and '}' in sub_line:
+                            before_brace = sub_line.split('}')[0].strip()
+                            if before_brace:
+                                sub_content.append(before_brace)
+                        else:
+                            sub_content.append(sub_line)
+
+                # Traiter récursivement ce sous-bloc
+                sub_config = {}
+                self._process_block_content(sub_config, (sub_type, sub_name), sub_content)
+
+                # Fusionner avec la configuration du bloc parent
+                block_config.update(sub_config)
+
+            # Ligne normale d'assignation
+            else:
+                key, value = self._parse_line(line)
+                if key:
+                    block_config[key] = value
+
+        # Ajouter ce bloc à la configuration globale
+        if block_type:
+            # Créer la section si elle n'existe pas
+            if block_type not in config:
+                config[block_type] = {}
+
+            # Ajouter le bloc nommé à la section
+            if block_name:
+                config[block_type][block_name] = block_config
+            else:
+                # Si pas de nom spécifique, fusionner directement avec la section
+                config[block_type].update(block_config)
+        else:
+            # Si pas de type spécifique, fusionner avec la configuration globale
+            config.update(block_config)
 
     def write_config(self, config_type: str, config: Dict, backup: bool = True) -> bool:
         """
-        Écrit une structure de configuration Dovecot dans un fichier.
-        Met également à jour le cache.
+        Écrit une structure de configuration dans un fichier.
 
         Args:
             config_type: Type de configuration ('main', 'mail', 'auth', etc.) ou chemin
@@ -202,7 +348,11 @@ class DovecotCommands(ConfigFileCommands):
         config_path = self.get_config_path(config_type)
         self.log_debug(f"Écriture de la configuration Dovecot: {config_path}")
 
-        success = self.write_block_config_file(config_path, config, backup=backup)
+        # Générer la représentation texte de la configuration
+        config_content = self.generate_config_string(config)
+
+        # Utiliser _write_file_content de ConfigFileCommands pour écrire le fichier
+        success = self._write_file_content(config_path, config_content, backup=backup)
 
         if success:
             # Mettre à jour le cache
@@ -212,6 +362,127 @@ class DovecotCommands(ConfigFileCommands):
             self.log_error(f"Échec de l'écriture de la configuration Dovecot {config_path}")
 
         return success
+
+    def generate_config_string(self, config: Dict[str, Any], indent_level: int = 0) -> str:
+        """
+        Génère une représentation textuelle d'une configuration Dovecot.
+        Respecte le formatage spécifique de Dovecot pour les plugins et namespaces.
+
+        Args:
+            config: Dictionnaire de configuration
+            indent_level: Niveau d'indentation actuel
+
+        Returns:
+            str: Représentation textuelle formatée
+        """
+        lines = []
+        indent = "  " * indent_level
+
+        # Vérifier que config est bien un dictionnaire
+        if not isinstance(config, dict):
+            self.log_warning(f"Erreur: objet non-dictionnaire rencontré dans generate_config_string: {type(config)} - {config}")
+            return str(config)  # Retourner la représentation en chaîne de caractères
+
+        # Traiter d'abord les paramètres simples (non-dictionnaires)
+        for key, value in config.items():
+            if not isinstance(value, dict):
+                lines.append(f"{indent}{key} = {value}")
+
+        # Ensuite traiter les blocs
+        for key, value in config.items():
+            if isinstance(value, dict):
+                # Cas spécial pour "plugin" - doit être formaté différemment
+                if key == "plugin":
+                    # Formater la section plugin comme un bloc
+                    lines.append(f"\n{indent}plugin {{")
+
+                    # Ajouter chaque paramètre du plugin
+                    plugin_indent = indent + "  "
+                    for plugin_key, plugin_value in value.items():
+                        if isinstance(plugin_value, dict):
+                            # Sous-section dans plugin (rare)
+                            lines.append(f"{plugin_indent}{plugin_key} {{")
+                            sub_indent = plugin_indent + "  "
+                            for sub_key, sub_value in plugin_value.items():
+                                lines.append(f"{sub_indent}{sub_key} = {sub_value}")
+                            lines.append(f"{plugin_indent}}}")
+                        else:
+                            # Paramètre simple de plugin
+                            lines.append(f"{plugin_indent}{plugin_key} = {plugin_value}")
+
+                    lines.append(f"{indent}}}")
+
+                # Cas spécial pour les namespaces (namespace USER, namespace INBOX, etc.)
+                elif key == "namespace":
+                    for namespace_name, namespace_config in value.items():
+                        if not isinstance(namespace_config, dict):
+                            continue
+
+                        # Formater chaque namespace
+                        lines.append(f"\n{indent}namespace {namespace_name} {{")
+
+                        # Ajouter chaque paramètre du namespace
+                        ns_indent = indent + "  "
+                        for ns_key, ns_value in namespace_config.items():
+                            if isinstance(ns_value, dict):
+                                # Sous-section dans namespace (rare)
+                                lines.append(f"{ns_indent}{ns_key} {{")
+                                sub_indent = ns_indent + "  "
+                                for sub_key, sub_value in ns_value.items():
+                                    lines.append(f"{sub_indent}{sub_key} = {sub_value}")
+                                lines.append(f"{ns_indent}}}")
+                            else:
+                                # Paramètre simple de namespace
+                                lines.append(f"{ns_indent}{ns_key} = {ns_value}")
+
+                        lines.append(f"{indent}}}")
+
+                # Autres types de blocs comme protocol, service, etc.
+                elif key in ["protocol", "service"]:
+                    for block_name, block_config in value.items():
+                        # Formater le bloc
+                        lines.append(f"\n{indent}{key} {block_name} {{")
+
+                        # Ajouter chaque paramètre du bloc
+                        if isinstance(block_config, dict):
+                            block_indent = indent + "  "
+                            for block_key, block_value in block_config.items():
+                                if isinstance(block_value, dict):
+                                    # Sous-section
+                                    lines.append(f"{block_indent}{block_key} {{")
+                                    sub_indent = block_indent + "  "
+                                    for sub_key, sub_value in block_value.items():
+                                        lines.append(f"{sub_indent}{sub_key} = {sub_value}")
+                                    lines.append(f"{block_indent}}}")
+                                else:
+                                    # Paramètre simple
+                                    lines.append(f"{block_indent}{block_key} = {block_value}")
+
+                        lines.append(f"{indent}}}")
+
+                # Autres blocs simples
+                else:
+                    # Formater comme un bloc standard
+                    lines.append(f"\n{indent}{key} {{")
+                    block_indent = indent + "  "
+
+                    if isinstance(value, dict):
+                        for block_key, block_value in value.items():
+                            if isinstance(block_value, dict):
+                                # Sous-section
+                                lines.append(f"{block_indent}{block_key} {{")
+                                sub_indent = block_indent + "  "
+                                for sub_key, sub_value in block_value.items():
+                                    lines.append(f"{sub_indent}{sub_key} = {sub_value}")
+                                lines.append(f"{block_indent}}}")
+                            else:
+                                # Paramètre simple
+                                lines.append(f"{block_indent}{block_key} = {block_value}")
+
+                    lines.append(f"{indent}}}")
+
+        return '\n'.join(lines)
+
 
     def clear_cache(self, config_type: Optional[str] = None) -> None:
         """
@@ -421,279 +692,147 @@ class DovecotCommands(ConfigFileCommands):
         # Écrire la configuration mise à jour
         return self.write_config(plugin_type, config, backup=backup)
 
-    def get_service_setting(self, service_name: str, setting_path: str, default: Any = None) -> Any:
+    def get_namespace(self, namespace_name: str, config_type: str = 'mail') -> Optional[Dict]:
         """
-        Récupère un paramètre d'un service dans la configuration master.
-
-        Args:
-            service_name: Nom du service ('imap', 'pop3', 'auth', etc.)
-            setting_path: Chemin du paramètre (ex: 'inet_listener imap/port')
-            default: Valeur par défaut si le paramètre n'existe pas
-
-        Returns:
-            Any: Valeur du paramètre ou valeur par défaut
-        """
-        config = self.read_config('master')
-        if config is None:
-            return default
-
-        # Vérifier si le service existe
-        service_key = f"service {service_name}"
-        if service_key not in config:
-            return default
-
-        # Naviguer dans le chemin du paramètre
-        current = config[service_key]
-        path_parts = setting_path.split('/')
-
-        for part in path_parts[:-1]:  # Tous sauf le dernier
-            if part not in current:
-                return default
-            current = current[part]
-
-        # Récupérer le paramètre final
-        last_part = path_parts[-1]
-        return current.get(last_part, default)
-
-    def set_service_setting(self, service_name: str, setting_path: str, value: Any, backup: bool = True) -> bool:
-        """
-        Définit un paramètre d'un service dans la configuration master.
-
-        Args:
-            service_name: Nom du service ('imap', 'pop3', 'auth', etc.)
-            setting_path: Chemin du paramètre (ex: 'inet_listener imap/port')
-            value: Nouvelle valeur du paramètre
-            backup: Si True, crée une sauvegarde du fichier original
-
-        Returns:
-            bool: True si la mise à jour réussit, False sinon
-        """
-        config = self.read_config('master')
-        if config is None:
-            self.log_error("Impossible de lire la configuration master")
-            return False
-
-        # Créer le service s'il n'existe pas
-        service_key = f"service {service_name}"
-        if service_key not in config:
-            config[service_key] = {}
-
-        # Naviguer et créer le chemin du paramètre
-        current = config[service_key]
-        path_parts = setting_path.split('/')
-
-        for part in path_parts[:-1]:  # Tous sauf le dernier
-            if part not in current:
-                current[part] = {}
-            current = current[part]
-
-        # Définir le paramètre final
-        last_part = path_parts[-1]
-        current[last_part] = value
-
-        # Écrire la configuration mise à jour
-        return self.write_config('master', config, backup=backup)
-
-    def get_quota_rule(self, rule_name: str = 'quota_rule', default: Any = None) -> Any:
-        """
-        Récupère une règle de quota.
-
-        Args:
-            rule_name: Nom de la règle ('quota_rule', 'quota_rule2', etc.)
-            default: Valeur par défaut si la règle n'existe pas
-
-        Returns:
-            Any: Valeur de la règle ou valeur par défaut
-        """
-        return self.get_plugin_setting('quota', rule_name, default)
-
-    def set_quota_rule(self, rule_value: str, rule_name: str = 'quota_rule', backup: bool = True) -> bool:
-        """
-        Définit une règle de quota.
-
-        Args:
-            rule_value: Valeur de la règle (ex: '*:storage=1G')
-            rule_name: Nom de la règle ('quota_rule', 'quota_rule2', etc.)
-            backup: Si True, crée une sauvegarde du fichier original
-
-        Returns:
-            bool: True si la mise à jour réussit, False sinon
-        """
-        return self.set_plugin_setting('quota', rule_name, rule_value, backup=backup)
-
-    def enable_quota(self, backup: bool = True) -> bool:
-        """
-        Active le plugin de quota.
-
-        Args:
-            backup: Si True, crée une sauvegarde du fichier original
-
-        Returns:
-            bool: True si l'activation réussit, False sinon
-        """
-        return self.add_mail_plugin('quota', backup=backup)
-
-    # Méthodes pour manipuler les namespaces
-
-    def list_namespaces(self, config_path: Optional[str] = None) -> Dict[str, Dict]:
-        """
-        Liste tous les namespaces dans un fichier de configuration.
-
-        Args:
-            config_path: Chemin du fichier de configuration ou None pour utiliser le fichier mail par défaut
-
-        Returns:
-            dict: Dictionnaire {nom_namespace: config_namespace}
-        """
-        if config_path is None:
-            config = self.read_config('mail')
-        else:
-            config = self.read_config(config_path)
-
-        if not config:
-            self.log_error(f"Impossible de lire la configuration pour lister les namespaces")
-            return {}
-
-        namespaces = {}
-        for key, value in config.items():
-            if key.startswith("namespace "):
-                namespace_name = key.split(" ", 1)[1]
-                namespaces[namespace_name] = value
-
-        return namespaces
-
-    def get_namespace(self, namespace_name: str, config_path: Optional[str] = None) -> Optional[Dict]:
-        """
-        Récupère la configuration d'un namespace spécifique.
+        Récupère un namespace spécifique.
 
         Args:
             namespace_name: Nom du namespace à récupérer
-            config_path: Chemin du fichier de configuration ou None pour utiliser le fichier mail par défaut
+            config_type: Type de configuration ou chemin du fichier (défaut: 'mail')
 
         Returns:
-            dict: Configuration du namespace ou None s'il n'existe pas
+            Optional[Dict]: Configuration du namespace ou None s'il n'existe pas
         """
-        if config_path is None:
-            config = self.read_config('mail')
-        else:
-            config = self.read_config(config_path)
-
-        if not config:
-            self.log_error(f"Impossible de lire la configuration pour récupérer le namespace {namespace_name}")
+        config = self.read_config(config_type)
+        if config is None:
             return None
 
-        namespace_key = f"namespace {namespace_name}"
-        return config.get(namespace_key)
+        if 'namespace' in config and namespace_name in config['namespace']:
+            return config['namespace'][namespace_name]
 
-    def add_namespace(self, namespace_name: str, namespace_config: Dict, config_path: Optional[str] = None, backup: bool = True) -> bool:
+        return None
+
+    def add_namespace(self, namespace_name: str, namespace_config: Dict, config_type: str = 'mail', backup: bool = True) -> bool:
         """
-        Ajoute un nouveau namespace à la configuration.
+        Ajoute un namespace à la configuration.
 
         Args:
-            namespace_name: Nom du namespace à ajouter (sans le préfixe "namespace ")
-            namespace_config: Dictionnaire de configuration du namespace
-            config_path: Chemin du fichier de configuration ou None pour utiliser le fichier mail par défaut
+            namespace_name: Nom du namespace à ajouter
+            namespace_config: Configuration du namespace
+            config_type: Type de configuration ou chemin du fichier (défaut: 'mail')
             backup: Si True, crée une sauvegarde du fichier original
 
         Returns:
             bool: True si l'ajout réussit, False sinon
         """
-        if config_path is None:
-            config = self.read_config('mail')
-            config_type = 'mail'
-        else:
-            config = self.read_config(config_path)
-            config_type = config_path
-
-        if not config:
-            self.log_error(f"Impossible de lire la configuration pour ajouter le namespace {namespace_name}")
+        config = self.read_config(config_type)
+        if config is None:
+            self.log_error(f"Impossible de lire la configuration {config_type}")
             return False
 
-        namespace_key = f"namespace {namespace_name}"
+        # Créer la section namespace si elle n'existe pas
+        if 'namespace' not in config:
+            config['namespace'] = {}
 
         # Vérifier si le namespace existe déjà
-        if namespace_key in config:
-            self.log_warning(f"Le namespace '{namespace_name}' existe déjà")
-            return False
+        if namespace_name in config['namespace']:
+            self.log_warning(f"Le namespace '{namespace_name}' existe déjà et sera écrasé")
 
-        # Ajouter le nouveau namespace
-        config[namespace_key] = namespace_config
+        # Ajouter le namespace
+        config['namespace'][namespace_name] = namespace_config
 
         # Écrire la configuration mise à jour
         return self.write_config(config_type, config, backup=backup)
 
-    def update_namespace(self, namespace_name: str, updated_config: Dict, config_path: Optional[str] = None, backup: bool = True) -> bool:
+    def update_namespace(self, namespace_name: str, namespace_config: Dict, config_type: str = 'mail', backup: bool = True) -> bool:
         """
         Met à jour un namespace existant.
 
         Args:
-            namespace_name: Nom du namespace à mettre à jour (sans le préfixe "namespace ")
-            updated_config: Dictionnaire de configuration mis à jour
-            config_path: Chemin du fichier de configuration ou None pour utiliser le fichier mail par défaut
+            namespace_name: Nom du namespace à mettre à jour
+            namespace_config: Nouvelle configuration du namespace
+            config_type: Type de configuration ou chemin du fichier (défaut: 'mail')
             backup: Si True, crée une sauvegarde du fichier original
 
         Returns:
             bool: True si la mise à jour réussit, False sinon
         """
-        if config_path is None:
-            config = self.read_config('mail')
-            config_type = 'mail'
-        else:
-            config = self.read_config(config_path)
-            config_type = config_path
-
-        if not config:
-            self.log_error(f"Impossible de lire la configuration pour mettre à jour le namespace {namespace_name}")
+        config = self.read_config(config_type)
+        if config is None:
+            self.log_error(f"Impossible de lire la configuration {config_type}")
             return False
 
-        namespace_key = f"namespace {namespace_name}"
-
         # Vérifier si le namespace existe
-        if namespace_key not in config:
+        if 'namespace' not in config or namespace_name not in config['namespace']:
             self.log_warning(f"Le namespace '{namespace_name}' n'existe pas")
             return False
 
         # Mettre à jour le namespace
-        config[namespace_key] = updated_config
+        config['namespace'][namespace_name] = namespace_config
 
         # Écrire la configuration mise à jour
         return self.write_config(config_type, config, backup=backup)
 
-    def delete_namespace(self, namespace_name: str, config_path: Optional[str] = None, backup: bool = True) -> bool:
+    def delete_namespace(self, namespace_name: str, config_type: str = 'mail', backup: bool = True) -> bool:
         """
-        Supprime un namespace existant.
+        Supprime un namespace.
 
         Args:
-            namespace_name: Nom du namespace à supprimer (sans le préfixe "namespace ")
-            config_path: Chemin du fichier de configuration ou None pour utiliser le fichier mail par défaut
+            namespace_name: Nom du namespace à supprimer
+            config_type: Type de configuration ou chemin du fichier (défaut: 'mail')
             backup: Si True, crée une sauvegarde du fichier original
 
         Returns:
             bool: True si la suppression réussit, False sinon
         """
-        if config_path is None:
-            config = self.read_config('mail')
-            config_type = 'mail'
-        else:
-            config = self.read_config(config_path)
-            config_type = config_path
-
-        if not config:
-            self.log_error(f"Impossible de lire la configuration pour supprimer le namespace {namespace_name}")
+        config = self.read_config(config_type)
+        if config is None:
+            self.log_error(f"Impossible de lire la configuration {config_type}")
             return False
 
-        namespace_key = f"namespace {namespace_name}"
-
         # Vérifier si le namespace existe
-        if namespace_key not in config:
+        if 'namespace' not in config or namespace_name not in config['namespace']:
             self.log_warning(f"Le namespace '{namespace_name}' n'existe pas")
             return False
 
         # Supprimer le namespace
-        del config[namespace_key]
+        del config['namespace'][namespace_name]
+
+        # Si plus aucun namespace, supprimer la section namespace
+        if not config['namespace']:
+            del config['namespace']
 
         # Écrire la configuration mise à jour
         return self.write_config(config_type, config, backup=backup)
+
+    def create_public_namespace(self, unite: str, location: Optional[str] = None, config_type: str = 'mail', backup: bool = True) -> bool:
+        """
+        Crée un namespace public pour une unité spécifique.
+
+        Args:
+            unite: Nom de l'unité (ex: "FINANCE")
+            location: Chemin de stockage (par défaut: "/partage/Mail_archive/{unite}")
+            config_type: Type de configuration ou chemin du fichier (défaut: 'mail')
+            backup: Si True, crée une sauvegarde du fichier original
+
+        Returns:
+            bool: True si la création réussit, False sinon
+        """
+        if location is None:
+            location = f"/partage/Mail_archive/{unite}"
+
+        namespace_name = f"PUBLIC_{unite}"
+        namespace_config = {
+            "inbox": "no",
+            "type": "public",
+            "separator": "/",
+            "prefix": f"Archives_{unite}/",
+            "location": f"maildir:{location}",
+            "subscriptions": "no",
+            "list": "yes"
+        }
+
+        return self.add_namespace(namespace_name, namespace_config, config_type, backup)
 
     def uncomment_namespace(self, namespace_pattern: str, config_path: Optional[str] = None, backup: bool = True) -> bool:
         """
@@ -714,11 +853,9 @@ class DovecotCommands(ConfigFileCommands):
             config_path = self.get_config_path(config_path)
 
         # Lire le contenu du fichier
-        success_read, content, stderr_read = self.run(['cat', str(config_path)],
-                                                    check=False, needs_sudo=True,
-                                                    no_output=True, error_as_warning=True)
-        if not success_read:
-            self.log_error(f"Impossible de lire le fichier {config_path}. Stderr: {stderr_read}")
+        content = self._read_file_content(config_path)
+        if content is None:
+            self.log_error(f"Impossible de lire le fichier {config_path}.")
             return False
 
         # Identifier le début du namespace commenté
@@ -792,11 +929,9 @@ class DovecotCommands(ConfigFileCommands):
             config_path = self.get_config_path(config_path)
 
         # Lire le contenu du fichier
-        success_read, content, stderr_read = self.run(['cat', str(config_path)],
-                                                    check=False, needs_sudo=True,
-                                                    no_output=True, error_as_warning=True)
-        if not success_read:
-            self.log_error(f"Impossible de lire le fichier {config_path}. Stderr: {stderr_read}")
+        content = self._read_file_content(config_path)
+        if content is None:
+            self.log_error(f"Impossible de lire le fichier {config_path}.")
             return False
 
         # Identifier le début du namespace
@@ -846,37 +981,9 @@ class DovecotCommands(ConfigFileCommands):
 
         return success
 
-    def create_public_namespace(self, unite: str, location: Optional[str] = None, config_path: Optional[str] = None, backup: bool = True) -> bool:
-        """
-        Crée un namespace public pour une unité spécifique.
-
-        Args:
-            unite: Nom de l'unité (ex: "FINANCE")
-            location: Chemin de stockage (par défaut: "/partage/Mail_archive/{unite}")
-            config_path: Chemin du fichier de configuration ou None pour utiliser le fichier mail par défaut
-            backup: Si True, crée une sauvegarde du fichier original
-
-        Returns:
-            bool: True si la création réussit, False sinon
-        """
-        if location is None:
-            location = f"/partage/Mail_archive/{unite}"
-
-        namespace_name = f"PUBLIC_{unite}"
-        namespace_config = {
-            "inbox": "no",
-            "type": "public",
-            "separator": "/",
-            "prefix": f"Archives_{unite}/",
-            "location": f"maildir:{location}",
-            "subscriptions": "no",
-            "list": "yes"
-        }
-
-        return self.add_namespace(namespace_name, namespace_config, config_path, backup=backup)
-
     def create_namespace_from_template(self, template_name: str, new_name: str,
-                                       replacements: Dict[str, str], config_path: Optional[str] = None, backup: bool = True) -> bool:
+                                    replacements: Dict[str, str], config_path: Optional[str] = None,
+                                    backup: bool = True) -> bool:
         """
         Crée un nouveau namespace basé sur un template existant.
 
@@ -890,43 +997,46 @@ class DovecotCommands(ConfigFileCommands):
         Returns:
             bool: True si la création réussit, False sinon
         """
-        if config_path is None:
-            config = self.read_config('mail')
-            config_type = 'mail'
-        else:
-            config = self.read_config(config_path)
-            config_type = config_path
+        # Déterminer le type de configuration
+        config_type = 'mail' if config_path is None else config_path
 
+        # Charger la configuration
+        config = self.read_config(config_type)
         if config is None:
             self.log_error(f"Impossible de lire la configuration pour créer le namespace {new_name}")
             return False
 
-        # Ajuster le nom du template si nécessaire
+        # Récupérer le namespace template
         if not template_name.startswith("namespace "):
-            template_key = f"namespace {template_name}"
-        else:
             template_key = template_name
+        else:
+            template_key = template_name.split(" ", 1)[1]  # Extraire le nom après "namespace "
 
-        # Vérifier si le template existe
-        if template_key not in config:
+        template_namespace = self.get_namespace(template_key, config_type)
+        if template_namespace is None:
             self.log_error(f"Le namespace template '{template_name}' n'existe pas")
             return False
 
         # Cloner la configuration du template
-        template_config = config[template_key]
-        new_config = dict(template_config)
+        import copy
+        new_config = copy.deepcopy(template_namespace)
 
         # Appliquer les remplacements
         import json
         config_str = json.dumps(new_config)
         for pattern, replacement in replacements.items():
             config_str = config_str.replace(pattern, replacement)
-        new_config = json.loads(config_str)
+
+        try:
+            new_config = json.loads(config_str)
+        except json.JSONDecodeError as e:
+            self.log_error(f"Erreur lors du remplacement des valeurs: {e}")
+            return False
 
         # Ajouter le nouveau namespace
         return self.add_namespace(new_name, new_config, config_type, backup=backup)
 
-    # Méthodes pour la gestion des ACL
+    # --- Méthodes pour la gestion des ACL ---
 
     def read_acl_file(self, acl_path: Optional[str] = None) -> List[Tuple[str, str, str, str]]:
         """
@@ -947,11 +1057,9 @@ class DovecotCommands(ConfigFileCommands):
         self.log_debug(f"Lecture du fichier ACL: {acl_path}")
 
         # Lire le contenu du fichier
-        success_read, content, stderr_read = self.run(['cat', str(acl_path)],
-                                                    check=False, needs_sudo=True,
-                                                    no_output=True, error_as_warning=True)
-        if not success_read:
-            self.log_error(f"Impossible de lire le fichier ACL {acl_path}. Stderr: {stderr_read}")
+        content = self._read_file_content(acl_path)
+        if content is None:
+            self.log_error(f"Impossible de lire le fichier ACL {acl_path}.")
             return []
 
         acl_entries = []
@@ -1037,7 +1145,7 @@ class DovecotCommands(ConfigFileCommands):
         return [entry for entry in acl_entries if entry[0] == mailbox]
 
     def add_acl_entry(self, mailbox: str, identifier: str, rights: str, comment: str = "",
-                      acl_path: Optional[str] = None, backup: bool = True) -> bool:
+                    acl_path: Optional[str] = None, backup: bool = True) -> bool:
         """
         Ajoute une entrée ACL.
 
@@ -1066,7 +1174,7 @@ class DovecotCommands(ConfigFileCommands):
         return self.write_acl_file(acl_entries, acl_path, backup)
 
     def update_acl_entry(self, mailbox: str, identifier: str, rights: str, comment: Optional[str] = None,
-                         acl_path: Optional[str] = None, backup: bool = True) -> bool:
+                        acl_path: Optional[str] = None, backup: bool = True) -> bool:
         """
         Met à jour une entrée ACL existante.
 
@@ -1179,3 +1287,102 @@ class DovecotCommands(ConfigFileCommands):
             return self.set_plugin_setting('acl', 'acl_dir', acl_dir, backup)
 
         return True
+
+    # --- Méthodes de gestion des quotas ---
+
+    def get_quota_rule(self, rule_name: str = 'quota_rule', default: Any = None) -> Any:
+        """
+        Récupère une règle de quota.
+
+        Args:
+            rule_name: Nom de la règle ('quota_rule', 'quota_rule2', etc.)
+            default: Valeur par défaut si la règle n'existe pas
+
+        Returns:
+            Any: Valeur de la règle ou valeur par défaut
+        """
+        return self.get_plugin_setting('quota', rule_name, default)
+
+    def set_quota_rule(self, rule_value: str, rule_name: str = 'quota_rule', backup: bool = True) -> bool:
+        """
+        Définit une règle de quota.
+
+        Args:
+            rule_value: Valeur de la règle (ex: '*:storage=1G')
+            rule_name: Nom de la règle ('quota_rule', 'quota_rule2', etc.)
+            backup: Si True, crée une sauvegarde du fichier original
+
+        Returns:
+            bool: True si la mise à jour réussit, False sinon
+        """
+        return self.set_plugin_setting('quota', rule_name, rule_value, backup=backup)
+
+    def enable_quota(self, backup: bool = True) -> bool:
+        """
+        Active le plugin de quota.
+
+        Args:
+            backup: Si True, crée une sauvegarde du fichier original
+
+        Returns:
+            bool: True si l'activation réussit, False sinon
+        """
+        return self.add_mail_plugin('quota', backup=backup)
+
+    def configure_quota_backend(self, backend_type: str = 'maildir', desc: str = 'User quota', backup: bool = True) -> bool:
+        """
+        Configure le backend de quota.
+
+        Args:
+            backend_type: Type de backend ('maildir', 'dict', 'fs', etc.)
+            desc: Description du quota
+            backup: Si True, crée une sauvegarde du fichier original
+
+        Returns:
+            bool: True si la configuration réussit, False sinon
+        """
+        # Activer le plugin de quota
+        if not self.enable_quota(backup):
+            return False
+
+        # Configurer le backend
+        backend_value = f"{backend_type}:{desc}"
+        return self.set_plugin_setting('quota', 'quota', backend_value, backup=backup)
+
+    def set_quota_warning(self, threshold: int, command: str, user_placeholder: bool = True,
+                         warning_num: int = 1, backup: bool = True) -> bool:
+        """
+        Configure un message d'avertissement de quota.
+
+        Args:
+            threshold: Seuil en pourcentage (ex: 95 pour 95%)
+            command: Commande à exécuter (sans %u)
+            user_placeholder: Si True, ajoute %u à la fin de la commande
+            warning_num: Numéro de l'avertissement (1 pour quota_warning, 2 pour quota_warning2, etc.)
+            backup: Si True, crée une sauvegarde du fichier original
+
+        Returns:
+            bool: True si la configuration réussit, False sinon
+        """
+        # Construire le nom du paramètre
+        param_name = f"quota_warning{'' if warning_num == 1 else warning_num}"
+
+        # Construire la valeur
+        value = f"storage={threshold}%% {command}"
+        if user_placeholder:
+            value += " %u"
+
+        return self.set_plugin_setting('quota', param_name, value, backup=backup)
+
+    def set_quota_exceeded_message(self, message: str, backup: bool = True) -> bool:
+        """
+        Configure le message affiché quand le quota est dépassé.
+
+        Args:
+            message: Message à afficher
+            backup: Si True, crée une sauvegarde du fichier original
+
+        Returns:
+            bool: True si la configuration réussit, False sinon
+        """
+        return self.set_plugin_setting('quota', 'quota_exceeded_message', message, backup=backup)

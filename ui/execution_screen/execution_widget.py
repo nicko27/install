@@ -252,6 +252,7 @@ class ExecutionWidget(Container):
                     logger.debug(f"Exécution du plugin {plugin_id}")
                     result = await self.execute_plugin(plugin_id, config)
 
+
                     # Mise à jour du statut et de la sortie
                     self._update_plugin_status(plugin_widget, result)
 
@@ -426,6 +427,7 @@ class ExecutionWidget(Container):
             # Réinitialiser l'interface
             self.update_global_progress(0)
             self.logs_text.update("")
+            self.logs_text.auto_refresh=True
             await LoggerUtils.clear_logs(self)
 
             # Exécuter les plugins
@@ -441,6 +443,17 @@ class ExecutionWidget(Container):
                 start_button.remove_class("hidden")
                 back_button.remove_class("hidden")
                 logger.debug("Boutons réaffichés après exécution")
+
+            try:
+                await LoggerUtils.flush_pending_messages(self.app)
+                # Force un second flush après une courte pause
+                await asyncio.sleep(0.1)
+                await LoggerUtils.flush_pending_messages(self.app)
+                # Rafraîchir l'UI après le flush
+                self.refresh()
+            except Exception as e:
+                logger.error(f"Erreur lors du flush final des logs: {e}")
+
 
         except Exception as e:
             logger.error(f"Erreur lors du démarrage de l'exécution: {e}")
@@ -460,6 +473,8 @@ class ExecutionWidget(Container):
         finally:
             self.is_running = False
             self.back_button_clicked = False
+
+
 
     def update_global_progress(self, progress: float) -> None:
         """

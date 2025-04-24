@@ -44,6 +44,7 @@ class Plugin:
                 printer_name = printer_conf.get('printer_name')
                 printer_ip = printer_conf.get('printer_ip')
                 a3 = printer_conf.get('printer_a3')
+                all= printer_conf.get('printer_all')
                 # Récupérer les informations du modèle d'imprimante
                 model_content = printer_conf.get('printer_model_content')
                 # Récupérer les options du modèle
@@ -72,40 +73,37 @@ class Plugin:
 
 
                 # Calculer le nombre total d'étapes
-                total_steps = 3  # Étapes de base
-
-                # Recto NB always
-                total_steps += 1
-
-                # Couleurs configurations
-                if couleurs == 1:
-                    total_steps += 1  # Recto Couleurs
-                    if rectoverso == 1:
-                        total_steps += 1  # RectoVerso Couleurs
-
-                # RectoVerso configurations
-                if rectoverso == 1:
-                    total_steps += 1  # RectoVerso NB
-
-                # Agraffes configurations
-                if agraffes == 1:
-                    total_steps += 1  # Recto NB Agraffes
-                    if rectoverso == 1:
-                        total_steps += 1  # RectoVerso NB Agraffes
-                        if couleurs == 1:
-                            total_steps += 1  # RectoVerso Couleurs Agraffes
+                total_steps = 4  # Étapes de base
+                if not all:
+                    # Couleurs configurations
                     if couleurs == 1:
-                        total_steps += 1  # Recto Couleurs Agraffes
+                        total_steps += 1  # Recto Couleurs
+                        if rectoverso == 1:
+                            total_steps += 1  # RectoVerso Couleurs
 
-                # A3 configurations
-                if a3 == 1:
-                    total_steps += 1  # Recto NB A3
+                    # RectoVerso configurations
                     if rectoverso == 1:
-                        total_steps += 1  # RectoVerso NB A3
+                        total_steps += 1  # RectoVerso NB
+
+                    # Agraffes configurations
+                    if agraffes == 1:
+                        total_steps += 1  # Recto NB Agraffes
+                        if rectoverso == 1:
+                            total_steps += 1  # RectoVerso NB Agraffes
+                            if couleurs == 1:
+                                total_steps += 1  # RectoVerso Couleurs Agraffes
                         if couleurs == 1:
-                            total_steps += 1  # RectoVerso Couleurs A3
-                    if couleurs == 1:
-                        total_steps += 1  # Recto Couleurs A3
+                            total_steps += 1  # Recto Couleurs Agraffes
+
+                    # A3 configurations
+                    if a3 == 1:
+                        total_steps += 1  # Recto NB A3
+                        if rectoverso == 1:
+                            total_steps += 1  # RectoVerso NB A3
+                            if couleurs == 1:
+                                total_steps += 1  # RectoVerso Couleurs A3
+                        if couleurs == 1:
+                            total_steps += 1  # Recto Couleurs A3
 
                 # Définir le nombre total d'étapes
                 log.set_total_steps(total_steps)
@@ -131,89 +129,104 @@ class Plugin:
 
                 # Progresser pour chaque configuration d'imprimante
                 log.next_step()
-                name = f"{baseName}_{printer_name}_Recto_NB"
-                log.info(f"Installation de {name}")
 
                 # Utiliser PrinterCommands pour ajouter l'imprimante
-                options=utilsCmd.merge_dictionaries(ocommun,orecto,oa4,onb)
-                returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
-
-                if couleurs == 1 and returnValue:
-                    log.next_step()
-                    name = f"{baseName}_{printer_name}_Recto_Couleurs"
-                    log.info(f"Installation de {name}")
-                    options=utilsCmd.merge_dictionaries(ocommun,orecto,oa4,ocouleurs)
-                    returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
-
-                    if rectoverso == 1 and returnValue:
-                        log.next_step()
-                        name = f"{baseName}_{printer_name}_RectoVerso_Couleurs"
+                if not all:
+                    if not couleurs:
+                        name = f"{baseName}_{printer_name}_Recto_NB"
                         log.info(f"Installation de {name}")
-                        options=utilsCmd.merge_dictionaries(ocommun,orectoverso,oa4,ocouleurs)
-                        returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
-
-                if rectoverso == 1 and returnValue:
-                    log.next_step()
-                    name = f"{baseName}_{printer_name}_RectoVerso_NB"
-                    log.info(f"Installation de {name}")
-                    options=utilsCmd.merge_dictionaries(ocommun,orectoverso,oa4,onb)
-                    returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
-
-                if agraffes == 1 and returnValue:
-                    log.next_step()
-                    name = f"{baseName}_{printer_name}_Recto_NB_Agraffes"
-                    log.info(f"Installation de {name}")
-                    options=utilsCmd.merge_dictionaries(ocommun,orecto,oagraffes,onb)
-                    returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
-
-                    if rectoverso == 1 and returnValue:
-                        log.next_step()
-                        name = f"{baseName}_{printer_name}_RectoVerso_NB_Agraffes"
-                        log.info(f"Installation de {name}")
-                        options=utilsCmd.merge_dictionaries(ocommun,orectoverso,oagraffes,oa4,onb)
-                        returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
-
-                        if couleurs == 1 and returnValue:
-                            log.next_step()
+                        options=utilsCmd.merge_dictionaries(ocommun,orecto,oa4,onb)
+                    else:
+                        if agraffes:
                             name = f"{baseName}_{printer_name}_RectoVerso_Couleurs_Agraffes"
                             log.info(f"Installation de {name}")
-                            options=utilsCmd.merge_dictionaries(ocommun,orectoverso,oagraffes,oa4,ocouleurs)
-                            returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
+                            options=utilsCmd.merge_dictionaries(ocommun,orectoverso,oa4,ocouleurs,oagraffes)
+                        else:
+                            name = f"{baseName}_{printer_name}_RectoVerso_Couleurs"
+                            log.info(f"Installation de {name}")
+                            options=utilsCmd.merge_dictionaries(ocommun,orectoverso,oa4,ocouleurs)  
+                    returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
+                
+                if all:
+                    options=utilsCmd.merge_dictionaries(ocommun,orecto,oa4,onb)
+                    returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
 
                     if couleurs == 1 and returnValue:
                         log.next_step()
-                        name = f"{baseName}_{printer_name}_Recto_Couleurs_Agraffes"
+                        name = f"{baseName}_{printer_name}_Recto_Couleurs"
                         log.info(f"Installation de {name}")
-                        options=utilsCmd.merge_dictionaries(ocommun,orecto,oagraffes,oa4,ocouleurs)
+                        options=utilsCmd.merge_dictionaries(ocommun,orecto,oa4,ocouleurs)
                         returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
 
-                if a3 and returnValue:
-                    log.next_step()
-                    name = f"{baseName}_{printer_name}_Recto_NB_A3"
-                    log.info(f"Installation de {name}")
+                        if rectoverso == 1 and returnValue:
+                            log.next_step()
+                            name = f"{baseName}_{printer_name}_RectoVerso_Couleurs"
+                            log.info(f"Installation de {name}")
+                            options=utilsCmd.merge_dictionaries(ocommun,orectoverso,oa4,ocouleurs)
+                            returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
 
-                    options=utilsCmd.merge_dictionaries(ocommun,orecto,oagraffes,oa3,onb)
-                    returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
                     if rectoverso == 1 and returnValue:
                         log.next_step()
-                        name = f"{baseName}_{printer_name}_RectoVerso_NB_A3"
+                        name = f"{baseName}_{printer_name}_RectoVerso_NB"
                         log.info(f"Installation de {name}")
-                        options=utilsCmd.merge_dictionaries(ocommun,orectoverso,oa3,onb)
+                        options=utilsCmd.merge_dictionaries(ocommun,orectoverso,oa4,onb)
                         returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
+
+                    if agraffes == 1 and returnValue:
+                        log.next_step()
+                        name = f"{baseName}_{printer_name}_Recto_NB_Agraffes"
+                        log.info(f"Installation de {name}")
+                        options=utilsCmd.merge_dictionaries(ocommun,orecto,oagraffes,onb)
+                        returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
+
+                        if rectoverso == 1 and returnValue:
+                            log.next_step()
+                            name = f"{baseName}_{printer_name}_RectoVerso_NB_Agraffes"
+                            log.info(f"Installation de {name}")
+                            options=utilsCmd.merge_dictionaries(ocommun,orectoverso,oagraffes,oa4,onb)
+                            returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
+
+                            if couleurs == 1 and returnValue:
+                                log.next_step()
+                                name = f"{baseName}_{printer_name}_RectoVerso_Couleurs_Agraffes"
+                                log.info(f"Installation de {name}")
+                                options=utilsCmd.merge_dictionaries(ocommun,orectoverso,oagraffes,oa4,ocouleurs)
+                                returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
 
                         if couleurs == 1 and returnValue:
                             log.next_step()
-                            name = f"{baseName}_{printer_name}_RectoVerso_Couleurs_A3"
+                            name = f"{baseName}_{printer_name}_Recto_Couleurs_Agraffes"
                             log.info(f"Installation de {name}")
-                            options=utilsCmd.merge_dictionaries(ocommun,orectoverso,oa3,ocouleurs)
+                            options=utilsCmd.merge_dictionaries(ocommun,orecto,oagraffes,oa4,ocouleurs)
                             returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
 
-                    if couleurs == 1 and returnValue:
+                    if a3 and returnValue:
                         log.next_step()
-                        name = f"{baseName}_{printer_name}_Recto_Couleurs_A3"
+                        name = f"{baseName}_{printer_name}_Recto_NB_A3"
                         log.info(f"Installation de {name}")
-                        options=utilsCmd.merge_dictionaries(ocommun,orecto,oa3,ocouleurs)
+
+                        options=utilsCmd.merge_dictionaries(ocommun,orecto,oagraffes,oa3,onb)
                         returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
+                        if rectoverso == 1 and returnValue:
+                            log.next_step()
+                            name = f"{baseName}_{printer_name}_RectoVerso_NB_A3"
+                            log.info(f"Installation de {name}")
+                            options=utilsCmd.merge_dictionaries(ocommun,orectoverso,oa3,onb)
+                            returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
+
+                            if couleurs == 1 and returnValue:
+                                log.next_step()
+                                name = f"{baseName}_{printer_name}_RectoVerso_Couleurs_A3"
+                                log.info(f"Installation de {name}")
+                                options=utilsCmd.merge_dictionaries(ocommun,orectoverso,oa3,ocouleurs)
+                                returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
+
+                        if couleurs == 1 and returnValue:
+                            log.next_step()
+                            name = f"{baseName}_{printer_name}_Recto_Couleurs_A3"
+                            log.info(f"Installation de {name}")
+                            options=utilsCmd.merge_dictionaries(ocommun,orecto,oa3,ocouleurs)
+                            returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
 
                 # Résultat final
                 if returnValue:

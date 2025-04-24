@@ -1,29 +1,426 @@
-2025-04-17 21:29:30,328 - pcUtils.main - DEBUG - Répertoire de base de l'application: /Users/nico/Documents/install
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/platformdirs-4.3.7-py3-none-any au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/typing_extensions-4.13.1-py3-none-any au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/rich-14.0.0-py3-none-any au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/pypdf-5.4.0-py3-none-any au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/pygments-2.19.1-py3-none-any au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64 au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/PyNaCl-1.5.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64 au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/textual-3.0.1-py3-none-any au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/cryptography-44.0.2-cp39-abi3-macosx_10_9_universal2 au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/bcrypt-4.3.0-cp39-abi3-manylinux_2_34_x86_64 au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/psutils-3.3.9-py3-none-any au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/cffi-1.17.1-cp39-cp39-macosx_11_0_arm64 au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/puremagic-1.28-py3-none-any au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/mdit_py_plugins-0.4.2-py3-none-any au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/paramiko-3.5.1-py3-none-any au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/mdurl-0.1.2-py3-none-any au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/ruamel.yaml-0.18.10-py3-none-any au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/uc_micro_py-1.0.3-py3-none-any au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/cryptography-44.0.2-cp39-abi3-manylinux_2_34_x86_64 au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/PyNaCl-1.5.0-cp36-abi3-macosx_10_10_universal2 au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/dnspython-2.7.0-py3-none-any au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/linkify_it_py-2.0.3-py3-none-any au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/markdown_it_py-3.0.0-py3-none-any au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/cffi-1.17.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64 au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/pycparser-2.22-py3-none-any au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - Ajout de la bibliothèque: /Users/nico/Documents/install/libs/bcrypt-4.3.0-cp39-abi3-macosx_10_12_universal2 au sys.path
-2025-04-17 21:29:30,329 - pcUtils.main - DEBUG - sys.path complet: ['/Users/nico/Documents/install/libs/bcrypt-4.3.0-cp39-abi3-macosx_10_12_universal2', '/Users/nico/Documents/install/libs/pycparser-2.22-py3-none-any', '/Users/nico/Documents/install/libs/cffi-1.17.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/Users/nico/Documents/install/libs/markdown_it_py-3.0.0-py3-none-any', '/Users/nico/Documents/install/libs/linkify_it_py-2.0.3-py3-none-any', '/Users/nico/Documents/install/libs/dnspython-2.7.0-py3-none-any', '/Users/nico/Documents/install/libs/PyNaCl-1.5.0-cp36-abi3-macosx_10_10_universal2', '/Users/nico/Documents/install/libs/cryptography-44.0.2-cp39-abi3-manylinux_2_34_x86_64', '/Users/nico/Documents/install/libs/uc_micro_py-1.0.3-py3-none-any', '/Users/nico/Documents/install/libs/ruamel.yaml-0.18.10-py3-none-any', '/Users/nico/Documents/install/libs/mdurl-0.1.2-py3-none-any', '/Users/nico/Documents/install/libs/paramiko-3.5.1-py3-none-any', '/Users/nico/Documents/install/libs/mdit_py_plugins-0.4.2-py3-none-any', '/Users/nico/Documents/install/libs/puremagic-1.28-py3-none-any', '/Users/nico/Documents/install/libs/cffi-1.17.1-cp39-cp39-macosx_11_0_arm64', '/Users/nico/Documents/install/libs/psutils-3.3.9-py3-none-any', '/Users/nico/Documents/install/libs/bcrypt-4.3.0-cp39-abi3-manylinux_2_34_x86_64', '/Users/nico/Documents/install/libs/cryptography-44.0.2-cp39-abi3-macosx_10_9_universal2', '/Users/nico/Documents/install/libs/textual-3.0.1-py3-none-any', '/Users/nico/Documents/install/libs/PyNaCl-1.5.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64', '/Users/nico/Documents/install/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/Users/nico/Documents/install/libs/pygments-2.19.1-py3-none-any', '/Users/nico/Documents/install/libs/pypdf-5.4.0-py3-none-any', '/Users/nico/Documents/install/libs/rich-14.0.0-py3-none-any', '/Users/nico/Documents/install/libs/typing_extensions-4.13.1-py3-none-any', '/Users/nico/Documents/install/libs/platformdirs-4.3.7-py3-none-any', '/Users/nico/Documents/install', '/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python39.zip', '/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9', '/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/lib-dynload', '/Users/nico/Library/Python/3.9/lib/python/site-packages', '/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/site-packages']
-2025-04-17 21:29:30,346 - pcUtils.main - DEBUG - ruamel.yaml importé avec succès depuis /Users/nico/Documents/install/libs/ruamel.yaml-0.18.10-py3-none-any/ruamel/yaml/__init__.py
+2025-04-24 15:58:42,864 - pcUtils.checkbox_group_field - DEBUG - Using function: get_users
+2025-04-24 15:58:42,864 - pcUtils.checkbox_group_field - DEBUG - Arguments préparés pour user_select: args=[], kwargs={'cu_list': None, 'home_dir': '/home', 'cuSort': None, 'execute': False}
+2025-04-24 15:58:42,864 - pcUtils.checkbox_group_field - DEBUG - Calling get_users with args=[], kwargs={'cu_list': None, 'home_dir': '/home', 'cuSort': None, 'execute': False}
+2025-04-24 15:58:42,864 - pcUtils.get_users - DEBUG - get_users called with home_dir=/home
+2025-04-24 15:58:42,864 - pcUtils.get_users - DEBUG - Script path: /media/nico/Drive/pcUtils_internet/ui/config_screen/../../scripts/get_users.py
+2025-04-24 15:58:42,864 - pcUtils.get_users - DEBUG - Current working directory: /media/nico/Drive/pcUtils_internet
+2025-04-24 15:58:42,864 - pcUtils.checkbox_group_field - DEBUG - Result from get_users: (True, [])
+2025-04-24 15:58:42,864 - pcUtils.checkbox_group_field - DEBUG - Checkbox group options for user_select: None
+2025-04-24 15:58:42,865 - pcUtils.checkbox_group_field - WARNING - No options available for checkbox group user_select
+2025-04-24 15:58:42,866 - pcUtils.select_field - DEBUG - Chargement des options dynamiques pour dst_dir
+2025-04-24 15:58:42,866 - pcUtils.get_usb - DEBUG - Recherche des périphériques (include_system_disk=False, only_external=True, only_internal=False, kwargs={})
+2025-04-24 15:58:42,866 - pcUtils.get_usb - DEBUG - Exécution de la commande lsblk
+2025-04-24 15:58:42,872 - pcUtils.get_usb - DEBUG - Disque système identifié: nvme0n1
+2025-04-24 15:58:42,872 - pcUtils.get_usb - DEBUG - Exclusion du disque système: nvme0n1
+2025-04-24 15:58:42,872 - pcUtils.get_usb - DEBUG - Trouvé 1 périphériques de stockage
+2025-04-24 15:58:42,872 - pcUtils.select_field - DEBUG - Options chargées pour dst_dir: 1 options
+2025-04-24 15:58:42,872 - pcUtils.select_field - DEBUG - Correspondance partielle trouvée pour dst_dir: /dev/sda1
+2025-04-24 15:58:42,874 - pcUtils.checkbox_field - DEBUG - Création de la checkbox machine_dir avec valeur True
+2025-04-24 15:58:42,919 - pcUtils.directory_field - DEBUG - Montage du champ répertoire src_dir
+2025-04-24 15:58:42,919 - pcUtils.text_field - DEBUG - Montage du champ src_dir
+2025-04-24 15:58:42,919 - pcUtils.text_field - DEBUG - Application de la valeur en attente '/home' pour src_dir
+2025-04-24 15:58:42,920 - pcUtils.text_field - DEBUG - Widget déjà à la valeur '/home' pour src_dir, rien à faire
+2025-04-24 15:58:42,920 - pcUtils.text_field - DEBUG - Montage du champ src_dir
+2025-04-24 15:58:42,920 - pcUtils.text_field - DEBUG - Pas de valeur en attente pour src_dir, valeur actuelle: '/home'
+2025-04-24 15:58:42,920 - pcUtils.text_field - DEBUG - on_input_changed: valeur déjà à jour pour src_dir: '/home'
+2025-04-24 15:58:42,925 - pcUtils.text_field - DEBUG - Montage du champ cu_list
+2025-04-24 15:58:42,926 - pcUtils.text_field - DEBUG - Application de la valeur en attente '12027' pour cu_list
+2025-04-24 15:58:42,926 - pcUtils.text_field - DEBUG - Widget déjà à la valeur '12027' pour cu_list, rien à faire
+2025-04-24 15:58:42,926 - pcUtils.text_field - DEBUG - on_input_changed: valeur déjà à jour pour cu_list: '12027'
+2025-04-24 15:58:42,930 - pcUtils.select_field - DEBUG - on_select_changed: valeur déjà à jour pour dst_dir: '/dev/sda1'
+2025-04-24 15:58:42,930 - pcUtils.select_field - DEBUG - set_value(/dev/sda1) pour dst_dir
+2025-04-24 15:58:42,930 - pcUtils.select_field - DEBUG - Valeur déjà à '/dev/sda1' pour dst_dir
+2025-04-24 15:58:42,931 - pcUtils.config_field - DEBUG - Valeur de dst_dir changée à /dev/sda1
+2025-04-24 15:58:42,931 - pcUtils.config_field - DEBUG - Notification des changements aux parents pour dst_dir
+2025-04-24 15:58:42,931 - pcUtils.config_field - DEBUG - Mise à jour des champs dépendants via PluginConfigContainer(id='plugin_test_plugin_1')
+2025-04-24 15:58:42,931 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 8 champs
+2025-04-24 15:58:42,931 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'user_select_1', 'dst_dir_1', 'machine_dir_1']
+2025-04-24 15:58:42,931 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:42,931 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:42,931 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: user_select_1 dépend de 2 conditions avec opérateur AND
+2025-04-24 15:58:42,931 - pcUtils.config_container - DEBUG - Dépendance depends_on multiple: user_select_1 dépend de 2 champs avec opérateur AND
+2025-04-24 15:58:42,931 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de cu_list (cu_list_test_plugin) (via field)
+2025-04-24 15:58:42,931 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de src_dir (src_dir_test_plugin) (via field)
+2025-04-24 15:58:42,931 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de cu_sort (cu_sort_test_plugin) (via field)
+2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de user_home (user_home_test_plugin) (via field)
+2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 3 enabled_if, 1 value_deps, 2 dynamic_options
+2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1', 'user_select_1'], 'cu_sort': ['cu_list_1'], 'user_home': ['user_select_1']}
+2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - mirror_value_deps: {'src_dir': ['user_select_1'], 'user_home': ['user_select_1']}
+2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {'cu_list': ['user_select_1', 'user_select_1_test_plugin'], 'cu_list_test_plugin': ['user_select_1', 'user_select_1_test_plugin'], 'src_dir': ['user_select_1', 'user_select_1_test_plugin'], 'src_dir_test_plugin': ['user_select_1', 'user_select_1_test_plugin'], 'cu_sort': ['user_select_1', 'user_select_1_test_plugin'], 'cu_sort_test_plugin': ['user_select_1', 'user_select_1_test_plugin'], 'user_home': ['user_select_1', 'user_select_1_test_plugin'], 'user_home_test_plugin': ['user_select_1', 'user_select_1_test_plugin']}
+2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
+2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de dst_dir (unique_id: dst_dir_1)
+2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - Vérification des dépendances pour dst_dir (unique: dst_dir_1)
+2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 8 clés: ['cu_list', 'cu_list_test_plugin', 'src_dir', 'src_dir_test_plugin', 'cu_sort', 'cu_sort_test_plugin', 'user_home', 'user_home_test_plugin']
+2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour dst_dir dans mirror_dynamic_options
+2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour dst_dir_1 dans mirror_dynamic_options
+2025-04-24 15:58:42,932 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour dst_dir ou dst_dir_1
+2025-04-24 15:58:42,933 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour dst_dir
+2025-04-24 15:58:42,933 - plugin_config_container - DEBUG - Montage du conteneur pour test_plugin
+2025-04-24 15:58:42,935 - pcUtils.config_screen - DEBUG - PluginConfig.on_mount() completed
+2025-04-24 15:58:43,188 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 8 champs
+2025-04-24 15:58:43,188 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'user_select_1', 'dst_dir_1', 'machine_dir_1']
+2025-04-24 15:58:43,188 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:43,188 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:43,189 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: user_select_1 dépend de 2 conditions avec opérateur AND
+2025-04-24 15:58:43,189 - pcUtils.config_container - DEBUG - Dépendance depends_on multiple: user_select_1 dépend de 2 champs avec opérateur AND
+2025-04-24 15:58:43,189 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de cu_list (cu_list_test_plugin) (via field)
+2025-04-24 15:58:43,189 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de src_dir (src_dir_test_plugin) (via field)
+2025-04-24 15:58:43,189 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de cu_sort (cu_sort_test_plugin) (via field)
+2025-04-24 15:58:43,189 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de user_home (user_home_test_plugin) (via field)
+2025-04-24 15:58:43,189 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 3 enabled_if, 1 value_deps, 2 dynamic_options
+2025-04-24 15:58:43,189 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1', 'user_select_1'], 'cu_sort': ['cu_list_1'], 'user_home': ['user_select_1']}
+2025-04-24 15:58:43,189 - pcUtils.config_container - DEBUG - mirror_value_deps: {'src_dir': ['user_select_1'], 'user_home': ['user_select_1']}
+2025-04-24 15:58:43,189 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {'cu_list': ['user_select_1', 'user_select_1_test_plugin'], 'cu_list_test_plugin': ['user_select_1', 'user_select_1_test_plugin'], 'src_dir': ['user_select_1', 'user_select_1_test_plugin'], 'src_dir_test_plugin': ['user_select_1', 'user_select_1_test_plugin'], 'cu_sort': ['user_select_1', 'user_select_1_test_plugin'], 'cu_sort_test_plugin': ['user_select_1', 'user_select_1_test_plugin'], 'user_home': ['user_select_1', 'user_select_1_test_plugin'], 'user_home_test_plugin': ['user_select_1', 'user_select_1_test_plugin']}
+2025-04-24 15:58:43,189 - plugin_config_container - DEBUG - Application des valeurs prédéfinies pour test_plugin
+2025-04-24 15:58:43,190 - plugin_config_container - WARNING - Pas de configuration trouvée pour l'instance test_1
+2025-04-24 15:58:43,190 - pcUtils.config_screen - DEBUG - Création des champs de configuration
+2025-04-24 15:58:43,190 - pcUtils.config_screen - DEBUG - Nombre de containers trouvés: 1
+2025-04-24 15:58:43,191 - pcUtils.config_screen - DEBUG - Container ajouté: plugin_test_plugin_1
+2025-04-24 15:58:43,191 - pcUtils.config_screen - DEBUG - Champ ajouté: src_dir_1
+2025-04-24 15:58:43,191 - pcUtils.config_screen - DEBUG - Champ ajouté: user_home_1
+2025-04-24 15:58:43,191 - pcUtils.config_screen - DEBUG - Champ ajouté: user_all_1
+2025-04-24 15:58:43,191 - pcUtils.config_screen - DEBUG - Champ ajouté: cu_sort_1
+2025-04-24 15:58:43,191 - pcUtils.config_screen - DEBUG - Champ ajouté: cu_list_1
+2025-04-24 15:58:43,191 - pcUtils.config_screen - DEBUG - Champ ajouté: user_select_1
+2025-04-24 15:58:43,191 - pcUtils.config_screen - DEBUG - Champ ajouté: dst_dir_1
+2025-04-24 15:58:43,191 - pcUtils.config_screen - DEBUG - Champ ajouté: machine_dir_1
+2025-04-24 15:58:43,191 - pcUtils.config_screen - DEBUG - Total de 1 containers et 8 champs
+2025-04-24 15:58:43,192 - pcUtils.choice_screen - DEBUG - Écran de configuration affiché
+2025-04-24 15:58:43,192 - pcUtils.choice_screen - DEBUG - Configuration récupérée: 1 plugins
+2025-04-24 15:58:43,192 - pcUtils.choice_screen - DEBUG - Config mise à jour pour test_plugin (ID: 1)
+2025-04-24 15:58:43,193 - pcUtils.plugin_list_item - DEBUG - Plugin avec config: test_plugin
+2025-04-24 15:58:43,193 - pcUtils.plugin_utils - DEBUG - Chargement des informations pour le plugin: test_plugin
+2025-04-24 15:58:43,193 - pcUtils.plugin_utils - DEBUG - Recherche du dossier pour le plugin: test_plugin
+2025-04-24 15:58:43,193 - pcUtils.plugin_utils - DEBUG - Nom de base extrait: test_plugin
+2025-04-24 15:58:43,194 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/test_plugin_test
+2025-04-24 15:58:43,194 - pcUtils.plugin_utils - DEBUG - Vérification du chemin: plugins/test_plugin
+2025-04-24 15:58:43,194 - pcUtils.plugin_utils - DEBUG - Dossier trouvé: test_plugin
+2025-04-24 15:58:43,194 - pcUtils.plugin_utils - DEBUG - Recherche des paramètres dans: plugins/test_plugin/settings.yml
+2025-04-24 15:58:43,214 - pcUtils.plugin_utils - DEBUG - Paramètres chargés avec succès pour test_plugin
+2025-04-24 15:58:43,214 - pcUtils.plugin_list_item - DEBUG - Info du plugin/séquence chargées pour test_plugin
+2025-04-24 15:58:43,214 - pcUtils.selected_plugins_panel - DEBUG - Panneau mis à jour avec 1 plugins
+2025-04-24 15:58:43,215 - pcUtils.choice_screen - DEBUG - Affichage des plugins sélectionnés mis à jour
+2025-04-24 15:58:43,217 - pcUtils.plugin_list_item - DEBUG - Composition de l'élément test_plugin (is_sequence: False)
+2025-04-24 15:58:44,510 - pcUtils.checkbox_field - DEBUG - Valeur de la checkbox user_home changée de False à True
+2025-04-24 15:58:44,511 - pcUtils.config_field - DEBUG - Notification des changements aux parents pour user_home
+2025-04-24 15:58:44,511 - pcUtils.config_field - DEBUG - Mise à jour des champs dépendants via PluginConfigContainer(id='plugin_test_plugin_1')
+2025-04-24 15:58:44,511 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 8 champs
+2025-04-24 15:58:44,511 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'user_select_1', 'dst_dir_1', 'machine_dir_1']
+2025-04-24 15:58:44,511 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:44,511 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:44,511 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: user_select_1 dépend de 2 conditions avec opérateur AND
+2025-04-24 15:58:44,511 - pcUtils.config_container - DEBUG - Dépendance depends_on multiple: user_select_1 dépend de 2 champs avec opérateur AND
+2025-04-24 15:58:44,511 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de cu_list (cu_list_test_plugin) (via field)
+2025-04-24 15:58:44,511 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de src_dir (src_dir_test_plugin) (via field)
+2025-04-24 15:58:44,512 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de cu_sort (cu_sort_test_plugin) (via field)
+2025-04-24 15:58:44,512 - pcUtils.config_container - DEBUG - Dépendance dynamic_options: user_select_1 (user_select_1_test_plugin) dépend de user_home (user_home_test_plugin) (via field)
+2025-04-24 15:58:44,512 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 3 enabled_if, 1 value_deps, 2 dynamic_options
+2025-04-24 15:58:44,512 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1', 'user_select_1'], 'cu_sort': ['cu_list_1'], 'user_home': ['user_select_1']}
+2025-04-24 15:58:44,512 - pcUtils.config_container - DEBUG - mirror_value_deps: {'src_dir': ['user_select_1'], 'user_home': ['user_select_1']}
+2025-04-24 15:58:44,512 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {'cu_list': ['user_select_1', 'user_select_1_test_plugin'], 'cu_list_test_plugin': ['user_select_1', 'user_select_1_test_plugin'], 'src_dir': ['user_select_1', 'user_select_1_test_plugin'], 'src_dir_test_plugin': ['user_select_1', 'user_select_1_test_plugin'], 'cu_sort': ['user_select_1', 'user_select_1_test_plugin'], 'cu_sort_test_plugin': ['user_select_1', 'user_select_1_test_plugin'], 'user_home': ['user_select_1', 'user_select_1_test_plugin'], 'user_home_test_plugin': ['user_select_1', 'user_select_1_test_plugin']}
+2025-04-24 15:58:44,512 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
+2025-04-24 15:58:44,512 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
+2025-04-24 15:58:44,513 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
+2025-04-24 15:58:44,513 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 8 clés: ['cu_list', 'cu_list_test_plugin', 'src_dir', 'src_dir_test_plugin', 'cu_sort', 'cu_sort_test_plugin', 'user_home', 'user_home_test_plugin']
+2025-04-24 15:58:44,513 - pcUtils.config_container - DEBUG - Trouvé 2 dépendances pour user_home: ['user_select_1', 'user_select_1_test_plugin']
+2025-04-24 15:58:44,513 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
+2025-04-24 15:58:44,513 - pcUtils.config_container - DEBUG - Mise à jour de 2 champs avec options dynamiques dépendant de user_home: ['user_select_1', 'user_select_1_test_plugin']
+2025-04-24 15:58:44,513 - pcUtils.config_container - DEBUG - Argument dynamique: cu_list=None depuis cu_list
+2025-04-24 15:58:44,513 - pcUtils.config_container - DEBUG - Argument dynamique: home_dir=None depuis src_dir
+2025-04-24 15:58:44,513 - pcUtils.config_container - DEBUG - Argument dynamique: cuSort=None depuis cu_sort
+2025-04-24 15:58:44,513 - pcUtils.config_container - DEBUG - Argument dynamique: execute=True depuis user_home
+2025-04-24 15:58:44,513 - pcUtils.checkbox_group_field - DEBUG - Mise à jour des options pour user_select avec arguments: {'execute': True}
+2025-04-24 15:58:44,513 - pcUtils.checkbox_group_field - DEBUG - Loading dynamic options with config: {'script': 'get_users.py', 'global': True, 'function': 'get_users', 'args': [{'param_name': 'cu_list', 'field': 'cu_list'}, {'param_name': 'home_dir', 'field': 'src_dir'}, {'param_name': 'cuSort', 'field': 'cu_sort'}, {'param_name': 'execute', 'field': 'user_home'}], 'value': 'username', 'description': 'description', 'auto_select_key': 'enabled', 'auto_select_value': True}
+2025-04-24 15:58:44,513 - pcUtils.checkbox_group_field - DEBUG - Loading script from: /media/nico/Drive/pcUtils_internet/ui/config_screen/../../scripts/get_users.py
+2025-04-24 15:58:44,513 - pcUtils.checkbox_group_field - DEBUG - Script exists: True
+2025-04-24 15:58:44,513 - pcUtils.checkbox_group_field - DEBUG - Python path: ['/media/nico/Drive/pcUtils_internet/ui', '/media/nico/Drive/pcUtils_internet/ui', '/media/nico/Drive/pcUtils_internet/plugins', '/media/nico/Drive/pcUtils_internet/libs/markdown_it_py-3.0.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/bcrypt-4.3.0-cp39-abi3-manylinux_2_34_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pypdf-5.4.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/ruamel.yaml-0.18.10-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/platformdirs-4.3.7-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/cffi-1.17.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/pycparser-2.22-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/rich-14.0.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/mdit_py_plugins-0.4.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/dnspython-2.7.0-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/linkify_it_py-2.0.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/PyNaCl-1.5.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64', '/media/nico/Drive/pcUtils_internet/libs/textual-3.1.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/paramiko-3.5.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/uc_micro_py-1.0.3-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/mdurl-0.1.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64', '/media/nico/Drive/pcUtils_internet/libs/puremagic-1.28-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/typing_extensions-4.13.2-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/pygments-2.19.1-py3-none-any', '/media/nico/Drive/pcUtils_internet/libs/cryptography-44.0.2-cp39-abi3-manylinux_2_34_x86_64', '/media/nico/Drive/pcUtils_internet/libs/psutils-3.3.9-py3-none-any', '/media/nico/Drive/pcUtils_internet', '/usr/lib/python310.zip', '/usr/lib/python3.10', '/usr/lib/python3.10/lib-dynload', '/usr/local/lib/python3.10/dist-packages', '/usr/lib/python3/dist-packages', '/media/nico/Drive/pcUtils_internet/ui/config_screen/../../scripts', '/media/nico/Drive/pcUtils_internet/ui/config_screen/../../scripts']
+2025-04-24 15:58:44,514 - pcUtils.checkbox_group_field - DEBUG - Using function: get_users
+2025-04-24 15:58:44,514 - pcUtils.checkbox_group_field - DEBUG - Utilisation des arguments dynamiques pour user_select: {'execute': True}
+2025-04-24 15:58:44,514 - pcUtils.checkbox_group_field - DEBUG - Valeur pour execute déjà fournie dans les arguments dynamiques
+2025-04-24 15:58:44,514 - pcUtils.checkbox_group_field - DEBUG - Arguments préparés pour user_select: args=[], kwargs={'execute': True, 'cu_list': None, 'home_dir': '/home', 'cuSort': None}
+2025-04-24 15:58:44,514 - pcUtils.checkbox_group_field - DEBUG - Calling get_users with args=[], kwargs={'execute': True, 'cu_list': None, 'home_dir': '/home', 'cuSort': None}
+2025-04-24 15:58:44,514 - pcUtils.get_users - DEBUG - get_users called with home_dir=/home
+2025-04-24 15:58:44,514 - pcUtils.get_users - DEBUG - Script path: /media/nico/Drive/pcUtils_internet/ui/config_screen/../../scripts/get_users.py
+2025-04-24 15:58:44,514 - pcUtils.get_users - DEBUG - Current working directory: /media/nico/Drive/pcUtils_internet
+2025-04-24 15:58:44,515 - pcUtils.get_users - DEBUG - get_users found 2 users: ['jack', 'nico']
+2025-04-24 15:58:44,515 - pcUtils.checkbox_group_field - DEBUG - Result from get_users: (True, [{'username': 'jack', 'home_path': '/home/jack', 'description': 'jack', 'uid': 1002, 'gid': 1002, 'shell': '/bin/bash', 'enabled': False, 'full_name': 'jack', 'group': 'jack'}, {'username': 'nico', 'home_path': '/home/nico', 'description': 'nico', 'uid': 1000, 'gid': 1000, 'shell': '/bin/bash', 'enabled': False, 'full_name': 'nico', 'group': 'nico'}])
+2025-04-24 15:58:44,515 - pcUtils.checkbox_group_field - ERROR - Erreur lors de la gestion du label pour user_select: No nodes match '#header_user_select' on CheckboxGroupField()
+2025-04-24 15:58:44,516 - pcUtils.checkbox_group_field - DEBUG - Label recréé pour le champ user_select: Sélectionner les comptes utilisateurs à copier
+2025-04-24 15:58:44,520 - pcUtils.config_container - DEBUG - Options mises à jour pour user_select_1: None
+2025-04-24 15:58:44,520 - pcUtils.config_container - DEBUG - Le champ user_select_1 n'a plus d'options, planifié pour suppression
+2025-04-24 15:58:44,520 - pcUtils.config_container - DEBUG - Mise à jour de 1 champs dont la valeur dépend de user_home=True
+2025-04-24 15:58:44,528 - pcUtils.config_container - DEBUG - Valeur sauvegardée pour user_select: []
+2025-04-24 15:58:44,528 - pcUtils.checkbox_group_field - DEBUG - Nettoyage de l'affichage pour user_select
+2025-04-24 15:58:44,528 - pcUtils.checkbox_group_field - DEBUG - Options sauvegardées pour user_select: [('jack', 'jack'), ('nico', 'nico')]
+2025-04-24 15:58:44,528 - pcUtils.checkbox_group_field - DEBUG - Valeurs sélectionnées sauvegardées pour user_select: []
+2025-04-24 15:58:44,529 - pcUtils.checkbox_group_field - DEBUG - Label masqué pour user_select
+2025-04-24 15:58:44,529 - pcUtils.checkbox_group_field - DEBUG - Conteneur de checkboxes vidé pour user_select
+2025-04-24 15:58:44,529 - pcUtils.config_container - DEBUG - Méthode clear_display appelée pour user_select
+2025-04-24 15:58:44,529 - pcUtils.config_container - DEBUG - État du champ user_select mis à jour: enabled=False
+2025-04-24 15:58:44,529 - pcUtils.config_container - DEBUG - Mise à jour de 1 champs enabled_if dépendant de user_home=True
+2025-04-24 15:58:44,529 - pcUtils.config_container - DEBUG - Condition pour user_select_1: user_home=True vs True -> True
+2025-04-24 15:58:44,536 - pcUtils.config_field - DEBUG - Notification des changements aux parents pour user_select
+2025-04-24 15:58:44,536 - pcUtils.config_field - DEBUG - Mise à jour des champs dépendants via PluginConfigContainer(id='plugin_test_plugin_1')
+2025-04-24 15:58:44,536 - pcUtils.config_container - DEBUG - Valeur restaurée via set_value pour user_select: []
+2025-04-24 15:58:44,536 - pcUtils.checkbox_group_field - DEBUG - Restauration de l'affichage pour user_select
+2025-04-24 15:58:44,537 - pcUtils.checkbox_group_field - DEBUG - Options restaurées pour user_select: [('jack', 'jack'), ('nico', 'nico')]
+2025-04-24 15:58:44,537 - pcUtils.checkbox_group_field - DEBUG - Valeurs sélectionnées restaurées pour user_select: []
+2025-04-24 15:58:44,537 - pcUtils.checkbox_group_field - DEBUG - Label affiché pour user_select
+2025-04-24 15:58:44,538 - pcUtils.checkbox_group_field - DEBUG - Checkbox recréée pour user_select: jack (jack)
+2025-04-24 15:58:44,540 - pcUtils.checkbox_group_field - DEBUG - Checkbox recréée pour user_select: nico (nico)
+2025-04-24 15:58:44,540 - pcUtils.config_container - DEBUG - Méthode restore_display appelée pour user_select
+2025-04-24 15:58:44,540 - pcUtils.config_container - DEBUG - Valeur restaurée pour user_select: []
+2025-04-24 15:58:44,540 - pcUtils.config_container - DEBUG - État du champ user_select mis à jour: enabled=True
+2025-04-24 15:58:44,540 - pcUtils.config_container - DEBUG - Champ user_select_1 activé avec opérateur AND (1 conditions évaluées)
+2025-04-24 15:58:44,540 - pcUtils.config_container - DEBUG - Traitement de 1 champs à supprimer
+2025-04-24 15:58:44,540 - pcUtils.config_container - DEBUG - Champ user_select_1 supprimé
+2025-04-24 15:58:44,540 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
+2025-04-24 15:58:44,639 - pcUtils.config_screen - DEBUG - Checkbox changée: checkbox_test_plugin_user_home -> True
+2025-04-24 15:58:44,639 - pcUtils.config_screen - DEBUG - Notification des dépendances pour le champ user_home_1
+2025-04-24 15:58:44,639 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
+2025-04-24 15:58:44,639 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
+2025-04-24 15:58:44,639 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
+2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
+2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
+2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
+2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
+2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
+2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
+2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
+2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
+2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
+2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
+2025-04-24 15:58:44,640 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
+2025-04-24 15:58:46,965 - pcUtils.checkbox_group_field - DEBUG - Checkbox changed: user_select_jack -> True
+2025-04-24 15:58:46,966 - pcUtils.checkbox_group_field - DEBUG - Found matching checkbox for option: jack
+2025-04-24 15:58:46,966 - pcUtils.checkbox_group_field - DEBUG - Updated selected values: ['jack']
+2025-04-24 15:58:46,967 - pcUtils.config_screen - DEBUG - Checkbox changée: user_select_jack -> True
+2025-04-24 15:58:47,626 - pcUtils.checkbox_group_field - DEBUG - Checkbox changed: user_select_jack -> False
+2025-04-24 15:58:47,626 - pcUtils.checkbox_group_field - DEBUG - Found matching checkbox for option: jack
+2025-04-24 15:58:47,626 - pcUtils.checkbox_group_field - DEBUG - Updated selected values: []
+2025-04-24 15:58:47,629 - pcUtils.config_screen - DEBUG - Checkbox changée: user_select_jack -> False
+2025-04-24 15:58:52,808 - pcUtils.checkbox_field - DEBUG - Valeur de la checkbox user_home changée de True à False
+2025-04-24 15:58:52,809 - pcUtils.config_field - DEBUG - Notification des changements aux parents pour user_home
+2025-04-24 15:58:52,809 - pcUtils.config_field - DEBUG - Mise à jour des champs dépendants via PluginConfigContainer(id='plugin_test_plugin_1')
+2025-04-24 15:58:52,810 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
+2025-04-24 15:58:52,810 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
+2025-04-24 15:58:52,811 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:52,811 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:52,812 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
+2025-04-24 15:58:52,812 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
+2025-04-24 15:58:52,813 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
+2025-04-24 15:58:52,813 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
+2025-04-24 15:58:52,814 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
+2025-04-24 15:58:52,815 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
+2025-04-24 15:58:52,815 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
+2025-04-24 15:58:52,815 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
+2025-04-24 15:58:52,816 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
+2025-04-24 15:58:52,816 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
+2025-04-24 15:58:52,817 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
+2025-04-24 15:58:52,817 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
+2025-04-24 15:58:52,828 - pcUtils.config_screen - DEBUG - Checkbox changée: checkbox_test_plugin_user_home -> False
+2025-04-24 15:58:52,828 - pcUtils.config_screen - DEBUG - Notification des dépendances pour le champ user_home_1
+2025-04-24 15:58:52,829 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
+2025-04-24 15:58:52,829 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
+2025-04-24 15:58:52,829 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:52,829 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:52,830 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
+2025-04-24 15:58:52,830 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
+2025-04-24 15:58:52,830 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
+2025-04-24 15:58:52,830 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
+2025-04-24 15:58:52,830 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
+2025-04-24 15:58:52,830 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
+2025-04-24 15:58:52,831 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
+2025-04-24 15:58:52,831 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
+2025-04-24 15:58:52,831 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
+2025-04-24 15:58:52,831 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
+2025-04-24 15:58:52,831 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
+2025-04-24 15:58:52,831 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
+2025-04-24 15:58:53,758 - pcUtils.checkbox_field - DEBUG - Valeur de la checkbox user_home changée de False à True
+2025-04-24 15:58:53,758 - pcUtils.config_field - DEBUG - Notification des changements aux parents pour user_home
+2025-04-24 15:58:53,759 - pcUtils.config_field - DEBUG - Mise à jour des champs dépendants via PluginConfigContainer(id='plugin_test_plugin_1')
+2025-04-24 15:58:53,759 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
+2025-04-24 15:58:53,760 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
+2025-04-24 15:58:53,760 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:53,760 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:53,761 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
+2025-04-24 15:58:53,761 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
+2025-04-24 15:58:53,762 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
+2025-04-24 15:58:53,762 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
+2025-04-24 15:58:53,762 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
+2025-04-24 15:58:53,762 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
+2025-04-24 15:58:53,763 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
+2025-04-24 15:58:53,763 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
+2025-04-24 15:58:53,763 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
+2025-04-24 15:58:53,764 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
+2025-04-24 15:58:53,764 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
+2025-04-24 15:58:53,764 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
+2025-04-24 15:58:53,775 - pcUtils.config_screen - DEBUG - Checkbox changée: checkbox_test_plugin_user_home -> True
+2025-04-24 15:58:53,775 - pcUtils.config_screen - DEBUG - Notification des dépendances pour le champ user_home_1
+2025-04-24 15:58:53,775 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
+2025-04-24 15:58:53,776 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
+2025-04-24 15:58:53,776 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:53,776 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:53,776 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
+2025-04-24 15:58:53,776 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
+2025-04-24 15:58:53,777 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
+2025-04-24 15:58:53,777 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
+2025-04-24 15:58:53,777 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
+2025-04-24 15:58:53,777 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
+2025-04-24 15:58:53,777 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
+2025-04-24 15:58:53,777 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
+2025-04-24 15:58:53,777 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
+2025-04-24 15:58:53,778 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
+2025-04-24 15:58:53,778 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
+2025-04-24 15:58:53,778 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
+2025-04-24 15:58:54,289 - pcUtils.checkbox_field - DEBUG - Valeur de la checkbox user_home changée de True à False
+2025-04-24 15:58:54,289 - pcUtils.config_field - DEBUG - Notification des changements aux parents pour user_home
+2025-04-24 15:58:54,290 - pcUtils.config_field - DEBUG - Mise à jour des champs dépendants via PluginConfigContainer(id='plugin_test_plugin_1')
+2025-04-24 15:58:54,290 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
+2025-04-24 15:58:54,291 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
+2025-04-24 15:58:54,291 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:54,292 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:54,292 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
+2025-04-24 15:58:54,293 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
+2025-04-24 15:58:54,293 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
+2025-04-24 15:58:54,294 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
+2025-04-24 15:58:54,294 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
+2025-04-24 15:58:54,294 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
+2025-04-24 15:58:54,295 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
+2025-04-24 15:58:54,295 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
+2025-04-24 15:58:54,295 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
+2025-04-24 15:58:54,296 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
+2025-04-24 15:58:54,296 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
+2025-04-24 15:58:54,296 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
+2025-04-24 15:58:54,309 - pcUtils.config_screen - DEBUG - Checkbox changée: checkbox_test_plugin_user_home -> False
+2025-04-24 15:58:54,309 - pcUtils.config_screen - DEBUG - Notification des dépendances pour le champ user_home_1
+2025-04-24 15:58:54,309 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
+2025-04-24 15:58:54,310 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
+2025-04-24 15:58:54,310 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:54,310 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:54,310 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
+2025-04-24 15:58:54,310 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
+2025-04-24 15:58:54,311 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
+2025-04-24 15:58:54,311 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
+2025-04-24 15:58:54,311 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
+2025-04-24 15:58:54,311 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
+2025-04-24 15:58:54,311 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
+2025-04-24 15:58:54,311 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
+2025-04-24 15:58:54,311 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
+2025-04-24 15:58:54,312 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
+2025-04-24 15:58:54,312 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
+2025-04-24 15:58:54,312 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
+2025-04-24 15:58:54,805 - pcUtils.checkbox_field - DEBUG - Valeur de la checkbox user_home changée de False à True
+2025-04-24 15:58:54,806 - pcUtils.config_field - DEBUG - Notification des changements aux parents pour user_home
+2025-04-24 15:58:54,806 - pcUtils.config_field - DEBUG - Mise à jour des champs dépendants via PluginConfigContainer(id='plugin_test_plugin_1')
+2025-04-24 15:58:54,807 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
+2025-04-24 15:58:54,807 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
+2025-04-24 15:58:54,808 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:54,808 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:54,809 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
+2025-04-24 15:58:54,809 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
+2025-04-24 15:58:54,810 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
+2025-04-24 15:58:54,810 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
+2025-04-24 15:58:54,811 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
+2025-04-24 15:58:54,811 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
+2025-04-24 15:58:54,811 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
+2025-04-24 15:58:54,812 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
+2025-04-24 15:58:54,812 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
+2025-04-24 15:58:54,813 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
+2025-04-24 15:58:54,813 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
+2025-04-24 15:58:54,813 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
+2025-04-24 15:58:54,826 - pcUtils.config_screen - DEBUG - Checkbox changée: checkbox_test_plugin_user_home -> True
+2025-04-24 15:58:54,826 - pcUtils.config_screen - DEBUG - Notification des dépendances pour le champ user_home_1
+2025-04-24 15:58:54,826 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
+2025-04-24 15:58:54,827 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
+2025-04-24 15:58:54,827 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:54,827 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 15:58:54,827 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
+2025-04-24 15:58:54,827 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
+2025-04-24 15:58:54,827 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
+2025-04-24 15:58:54,828 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
+2025-04-24 15:58:54,828 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
+2025-04-24 15:58:54,828 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
+2025-04-24 15:58:54,828 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
+2025-04-24 15:58:54,828 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
+2025-04-24 15:58:54,828 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
+2025-04-24 15:58:54,828 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
+2025-04-24 15:58:54,829 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
+2025-04-24 15:58:54,829 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
+2025-04-24 16:09:12,796 - pcUtils.checkbox_field - DEBUG - Valeur de la checkbox user_home changée de True à False
+2025-04-24 16:09:12,796 - pcUtils.config_field - DEBUG - Notification des changements aux parents pour user_home
+2025-04-24 16:09:12,797 - pcUtils.config_field - DEBUG - Mise à jour des champs dépendants via PluginConfigContainer(id='plugin_test_plugin_1')
+2025-04-24 16:09:12,797 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
+2025-04-24 16:09:12,797 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
+2025-04-24 16:09:12,797 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 16:09:12,797 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 16:09:12,797 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
+2025-04-24 16:09:12,797 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
+2025-04-24 16:09:12,797 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
+2025-04-24 16:09:12,797 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
+2025-04-24 16:09:12,798 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
+2025-04-24 16:09:12,798 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
+2025-04-24 16:09:12,798 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
+2025-04-24 16:09:12,798 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
+2025-04-24 16:09:12,798 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
+2025-04-24 16:09:12,798 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
+2025-04-24 16:09:12,798 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
+2025-04-24 16:09:12,798 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
+2025-04-24 16:09:12,803 - pcUtils.config_screen - DEBUG - Checkbox changée: checkbox_test_plugin_user_home -> False
+2025-04-24 16:09:12,803 - pcUtils.config_screen - DEBUG - Notification des dépendances pour le champ user_home_1
+2025-04-24 16:09:12,803 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
+2025-04-24 16:09:12,803 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
+2025-04-24 16:09:12,803 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 16:09:12,803 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
+2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
+2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
+2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
+2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
+2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
+2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
+2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
+2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
+2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
+2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
+2025-04-24 16:09:12,804 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
+2025-04-24 16:09:13,397 - pcUtils.checkbox_field - DEBUG - Valeur de la checkbox user_home changée de False à True
+2025-04-24 16:09:13,397 - pcUtils.config_field - DEBUG - Notification des changements aux parents pour user_home
+2025-04-24 16:09:13,397 - pcUtils.config_field - DEBUG - Mise à jour des champs dépendants via PluginConfigContainer(id='plugin_test_plugin_1')
+2025-04-24 16:09:13,397 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
+2025-04-24 16:09:13,397 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
+2025-04-24 16:09:13,398 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 16:09:13,398 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 16:09:13,398 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
+2025-04-24 16:09:13,398 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
+2025-04-24 16:09:13,398 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
+2025-04-24 16:09:13,398 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
+2025-04-24 16:09:13,398 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
+2025-04-24 16:09:13,398 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
+2025-04-24 16:09:13,398 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
+2025-04-24 16:09:13,398 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
+2025-04-24 16:09:13,399 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
+2025-04-24 16:09:13,399 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
+2025-04-24 16:09:13,399 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
+2025-04-24 16:09:13,399 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
+2025-04-24 16:09:13,407 - pcUtils.config_screen - DEBUG - Checkbox changée: checkbox_test_plugin_user_home -> True
+2025-04-24 16:09:13,407 - pcUtils.config_screen - DEBUG - Notification des dépendances pour le champ user_home_1
+2025-04-24 16:09:13,408 - pcUtils.config_container - DEBUG - DÉBUT _analyze_field_dependencies pour test_plugin avec 7 champs
+2025-04-24 16:09:13,408 - pcUtils.config_container - DEBUG - Champs disponibles: ['src_dir_1', 'user_home_1', 'user_all_1', 'cu_sort_1', 'cu_list_1', 'dst_dir_1', 'machine_dir_1']
+2025-04-24 16:09:13,408 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_sort_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 16:09:13,408 - pcUtils.config_container - DEBUG - Dépendance enabled_if multiple: cu_list_1 dépend de 1 conditions avec opérateur AND
+2025-04-24 16:09:13,408 - pcUtils.config_container - DEBUG - Analyse des dépendances terminée: 2 enabled_if, 0 value_deps, 1 dynamic_options
+2025-04-24 16:09:13,408 - pcUtils.config_container - DEBUG - mirror_enabled_if: {'user_all': ['cu_sort_1'], 'cu_sort': ['cu_list_1']}
+2025-04-24 16:09:13,408 - pcUtils.config_container - DEBUG - mirror_value_deps: {}
+2025-04-24 16:09:13,408 - pcUtils.config_container - DEBUG - mirror_dynamic_options: {}
+2025-04-24 16:09:13,408 - pcUtils.config_container - DEBUG - Dépendances réanalysées avant la mise à jour
+2025-04-24 16:09:13,409 - pcUtils.config_container - DEBUG - Mise à jour des champs dépendant de user_home (unique_id: user_home_1)
+2025-04-24 16:09:13,409 - pcUtils.config_container - DEBUG - Vérification des dépendances pour user_home (unique: user_home_1)
+2025-04-24 16:09:13,409 - pcUtils.config_container - DEBUG - mirror_dynamic_options contient 0 clés: []
+2025-04-24 16:09:13,409 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home dans mirror_dynamic_options
+2025-04-24 16:09:13,409 - pcUtils.config_container - DEBUG - Aucune dépendance trouvée pour user_home_1 dans mirror_dynamic_options
+2025-04-24 16:09:13,409 - pcUtils.config_container - DEBUG - Aucun champ dépendant trouvé pour user_home ou user_home_1
+2025-04-24 16:09:13,409 - pcUtils.config_container - DEBUG - Mise à jour des dépendances terminée pour user_home
+2025-04-24 16:09:15,388 - pcUtils.choice_screen - DEBUG - Quitter l'application

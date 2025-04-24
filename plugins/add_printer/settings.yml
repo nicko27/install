@@ -47,6 +47,11 @@ config_fields:
       value_key: ip
       path: "@[scripts]"
 
+  printer_all:
+    type: checkbox
+    label: Si coché une imprimante pour toutes les possibilités (recto, couleurs, agraffes)
+    default: true
+
   printer_a3:
     type: checkbox
     label: Ajoute l(es) imprimante(s) A3

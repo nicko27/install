@@ -9,5 +9,8 @@ plugins:
   - name: install_update
   - name: antivirus
   - name: add_printer
+  - name: dovecot_utilisateur
+  - name: lara
+  - name: logs_plugin
   - name: shim_signed
   - name: mok

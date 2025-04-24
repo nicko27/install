@@ -72,7 +72,7 @@ class ServiceCommands(PluginsUtilsBase):
         self.log_info(f"Démarrage du service: {service_name}")
         success, stdout, stderr = self._run_systemctl(['start', service_name], check=False)
         if success:
-            self.log_success(f"Service {service_name} démarré.")
+            self.log_info(f"Service {service_name} démarré.")
             return True
         else:
             # Vérifier si l'erreur est due au fait qu'il tournait déjà
@@ -97,7 +97,7 @@ class ServiceCommands(PluginsUtilsBase):
         self.log_info(f"Arrêt du service: {service_name}")
         success, stdout, stderr = self._run_systemctl(['stop', service_name], check=False)
         if success:
-            self.log_success(f"Service {service_name} arrêté.")
+            self.log_info(f"Service {service_name} arrêté.")
             return True
         else:
             # Vérifier si l'erreur est due au fait qu'il était déjà arrêté ou non chargé
@@ -126,7 +126,7 @@ class ServiceCommands(PluginsUtilsBase):
             # Attendre un court instant pour laisser le service démarrer et vérifier son état
             time.sleep(1)
             if self.is_active(service_name):
-                 self.log_success(f"Service {service_name} redémarré avec succès.")
+                 self.log_info(f"Service {service_name} redémarré avec succès.")
                  return True
             else:
                  self.log_error(f"Service {service_name} redémarré (code 0) mais n'est pas actif. Vérifier les logs du service.")
@@ -150,14 +150,14 @@ class ServiceCommands(PluginsUtilsBase):
         self.log_info(f"Rechargement de la configuration du service: {service_name}")
         success, stdout, stderr = self._run_systemctl(['reload', service_name], check=False)
         if success:
-            self.log_success(f"Configuration du service {service_name} rechargée.")
+            self.log_info(f"Configuration du service {service_name} rechargée.")
             return True
         else:
             # Si reload échoue (ex: service ne supporte pas reload), essayer reload-or-restart
             self.log_warning(f"Échec du rechargement simple de {service_name}, tentative avec 'reload-or-restart'. Stderr: {stderr}")
             success_ror, _, stderr_ror = self._run_systemctl(['reload-or-restart', service_name], check=False)
             if success_ror:
-                self.log_success(f"Service {service_name} rechargé ou redémarré avec succès.")
+                self.log_info(f"Service {service_name} rechargé ou redémarré avec succès.")
                 return True
             else:
                 # Logguer l'erreur initiale de reload et l'erreur de reload-or-restart
@@ -196,7 +196,7 @@ class ServiceCommands(PluginsUtilsBase):
                  # Si --now était demandé, vérifier qu'il est actif
                  if now: return self.is_active(service_name)
                  return True
-            self.log_success(f"Service {service_name} activé{' et démarré' if now else ''} avec succès.")
+            self.log_info(f"Service {service_name} activé{' et démarré' if now else ''} avec succès.")
             return True
         else:
              self.log_error(f"Échec de l'{action.lower()} du service {service_name}. Stderr: {stderr}")
@@ -227,14 +227,14 @@ class ServiceCommands(PluginsUtilsBase):
         if success:
             # Vérifier si déjà désactivé (code retour 0)
             if "removed" in stdout.lower(): # systemd > v2?? utilise stdout pour confirmer la suppression du lien
-                 self.log_success(f"Service {service_name} désactivé{' et arrêté' if now else ''} avec succès (lien supprimé).")
+                 self.log_info(f"Service {service_name} désactivé{' et arrêté' if now else ''} avec succès (lien supprimé).")
                  return True
             elif "does not exist" in stderr.lower(): # Service non trouvé
                  self.log_warning(f"Le service {service_name} n'existe pas.")
                  return True # Considérer comme succès car état désiré atteint
             else:
                  # Peut retourner 0 même si déjà désactivé sans message clair
-                 self.log_success(f"Service {service_name} désactivé{' et arrêté' if now else ''} (ou était déjà désactivé).")
+                 self.log_info(f"Service {service_name} désactivé{' et arrêté' if now else ''} (ou était déjà désactivé).")
                  return True
         else:
              self.log_error(f"Échec de la {action.lower()} du service {service_name}. Stderr: {stderr}")
@@ -360,4 +360,3 @@ class ServiceCommands(PluginsUtilsBase):
              self.log_error(f"Erreur lors du parsing du statut détaillé de {service_name}: {e}", exc_info=True)
              self.log_debug(f"Sortie systemctl show brute:\n{stdout}")
              return {}
-

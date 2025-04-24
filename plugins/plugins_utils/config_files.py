@@ -279,7 +279,7 @@ class ConfigFileCommands(PluginsUtilsBase):
                 default_stats = {'uid': os.getuid(), 'gid': os.getgid(), 'mode': 0o644}
                 self._apply_file_permissions(file_path, default_stats)
 
-            self.log_success(f"Fichier {file_path} écrit/mis à jour avec succès.")
+            self.log_info(f"Fichier {file_path} écrit/mis à jour avec succès.")
             return True
 
         except Exception as e:
@@ -876,7 +876,7 @@ class ConfigFileCommands(PluginsUtilsBase):
         try:
             with file_path.open('a', encoding='utf-8') as f:
                 f.write(content_to_append)
-            self.log_success(f"Ligne ajoutée avec succès à {file_path}.")
+            self.log_info(f"Ligne ajoutée avec succès à {file_path}.")
             return True
         except Exception as e:
             self.log_error(f"Erreur lors de l'ajout de la ligne à {file_path}: {e}", exc_info=True)

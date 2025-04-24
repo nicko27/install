@@ -120,7 +120,7 @@ class TemplateManager:
             return False, "Le template doit être un dictionnaire"
 
         # Vérifier les champs requis
-        required_fields = self.schema.get('required_fields', ['name', 'description', 'variables'])
+        required_fields = self.schema.get('required_fields', ['name',  'variables'])
         for field in required_fields:
             if field not in template:
                 return False, f"Champ requis manquant: {field}"
@@ -229,34 +229,7 @@ class TemplateManager:
         logger.debug(f"Templates disponibles pour {plugin_name}: {names}")
         return names
 
-    def get_template_description(self, plugin_name: str, template_name: str) -> str:
-        """
-        Récupère la description d'un template.
-        
-        Args:
-            plugin_name: Nom du plugin
-            template_name: Nom du template
-            
-        Returns:
-            str: Description du template ou chaîne formatée incluant le nom
-        """
-        templates = self.get_plugin_templates(plugin_name)
-        template = templates.get(template_name, {})
-        
-        # Si le template existe, utiliser sa description ou construire une par défaut
-        if template:
-            if 'description' in template and template['description']:
-                description = template['description']
-            else:
-                # Si pas de description, utiliser le nom formaté
-                name = template.get('name', template_name)
-                description = f"Template: {name}"
-        else:
-            # Si le template n'existe pas, utiliser une description générique
-            description = f"Template: {template_name}"
-            
-        logger.debug(f"Description pour {plugin_name}/{template_name}: {description}")
-        return description
+
 
     def get_template_variables(self, plugin_name: str, template_name: str) -> Optional[dict]:
         """

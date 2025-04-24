@@ -45,7 +45,7 @@ except ImportError as e:
     logger = logging.getLogger('get_users')
     logger.error(f"Erreur d'importation du module de logging: {e}")
 
-def get_users(home_dir: str = '',cuSort: bool = False, cuList: str = "") -> Tuple[bool, Union[List[Dict[str, Any]], str]]:
+def get_users(home_dir: str = '',cuSort: bool = False, cu_list: str = "", execute: bool = True) -> Tuple[bool, Union[List[Dict[str, Any]], str]]:
     """
     Récupère la liste des utilisateurs à partir d'un répertoire home spécifique.
 
@@ -53,6 +53,7 @@ def get_users(home_dir: str = '',cuSort: bool = False, cuList: str = "") -> Tupl
         home_dir (str): Chemin du répertoire contenant les dossiers des utilisateurs
                        Par défaut : '/home'
         cuList (str): Liste des codes unités
+        execute (bool): Si True, exécute la fonction, sinon retourne une liste vide
 
     Returns:
         tuple(bool, list/str): Tuple contenant:
@@ -62,6 +63,9 @@ def get_users(home_dir: str = '',cuSort: bool = False, cuList: str = "") -> Tupl
     logger.debug(f"get_users called with home_dir={home_dir}")
     logger.debug(f"Script path: {__file__}")
     logger.debug(f"Current working directory: {os.getcwd()}")
+    
+    if not execute:
+        return True, []
 
     # Vérifier que le répertoire home existe
     if not os.path.exists(home_dir):
@@ -130,7 +134,7 @@ def get_users(home_dir: str = '',cuSort: bool = False, cuList: str = "") -> Tupl
                 # Enrichir la description avec le nom complet si disponible
                 if pwd_info.pw_gecos:
                     gecos_parts = pwd_info.pw_gecos.split(',')
-                    full_name = gecos_parts[0] if gecos_parts else pwd_info.pw_gecos
+                    full_name = gecos_parts[0] if gecos_parts else pwd_info.pw_gecos 
                     if full_name and full_name != username:
                         user_info['description'] = f"{username} ({full_name})"
                         user_info['full_name']= full_name
@@ -143,7 +147,10 @@ def get_users(home_dir: str = '',cuSort: bool = False, cuList: str = "") -> Tupl
             users.append(user_info)
 
         # Trier par nom d'utilisateur (insensible à la casse)
-        users.sort(key=lambda x: x['full_name'].lower())
+        try:
+            users.sort(key=lambda x: x['full_name'].lower())
+        except Exception as e:
+            pass
 
         logger.debug(f"get_users found {len(users)} users: {[u['username'] for u in users]}")
 

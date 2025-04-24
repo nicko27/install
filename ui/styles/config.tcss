@@ -25,6 +25,9 @@
     align: right middle;
 }
 
+.hidden-label {
+    display: none;
+}
 
 .config-fields {
     background: $panel;

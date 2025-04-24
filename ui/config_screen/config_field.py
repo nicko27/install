@@ -76,25 +76,119 @@ class ConfigField(VerticalGroup):
         # === ENABLED_IF ===
         if 'enabled_if' in self.field_config:
             enabled_if = self.field_config['enabled_if']
-            if isinstance(enabled_if, dict) and 'field' in enabled_if and 'value' in enabled_if:
-                # Stocker l'état initial pour restauration plus tard si nécessaire
-                self._original_default = self.field_config.get('default')
-
-                # Structure normalisée pour enabled_if
+            
+            # Stocker l'état initial pour restauration plus tard si nécessaire
+            self._original_default = self.field_config.get('default')
+            
+            # Vérifier si c'est une structure simple ou multiple
+            if isinstance(enabled_if, dict):
+                # Détecter si c'est une structure simple (field+value) ou une structure avec plusieurs conditions
+                if 'field' in enabled_if and 'value' in enabled_if:
+                    # Structure simple - un seul champ et une seule valeur
+                    conditions = [{
+                        'field_id': enabled_if['field'],
+                        'required_value': enabled_if['value']
+                    }]
+                    remove_if_disabled = enabled_if.get('remove_if_disabled', False)
+                    logger.debug(f"Dépendance enabled_if simple définie pour {self.field_id}: "
+                                f"activé si {enabled_if['field']} = {enabled_if['value']}")
+                elif 'conditions' in enabled_if:
+                    # Structure explicite avec plusieurs conditions
+                    conditions = enabled_if['conditions']
+                    remove_if_disabled = enabled_if.get('remove_if_disabled', False)
+                    logger.debug(f"Dépendance enabled_if multiple explicite définie pour {self.field_id}: "
+                                f"{len(conditions)} conditions")
+                else:
+                    # Structure implicite - chaque clé qui n'est pas 'remove_if_disabled' ou 'operator' est un champ
+                    conditions = []
+                    for field_id, value in enabled_if.items():
+                        if field_id not in ['remove_if_disabled', 'operator']:
+                            conditions.append({
+                                'field_id': field_id,
+                                'required_value': value
+                            })
+                    remove_if_disabled = enabled_if.get('remove_if_disabled', False)
+                    logger.debug(f"Dépendance enabled_if multiple implicite définie pour {self.field_id}: "
+                                f"{len(conditions)} conditions")
+                
+                # Structure normalisée pour enabled_if avec support de plusieurs conditions
                 self.dependencies['enabled_if'] = {
-                    'field_id': enabled_if['field'],
-                    'required_value': enabled_if['value'],
-                    'remove_if_disabled': enabled_if.get('remove_if_disabled', False)
+                    'conditions': conditions,
+                    'operator': enabled_if.get('operator', 'AND'),  # AND ou OR
+                    'remove_if_disabled': remove_if_disabled
                 }
-                logger.debug(f"Dépendance enabled_if définie pour {self.field_id}: "
-                           f"activé si {enabled_if['field']} = {enabled_if['value']}")
+            elif isinstance(enabled_if, list):
+                # Liste de conditions (format alternatif)
+                conditions = []
+                for condition in enabled_if:
+                    if isinstance(condition, dict) and 'field' in condition and 'value' in condition:
+                        conditions.append({
+                            'field_id': condition['field'],
+                            'required_value': condition['value']
+                        })
+                
+                self.dependencies['enabled_if'] = {
+                    'conditions': conditions,
+                    'operator': 'AND',  # Par défaut, toutes les conditions doivent être vraies
+                    'remove_if_disabled': False
+                }
+                logger.debug(f"Dépendance enabled_if multiple (liste) définie pour {self.field_id}: "
+                            f"{len(conditions)} conditions")
 
         # === DEPENDS_ON ===
         if 'depends_on' in self.field_config:
-            # Structure normalisée pour depends_on
-            self.dependencies['depends_on'] = self.field_config['depends_on']
-            logger.debug(f"Dépendance depends_on définie pour {self.field_id}: "
-                       f"valeur dépend de {self.field_config['depends_on']}")
+            depends_on = self.field_config['depends_on']
+            
+            # Vérifier si c'est une chaîne simple, une liste ou un dictionnaire
+            if isinstance(depends_on, str):
+                # Format simple : une seule dépendance sous forme de chaîne
+                self.dependencies['depends_on'] = {
+                    'fields': [depends_on],
+                    'operator': 'AND'  # Par défaut, tous les champs doivent changer
+                }
+                logger.debug(f"Dépendance depends_on simple définie pour {self.field_id}: "
+                           f"valeur dépend de {depends_on}")
+            elif isinstance(depends_on, list):
+                # Format liste : plusieurs dépendances sous forme de liste
+                self.dependencies['depends_on'] = {
+                    'fields': depends_on,
+                    'operator': 'AND'  # Par défaut, tous les champs doivent changer
+                }
+                logger.debug(f"Dépendance depends_on multiple (liste) définie pour {self.field_id}: "
+                           f"valeur dépend de {', '.join(depends_on)}")
+            elif isinstance(depends_on, dict):
+                # Format dictionnaire : configuration avancée
+                if 'fields' in depends_on:
+                    # Format explicite avec liste de champs
+                    fields = depends_on['fields']
+                    operator = depends_on.get('operator', 'AND')
+                    self.dependencies['depends_on'] = {
+                        'fields': fields if isinstance(fields, list) else [fields],
+                        'operator': operator
+                    }
+                    logger.debug(f"Dépendance depends_on avancée définie pour {self.field_id}: "
+                               f"valeur dépend de {fields} avec opérateur {operator}")
+                else:
+                    # Format implicite - chaque clé qui n'est pas 'operator' est un champ
+                    fields = []
+                    for field_id, include in depends_on.items():
+                        if field_id != 'operator' and include:
+                            fields.append(field_id)
+                    
+                    self.dependencies['depends_on'] = {
+                        'fields': fields,
+                        'operator': depends_on.get('operator', 'AND')
+                    }
+                    logger.debug(f"Dépendance depends_on implicite définie pour {self.field_id}: "
+                               f"valeur dépend de {', '.join(fields)}")
+            else:
+                # Type non reconnu, utiliser comme une seule dépendance
+                self.dependencies['depends_on'] = {
+                    'fields': [str(depends_on)],
+                    'operator': 'AND'
+                }
+                logger.debug(f"Dépendance depends_on de type non reconnu pour {self.field_id}: "
+                           f"valeur dépend de {depends_on}")
 
         # === DYNAMIC_OPTIONS ===
         if 'dynamic_options' in self.field_config:
@@ -387,39 +481,88 @@ class ConfigField(VerticalGroup):
     def _check_initial_enabled_state(self) -> None:
         """
         Vérifie si le champ doit être initialement activé ou désactivé selon ses dépendances.
+        Supporte les dépendances multiples avec opérateurs logiques (AND/OR).
         """
         if not self.dependencies['enabled_if']:
             return
 
         # Récupérer les informations de dépendance
         dep_info = self.dependencies['enabled_if']
-        dep_field_id = dep_info['field_id']
-        required_value = dep_info['required_value']
-
-        # Chercher le champ dépendant
-        dep_field = self.fields_by_id.get(dep_field_id)
-
-        if dep_field:
-            # Récupérer la valeur actuelle
-            field_value = dep_field.get_value()
-
-            # Normaliser les valeurs booléennes si nécessaire
-            if isinstance(required_value, bool) and not isinstance(field_value, bool):
-                field_value = self._normalize_bool_value(field_value)
-
-            logger.debug(f"État initial pour {self.field_id}: {field_value} == {required_value}")
-
-            # Définir l'état initial
-            self.disabled = field_value != required_value
-            if self.disabled:
-                self.add_class('disabled')
+        
+        # Vérifier si nous avons la nouvelle structure avec conditions multiples
+        if 'conditions' in dep_info:
+            # Nouvelle structure avec conditions multiples
+            conditions = dep_info['conditions']
+            operator = dep_info.get('operator', 'AND')
+            condition_results = []
+            
+            for condition in conditions:
+                dep_field_id = condition['field_id']
+                required_value = condition['required_value']
+                
+                # Chercher le champ dépendant
+                dep_field = self.fields_by_id.get(dep_field_id)
+                
+                if dep_field:
+                    # Récupérer la valeur actuelle
+                    field_value = dep_field.get_value()
+                    
+                    # Normaliser les valeurs booléennes si nécessaire
+                    if isinstance(required_value, bool) and not isinstance(field_value, bool):
+                        field_value = str(field_value).lower() in ('true', '1', 'yes', 'y', 'oui', 'o')
+                    
+                    # Comparer les valeurs
+                    condition_results.append(field_value == required_value)
+                else:
+                    # Si le champ dépendant n'est pas trouvé, considérer la condition comme fausse
+                    condition_results.append(False)
+            
+            # Appliquer l'opérateur logique
+            if operator.upper() == 'AND':
+                should_enable = all(condition_results)
+            elif operator.upper() == 'OR':
+                should_enable = any(condition_results)
             else:
-                self.remove_class('disabled')
+                # Opérateur non reconnu, utiliser AND par défaut
+                should_enable = all(condition_results)
+                
+            # Appliquer l'état activé/désactivé
+            self.disabled = not should_enable
+            
+            # Gérer remove_if_disabled si nécessaire
+            if self.disabled and dep_info.get('remove_if_disabled', False):
+                self.display = False
+            else:
+                self.display = True
         else:
-            # Par défaut, désactiver si le champ dépendant n'est pas résolu
-            logger.debug(f"Champ dépendant {dep_field_id} non trouvé pour {self.field_id}, désactivé par défaut")
-            self.disabled = True
-            self.add_class('disabled')
+            # Ancienne structure (rétro-compatibilité)
+            dep_field_id = dep_info['field_id']
+            required_value = dep_info['required_value']
+
+            # Chercher le champ dépendant
+            dep_field = self.fields_by_id.get(dep_field_id)
+
+            if dep_field:
+                # Récupérer la valeur actuelle
+                field_value = dep_field.get_value()
+
+                # Normaliser les valeurs booléennes si nécessaire
+                if isinstance(required_value, bool) and not isinstance(field_value, bool):
+                    field_value = self._normalize_bool_value(field_value)
+
+                logger.debug(f"État initial pour {self.field_id}: {field_value} == {required_value}")
+
+                # Définir l'état initial
+                self.disabled = field_value != required_value
+                if self.disabled:
+                    self.add_class('disabled')
+                else:
+                    self.remove_class('disabled')
+            else:
+                # Par défaut, désactiver si le champ dépendant n'est pas résolu
+                logger.debug(f"Champ dépendant {dep_field_id} non trouvé pour {self.field_id}, désactivé par défaut")
+                self.disabled = True
+                self.add_class('disabled')
 
     def _normalize_bool_value(self, value: Any) -> bool:
         """
@@ -493,6 +636,40 @@ class ConfigField(VerticalGroup):
             bool: True si les options ont été mises à jour avec succès
         """
         return False
+
+    def restore_default(self) -> bool:
+        """
+        Réinitialise le champ à sa valeur par défaut définie dans la configuration.
+        Prend en compte les valeurs par défaut dynamiques définies via des scripts.
+        
+        Returns:
+            bool: True si la réinitialisation a réussi
+        """
+        try:
+            # Vérifier si une valeur par défaut dynamique est définie
+            if 'dynamic_default' in self.field_config:
+                logger.debug(f"Récupération de la valeur par défaut dynamique pour {self.field_id}")
+                dynamic_value = self._get_dynamic_default()
+                
+                if dynamic_value is not None:
+                    logger.debug(f"Réinitialisation de {self.field_id} à la valeur dynamique: '{dynamic_value}'")
+                    return self.set_value(dynamic_value, update_input=True, update_dependencies=True)
+                else:
+                    logger.warning(f"Valeur dynamique non disponible pour {self.field_id}, utilisation de la valeur par défaut statique")
+            
+            # Sinon, utiliser la valeur par défaut statique
+            default_value = self.field_config.get('default')
+            
+            if default_value is not None:
+                logger.debug(f"Réinitialisation de {self.field_id} à la valeur par défaut statique: {default_value}")
+                return self.set_value(default_value, update_input=True, update_dependencies=True)
+            else:
+                logger.debug(f"Pas de valeur par défaut définie pour {self.field_id}")
+                # Pour les champs sans valeur par défaut, on peut définir une valeur vide
+                return self.set_value("", update_input=True, update_dependencies=True)
+        except Exception as e:
+            logger.error(f"Erreur lors de la réinitialisation de {self.field_id}: {e}")
+            return False
 
     def validate_input(self, value: Any) -> Tuple[bool, str]:
         """

@@ -43,9 +43,9 @@ class Main:
         self.logger.init_logs()
         icon = config.get('icon', '')
         name = config.get('name', '')
-        self.logger.start(f"Lancement du plugin {icon} {name}")
+        self.logger.start(f"Lancement du plugin {name}")
         returnValue=self.plugin.run(config,self.logger,self.target_ip)
-        self.logger.end(f"Fin d'exécution du plugin {icon} {name}")
+        self.logger.end(f"Fin d'exécution du plugin {name}")
         self.logger.shutdown()
 
         return returnValue

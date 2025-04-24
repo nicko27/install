@@ -214,15 +214,21 @@ class ExecutionScreen(Screen):
         """
         logger.debug("Exécution terminée")
 
-        # Générer un rapport si un gestionnaire est disponible
-        if self.report_manager is not None:
-            try:
-                logger.debug("Génération du rapport d'exécution")
-                await self.report_manager.generate_report(self.plugins_config)
-            except Exception as e:
-                logger.error(f"Erreur lors de la génération du rapport: {e}")
-                logger.error(traceback.format_exc())
-                self.notify(f"Erreur lors de la génération du rapport: {e}", severity="error")
+        try:
+            widget = self.query_one(ExecutionWidget)
+            if widget:
+                # Force un rafraîchissement final de l'interface
+                widget.refresh()
+                # Force un flush final des logs
+                await LoggerUtils.flush_pending_messages(self)
+                # Attendre un court instant
+                await asyncio.sleep(0.1)
+                # Force un second flush pour s'assurer que tout est bien traité
+                await LoggerUtils.flush_pending_messages(self)
+        except Exception as e:
+            logger.error(f"Erreur lors du flush final des logs: {e}")
+            logger.error(traceback.format_exc())
+
 
     async def _handle_cancellation(self) -> None:
         """

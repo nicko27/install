@@ -25,5 +25,6 @@ config_fields:
       value_key: ip
       path: "@[scripts]"
     enabled_if:
-      field: "printer_all"
-      value: false
+      conditions:
+        - field_id: "printer_all"
+          required_value: false

@@ -45,7 +45,7 @@ class Plugin:
                 lara_list="lara.list"
                 returnValue=True
 
-                if aptCmd.is_installed("lara-program", min_version="22.04.5.0"):
+                if aptCmd.is_installed("lara-program", min_version="22.04.3.0"):
                     output_msg = "Lara est déja installé"
                     log.success(output_msg)
                     log.next_step()

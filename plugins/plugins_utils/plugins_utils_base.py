@@ -238,323 +238,375 @@ class PluginsUtilsBase:
     # --- Méthodes d'Exécution de Commandes Optimisées ---
 
     def run(self,
-            cmd: Union[str, List[str]],
-            input_data: Optional[str] = None,
-            no_output: bool = False,
-            print_command: bool = False,
-            real_time_output: bool = True,  # Activé par défaut pour plus de réactivité
-            error_as_warning: bool = False,
-            timeout: Optional[int] = DEFAULT_COMMAND_TIMEOUT,
-            check: bool = False,  # Par défaut False pour retourner succès/échec
-            shell: bool = False,
-            cwd: Optional[str] = None,
-            env: Optional[Dict[str, str]] = None,
-            needs_sudo: Optional[bool] = None,
-            show_progress: bool = True) -> Tuple[bool, str, str]:
-        """
-        Exécute une commande système, en utilisant sudo si nécessaire et non déjà root.
-        Version optimisée pour le traitement en temps réel des sorties et la détection
-        des barres de progression dans les outils comme apt, dpkg, etc.
+                cmd: Union[str, List[str]],
+                input_data: Optional[str] = None,
+                no_output: bool = False,
+                print_command: bool = False,
+                real_time_output: bool = True,  # Activé par défaut pour plus de réactivité
+                error_as_warning: bool = False,
+                timeout: Optional[int] = DEFAULT_COMMAND_TIMEOUT,
+                check: bool = False,  # Par défaut False pour retourner succès/échec
+                shell: bool = False,
+                cwd: Optional[str] = None,
+                env: Optional[Dict[str, str]] = None,
+                needs_sudo: Optional[bool] = None,
+                show_progress: bool = True) -> Tuple[bool, str, str]:
+            """
+            Exécute une commande système, en utilisant sudo si nécessaire et non déjà root.
+            Version optimisée pour le traitement en temps réel des sorties et la détection
+            des barres de progression dans les outils comme apt, dpkg, etc.
 
-        Args:
-            cmd: Commande à exécuter (chaîne ou liste d'arguments).
-                 Si chaîne et shell=False, elle sera découpée avec shlex.
-            input_data: Données à envoyer sur stdin (optionnel).
-            no_output: Si True, ne journalise pas stdout/stderr.
-            print_command: Si True, journalise la commande avant exécution.
-            real_time_output: Si True, affiche la sortie en temps réel avec traitement par lots.
-            error_as_warning: Si True, traite les erreurs (stderr) comme des avertissements.
-            timeout: Timeout en secondes pour la commande (None pour aucun timeout).
-            check: Si True, lève une exception CalledProcessError en cas d'échec.
-                   Si False (par défaut), retourne le succès basé sur le code de retour.
-            shell: Si True, exécute la commande via le shell système (attention sécurité).
-            cwd: Répertoire de travail pour la commande (optionnel).
-            env: Variables d'environnement pour la commande (optionnel). Si None,
-                 l'environnement actuel est hérité. Si fourni, il remplace l'env.
-            needs_sudo: Forcer l'utilisation de sudo (True), forcer la non-utilisation (False),
-                        ou laisser la détection automatique (None, défaut).
-            show_progress: Si True, détecte et affiche les barres de progression.
+            Args:
+                cmd: Commande à exécuter (chaîne ou liste d'arguments).
+                    Si chaîne et shell=False, elle sera découpée avec shlex.
+                input_data: Données à envoyer sur stdin (optionnel).
+                no_output: Si True, ne journalise pas stdout/stderr.
+                print_command: Si True, journalise la commande avant exécution.
+                real_time_output: Si True, affiche la sortie en temps réel avec traitement par lots.
+                error_as_warning: Si True, traite les erreurs (stderr) comme des avertissements.
+                timeout: Timeout en secondes pour la commande (None pour aucun timeout).
+                check: Si True, lève une exception CalledProcessError en cas d'échec.
+                    Si False (par défaut), retourne le succès basé sur le code de retour.
+                shell: Si True, exécute la commande via le shell système (attention sécurité).
+                cwd: Répertoire de travail pour la commande (optionnel).
+                env: Variables d'environnement pour la commande (optionnel). Si None,
+                    l'environnement actuel est hérité. Si fourni, il remplace l'env.
+                needs_sudo: Forcer l'utilisation de sudo (True), forcer la non-utilisation (False),
+                            ou laisser la détection automatique (None, défaut).
+                show_progress: Si True, détecte et affiche les barres de progression.
 
-        Returns:
-            Tuple (success: bool, stdout: str, stderr: str).
-            'success' est True si le code de retour est 0.
+            Returns:
+                Tuple (success: bool, stdout: str, stderr: str).
+                'success' est True si le code de retour est 0.
 
-        Raises:
-            subprocess.CalledProcessError: Si la commande échoue et check=True.
-            subprocess.TimeoutExpired: Si le timeout est dépassé.
-            FileNotFoundError: Si la commande ou sudo n'est pas trouvée.
-            PermissionError: Si sudo est nécessaire mais échoue (ex: mauvais mdp).
-        """
-        # En mode débogueur, simplifier l'exécution
-        if self.debugger_mode:
-            # Utiliser un timeout plus court en mode débogueur pour éviter les blocages
-            if timeout is None or timeout > 30:
-                timeout = 30
+            Raises:
+                subprocess.CalledProcessError: Si la commande échoue et check=True.
+                subprocess.TimeoutExpired: Si le timeout est dépassé.
+                FileNotFoundError: Si la commande ou sudo n'est pas trouvée.
+                PermissionError: Si sudo est nécessaire mais échoue (ex: mauvais mdp).
+            """
+            # En mode débogueur, simplifier l'exécution
+            if self.debugger_mode:
+                # Utiliser un timeout plus court en mode débogueur pour éviter les blocages
+                if timeout is None or timeout > 30:
+                    timeout = 30
 
-            # Simplifier la lecture des sorties pour éviter les blocages
-            real_time_output = False
+                # Simplifier la lecture des sorties pour éviter les blocages
+                real_time_output = False
 
-        # 1. Préparation de la commande
-        if isinstance(cmd, str) and not shell:
-            try:
-                cmd_list = shlex.split(cmd)
-            except ValueError as e:
-                self.log_error(f"Erreur lors du découpage de la commande: '{cmd}'. Erreur: {e}")
-                raise ValueError(f"Commande invalide: {cmd}") from e
-        elif isinstance(cmd, list):
-            cmd_list = cmd
-        elif isinstance(cmd, str) and shell:
-            cmd_list = cmd  # Le shell interprétera la chaîne
-        else:
-            raise TypeError("La commande doit être une chaîne ou une liste d'arguments.")
-
-        # 2. Détermination de l'utilisation de sudo
-        use_sudo = False
-        if needs_sudo is True:
-            if self._is_root:
-                self.log_debug("needs_sudo=True mais déjà root, sudo non utilisé.")
-            else:
-                use_sudo = True
-        elif needs_sudo is None and not self._is_root:
-            # Détection automatique: si pas root, on utilise sudo
-            use_sudo = True
-
-        sudo_password = None
-        if use_sudo:
-            # Vérifier si sudo est disponible
-            if subprocess.run(['which', 'sudo'], capture_output=True, text=True).returncode != 0:
-                self.log_error("Commande 'sudo' non trouvée. Impossible d'exécuter avec des privilèges élevés.")
-                raise FileNotFoundError("sudo n'est pas installé ou pas dans le PATH")
-
-            # Préparer la commande sudo
-            # Utiliser -S pour lire le mot de passe depuis stdin si besoin
-            # Utiliser -E pour préserver l'environnement si env n'est pas fourni
-            sudo_prefix = ["sudo", "-S"]
-            effective_env = env  # Par défaut, utiliser l'env fourni
-            if env is None:
-                sudo_prefix.append("-E")
-                effective_env = os.environ.copy()  # Hériter et potentiellement modifier
-
-            # Récupérer le mot de passe sudo depuis l'environnement
-            sudo_password = os.environ.get("SUDO_PASSWORD")
-
-            if isinstance(cmd_list, list):
-                cmd_to_run = sudo_prefix + cmd_list
-            else:  # shell=True
-                # Construire la commande shell avec sudo
-                # shlex.quote est essentiel pour la sécurité
-                quoted_cmd = shlex.quote(cmd_list)
-                cmd_to_run = f"{' '.join(sudo_prefix)} sh -c {quoted_cmd}"
-                shell = True  # Assurer que shell est True pour Popen
-                self.log_warning("Utilisation combinée de sudo et shell=True. Vérifier la commande.")
-
-        else:
-            cmd_to_run = cmd_list
-            effective_env = env  # Utiliser l'env fourni ou None (héritage par Popen)
-
-        # 3. Logging de la commande (masquer le mot de passe)
-        cmd_str_for_log = ' '.join(cmd_to_run) if isinstance(cmd_to_run, list) else cmd_to_run
-        if print_command:
-            logged_cmd = cmd_str_for_log
-            if sudo_password:
-                logged_cmd = logged_cmd.replace(sudo_password, '********')
-            self.log_info(f"Exécution: {logged_cmd}")
-
-        # Générer un ID unique pour cette commande
-        command_id = hash(str(cmd_to_run) + str(time.time()))
-        with self._command_lock:
-            self._running_commands[command_id] = cmd_str_for_log
-
-        # 4. Exécution avec subprocess.Popen
-        stdout_data = []
-        stderr_data = []
-        process = None
-        start_time = time.monotonic()
-
-        try:
-            process = subprocess.Popen(
-                cmd_to_run,
-                stdin=subprocess.PIPE,  # Toujours créer stdin pour passer le mot de passe sudo
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,  # Important pour l'encodage
-                shell=shell,
-                cwd=cwd,
-                env=effective_env,  # Utiliser l'environnement effectif
-                bufsize=1,  # Lecture ligne par ligne
-                universal_newlines=True  # Compatibilité Windows/Unix pour les fins de ligne
-            )
-
-            # 5. Gestion de l'input (y compris le mot de passe sudo)
-            if (use_sudo and sudo_password) or input_data:
-                input_full = ""
-                if use_sudo and sudo_password:
-                    input_full += sudo_password + "\n"  # Ajouter le mot de passe sudo
-                if input_data:
-                    input_full += input_data
-
-                # Écrire l'input de manière non-bloquante
+            # 1. Préparation de la commande
+            if isinstance(cmd, str) and not shell:
                 try:
-                    process.stdin.write(input_full)
-                    process.stdin.flush()
-                except (BrokenPipeError, IOError) as e:
-                    self.log_warning(f"Impossible d'écrire dans stdin: {e}")
-                finally:
-                    process.stdin.close()  # Fermer stdin après l'envoi
+                    cmd_list = shlex.split(cmd)
+                except ValueError as e:
+                    self.log_error(f"Erreur lors du découpage de la commande: '{cmd}'. Erreur: {e}")
+                    # Flush des logs avant de lever l'exception
+                    if hasattr(self.logger, 'flush'):
+                        self.logger.flush()
+                    raise ValueError(f"Commande invalide: {cmd}") from e
+            elif isinstance(cmd, list):
+                cmd_list = cmd
+            elif isinstance(cmd, str) and shell:
+                cmd_list = cmd  # Le shell interprétera la chaîne
+            else:
+                self.log_error(f"Type de commande invalide: {type(cmd)}")
+                # Flush des logs avant de lever l'exception
+                if hasattr(self.logger, 'flush'):
+                    self.logger.flush()
+                raise TypeError("La commande doit être une chaîne ou une liste d'arguments.")
 
-            # 6. Configurer le traitement optimisé des sorties
-            if real_time_output and not self.debugger_mode:
-                # Détection du type de commande pour optimiser le traitement
-                cmd_name = cmd_list[0].lower() if isinstance(cmd_list, list) and cmd_list else ""
-                is_apt = any(apt_cmd in cmd_name for apt_cmd in ["apt", "apt-get", "dpkg"])
+            # 2. Détermination de l'utilisation de sudo
+            use_sudo = False
+            if needs_sudo is True:
+                if self._is_root:
+                    self.log_debug("needs_sudo=True mais déjà root, sudo non utilisé.")
+                else:
+                    use_sudo = True
+            elif needs_sudo is None and not self._is_root:
+                # Détection automatique: si pas root, on utilise sudo
+                use_sudo = True
 
-                # Identifier un task_id unique pour cette commande
-                cmd_task_id = f"cmd_{command_id}"
+            sudo_password = None
+            if use_sudo:
+                # Vérifier si sudo est disponible
+                if subprocess.run(['which', 'sudo'], capture_output=True, text=True).returncode != 0:
+                    self.log_error("Commande 'sudo' non trouvée. Impossible d'exécuter avec des privilèges élevés.")
+                    # Flush des logs avant de lever l'exception
+                    if hasattr(self.logger, 'flush'):
+                        self.logger.flush()
+                    raise FileNotFoundError("sudo n'est pas installé ou pas dans le PATH")
 
-                # Créer une barre de progression pour cette commande si c'est apt et show_progress
-                progress_bar_created = False
-                if is_apt and self.use_visual_bars and show_progress and not no_output:
-                    apt_cmd_desc = f"Commande: {cmd_name}"
-                    if isinstance(cmd_list, list) and len(cmd_list) > 1:
-                        apt_cmd_desc += f" {cmd_list[1]}"
-                    self.logger.create_bar(cmd_task_id, 100, pre_text=apt_cmd_desc, bar_width=30)
-                    progress_bar_created = True
+                # Préparer la commande sudo
+                # Utiliser -S pour lire le mot de passe depuis stdin si besoin
+                # Utiliser -E pour préserver l'environnement si env n'est pas fourni
+                sudo_prefix = ["sudo", "-S"]
+                effective_env = env  # Par défaut, utiliser l'env fourni
+                if env is None:
+                    sudo_prefix.append("-E")
+                    effective_env = os.environ.copy()  # Hériter et potentiellement modifier
 
-                # Lire les sorties en temps réel avec traitement par lots
-                success, output, error = self._read_process_output_optimized(
-                    process, timeout, cmd_task_id, is_apt, not no_output,
-                    error_as_warning, show_progress
+                # Récupérer le mot de passe sudo depuis l'environnement
+                sudo_password = os.environ.get("SUDO_PASSWORD")
+
+                if isinstance(cmd_list, list):
+                    cmd_to_run = sudo_prefix + cmd_list
+                else:  # shell=True
+                    # Construire la commande shell avec sudo
+                    # shlex.quote est essentiel pour la sécurité
+                    quoted_cmd = shlex.quote(cmd_list)
+                    cmd_to_run = f"{' '.join(sudo_prefix)} sh -c {quoted_cmd}"
+                    shell = True  # Assurer que shell est True pour Popen
+                    self.log_warning("Utilisation combinée de sudo et shell=True. Vérifier la commande.")
+
+            else:
+                cmd_to_run = cmd_list
+                effective_env = env  # Utiliser l'env fourni ou None (héritage par Popen)
+
+            # 3. Logging de la commande (masquer le mot de passe)
+            cmd_str_for_log = ' '.join(cmd_to_run) if isinstance(cmd_to_run, list) else cmd_to_run
+            if print_command:
+                logged_cmd = cmd_str_for_log
+                if sudo_password:
+                    logged_cmd = logged_cmd.replace(sudo_password, '********')
+                self.log_info(f"Exécution: {logged_cmd}")
+
+            # Générer un ID unique pour cette commande
+            command_id = hash(str(cmd_to_run) + str(time.time()))
+            with self._command_lock:
+                self._running_commands[command_id] = cmd_str_for_log
+
+            # 4. Exécution avec subprocess.Popen
+            stdout_data = []
+            stderr_data = []
+            process = None
+            start_time = time.monotonic()
+
+            try:
+                process = subprocess.Popen(
+                    cmd_to_run,
+                    stdin=subprocess.PIPE,  # Toujours créer stdin pour passer le mot de passe sudo
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,  # Important pour l'encodage
+                    shell=shell,
+                    cwd=cwd,
+                    env=effective_env,  # Utiliser l'environnement effectif
+                    bufsize=1,  # Lecture ligne par ligne
+                    universal_newlines=True  # Compatibilité Windows/Unix pour les fins de ligne
                 )
 
-                # Compléter la barre de progression si elle a été créée
-                if progress_bar_created:
-                    self.logger.update_bar(cmd_task_id, 100, color="green" if success else "red")
-                    self.logger.delete_bar(cmd_task_id)
+                # 5. Gestion de l'input (y compris le mot de passe sudo)
+                if (use_sudo and sudo_password) or input_data:
+                    input_full = ""
+                    if use_sudo and sudo_password:
+                        input_full += sudo_password + "\n"  # Ajouter le mot de passe sudo
+                    if input_data:
+                        input_full += input_data
 
-                # Stocker les sorties complètes
-                stdout_data = output.splitlines()
-                stderr_data = error.splitlines()
-
-                # Le code de retour est déjà géré par _read_process_output_optimized
-                return_code = 0 if success else 1
-            else:
-                # Utiliser communicate pour les cas où real_time_output n'est pas souhaité
-                # ou en mode débogueur pour éviter les blocages
-                try:
-                    stdout_res, stderr_res = process.communicate(timeout=timeout)
-                    if stdout_res: stdout_data = stdout_res.splitlines()
-                    if stderr_res: stderr_data = stderr_res.splitlines()
-
-                    # Afficher les sorties si demandé
-                    if not no_output:
-                        # Traiter toutes les lignes de stdout en une seule fois pour éviter
-                        # le mélange avec d'autres messages de log
-                        stdout_lines = [line.strip() for line in stdout_data if line.strip()]
-                        if stdout_lines:
-                            for line in stdout_lines:
-                                self.log_info(line)
-
-                        # Puis traiter toutes les lignes stderr
-                        stderr_lines = [line.strip() for line in stderr_data if line.strip()]
-                        if stderr_lines:
-                            log_stderr_func = self.log_warning if error_as_warning else self.log_error
-                            for line in stderr_lines:
-                                log_stderr_func(line)
-
-                    return_code = process.returncode
-
-                except subprocess.TimeoutExpired:
-                    elapsed = time.monotonic() - start_time
-                    self.log_error(f"Timeout ({timeout}s, écoulé: {elapsed:.2f}s) dépassé pour la commande: {cmd_str_for_log}")
+                    # Écrire l'input de manière non-bloquante
                     try:
-                        process.kill()
-                    except Exception as e:
-                        self.log_debug(f"Erreur lors de la tentative de kill du processus: {e}")
+                        process.stdin.write(input_full)
+                        process.stdin.flush()
+                    except (BrokenPipeError, IOError) as e:
+                        self.log_warning(f"Impossible d'écrire dans stdin: {e}")
+                    finally:
+                        process.stdin.close()  # Fermer stdin après l'envoi
 
-                    # Essayer de lire ce qui reste après kill
-                    try:
-                        stdout_res, stderr_res = process.communicate(timeout=1.0)  # Court timeout pour éviter blocage
-                        if stdout_res: stdout_data.extend(stdout_res.splitlines())
-                        if stderr_res: stderr_data.extend(stderr_res.splitlines())
-                    except Exception as e:
-                        self.log_debug(f"Erreur lors de la récupération des sorties après timeout: {e}")
+                # 6. Configurer le traitement optimisé des sorties
+                if real_time_output and not self.debugger_mode:
+                    # Détection du type de commande pour optimiser le traitement
+                    cmd_name = cmd_list[0].lower() if isinstance(cmd_list, list) and cmd_list else ""
+                    is_apt = any(apt_cmd in cmd_name for apt_cmd in ["apt", "apt-get", "dpkg"])
 
-                    # Relancer l'exception
-                    raise
+                    # Identifier un task_id unique pour cette commande
+                    cmd_task_id = f"cmd_{command_id}"
 
-            # 7. Construction des sorties complètes
-            stdout = "\n".join(line.rstrip() for line in stdout_data)
-            stderr = "\n".join(line.rstrip() for line in stderr_data)
+                    # Créer une barre de progression pour cette commande si c'est apt et show_progress
+                    progress_bar_created = False
+                    if is_apt and self.use_visual_bars and show_progress and not no_output:
+                        apt_cmd_desc = f"Commande: {cmd_name}"
+                        if isinstance(cmd_list, list) and len(cmd_list) > 1:
+                            apt_cmd_desc += f" {cmd_list[1]}"
+                        self.logger.create_bar(cmd_task_id, 100, pre_text=apt_cmd_desc, bar_width=30)
+                        progress_bar_created = True
 
-            # 8. Vérification du succès
-            success = (return_code == 0)
+                    # Lire les sorties en temps réel avec traitement par lots
+                    success, output, error = self._read_process_output_optimized(
+                        process, timeout, cmd_task_id, is_apt, not no_output,
+                        error_as_warning, show_progress
+                    )
 
-            # Gérer le cas spécifique de sudo échouant à cause du mot de passe
-            if use_sudo and return_code != 0 and any(err_msg in stderr.lower() for err_msg in
-                                                     ["incorrect password attempt",
-                                                      "sudo: a password is required"]):
-                err_msg = "Échec de l'authentification sudo."
-                self.log_error(err_msg)
-                if check:
-                    # Lever une exception PermissionError spécifique
-                    raise PermissionError(err_msg)
+                    # Compléter la barre de progression si elle a été créée
+                    if progress_bar_created:
+                        self.logger.update_bar(cmd_task_id, 100, color="green" if success else "red")
+                        self.logger.delete_bar(cmd_task_id)
+
+                    # Stocker les sorties complètes
+                    stdout_data = output.splitlines()
+                    stderr_data = error.splitlines()
+
+                    # Le code de retour est déjà géré par _read_process_output_optimized
+                    return_code = 0 if success else 1
                 else:
-                    return False, stdout, stderr  # Retourner échec
-
-            # Gérer check=True
-            if check and not success:
-                error_msg_detail = f"Commande échouée avec code {return_code}.\nStderr: {stderr}\nStdout: {stdout}"
-                self.log_error(f"Erreur lors de l'exécution de: {cmd_str_for_log}")
-                self.log_error(error_msg_detail)
-                raise subprocess.CalledProcessError(return_code, cmd_to_run, output=stdout, stderr=stderr)
-
-            # Nettoyer l'état interne
-            with self._command_lock:
-                if command_id in self._running_commands:
-                    del self._running_commands[command_id]
-
-            return success, stdout, stderr
-
-        except FileNotFoundError as e:
-            # Commande (ou sudo) non trouvée
-            self.log_error(f"Erreur: Commande ou dépendance introuvable: {e.filename}")
-            raise  # Relancer pour que l'appelant sache
-        except PermissionError as e:
-            # Erreur de permission (souvent sudo)
-            self.log_error(f"Erreur de permission: {e}")
-            raise  # Relancer
-        except Exception as e:
-            # Autres erreurs inattendues
-            self.log_error(f"Erreur inattendue lors de l'exécution de {cmd_str_for_log}: {e}", exc_info=True)
-            # Essayer de récupérer stdout/stderr si possible
-            stdout_err = "\n".join(stdout_data)
-            stderr_err = "\n".join(stderr_data)
-            # Si check=True, lever l'exception originale est peut-être mieux
-            if check: raise
-            return False, stdout_err, stderr_err  # Retourner échec si check=False
-        finally:
-            # Nettoyer les ressources si besoin
-            with self._command_lock:
-                if command_id in self._running_commands:
-                    del self._running_commands[command_id]
-
-            # S'assurer que les processus sont nettoyés
-            if process is not None:
-                try:
-                    if process.poll() is None:  # Le processus est encore en cours
-                        process.terminate()
-                        process.wait(timeout=1.0)  # Attendre la fin, avec timeout
-                except Exception:
-                    # En dernier recours, essayer de tuer brutalement
+                    # Utiliser communicate pour les cas où real_time_output n'est pas souhaité
+                    # ou en mode débogueur pour éviter les blocages
                     try:
-                        process.kill()
+                        stdout_res, stderr_res = process.communicate(timeout=timeout)
+                        if stdout_res: stdout_data = stdout_res.splitlines()
+                        if stderr_res: stderr_data = stderr_res.splitlines()
+
+                        # Afficher les sorties si demandé
+                        if not no_output:
+                            # Traiter toutes les lignes de stdout en une seule fois pour éviter
+                            # le mélange avec d'autres messages de log
+                            stdout_lines = [line.strip() for line in stdout_data if line.strip()]
+                            if stdout_lines:
+                                for line in stdout_lines:
+                                    self.log_info(line)
+
+                            # Puis traiter toutes les lignes stderr
+                            stderr_lines = [line.strip() for line in stderr_data if line.strip()]
+                            if stderr_lines:
+                                log_stderr_func = self.log_warning if error_as_warning else self.log_error
+                                for line in stderr_lines:
+                                    log_stderr_func(line)
+
+                        return_code = process.returncode
+
+                    except subprocess.TimeoutExpired:
+                        elapsed = time.monotonic() - start_time
+                        self.log_error(f"Timeout ({timeout}s, écoulé: {elapsed:.2f}s) dépassé pour la commande: {cmd_str_for_log}")
+                        try:
+                            process.kill()
+                        except Exception as e:
+                            self.log_debug(f"Erreur lors de la tentative de kill du processus: {e}")
+
+                        # Essayer de lire ce qui reste après kill
+                        try:
+                            stdout_res, stderr_res = process.communicate(timeout=1.0)  # Court timeout pour éviter blocage
+                            if stdout_res: stdout_data.extend(stdout_res.splitlines())
+                            if stderr_res: stderr_data.extend(stderr_res.splitlines())
+                        except Exception as e:
+                            self.log_debug(f"Erreur lors de la récupération des sorties après timeout: {e}")
+
+                        # Flush des logs avant de relancer l'exception
+                        if hasattr(self.logger, 'flush'):
+                            self.logger.flush()
+
+                        # Relancer l'exception
+                        raise
+
+                # 7. Construction des sorties complètes
+                stdout = "\n".join(line.rstrip() for line in stdout_data)
+                stderr = "\n".join(line.rstrip() for line in stderr_data)
+
+                # 8. Vérification du succès
+                success = (return_code == 0)
+
+                # Gérer le cas spécifique de sudo échouant à cause du mot de passe
+                if use_sudo and return_code != 0 and any(err_msg in stderr.lower() for err_msg in
+                                                        ["incorrect password attempt",
+                                                        "sudo: a password is required"]):
+                    err_msg = "Échec de l'authentification sudo."
+                    self.log_error(err_msg)
+
+                    # Flush des logs avant de retourner ou lever une exception
+                    if hasattr(self.logger, 'flush'):
+                        self.logger.flush()
+
+                    if check:
+                        # Lever une exception PermissionError spécifique
+                        raise PermissionError(err_msg)
+                    else:
+                        return False, stdout, stderr  # Retourner échec
+
+                # Gérer check=True
+                if check and not success:
+                    error_msg_detail = f"Commande échouée avec code {return_code}.\nStderr: {stderr}\nStdout: {stdout}"
+                    self.log_error(f"Erreur lors de l'exécution de: {cmd_str_for_log}")
+                    self.log_error(error_msg_detail)
+
+                    # Flush des logs avant de lever l'exception
+                    if hasattr(self.logger, 'flush'):
+                        self.logger.flush()
+
+                    raise subprocess.CalledProcessError(return_code, cmd_to_run, output=stdout, stderr=stderr)
+
+                # Nettoyer l'état interne
+                with self._command_lock:
+                    if command_id in self._running_commands:
+                        del self._running_commands[command_id]
+
+                # Flush des logs avant de retourner le résultat
+                if hasattr(self.logger, 'flush'):
+                    self.logger.flush()
+
+                return success, stdout, stderr
+
+            except FileNotFoundError as e:
+                # Commande (ou sudo) non trouvée
+                self.log_error(f"Erreur: Commande ou dépendance introuvable: {e.filename}")
+
+                # Flush des logs avant de relancer l'exception
+                if hasattr(self.logger, 'flush'):
+                    self.logger.flush()
+
+                raise  # Relancer pour que l'appelant sache
+
+            except PermissionError as e:
+                # Erreur de permission (souvent sudo)
+                self.log_error(f"Erreur de permission: {e}")
+
+                # Flush des logs avant de relancer l'exception
+                if hasattr(self.logger, 'flush'):
+                    self.logger.flush()
+
+                raise  # Relancer
+
+            except Exception as e:
+                # Autres erreurs inattendues
+                self.log_error(f"Erreur inattendue lors de l'exécution de {cmd_str_for_log}: {e}", exc_info=True)
+
+                # Essayer de récupérer stdout/stderr si possible
+                stdout_err = "\n".join(stdout_data)
+                stderr_err = "\n".join(stderr_data)
+
+                # Flush des logs avant de retourner ou lever une exception
+                if hasattr(self.logger, 'flush'):
+                    self.logger.flush()
+
+                # Si check=True, lever l'exception originale est peut-être mieux
+                if check: raise
+                return False, stdout_err, stderr_err  # Retourner échec si check=False
+
+            finally:
+                # Nettoyer les ressources si besoin
+                with self._command_lock:
+                    if command_id in self._running_commands:
+                        del self._running_commands[command_id]
+
+                # S'assurer que les processus sont nettoyés
+                if process is not None:
+                    try:
+                        if process.poll() is None:  # Le processus est encore en cours
+                            process.terminate()
+                            process.wait(timeout=1.0)  # Attendre la fin, avec timeout
                     except Exception:
-                        pass  # Ignorer les erreurs finales
-            if self.logger:
-                self.logger.flush()
+                        # En dernier recours, essayer de tuer brutalement
+                        try:
+                            process.kill()
+                        except Exception:
+                            pass  # Ignorer les erreurs finales
+
+                # Dernier flush des logs pour s'assurer que tout est bien traité
+                if hasattr(self.logger, 'flush'):
+                    try:
+                        self.logger.flush()
+                    except Exception:
+                        pass  # Ignorer les erreurs lors du flush final
 
     def _read_process_output_optimized(self, process, timeout, task_id, is_apt,
-                                      log_output, error_as_warning, show_progress):
+                                  log_output, error_as_warning, show_progress):
         """
         Lit et traite la sortie d'un processus en temps réel avec traitement par lots.
         Toutes les lignes sont traitées de manière égale, dans l'ordre chronologique.
@@ -596,6 +648,12 @@ class PluginsUtilsBase:
         # Utiliser un timeout pour les opérations de lecture pour éviter les blocages
         select_timeout = 0.1  # 100ms
 
+        # Détecter si nous sommes dans l'application principale vs. ligne de commande
+        # En mode application ou debugger, on traite différemment pour assurer l'ordre
+        is_app_mode = 'TEXTUAL_APP' in os.environ or hasattr(sys, '_called_from_textual')
+        is_debug_mode = self.debugger_mode
+        enforce_sequential = is_app_mode or is_debug_mode
+
         # Boucle principale de lecture
         while process.poll() is None:
             # Vérifier le timeout global
@@ -614,116 +672,177 @@ class PluginsUtilsBase:
                 # Descripteurs de fichiers invalides ou fermés
                 break
 
-            # Traitement par lots basé sur le temps écoulé plutôt que le nombre de lignes
-            batch_timeout = (current_time - last_batch_time) >= self._throttle_time
+            # En mode application/debug, on traite les sorties séquentiellement et immédiatement
+            # pour éviter les problèmes d'ordre
+            if enforce_sequential:
+                # Traiter immédiatement chaque ligne disponible
+                if stdout_fd in ready:
+                    try:
+                        line = process.stdout.readline()
+                        if line:
+                            line = line.rstrip()
+                            all_stdout_lines.append(line)
 
-            # Si le timeout de traitement par lots est atteint, traiter les lots actuels
-            if batch_timeout and (stdout_batch or stderr_batch):
-                with self._output_lock:
-                    # Traiter d'abord toutes les lignes stdout
-                    if stdout_batch:
-                        self._process_output_batch(stdout_batch, False, log_output, error_as_warning)
-                        stdout_batch = []
+                            # Traiter immédiatement sans batching
+                            if log_output:
+                                self.log_info(line)
+                                if hasattr(self.logger, 'flush'):
+                                    self.logger.flush()
 
-                    # Puis traiter toutes les lignes stderr
-                    if stderr_batch:
-                        self._process_output_batch(stderr_batch, True, log_output, error_as_warning)
-                        stderr_batch = []
+                            # Détecter progression si nécessaire
+                            if show_progress and (is_apt or self._detect_progress_in_line(line, task_id)):
+                                # Pour apt, mettre à jour le compteur d'items
+                                if is_apt:
+                                    if total_items is None and "Get:" in line:
+                                        match = self._apt_update_total_pattern.search(line)
+                                        if match:
+                                            total_items = int(match.group(1)) * 2
 
-                # Réinitialiser le timestamp du dernier traitement par lots
-                last_batch_time = current_time
+                                    if "Get:" in line or "Setting up " in line:
+                                        processed_items += 1
+                                        if total_items:
+                                            progress_percentage = min(int((processed_items / total_items) * 100), 100)
+                                            if progress_percentage - last_percentage_update >= 2:
+                                                last_percentage_update = progress_percentage
+                                                self._update_command_progress(task_id, progress_percentage)
+                    except (IOError, OSError) as e:
+                        self.log_debug(f"Erreur lors de la lecture de stdout: {e}")
+                        break
 
-            # Lire stdout si prêt
-            if stdout_fd in ready:
-                try:
-                    line = process.stdout.readline()
-                    if line:
-                        line = line.rstrip()
-                        all_stdout_lines.append(line)
+                if stderr_fd in ready:
+                    try:
+                        line = process.stderr.readline()
+                        if line:
+                            line = line.rstrip()
+                            all_stderr_lines.append(line)
 
-                        # Ajouter au batch pour traitement groupé
-                        stdout_batch.append(line)
+                            # Traiter immédiatement sans batching
+                            if log_output:
+                                log_func = self.log_warning if error_as_warning else self.log_error
+                                log_func(line)
+                                if hasattr(self.logger, 'flush'):
+                                    self.logger.flush()
+                    except (IOError, OSError) as e:
+                        self.log_debug(f"Erreur lors de la lecture de stderr: {e}")
+                        break
+            else:
+                # Mode standard: Traitement par lots basé sur le temps écoulé
+                batch_timeout = (current_time - last_batch_time) >= self._throttle_time
 
-                        # Détecter les patterns de progression dans stdout si show_progress
-                        if show_progress:
-                            if is_apt:
-                                # Détecter le nombre total d'éléments pour apt-get update
-                                if total_items is None and "Get:" in line:
-                                    match = self._apt_update_total_pattern.search(line)
-                                    if match:
-                                        # Estimer à partir du premier numéro trouvé
-                                        total_items = int(match.group(1)) * 2  # Estimation approximative
-                                        self.log_debug(f"Nombre total d'éléments apt estimé: {total_items}")
+                # Si le timeout de traitement par lots est atteint, traiter les lots actuels
+                if batch_timeout and (stdout_batch or stderr_batch):
+                    with self._output_lock:
+                        # Traiter d'abord toutes les lignes stdout
+                        if stdout_batch:
+                            self._process_output_batch(stdout_batch, False, log_output, error_as_warning)
+                            stdout_batch = []
 
-                                # Compter les éléments traités (Get:X ou Setting up pkg)
-                                if "Get:" in line or "Setting up " in line:
-                                    processed_items += 1
-                                    # Calculer le pourcentage si on a une estimation du total
-                                    if total_items:
-                                        progress_percentage = min(int((processed_items / total_items) * 100), 100)
-                                        # Éviter les mises à jour trop fréquentes
-                                        if progress_percentage - last_percentage_update >= 2:  # Minimum 2% de différence
-                                            last_percentage_update = progress_percentage
-                                            # Mettre à jour la barre avec throttling
-                                            self._update_command_progress(task_id, progress_percentage)
+                        # Puis traiter toutes les lignes stderr
+                        if stderr_batch:
+                            self._process_output_batch(stderr_batch, True, log_output, error_as_warning)
+                            stderr_batch = []
 
-                            # Détecter les patterns génériques
-                            self._detect_progress_in_line(line, task_id)
-                except (IOError, OSError) as e:
-                    self.log_debug(f"Erreur lors de la lecture de stdout: {e}")
-                    break
+                    # Réinitialiser le timestamp du dernier traitement par lots
+                    last_batch_time = current_time
 
-            # Lire stderr si prêt
-            if stderr_fd in ready:
-                try:
-                    line = process.stderr.readline()
-                    if line:
-                        line = line.rstrip()
-                        all_stderr_lines.append(line)
+                # Lire stdout si prêt
+                if stdout_fd in ready:
+                    try:
+                        line = process.stdout.readline()
+                        if line:
+                            line = line.rstrip()
+                            all_stdout_lines.append(line)
 
-                        # Ajouter au batch pour traitement groupé
-                        stderr_batch.append(line)
-                except (IOError, OSError) as e:
-                    self.log_debug(f"Erreur lors de la lecture de stderr: {e}")
-                    break
+                            # Ajouter au batch pour traitement groupé
+                            stdout_batch.append(line)
+
+                            # Détecter les patterns de progression dans stdout si show_progress
+                            if show_progress:
+                                if is_apt:
+                                    # Détecter le nombre total d'éléments pour apt-get update
+                                    if total_items is None and "Get:" in line:
+                                        match = self._apt_update_total_pattern.search(line)
+                                        if match:
+                                            # Estimer à partir du premier numéro trouvé
+                                            total_items = int(match.group(1)) * 2  # Estimation approximative
+                                            self.log_debug(f"Nombre total d'éléments apt estimé: {total_items}")
+
+                                    # Compter les éléments traités (Get:X ou Setting up pkg)
+                                    if "Get:" in line or "Setting up " in line:
+                                        processed_items += 1
+                                        # Calculer le pourcentage si on a une estimation du total
+                                        if total_items:
+                                            progress_percentage = min(int((processed_items / total_items) * 100), 100)
+                                            # Éviter les mises à jour trop fréquentes
+                                            if progress_percentage - last_percentage_update >= 2:  # Minimum 2% de différence
+                                                last_percentage_update = progress_percentage
+                                                # Mettre à jour la barre avec throttling
+                                                self._update_command_progress(task_id, progress_percentage)
+
+                                # Détecter les patterns génériques
+                                self._detect_progress_in_line(line, task_id)
+                    except (IOError, OSError) as e:
+                        self.log_debug(f"Erreur lors de la lecture de stdout: {e}")
+                        break
+
+                # Lire stderr si prêt
+                if stderr_fd in ready:
+                    try:
+                        line = process.stderr.readline()
+                        if line:
+                            line = line.rstrip()
+                            all_stderr_lines.append(line)
+
+                            # Ajouter au batch pour traitement groupé
+                            stderr_batch.append(line)
+                    except (IOError, OSError) as e:
+                        self.log_debug(f"Erreur lors de la lecture de stderr: {e}")
+                        break
 
             # Si aucun flux prêt, petite pause pour éviter de monopoliser le CPU
             if not ready:
                 time.sleep(0.01)
 
-        while True:
-            try:
-                line = process.stdout.readline()
-                if not line:
-                    break
-                line = line.rstrip()
-                all_stdout_lines.append(line)
-                if log_output:
-                    self.log_info(line) # Envoyer directement au logger
-                # Détection de progression si nécessaire...
-            except (IOError, OSError):
-                break
+        # Lire le reste de stdout
+        remaining_stdout = self._read_remaining_stream(process.stdout)
+        all_stdout_lines.extend(remaining_stdout)
+        if log_output and remaining_stdout:
+            if enforce_sequential:
+                # Traiter immédiatement ligne par ligne
+                for line in remaining_stdout:
+                    self.log_info(line)
+                    if hasattr(self.logger, 'flush'):
+                        self.logger.flush()
+            else:
+                # Traiter par lot
+                self._process_output_batch(remaining_stdout, False, log_output, error_as_warning)
 
         # Lire le reste de stderr
-        while True:
-            try:
-                line = process.stderr.readline()
-                if not line:
-                    break
-                line = line.rstrip()
-                all_stderr_lines.append(line)
-                if log_output:
-                    log_func = self.log_warning if error_as_warning else self.log_error
-                    log_func(line) # Envoyer directement au logger
-            except (IOError, OSError):
-                break
+        remaining_stderr = self._read_remaining_stream(process.stderr)
+        all_stderr_lines.extend(remaining_stderr)
+        if log_output and remaining_stderr:
+            if enforce_sequential:
+                # Traiter immédiatement ligne par ligne
+                log_func = self.log_warning if error_as_warning else self.log_error
+                for line in remaining_stderr:
+                    log_func(line)
+                    if hasattr(self.logger, 'flush'):
+                        self.logger.flush()
+            else:
+                # Traiter par lot
+                self._process_output_batch(remaining_stderr, True, log_output, error_as_warning)
 
-        # Traiter les buffers restants
-        with self._output_lock:
-            if stdout_batch:
-                self._process_output_batch(stdout_batch, False, log_output, error_as_warning)
-            if stderr_batch:
-                self._process_output_batch(stderr_batch, True, log_output, error_as_warning)
+        # Traiter les buffers restants en mode normal
+        if not enforce_sequential:
+            with self._output_lock:
+                if stdout_batch:
+                    self._process_output_batch(stdout_batch, False, log_output, error_as_warning)
+                if stderr_batch:
+                    self._process_output_batch(stderr_batch, True, log_output, error_as_warning)
+
+        # Flush final pour s'assurer que tout est affiché
+        if hasattr(self.logger, 'flush'):
+            self.logger.flush()
 
         # Récupérer le code de retour et construire les sorties complètes
         return_code = process.poll()
@@ -733,6 +852,29 @@ class PluginsUtilsBase:
         stderr_output = "\n".join(all_stderr_lines)
 
         return success, stdout_output, stderr_output
+
+    def _read_remaining_stream(self, stream):
+        """
+        Lit les données restantes d'un flux jusqu'à EOF.
+
+        Args:
+            stream: Le flux à lire (process.stdout ou process.stderr)
+
+        Returns:
+            List[str]: Liste des lignes lues, sans les retours à la ligne
+        """
+        remaining_lines = []
+        while True:
+            try:
+                line = stream.readline()
+                if not line:
+                    break
+                line = line.rstrip()
+                if line:  # Ignorer les lignes vides
+                    remaining_lines.append(line)
+            except (IOError, OSError):
+                break
+        return remaining_lines
 
     def _process_output_batch(self, lines, is_stderr, log_output, error_as_warning):
         """

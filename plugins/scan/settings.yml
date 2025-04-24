@@ -5,7 +5,7 @@ category: Installation
 multiple: false
 icon: 📠
 sudo: true
-remote_execution: true
+remote_execution: false
 config_fields:
   user:
     type: text
@@ -35,5 +35,6 @@ config_fields:
     default: "/partage/commun/Numerisation"
     required: true
     enabled_if:
-      field: create_scan_dir
-      value: true
+      conditions:
+        - field_id: "create_scan_dir"
+          required_value: true

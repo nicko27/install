@@ -67,23 +67,22 @@ class IPField(ConfigField):
         if self.disabled:
             return True, ""
             
-        # Permettre une valeur vide si le champ n'est pas obligatoire
+        # Champ obligatoire
+        if self.field_config.get('required', False) and not value:
+            return False, "Ce champ ne peut pas être vide"
+            
+        # Si la valeur est vide et le champ n'est pas obligatoire, c'est valide
         if not value:
-            if self.field_config.get('not_empty', False):
-                return False, "Ce champ ne peut pas être vide"
             return True, ""
-        
-        # Validation du format IP (x.x.x.x où x est entre 0 et 255)
-        try:
-            # Les espaces sont autorisés lors de la saisie mais sont retirés pour validation
-            value_clean = value.strip()
-            octets = [int(x) for x in value_clean.split('.')]
-            if len(octets) == 4 and all(0 <= x <= 255 for x in octets):
-                return True, ""
-            return False, "Format IP invalide (doit être x.x.x.x où x est entre 0 et 255)"
-        except (ValueError, AttributeError):
+            
+        # Validation du format IP
+        import re
+        ip_pattern = r'^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
+        if not re.match(ip_pattern, value):
             return False, "Format d'adresse IP invalide"
-    
+            
+        return True, ""
+        
     def on_input_changed(self, event: Input.Changed) -> None:
         """Gestion des changements d'entrée avec validation IP spécifique"""
         # Vérifier que c'est bien notre input qui a changé
@@ -265,3 +264,33 @@ class IPField(ConfigField):
             self._internal_value = str(new_value) if new_value is not None else ""
         else:
             self.set_value(new_value, update_dependencies=False)
+            
+    def restore_default(self) -> bool:
+        """
+        Réinitialise le champ IP à sa valeur par défaut définie dans la configuration.
+        Prend en compte les valeurs par défaut dynamiques définies via des scripts.
+        
+        Returns:
+            bool: True si la réinitialisation a réussi
+        """
+        try:
+            # Vérifier si une valeur par défaut dynamique est définie
+            if 'dynamic_default' in self.field_config and hasattr(self, '_get_dynamic_default'):
+                logger.debug(f"Récupération de la valeur par défaut dynamique pour {self.field_id}")
+                dynamic_value = self._get_dynamic_default()
+                
+                if dynamic_value is not None:
+                    logger.debug(f"Réinitialisation du champ IP {self.field_id} à la valeur dynamique: '{dynamic_value}'")
+                    return self.set_value(dynamic_value, update_input=True, update_dependencies=True)
+                else:
+                    logger.warning(f"Valeur dynamique non disponible pour {self.field_id}, utilisation de la valeur par défaut statique")
+            
+            # Sinon, utiliser la valeur par défaut statique
+            default_value = self.field_config.get('default', '')
+            logger.debug(f"Réinitialisation du champ IP {self.field_id} à la valeur par défaut statique: '{default_value}'")
+            
+            # Utiliser notre propre méthode set_value pour appliquer la valeur par défaut
+            return self.set_value(default_value, update_input=True, update_dependencies=True)
+        except Exception as e:
+            logger.error(f"Erreur lors de la réinitialisation du champ IP {self.field_id}: {e}")
+            return False

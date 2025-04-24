@@ -28,6 +28,7 @@ from plugins_utils import metier
 class Plugin:
     def run(self,config,log,target_ip):
         try:
+            returnValue=True
             metierCmd = metier.MetierCommands(log,target_ip)
             # Vérifier si nous sommes en mode SSH depuis la configuration
             is_good_sms=metierCmd.is_good_sms()
@@ -35,6 +36,7 @@ class Plugin:
             is_ssh=config.get('ssh_mode', False)
             if is_ssh==False or (is_good_sms and is_good_lrpgn):
                 log.set_total_steps(1)
+                log.info("Lancement de la mise à jour des paquets...")
                 returnValue,stdout,stderr=metierCmd.run("/usr/local/sbin/install-update --force")
                 # Résultat final
                 if returnValue:
