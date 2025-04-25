@@ -30,6 +30,7 @@ from plugins_utils import utils_cmd
 class Plugin:
     def run(self,config,log,target_ip):
         try:
+            returnValue=True
             log.debug(f"Début de l'exécution du plugin add_printer")
             metierCmd = metier.MetierCommands(log,target_ip,config)
             printerCmd = printers.PrinterCommands(log,target_ip)
@@ -148,6 +149,7 @@ class Plugin:
                     returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
                 
                 if all:
+                    name = f"{baseName}_{printer_name}_Recto_NB"
                     options=utilsCmd.merge_dictionaries(ocommun,orecto,oa4,onb)
                     returnValue = printerCmd.add_printer(name, uri, ppd_file=ppdFile, model=model, options=options)
 

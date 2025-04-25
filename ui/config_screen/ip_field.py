@@ -243,11 +243,20 @@ class IPField(ConfigField):
     
     def get_value(self) -> str:
         """Récupère la valeur du champ IP, avec gestion des cas spéciaux"""
-        # Si on a une valeur en attente, la renvoyer en priorité
+        # Priorité 1: Si le widget input existe, récupérer sa valeur directement
+        if hasattr(self, 'input') and self.input is not None:
+            input_value = self.input.value
+            # Mettre à jour la valeur interne pour être cohérent
+        if input_value != self._internal_value:
+            logger.debug(f"Synchronisation de la valeur interne avec le widget pour {self.field_id}: '{self._internal_value}' → '{input_value}'")
+            self._internal_value = input_value
+        return input_value
+        
+        # Priorité 2: Si on a une valeur en attente, la renvoyer
         if hasattr(self, '_pending_value') and self._pending_value is not None:
             return self._pending_value
         
-        # Récupérer la valeur interne
+        # Priorité 3: Récupérer la valeur interne
         return self._internal_value
         
     # Interface de propriété pour accès simplifié

@@ -45,7 +45,7 @@ class DpkgCommands(PluginsUtilsBase):
         self.last_run_return_code = 0
         self._apt_cmd = AptCommands(logger, target_ip) if APT_AVAILABLE_FOR_DPKG else None
         if not APT_AVAILABLE_FOR_DPKG:
-             self.log_warning("Module AptCommands non trouvé. L'installation automatique de debconf-utils sera désactivée.")
+             self.log_warning("Module AptCommands non trouvé. L'installation automatique de paquets sera désactivée.")
 
     def add_package_selection(self, package: str, status: str = "install"):
         """
@@ -152,28 +152,30 @@ class DpkgCommands(PluginsUtilsBase):
 
     # --- Méthodes Debconf ---
 
-    def _ensure_debconf_utils(self) -> bool:
-        """Vérifie si debconf-utils est installé, et tente de l'installer sinon."""
-        # Vérifier si la commande debconf-set-selections existe
-        success_which, _, _ = self.run(['which', 'debconf-set-selections'], check=False, no_output=True, error_as_warning=True)
-        if success_which:
-            return True
-
-        self.log_warning("Le paquet 'debconf-utils' semble manquant...")
-        if not self._apt_cmd:
-             self.log_error("Impossible de tenter l'installation de 'debconf-utils' car AptCommands n'est pas disponible.")
-             return False
-
-        self.log_info("Tentative d'installation de 'debconf-utils' via AptCommands...")
-        # Utiliser l'instance AptCommands pour l'installation
-        install_success = self._apt_cmd.install('debconf-utils', auto_fix=True)
-        if not install_success:
-            self.log_error("Impossible d'installer 'debconf-utils', les opérations debconf échoueront.")
-            return False
-        self.log_info("'debconf-utils' installé avec succès.")
-        # Re-vérifier la commande après installation
-        recheck_success, _, _ = self.run(['which', 'debconf-set-selections'], check=False, no_output=True, error_as_warning=True)
-        return recheck_success
+    def _ensure_debconf_commands(self) -> Tuple[bool, List[str]]:
+        """
+        Vérifie quelles commandes debconf sont disponibles.
+        Ne tente pas d'installer debconf-utils.
+        
+        Returns:
+            Tuple contenant:
+            - bool: True si au moins une commande est disponible
+            - List[str]: Liste des commandes disponibles
+        """
+        available_commands = []
+        
+        # Vérifier les commandes disponibles
+        for cmd in ['debconf', 'debconf-communicate', 'debconf-show']:
+            success, _, _ = self.run(['which', cmd], check=False, no_output=True, error_as_warning=True)
+            if success:
+                available_commands.append(cmd)
+        
+        if not available_commands:
+            self.log_error("Aucune commande debconf n'est disponible. Les opérations debconf échoueront.")
+            return False, []
+        
+        self.log_debug(f"Commandes debconf disponibles: {', '.join(available_commands)}")
+        return True, available_commands
 
     def add_debconf_selection(self, package: str, question: str, q_type: str, value: str):
         """
@@ -216,7 +218,6 @@ class DpkgCommands(PluginsUtilsBase):
     def load_debconf_selections_from_file(self, filepath: str) -> bool:
         """Charge les pré-réponses debconf depuis un fichier et les ajoute à la liste interne."""
         self.log_info(f"Chargement des pré-réponses debconf depuis: {filepath}")
-        # Vérifier debconf-utils avant de lire
 
         # Lire le fichier (peut nécessiter sudo)
         success_read, content, stderr_read = self.run(['cat', filepath], check=False, needs_sudo=True, no_output=True)
@@ -240,7 +241,8 @@ class DpkgCommands(PluginsUtilsBase):
 
     def apply_debconf_selections(self, task_id: Optional[str] = None) -> bool:
         """
-        Applique toutes les pré-réponses debconf en attente via `debconf-set-selections`.
+        Applique toutes les pré-réponses debconf en attente en utilisant des méthodes alternatives
+        qui ne dépendent pas de debconf-utils.
         La liste interne est vidée après une application réussie.
 
         Args:
@@ -256,35 +258,119 @@ class DpkgCommands(PluginsUtilsBase):
         count = len(self._debconf_selections)
         self.log_info(f"Application de {count} pré-réponses debconf...")
         current_task_id = task_id or f"debconf_set_selections_{int(time.time())}"
-        self.start_task(1, description="Application via debconf-set-selections", task_id=current_task_id)
+        self.start_task(count, description="Application des pré-réponses debconf", task_id=current_task_id)
 
-        # Construire la chaîne pour stdin
-        selections_str = ""
-        for (pkg, quest), (q_type, value) in self._debconf_selections.items():
-             # Format: package question type value
-             selections_str += f"{pkg} {quest} {q_type} {value}\n"
-        self.log_debug(f"Contenu envoyé à debconf-set-selections:\n{selections_str}")
-
-        # Appeler debconf-set-selections via stdin
-        cmd = ['debconf-set-selections']
-        success, stdout, stderr = self.run(cmd, input_data=selections_str, check=False, needs_sudo=True)
-        self.update_task() # Termine l'étape
-
-        if success:
-             self.log_success(f"{count} pré-réponses debconf appliquées avec succès.")
-             self.clear_debconf_selections() # Vider après succès
-             self.complete_task(success=True)
-             return True
-        else:
-             self.log_error("Échec de l'application des pré-réponses debconf.")
-             if stderr: self.log_error(f"Stderr: {stderr}")
-             if stdout: self.log_info(f"Stdout: {stdout}")
-             self.complete_task(success=False, message="Échec debconf-set-selections")
-             return False
+        # Vérifier si debconf est disponible (outil de base)
+        has_debconf, _ = self._ensure_debconf_commands()
+        
+        if not has_debconf:
+            self.log_error("Les commandes debconf de base ne sont pas disponibles. Impossible d'appliquer les sélections debconf.")
+            self.complete_task(success=False, message="Commandes debconf non disponibles")
+            return False
+        
+        # Créer un fichier temporaire pour les sélections
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as temp_file:
+            try:
+                # Écrire les sélections dans le fichier temporaire
+                for (pkg, quest), (q_type, value) in self._debconf_selections.items():
+                    temp_file.write(f"{pkg} {quest} {q_type} {value}\n")
+                temp_file.flush()
+                
+                success = True
+                stdout_all = ""
+                stderr_all = ""
+                completed = 0
+                
+                # Vérifier si debconf-set-selections est disponible
+                has_set_selections, _, _ = self.run(['which', 'debconf-set-selections'], check=False, no_output=True, error_as_warning=True)
+                
+                if has_set_selections:
+                    # Méthode 1: Essayer d'utiliser debconf-set-selections directement
+                    self.log_debug("Tentative d'application avec debconf-set-selections...")
+                    cmd = f"DEBIAN_FRONTEND=noninteractive debconf-set-selections {temp_file.name}"
+                    success1, stdout1, stderr1 = self.run(cmd, shell=True, check=False, needs_sudo=True)
+                    
+                    if success1:
+                        self.log_debug("Application avec debconf-set-selections réussie")
+                        success = True
+                        stdout_all = stdout1
+                        stderr_all = stderr1
+                        completed = count
+                        self.update_task(completed)
+                    else:
+                        self.log_warning(f"Échec avec debconf-set-selections: {stderr1}")
+                        # Continuer avec les méthodes alternatives
+                        success = False
+                
+                # Si debconf-set-selections a échoué ou n'est pas disponible, traiter individuellement
+                if not has_set_selections or not success:
+                    # Méthode 2: Traiter chaque entrée individuellement avec debconf-communicate
+                    self.log_debug("Tentative avec debconf-communicate pour chaque entrée...")
+                    success = True
+                    completed = 0
+                    
+                    for (pkg, quest), (q_type, value) in self._debconf_selections.items():
+                        # Vérifier si debconf-communicate est disponible
+                        has_communicate, _, _ = self.run(['which', 'debconf-communicate'], check=False, no_output=True, error_as_warning=True)
+                        
+                        if has_communicate:
+                            # Construire la commande debconf-communicate
+                            # Format: echo "SET package/question value" | debconf-communicate package
+                            debconf_cmd = f"echo 'SET {quest} {value}' | DEBIAN_FRONTEND=noninteractive debconf-communicate {pkg}"
+                            entry_success, entry_stdout, entry_stderr = self.run(debconf_cmd, shell=True, check=False, needs_sudo=True)
+                        else:
+                            # Alternative: utiliser directement echo avec fichier de contrôle
+                            debconf_cmd = f"echo {shlex.quote(pkg)} {shlex.quote(quest)} {shlex.quote(q_type)} {shlex.quote(value)} > /tmp/debconf_temp && DEBIAN_FRONTEND=noninteractive debconf-set-selections /tmp/debconf_temp && rm -f /tmp/debconf_temp"
+                            entry_success, entry_stdout, entry_stderr = self.run(debconf_cmd, shell=True, check=False, needs_sudo=True)
+                        
+                        # Collecter les résultats
+                        success = success and entry_success
+                        if entry_stdout:
+                            stdout_all += f"[{pkg}/{quest}] {entry_stdout}\n"
+                        if entry_stderr:
+                            stderr_all += f"[{pkg}/{quest}] {entry_stderr}\n"
+                        
+                        completed += 1
+                        self.update_task(completed)
+                        
+                        if not entry_success:
+                            self.log_warning(f"Échec pour {pkg}/{quest}: {entry_stderr}")
+                            
+                            # Méthode 3: Essayer avec debconf/db_set directement si disponible
+                            self.log_debug(f"Tentative alternative pour {pkg}/{quest}...")
+                            alt_cmd = f"DEBIAN_FRONTEND=noninteractive debconf-db-set DB_PATH=/var/cache/debconf/config.dat {pkg} {quest} {value}"
+                            alt_success, alt_stdout, alt_stderr = self.run(alt_cmd, shell=True, check=False, needs_sudo=True)
+                            
+                            if alt_success:
+                                self.log_debug(f"Méthode alternative réussie pour {pkg}/{quest}")
+                                success = True  # Rétablir le succès pour cette entrée
+                
+                self.update_task(count)  # S'assurer que la tâche est complète
+                
+                if success:
+                    self.log_success(f"{count} pré-réponses debconf appliquées avec succès.")
+                    self.clear_debconf_selections()  # Vider après succès
+                    self.complete_task(success=True)
+                    return True
+                else:
+                    self.log_error("Échec de l'application des pré-réponses debconf.")
+                    if stderr_all: 
+                        self.log_error(f"Stderr: {stderr_all}")
+                    if stdout_all: 
+                        self.log_info(f"Stdout: {stdout_all}")
+                    self.complete_task(success=False, message="Échec de l'application debconf")
+                    return False
+            finally:
+                # Supprimer le fichier temporaire
+                try:
+                    os.unlink(temp_file.name)
+                except Exception as e:
+                    self.log_warning(f"Impossible de supprimer le fichier temporaire {temp_file.name}: {e}")
 
     def get_debconf_selections_for_package(self, package_name: str) -> Optional[Dict[Tuple[str, str], str]]:
         """
-        Récupère les sélections debconf actuelles pour un paquet spécifique.
+        Récupère les sélections debconf actuelles pour un paquet spécifique sans utiliser debconf-get-selections.
+        Utilise directement la commande debconf-show qui fait partie du paquet debconf de base.
 
         Args:
             package_name: Nom du paquet.
@@ -294,52 +380,102 @@ class DpkgCommands(PluginsUtilsBase):
             Retourne None en cas d'erreur, ou un dictionnaire vide si aucune sélection trouvée.
         """
         self.log_debug(f"Récupération des sélections debconf pour le paquet: {package_name}")
-
-        # Construire la commande: debconf-get-selections | grep '^paquet '
-        # Utiliser shlex.quote pour sécuriser le nom du paquet dans la commande shell
-        cmd_str = f"debconf-get-selections | grep '^{shlex.quote(package_name)}\\s'"
-        # Exécuter avec shell=True. check=False car grep retourne 1 si rien n'est trouvé.
-        # Pas besoin de sudo pour debconf-get-selections
-        success, stdout, stderr = self.run(cmd_str, shell=True, check=False, no_output=True, needs_sudo=False)
-
+        
+        # Créer un dictionnaire pour stocker les résultats
         selections: Dict[Tuple[str, str], str] = {}
-
-        if not success:
-            # Vérifier si l'échec est dû au fait que grep n'a rien trouvé (code retour 1)
-            if self.last_run_return_code and self.last_run_return_code == 1:
-                self.log_debug(f"Aucune sélection debconf trouvée pour le paquet '{package_name}'.")
-                return selections # Retourner un dict vide
-            else:
-                # Autre erreur
-                self.log_error(f"Échec de la récupération des sélections debconf pour '{package_name}'. Stderr: {stderr}")
-                return None
-
-        # Parser la sortie
-        count = 0
-        for line in stdout.splitlines():
-            line = line.strip()
-            if not line or line.startswith('#'):
-                continue
-            # Format: package question type value
-            parts = line.split(None, 3)
-            if len(parts) == 4:
-                pkg, quest, q_type, val = parts
-                # Double vérification que le paquet est correct (même si grep devrait l'assurer)
-                if pkg == package_name:
-                    selections[(quest, q_type)] = val
-                    count += 1
+        
+        # Vérifier si debconf-show est disponible (fait partie du paquet debconf de base)
+        has_debconf_show, _, _ = self.run(['which', 'debconf-show'], check=False, no_output=True, error_as_warning=True)
+        
+        if not has_debconf_show:
+            # Si debconf-show n'est pas disponible, essayer de lire directement les fichiers de config
+            self.log_warning("La commande debconf-show n'est pas disponible. Tentative de lecture directe des fichiers de config.")
+            
+            # Tenter de lire /var/cache/debconf/config.dat (peut nécessiter sudo)
+            success, stdout, stderr = self.run(['grep', '-A5', f'^Name: {package_name}/', '/var/cache/debconf/config.dat'], 
+                                           check=False, needs_sudo=True, no_output=True)
+            
+            if not success:
+                if self.last_run_return_code == 1:  # grep n'a rien trouvé
+                    self.log_debug(f"Aucune configuration debconf trouvée pour le paquet '{package_name}'.")
+                    return selections  # Retourner un dict vide
                 else:
-                    self.log_warning(f"Ligne inattendue retournée par grep: {line}")
-            else:
-                self.log_warning(f"Format de sélection debconf invalide ignoré: {line}")
-
+                    self.log_error(f"Erreur lors de la lecture des fichiers debconf: {stderr}")
+                    return None
+                    
+            # Traiter les résultats de grep sur config.dat
+            current_question = None
+            current_type = "string"  # Par défaut
+            
+            for line in stdout.splitlines():
+                line = line.strip()
+                
+                if line.startswith('Name:'):
+                    question_path = line.split(':', 1)[1].strip()
+                    if question_path.startswith(f"{package_name}/"):
+                        current_question = question_path[len(package_name)+1:]
+                        
+                elif line.startswith('Type:') and current_question:
+                    current_type = line.split(':', 1)[1].strip().lower()
+                    
+                    # Lire la valeur correspondante dans templates.dat
+                    value_cmd = ['grep', '-A2', f'^Name: {package_name}/{current_question}$', '/var/cache/debconf/templates.dat']
+                    val_success, val_out, _ = self.run(value_cmd, check=False, needs_sudo=True, no_output=True)
+                    
+                    if val_success:
+                        for val_line in val_out.splitlines():
+                            if val_line.startswith('Value:'):
+                                value = val_line.split(':', 1)[1].strip()
+                                selections[(current_question, current_type)] = value
+                                break
+        else:
+            # Utiliser debconf-show qui est disponible
+            cmd = ["debconf-show", package_name]
+            success, stdout, stderr = self.run(cmd, check=False, no_output=True)
+            
+            if not success:
+                # Vérifier si c'est parce que le paquet n'a pas de config debconf
+                if "does not exist" in stderr.lower() or "no such package" in stderr.lower():
+                    self.log_debug(f"Aucune configuration debconf trouvée pour le paquet '{package_name}'.")
+                    return selections  # Retourner un dict vide
+                else:
+                    # Autre erreur
+                    self.log_error(f"Échec de la récupération des sélections debconf pour '{package_name}'. Stderr: {stderr}")
+                    return None
+            
+            # Parser la sortie de debconf-show
+            # Format typique: "* question_name: valeur"
+            for line in stdout.splitlines():
+                line = line.strip()
+                if not line or not line.startswith('*'):
+                    continue
+                    
+                # Enlever l'astérisque et diviser
+                parts = line[1:].strip().split(':', 1)
+                if len(parts) == 2:
+                    question = parts[0].strip()
+                    value = parts[1].strip()
+                    
+                    # Le type n'est pas directement accessible via debconf-show
+                    # On utilise 'string' par défaut, qui est le type le plus courant
+                    q_type = "string"
+                    
+                    # Pour les valeurs boolean, on peut essayer de détecter
+                    if value.lower() in ["true", "false", "yes", "no"]:
+                        q_type = "boolean"
+                        
+                    selections[(question, q_type)] = value
+        
+        count = len(selections)
         self.log_debug(f"{count} sélection(s) debconf trouvée(s) pour '{package_name}'.")
-        self.log_debug(f"Sélections pour {package_name}: {selections}")
+        if count > 0:
+            self.log_debug(f"Sélections pour {package_name}: {selections}")
         return selections
 
     def get_debconf_value(self, package_name: str, question_name: str) -> Optional[str]:
         """
         Récupère la valeur d'une question debconf spécifique pour un paquet donné.
+        Cette version fonctionne sans debconf-utils en utilisant les outils de base.
 
         Args:
             package_name: Nom du paquet.
@@ -349,17 +485,52 @@ class DpkgCommands(PluginsUtilsBase):
             La valeur de la sélection sous forme de chaîne, ou None si non trouvée ou en cas d'erreur.
         """
         self.log_debug(f"Recherche de la valeur debconf pour: {package_name} -> {question_name}")
+        
+        # Récupérer toutes les sélections pour le paquet
         package_selections = self.get_debconf_selections_for_package(package_name)
-
+        
         if package_selections is None:
-            self.log_error(f"Impossible de récupérer les sélections pour {package_name} afin d'obtenir la valeur.")
+            self.log_error(f"Impossible de récupérer les sélections pour {package_name}.")
             return None
-
+        
         # Chercher la question dans les sélections récupérées
         for (question, q_type), value in package_selections.items():
             if question == question_name:
                 self.log_debug(f"Valeur trouvée pour '{question_name}' ({package_name}): '{value}' (type: {q_type})")
                 return value
-
+        
+        # Si on ne trouve pas dans les sélections, essayer avec debconf-communicate
+        has_debconf, available_cmds = self._ensure_debconf_commands()
+        
+        if has_debconf and 'debconf-communicate' in available_cmds:
+            try:
+                # Format: echo "GET question_name" | debconf-communicate package_name
+                cmd = f"echo 'GET {question_name}' | DEBIAN_FRONTEND=noninteractive debconf-communicate {package_name}"
+                success, stdout, _ = self.run(cmd, shell=True, check=False, no_output=True)
+                
+                if success and stdout.strip():
+                    # Analyser la sortie (typiquement "0 value")
+                    parts = stdout.strip().split(' ', 1)
+                    if len(parts) == 2 and parts[0] == '0':
+                        self.log_debug(f"Valeur trouvée via debconf-communicate: '{parts[1]}'")
+                        return parts[1]
+            except Exception as e:
+                self.log_warning(f"Erreur lors de l'utilisation de debconf-communicate: {e}")
+        
+        # Méthode de secours: lecture directe des fichiers
+        try:
+            # Rechercher dans les fichiers de configuration debconf
+            cmd = f"grep -A1 '^Name: {package_name}/{question_name}$' /var/cache/debconf/config.dat /var/lib/debconf/config.dat 2>/dev/null"
+            success, stdout, _ = self.run(cmd, shell=True, check=False, needs_sudo=True, no_output=True)
+            
+            if success and stdout.strip():
+                for line in stdout.splitlines():
+                    if line.startswith('Value:'):
+                        value = line.split(':', 1)[1].strip()
+                        self.log_debug(f"Valeur trouvée via lecture directe des fichiers: '{value}'")
+                        return value
+        except Exception as e:
+            self.log_warning(f"Erreur lors de la lecture directe des fichiers debconf: {e}")
+        
         self.log_debug(f"Aucune valeur debconf trouvée pour la question '{question_name}' du paquet '{package_name}'.")
         return None
