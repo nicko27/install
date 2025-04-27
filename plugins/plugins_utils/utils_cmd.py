@@ -22,14 +22,14 @@ class UtilsCommands(PluginsUtilsBase):
     def __init__(self, logger=None, target_ip=None):
         super().__init__(logger, target_ip)
 
-    def get_options_dict(self,data):
+    def get_options_dict(self,data, log_levels: Optional[Dict[str, str]] = None):
         if isinstance(data, list) and len(data) == 1 and isinstance(data[0], dict):
             return data[0]
         elif isinstance(data, dict): # Au cas où ce serait déjà un dict
             return data
         return {} # Retourne un dict vide si ce n'est pas une liste [dict]
 
-    def merge_dictionaries(self,*dictionaries):
+    def merge_dictionaries(self,*dictionaries, log_levels: Optional[Dict[str, str]] = None):
         """
         Fusionne un nombre quelconque de dictionnaires en un nouveau dictionnaire.
 
@@ -59,7 +59,7 @@ class UtilsCommands(PluginsUtilsBase):
         return merged_result
 
     def kill_process(self, process_id: Union[int, str], force: bool = False,
-                    wait: bool = True, timeout: int = 10) -> bool:
+wait: bool = True, timeout: int = 10, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Tue un processus avec l'option de forcer l'arrêt.
 
@@ -79,22 +79,22 @@ class UtilsCommands(PluginsUtilsBase):
         success_check, stdout_check, _ = self.run(cmd_check, check=False, no_output=True)
 
         if not success_check or not stdout_check.strip():
-            self.log_warning(f"Le processus {pid} n'existe pas ou est déjà terminé")
+            self.log_warning(f"Le processus {pid} n'existe pas ou est déjà terminé", log_levels=log_levels)
             return True  # Considéré comme un succès puisque le processus n'existe plus
 
         # Commande pour tuer le processus
         if force:
-            self.log_info(f"Envoi de SIGKILL au processus {pid}")
+            self.log_info(f"Envoi de SIGKILL au processus {pid}", log_levels=log_levels)
             cmd_kill = ['kill', '-9', pid]
         else:
-            self.log_info(f"Envoi de SIGTERM au processus {pid}")
+            self.log_info(f"Envoi de SIGTERM au processus {pid}", log_levels=log_levels)
             cmd_kill = ['kill', pid]
 
         # Exécuter la commande kill
         success_kill, _, stderr_kill = self.run(cmd_kill, check=False)
 
         if not success_kill:
-            self.log_error(f"Échec de la tentative de tuer le processus {pid}: {stderr_kill}")
+            self.log_error(f"Échec de la tentative de tuer le processus {pid}: {stderr_kill}", log_levels=log_levels)
             return False
 
         # Si wait=True, attendre que le processus soit terminé
@@ -105,18 +105,18 @@ class UtilsCommands(PluginsUtilsBase):
                 # Vérifier si le processus existe encore
                 success_wait, stdout_wait, _ = self.run(cmd_check, check=False, no_output=True)
                 if not success_wait or not stdout_wait.strip():
-                    self.log_debug(f"Processus {pid} terminé avec succès")
+                    self.log_debug(f"Processus {pid} terminé avec succès", log_levels=log_levels)
                     return True
 
                 # Attendre un peu avant de vérifier à nouveau
                 time.sleep(0.5)
 
             # Si on arrive ici, le timeout a été atteint
-            self.log_warning(f"Timeout atteint en attendant la fin du processus {pid}")
+            self.log_warning(f"Timeout atteint en attendant la fin du processus {pid}", log_levels=log_levels)
 
             # Essayer avec SIGKILL si on a utilisé SIGTERM initialement
             if not force:
-                self.log_info(f"Tentative avec SIGKILL après échec de SIGTERM pour le processus {pid}")
+                self.log_info(f"Tentative avec SIGKILL après échec de SIGTERM pour le processus {pid}", log_levels=log_levels)
                 return self.kill_process(pid, force=True, wait=wait, timeout=timeout)
 
             return False  # Échec même avec SIGKILL
@@ -125,7 +125,7 @@ class UtilsCommands(PluginsUtilsBase):
 
     def kill_process_by_name(self, process_name: str, force: bool = False,
                             all_instances: bool = False, wait: bool = True,
-                            timeout: int = 10) -> Tuple[bool, int]:
+timeout: int = 10, log_levels: Optional[Dict[str, str]] = None) -> Tuple[bool, int]:
         """
         Tue un ou plusieurs processus par leur nom.
 
@@ -146,7 +146,7 @@ class UtilsCommands(PluginsUtilsBase):
 
         # Si aucun processus n'est trouvé
         if not success_find or not stdout_find.strip():
-            self.log_warning(f"Aucun processus trouvé avec le nom: {process_name}")
+            self.log_warning(f"Aucun processus trouvé avec le nom: {process_name}", log_levels=log_levels)
             return (True, 0)  # Considéré comme un succès puisque rien à tuer
 
         # Récupérer les PIDs trouvés
@@ -159,15 +159,15 @@ class UtilsCommands(PluginsUtilsBase):
 
         # Si aucun processus à tuer après filtrage
         if not pids:
-            self.log_warning(f"Aucun processus valide à tuer avec le nom: {process_name}")
+            self.log_warning(f"Aucun processus valide à tuer avec le nom: {process_name}", log_levels=log_levels)
             return (True, 0)
 
         # Limiter au premier processus si all_instances=False
         if not all_instances:
             pids = [pids[0]]
-            self.log_info(f"Ciblage du processus {pids[0]} correspondant à '{process_name}'")
+            self.log_info(f"Ciblage du processus {pids[0]} correspondant à '{process_name}'", log_levels=log_levels)
         else:
-            self.log_info(f"Ciblage de {len(pids)} processus correspondant à '{process_name}'")
+            self.log_info(f"Ciblage de {len(pids)} processus correspondant à '{process_name}'", log_levels=log_levels)
 
         # Tuer les processus
         success_count = 0
@@ -179,8 +179,8 @@ class UtilsCommands(PluginsUtilsBase):
         all_success = (success_count == len(pids))
 
         if all_success:
-            self.log_success(f"{success_count} processus tués avec succès")
+            self.log_success(f"{success_count} processus tués avec succès", log_levels=log_levels)
         else:
-            self.log_warning(f"{success_count}/{len(pids)} processus tués - certains ont échoué")
+            self.log_warning(f"{success_count}/{len(pids)} processus tués - certains ont échoué", log_levels=log_levels)
 
         return (all_success, success_count)

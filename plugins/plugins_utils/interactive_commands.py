@@ -33,7 +33,7 @@ except ImportError:
         TIMEOUT = TIMEOUT
         EOF = EOF
         @staticmethod
-        def spawn(*args, **kwargs): raise ImportError("Le module 'pexpect' est requis.")
+        def spawn(*args, **kwargs): raise ImportError("Le module 'pexpect' est requis.", log_levels: Optional[Dict[str, str]] = None)
         # compile_pattern_list n'existe pas, on ne met rien ici
 
 
@@ -56,7 +56,7 @@ class InteractiveCommands(PluginsUtilsBase):
     def run_scenario(self,
                      command: Union[str, List[str]],
                      scenario: List[Tuple[Union[str, Pattern, List[Union[str, Pattern]]], Optional[str], Optional[int]]],
-                     # Format scenario: [(expect_pattern(s), response_to_send, timeout_override), ...]
+                     # Format scenario: [(expect_pattern(s), response_to_send, timeout_override, log_levels: Optional[Dict[str, str]] = None), ...]
                      global_timeout: int = DEFAULT_TIMEOUT,
                      log_transcript: bool = True,
                      encoding: str = 'utf-8',
@@ -264,4 +264,3 @@ class InteractiveCommands(PluginsUtilsBase):
              return False, partial_output
         finally:
              if transcript_buffer: transcript_buffer.close()
-

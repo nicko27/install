@@ -45,7 +45,7 @@ class ValidationUtils(PluginsUtilsBase):
 
 
     @classmethod
-    def is_valid_hostname(cls, hostname: str, allow_underscore: bool = False) -> bool:
+    def is_valid_hostname(cls, hostname: str, allow_underscore: bool = False, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Valide un nom d'hôte selon la RFC 1123 (avec option pour underscores).
 
@@ -65,7 +65,7 @@ class ValidationUtils(PluginsUtilsBase):
         return False
 
     @classmethod
-    def is_valid_fqdn(cls, fqdn: str, allow_underscore: bool = False) -> bool:
+    def is_valid_fqdn(cls, fqdn: str, allow_underscore: bool = False, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Valide un nom de domaine pleinement qualifié (FQDN).
         Un FQDN doit contenir au moins un point et respecter les règles de nom d'hôte.
@@ -84,7 +84,7 @@ class ValidationUtils(PluginsUtilsBase):
         return cls.is_valid_hostname(fqdn, allow_underscore)
 
     @classmethod
-    def is_valid_ip_address(cls, ip_str: str) -> bool:
+    def is_valid_ip_address(cls, ip_str: str, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Valide une adresse IPv4 ou IPv6.
 
@@ -103,7 +103,7 @@ class ValidationUtils(PluginsUtilsBase):
             return False
 
     @classmethod
-    def is_valid_port(cls, port: Any) -> bool:
+    def is_valid_port(cls, port: Any, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Valide un numéro de port réseau (1-65535).
 
@@ -124,7 +124,7 @@ class ValidationUtils(PluginsUtilsBase):
             return False
 
     @classmethod
-    def is_valid_email(cls, email: str) -> bool:
+    def is_valid_email(cls, email: str, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Valide basiquement une adresse email.
 
@@ -142,7 +142,7 @@ class ValidationUtils(PluginsUtilsBase):
         return False
 
     @classmethod
-    def is_valid_url(cls, url: str, required_schemes: Optional[List[str]] = None) -> bool:
+    def is_valid_url(cls, url: str, required_schemes: Optional[List[str]] = None, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Valide une URL et vérifie optionnellement son schéma.
 
@@ -177,7 +177,7 @@ class ValidationUtils(PluginsUtilsBase):
              return False
 
     @classmethod
-    def is_valid_cron_schedule(cls, schedule_str: str) -> bool:
+    def is_valid_cron_schedule(cls, schedule_str: str, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Valide basiquement le format d'une planification cron (5 ou 6 champs).
 
@@ -200,7 +200,7 @@ class ValidationUtils(PluginsUtilsBase):
         return False
 
     @classmethod
-    def is_valid_user(cls, username: str, check_system: bool = True) -> bool:
+    def is_valid_user(cls, username: str, check_system: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Valide un nom d'utilisateur (format et existence optionnelle).
 
@@ -234,7 +234,7 @@ class ValidationUtils(PluginsUtilsBase):
         return True # Format valide
 
     @classmethod
-    def is_valid_group(cls, groupname: str, check_system: bool = True) -> bool:
+    def is_valid_group(cls, groupname: str, check_system: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Valide un nom de groupe (format et existence optionnelle).
 
@@ -270,7 +270,6 @@ class ValidationUtils(PluginsUtilsBase):
 
     # Helper pour obtenir le logger même depuis les méthodes de classe
     @staticmethod
-    def get_logger():
+    def get_logger(log_levels: Optional[Dict[str, str]] = None):
         # Retourne un logger standard si appelé hors contexte d'instance
         return logging.getLogger(__name__)
-

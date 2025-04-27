@@ -44,7 +44,7 @@ class DovecotCommands(ConfigFileCommands):
         self.config_dir = Path(config_dir)
         self.loaded_configs = {}  # Cache pour les configurations chargées
 
-    def get_config_path(self, config_type: str) -> Path:
+    def get_config_path(self, config_type: str, log_levels: Optional[Dict[str, str]] = None) -> Path:
         """
         Obtient le chemin complet d'un fichier de configuration spécifique.
 
@@ -64,7 +64,7 @@ class DovecotCommands(ConfigFileCommands):
         # Chercher dans conf.d
         return self.config_dir / 'conf.d' / config_type
 
-    def read_config(self, config_type: str, force_reload: bool = False) -> Optional[Dict]:
+    def read_config(self, config_type: str, force_reload: bool = False, log_levels: Optional[Dict[str, str]] = None) -> Optional[Dict]:
         """
         Lit un fichier de configuration Dovecot.
         Utilise un cache pour éviter de relire les fichiers inutilement.
@@ -80,10 +80,10 @@ class DovecotCommands(ConfigFileCommands):
 
         # Utiliser le cache sauf si force_reload est True
         if not force_reload and str(config_path) in self.loaded_configs:
-            self.log_debug(f"Utilisation de la configuration en cache pour {config_path}")
+            self.log_debug(f"Utilisation de la configuration en cache pour {config_path}", log_levels=log_levels)
             return self.loaded_configs[str(config_path)]
 
-        self.log_debug(f"Lecture de la configuration Dovecot: {config_path}")
+        self.log_debug(f"Lecture de la configuration Dovecot: {config_path}", log_levels=log_levels)
 
         # Utiliser _read_file_content de ConfigFileCommands
         content = self._read_file_content(config_path)
@@ -137,7 +137,7 @@ class DovecotCommands(ConfigFileCommands):
 
         return key, value
 
-    def parse_dovecot_config(self, content: Union[str, List[str]]) -> Dict[str, Any]:
+    def parse_dovecot_config(self, content: Union[str, List[str]], log_levels: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
         """
         Parse un fichier de configuration Dovecot complet avec une structure hiérarchique.
 
@@ -147,7 +147,7 @@ class DovecotCommands(ConfigFileCommands):
         Returns:
             Dict[str, Any]: Structure hiérarchique représentant la configuration
         """
-        self.log_debug("Parsing d'un fichier de configuration Dovecot")
+        self.log_debug("Parsing d'un fichier de configuration Dovecot", log_levels=log_levels)
 
         # Convertir le contenu en liste de lignes si nécessaire
         if isinstance(content, str):
@@ -219,7 +219,7 @@ class DovecotCommands(ConfigFileCommands):
                 if remainder:
                     if '{' in remainder:
                         # Nouvelle ouverture de bloc
-                        self.log_warning(f"Nouvelle ouverture de bloc sur la même ligne: {remainder}")
+                        self.log_warning(f"Nouvelle ouverture de bloc sur la même ligne: {remainder}", log_levels=log_levels)
                     else:
                         # Traiter comme une ligne normale
                         key, value = self._parse_line(remainder)
@@ -238,7 +238,7 @@ class DovecotCommands(ConfigFileCommands):
 
         # Vérifier si tous les blocs ont été fermés
         if block_stack:
-            self.log_warning(f"Des blocs n'ont pas été fermés: {block_stack}")
+            self.log_warning(f"Des blocs n'ont pas été fermés: {block_stack}", log_levels=log_levels)
 
         return config
 
@@ -333,7 +333,7 @@ class DovecotCommands(ConfigFileCommands):
             # Si pas de type spécifique, fusionner avec la configuration globale
             config.update(block_config)
 
-    def write_config(self, config_type: str, config: Dict, backup: bool = True) -> bool:
+    def write_config(self, config_type: str, config: Dict, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Écrit une structure de configuration dans un fichier.
 
@@ -346,7 +346,7 @@ class DovecotCommands(ConfigFileCommands):
             bool: True si l'écriture réussit, False sinon
         """
         config_path = self.get_config_path(config_type)
-        self.log_debug(f"Écriture de la configuration Dovecot: {config_path}")
+        self.log_debug(f"Écriture de la configuration Dovecot: {config_path}", log_levels=log_levels)
 
         # Générer la représentation texte de la configuration
         config_content = self.generate_config_string(config)
@@ -357,13 +357,13 @@ class DovecotCommands(ConfigFileCommands):
         if success:
             # Mettre à jour le cache
             self.loaded_configs[str(config_path)] = config
-            self.log_success(f"Configuration Dovecot {config_path} mise à jour avec succès")
+            self.log_success(f"Configuration Dovecot {config_path} mise à jour avec succès", log_levels=log_levels)
         else:
-            self.log_error(f"Échec de l'écriture de la configuration Dovecot {config_path}")
+            self.log_error(f"Échec de l'écriture de la configuration Dovecot {config_path}", log_levels=log_levels)
 
         return success
 
-    def generate_config_string(self, config: Dict[str, Any], indent_level: int = 0) -> str:
+    def generate_config_string(self, config: Dict[str, Any], indent_level: int = 0, log_levels: Optional[Dict[str, str]] = None) -> str:
         """
         Génère une représentation textuelle d'une configuration Dovecot.
         Respecte le formatage spécifique de Dovecot pour les plugins et namespaces.
@@ -380,7 +380,7 @@ class DovecotCommands(ConfigFileCommands):
 
         # Vérifier que config est bien un dictionnaire
         if not isinstance(config, dict):
-            self.log_warning(f"Erreur: objet non-dictionnaire rencontré dans generate_config_string: {type(config)} - {config}")
+            self.log_warning(f"Erreur: objet non-dictionnaire rencontré dans generate_config_string: {type(config)} - {config}", log_levels=log_levels)
             return str(config)  # Retourner la représentation en chaîne de caractères
 
         # Traiter d'abord les paramètres simples (non-dictionnaires)
@@ -484,7 +484,7 @@ class DovecotCommands(ConfigFileCommands):
         return '\n'.join(lines)
 
 
-    def clear_cache(self, config_type: Optional[str] = None) -> None:
+    def clear_cache(self, config_type: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None) -> None:
         """
         Vide le cache de configurations.
 
@@ -493,14 +493,14 @@ class DovecotCommands(ConfigFileCommands):
         """
         if config_type is None:
             self.loaded_configs = {}
-            self.log_debug("Cache de configurations vidé")
+            self.log_debug("Cache de configurations vidé", log_levels=log_levels)
         else:
             config_path = str(self.get_config_path(config_type))
             if config_path in self.loaded_configs:
                 del self.loaded_configs[config_path]
-                self.log_debug(f"Cache vidé pour {config_path}")
+                self.log_debug(f"Cache vidé pour {config_path}", log_levels=log_levels)
 
-    def get_global_setting(self, setting_name: str, default: Any = None) -> Any:
+    def get_global_setting(self, setting_name: str, default: Any = None, log_levels: Optional[Dict[str, str]] = None) -> Any:
         """
         Récupère un paramètre global dans la configuration principale.
 
@@ -517,7 +517,7 @@ class DovecotCommands(ConfigFileCommands):
 
         return config.get(setting_name, default)
 
-    def set_global_setting(self, setting_name: str, value: Any, backup: bool = True) -> bool:
+    def set_global_setting(self, setting_name: str, value: Any, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Définit un paramètre global dans la configuration principale.
 
@@ -531,7 +531,7 @@ class DovecotCommands(ConfigFileCommands):
         """
         config = self.read_config('main')
         if config is None:
-            self.log_error("Impossible de lire la configuration principale")
+            self.log_error("Impossible de lire la configuration principale", log_levels=log_levels)
             return False
 
         # Mettre à jour le paramètre
@@ -540,7 +540,7 @@ class DovecotCommands(ConfigFileCommands):
         # Écrire la configuration mise à jour
         return self.write_config('main', config, backup=backup)
 
-    def get_mail_setting(self, setting_name: str, default: Any = None) -> Any:
+    def get_mail_setting(self, setting_name: str, default: Any = None, log_levels: Optional[Dict[str, str]] = None) -> Any:
         """
         Récupère un paramètre dans la configuration mail.
 
@@ -557,7 +557,7 @@ class DovecotCommands(ConfigFileCommands):
 
         return config.get(setting_name, default)
 
-    def set_mail_setting(self, setting_name: str, value: Any, backup: bool = True) -> bool:
+    def set_mail_setting(self, setting_name: str, value: Any, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Définit un paramètre dans la configuration mail.
 
@@ -571,7 +571,7 @@ class DovecotCommands(ConfigFileCommands):
         """
         config = self.read_config('mail')
         if config is None:
-            self.log_error("Impossible de lire la configuration mail")
+            self.log_error("Impossible de lire la configuration mail", log_levels=log_levels)
             return False
 
         # Mettre à jour le paramètre
@@ -580,7 +580,7 @@ class DovecotCommands(ConfigFileCommands):
         # Écrire la configuration mise à jour
         return self.write_config('mail', config, backup=backup)
 
-    def get_mail_plugins(self) -> List[str]:
+    def get_mail_plugins(self, log_levels: Optional[Dict[str, str]] = None) -> List[str]:
         """
         Récupère la liste des plugins mail activés.
 
@@ -593,7 +593,7 @@ class DovecotCommands(ConfigFileCommands):
 
         return [p.strip() for p in str(plugins_str).split()]
 
-    def set_mail_plugins(self, plugins: List[str], backup: bool = True) -> bool:
+    def set_mail_plugins(self, plugins: List[str], backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Définit la liste des plugins mail activés.
 
@@ -607,7 +607,7 @@ class DovecotCommands(ConfigFileCommands):
         plugins_str = ' '.join(plugins)
         return self.set_mail_setting('mail_plugins', plugins_str, backup=backup)
 
-    def add_mail_plugin(self, plugin_name: str, backup: bool = True) -> bool:
+    def add_mail_plugin(self, plugin_name: str, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Ajoute un plugin mail s'il n'est pas déjà activé.
 
@@ -620,13 +620,13 @@ class DovecotCommands(ConfigFileCommands):
         """
         plugins = self.get_mail_plugins()
         if plugin_name in plugins:
-            self.log_debug(f"Le plugin {plugin_name} est déjà activé")
+            self.log_debug(f"Le plugin {plugin_name} est déjà activé", log_levels=log_levels)
             return True
 
         plugins.append(plugin_name)
         return self.set_mail_plugins(plugins, backup=backup)
 
-    def remove_mail_plugin(self, plugin_name: str, backup: bool = True) -> bool:
+    def remove_mail_plugin(self, plugin_name: str, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Supprime un plugin mail s'il est activé.
 
@@ -639,13 +639,13 @@ class DovecotCommands(ConfigFileCommands):
         """
         plugins = self.get_mail_plugins()
         if plugin_name not in plugins:
-            self.log_debug(f"Le plugin {plugin_name} n'est pas activé")
+            self.log_debug(f"Le plugin {plugin_name} n'est pas activé", log_levels=log_levels)
             return True
 
         plugins.remove(plugin_name)
         return self.set_mail_plugins(plugins, backup=backup)
 
-    def get_plugin_setting(self, plugin_type: str, setting_name: str, default: Any = None) -> Any:
+    def get_plugin_setting(self, plugin_type: str, setting_name: str, default: Any = None, log_levels: Optional[Dict[str, str]] = None) -> Any:
         """
         Récupère un paramètre dans la configuration d'un plugin.
 
@@ -664,7 +664,7 @@ class DovecotCommands(ConfigFileCommands):
         plugin_settings = config.get('plugin', {})
         return plugin_settings.get(setting_name, default)
 
-    def set_plugin_setting(self, plugin_type: str, setting_name: str, value: Any, backup: bool = True) -> bool:
+    def set_plugin_setting(self, plugin_type: str, setting_name: str, value: Any, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Définit un paramètre dans la configuration d'un plugin.
 
@@ -679,7 +679,7 @@ class DovecotCommands(ConfigFileCommands):
         """
         config = self.read_config(plugin_type)
         if config is None:
-            self.log_error(f"Impossible de lire la configuration du plugin {plugin_type}")
+            self.log_error(f"Impossible de lire la configuration du plugin {plugin_type}", log_levels=log_levels)
             return False
 
         # Créer la section 'plugin' si elle n'existe pas
@@ -692,7 +692,7 @@ class DovecotCommands(ConfigFileCommands):
         # Écrire la configuration mise à jour
         return self.write_config(plugin_type, config, backup=backup)
 
-    def get_namespace(self, namespace_name: str, config_type: str = 'mail') -> Optional[Dict]:
+    def get_namespace(self, namespace_name: str, config_type: str = 'mail', log_levels: Optional[Dict[str, str]] = None) -> Optional[Dict]:
         """
         Récupère un namespace spécifique.
 
@@ -712,7 +712,7 @@ class DovecotCommands(ConfigFileCommands):
 
         return None
 
-    def add_namespace(self, namespace_name: str, namespace_config: Dict, config_type: str = 'mail', backup: bool = True) -> bool:
+    def add_namespace(self, namespace_name: str, namespace_config: Dict, config_type: str = 'mail', backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Ajoute un namespace à la configuration.
 
@@ -727,7 +727,7 @@ class DovecotCommands(ConfigFileCommands):
         """
         config = self.read_config(config_type)
         if config is None:
-            self.log_error(f"Impossible de lire la configuration {config_type}")
+            self.log_error(f"Impossible de lire la configuration {config_type}", log_levels=log_levels)
             return False
 
         # Créer la section namespace si elle n'existe pas
@@ -736,7 +736,7 @@ class DovecotCommands(ConfigFileCommands):
 
         # Vérifier si le namespace existe déjà
         if namespace_name in config['namespace']:
-            self.log_warning(f"Le namespace '{namespace_name}' existe déjà et sera écrasé")
+            self.log_warning(f"Le namespace '{namespace_name}' existe déjà et sera écrasé", log_levels=log_levels)
 
         # Ajouter le namespace
         config['namespace'][namespace_name] = namespace_config
@@ -744,7 +744,7 @@ class DovecotCommands(ConfigFileCommands):
         # Écrire la configuration mise à jour
         return self.write_config(config_type, config, backup=backup)
 
-    def update_namespace(self, namespace_name: str, namespace_config: Dict, config_type: str = 'mail', backup: bool = True) -> bool:
+    def update_namespace(self, namespace_name: str, namespace_config: Dict, config_type: str = 'mail', backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Met à jour un namespace existant.
 
@@ -759,12 +759,12 @@ class DovecotCommands(ConfigFileCommands):
         """
         config = self.read_config(config_type)
         if config is None:
-            self.log_error(f"Impossible de lire la configuration {config_type}")
+            self.log_error(f"Impossible de lire la configuration {config_type}", log_levels=log_levels)
             return False
 
         # Vérifier si le namespace existe
         if 'namespace' not in config or namespace_name not in config['namespace']:
-            self.log_warning(f"Le namespace '{namespace_name}' n'existe pas")
+            self.log_warning(f"Le namespace '{namespace_name}' n'existe pas", log_levels=log_levels)
             return False
 
         # Mettre à jour le namespace
@@ -773,7 +773,7 @@ class DovecotCommands(ConfigFileCommands):
         # Écrire la configuration mise à jour
         return self.write_config(config_type, config, backup=backup)
 
-    def delete_namespace(self, namespace_name: str, config_type: str = 'mail', backup: bool = True) -> bool:
+    def delete_namespace(self, namespace_name: str, config_type: str = 'mail', backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Supprime un namespace.
 
@@ -787,12 +787,12 @@ class DovecotCommands(ConfigFileCommands):
         """
         config = self.read_config(config_type)
         if config is None:
-            self.log_error(f"Impossible de lire la configuration {config_type}")
+            self.log_error(f"Impossible de lire la configuration {config_type}", log_levels=log_levels)
             return False
 
         # Vérifier si le namespace existe
         if 'namespace' not in config or namespace_name not in config['namespace']:
-            self.log_warning(f"Le namespace '{namespace_name}' n'existe pas")
+            self.log_warning(f"Le namespace '{namespace_name}' n'existe pas", log_levels=log_levels)
             return False
 
         # Supprimer le namespace
@@ -805,7 +805,7 @@ class DovecotCommands(ConfigFileCommands):
         # Écrire la configuration mise à jour
         return self.write_config(config_type, config, backup=backup)
 
-    def create_public_namespace(self, unite: str, location: Optional[str] = None, config_type: str = 'mail', backup: bool = True) -> bool:
+    def create_public_namespace(self, unite: str, location: Optional[str] = None, config_type: str = 'mail', backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Crée un namespace public pour une unité spécifique.
 
@@ -834,7 +834,7 @@ class DovecotCommands(ConfigFileCommands):
 
         return self.add_namespace(namespace_name, namespace_config, config_type, backup)
 
-    def uncomment_namespace(self, namespace_pattern: str, config_path: Optional[str] = None, backup: bool = True) -> bool:
+    def uncomment_namespace(self, namespace_pattern: str, config_path: Optional[str] = None, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Décommente un namespace commenté.
         Cette méthode manipule directement le contenu du fichier plutôt que la structure parsée.
@@ -855,7 +855,7 @@ class DovecotCommands(ConfigFileCommands):
         # Lire le contenu du fichier
         content = self._read_file_content(config_path)
         if content is None:
-            self.log_error(f"Impossible de lire le fichier {config_path}.")
+            self.log_error(f"Impossible de lire le fichier {config_path}.", log_levels=log_levels)
             return False
 
         # Identifier le début du namespace commenté
@@ -897,7 +897,7 @@ class DovecotCommands(ConfigFileCommands):
                 new_lines.append(line)
 
         if not namespace_found:
-            self.log_warning(f"Namespace '{namespace_pattern}' commenté non trouvé dans {config_path}")
+            self.log_warning(f"Namespace '{namespace_pattern}' commenté non trouvé dans {config_path}", log_levels=log_levels)
             return False
 
         # Écrire le contenu mis à jour
@@ -910,7 +910,7 @@ class DovecotCommands(ConfigFileCommands):
 
         return success
 
-    def comment_namespace(self, namespace_name: str, config_path: Optional[str] = None, backup: bool = True) -> bool:
+    def comment_namespace(self, namespace_name: str, config_path: Optional[str] = None, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Commente un namespace existant.
         Cette méthode manipule directement le contenu du fichier plutôt que la structure parsée.
@@ -931,7 +931,7 @@ class DovecotCommands(ConfigFileCommands):
         # Lire le contenu du fichier
         content = self._read_file_content(config_path)
         if content is None:
-            self.log_error(f"Impossible de lire le fichier {config_path}.")
+            self.log_error(f"Impossible de lire le fichier {config_path}.", log_levels=log_levels)
             return False
 
         # Identifier le début du namespace
@@ -968,7 +968,7 @@ class DovecotCommands(ConfigFileCommands):
                 new_lines.append(line)
 
         if not namespace_found:
-            self.log_warning(f"Namespace '{namespace_name}' non trouvé dans {config_path}")
+            self.log_warning(f"Namespace '{namespace_name}' non trouvé dans {config_path}", log_levels=log_levels)
             return False
 
         # Écrire le contenu mis à jour
@@ -983,7 +983,7 @@ class DovecotCommands(ConfigFileCommands):
 
     def create_namespace_from_template(self, template_name: str, new_name: str,
                                     replacements: Dict[str, str], config_path: Optional[str] = None,
-                                    backup: bool = True) -> bool:
+backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Crée un nouveau namespace basé sur un template existant.
 
@@ -1003,7 +1003,7 @@ class DovecotCommands(ConfigFileCommands):
         # Charger la configuration
         config = self.read_config(config_type)
         if config is None:
-            self.log_error(f"Impossible de lire la configuration pour créer le namespace {new_name}")
+            self.log_error(f"Impossible de lire la configuration pour créer le namespace {new_name}", log_levels=log_levels)
             return False
 
         # Récupérer le namespace template
@@ -1014,7 +1014,7 @@ class DovecotCommands(ConfigFileCommands):
 
         template_namespace = self.get_namespace(template_key, config_type)
         if template_namespace is None:
-            self.log_error(f"Le namespace template '{template_name}' n'existe pas")
+            self.log_error(f"Le namespace template '{template_name}' n'existe pas", log_levels=log_levels)
             return False
 
         # Cloner la configuration du template
@@ -1030,7 +1030,7 @@ class DovecotCommands(ConfigFileCommands):
         try:
             new_config = json.loads(config_str)
         except json.JSONDecodeError as e:
-            self.log_error(f"Erreur lors du remplacement des valeurs: {e}")
+            self.log_error(f"Erreur lors du remplacement des valeurs: {e}", log_levels=log_levels)
             return False
 
         # Ajouter le nouveau namespace
@@ -1038,7 +1038,7 @@ class DovecotCommands(ConfigFileCommands):
 
     # --- Méthodes pour la gestion des ACL ---
 
-    def read_acl_file(self, acl_path: Optional[str] = None) -> List[Tuple[str, str, str, str]]:
+    def read_acl_file(self, acl_path: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None) -> List[Tuple[str, str, str, str]]:
         """
         Lit un fichier d'ACL Dovecot et retourne les règles sous forme de liste.
         Le format attendu est: mailbox identifier=user rights [#comment]
@@ -1054,12 +1054,12 @@ class DovecotCommands(ConfigFileCommands):
         else:
             acl_path = Path(acl_path)
 
-        self.log_debug(f"Lecture du fichier ACL: {acl_path}")
+        self.log_debug(f"Lecture du fichier ACL: {acl_path}", log_levels=log_levels)
 
         # Lire le contenu du fichier
         content = self._read_file_content(acl_path)
         if content is None:
-            self.log_error(f"Impossible de lire le fichier ACL {acl_path}.")
+            self.log_error(f"Impossible de lire le fichier ACL {acl_path}.", log_levels=log_levels)
             return []
 
         acl_entries = []
@@ -1081,7 +1081,7 @@ class DovecotCommands(ConfigFileCommands):
             # Extraire les parties de la règle
             parts = line.split(maxsplit=2)
             if len(parts) < 3:
-                self.log_warning(f"Format ACL invalide, ignoré: {line}")
+                self.log_warning(f"Format ACL invalide, ignoré: {line}", log_levels=log_levels)
                 continue
 
             mailbox = parts[0]
@@ -1092,7 +1092,7 @@ class DovecotCommands(ConfigFileCommands):
 
         return acl_entries
 
-    def write_acl_file(self, acl_entries: List[Tuple[str, str, str, str]], acl_path: Optional[str] = None, backup: bool = True) -> bool:
+    def write_acl_file(self, acl_entries: List[Tuple[str, str, str, str]], acl_path: Optional[str] = None, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Écrit les règles ACL dans un fichier.
 
@@ -1109,7 +1109,7 @@ class DovecotCommands(ConfigFileCommands):
         else:
             acl_path = Path(acl_path)
 
-        self.log_debug(f"Écriture du fichier ACL: {acl_path}")
+        self.log_debug(f"Écriture du fichier ACL: {acl_path}", log_levels=log_levels)
 
         # Formater le contenu
         lines = []
@@ -1125,7 +1125,7 @@ class DovecotCommands(ConfigFileCommands):
         # Écrire le fichier
         return self._write_file_content(acl_path, content, backup=backup)
 
-    def get_acl_entries(self, mailbox: Optional[str] = None, acl_path: Optional[str] = None) -> List[Tuple[str, str, str, str]]:
+    def get_acl_entries(self, mailbox: Optional[str] = None, acl_path: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None) -> List[Tuple[str, str, str, str]]:
         """
         Récupère les entrées ACL, éventuellement filtrées par boîte aux lettres.
 
@@ -1145,7 +1145,7 @@ class DovecotCommands(ConfigFileCommands):
         return [entry for entry in acl_entries if entry[0] == mailbox]
 
     def add_acl_entry(self, mailbox: str, identifier: str, rights: str, comment: str = "",
-                    acl_path: Optional[str] = None, backup: bool = True) -> bool:
+acl_path: Optional[str] = None, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Ajoute une entrée ACL.
 
@@ -1165,7 +1165,7 @@ class DovecotCommands(ConfigFileCommands):
         # Vérifier si l'entrée existe déjà
         for i, entry in enumerate(acl_entries):
             if entry[0] == mailbox and entry[1] == identifier:
-                self.log_warning(f"L'entrée ACL pour {mailbox} {identifier} existe déjà, mise à jour")
+                self.log_warning(f"L'entrée ACL pour {mailbox} {identifier} existe déjà, mise à jour", log_levels=log_levels)
                 acl_entries[i] = (mailbox, identifier, rights, comment)
                 return self.write_acl_file(acl_entries, acl_path, backup)
 
@@ -1174,7 +1174,7 @@ class DovecotCommands(ConfigFileCommands):
         return self.write_acl_file(acl_entries, acl_path, backup)
 
     def update_acl_entry(self, mailbox: str, identifier: str, rights: str, comment: Optional[str] = None,
-                        acl_path: Optional[str] = None, backup: bool = True) -> bool:
+acl_path: Optional[str] = None, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Met à jour une entrée ACL existante.
 
@@ -1202,12 +1202,12 @@ class DovecotCommands(ConfigFileCommands):
                 break
 
         if not entry_found:
-            self.log_warning(f"L'entrée ACL pour {mailbox} {identifier} n'existe pas")
+            self.log_warning(f"L'entrée ACL pour {mailbox} {identifier} n'existe pas", log_levels=log_levels)
             return False
 
         return self.write_acl_file(acl_entries, acl_path, backup)
 
-    def delete_acl_entry(self, mailbox: str, identifier: str, acl_path: Optional[str] = None, backup: bool = True) -> bool:
+    def delete_acl_entry(self, mailbox: str, identifier: str, acl_path: Optional[str] = None, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Supprime une entrée ACL.
 
@@ -1226,12 +1226,12 @@ class DovecotCommands(ConfigFileCommands):
         new_entries = [entry for entry in acl_entries if not (entry[0] == mailbox and entry[1] == identifier)]
 
         if len(new_entries) == len(acl_entries):
-            self.log_warning(f"L'entrée ACL pour {mailbox} {identifier} n'existe pas")
+            self.log_warning(f"L'entrée ACL pour {mailbox} {identifier} n'existe pas", log_levels=log_levels)
             return False
 
         return self.write_acl_file(new_entries, acl_path, backup)
 
-    def delete_all_mailbox_acls(self, mailbox: str, acl_path: Optional[str] = None, backup: bool = True) -> bool:
+    def delete_all_mailbox_acls(self, mailbox: str, acl_path: Optional[str] = None, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Supprime toutes les entrées ACL pour une boîte aux lettres spécifique.
 
@@ -1249,12 +1249,12 @@ class DovecotCommands(ConfigFileCommands):
         new_entries = [entry for entry in acl_entries if entry[0] != mailbox]
 
         if len(new_entries) == len(acl_entries):
-            self.log_warning(f"Aucune entrée ACL trouvée pour la boîte aux lettres {mailbox}")
+            self.log_warning(f"Aucune entrée ACL trouvée pour la boîte aux lettres {mailbox}", log_levels=log_levels)
             return False
 
         return self.write_acl_file(new_entries, acl_path, backup)
 
-    def enable_acl_plugin(self, backup: bool = True) -> bool:
+    def enable_acl_plugin(self, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Active le plugin ACL.
 
@@ -1266,7 +1266,7 @@ class DovecotCommands(ConfigFileCommands):
         """
         return self.add_mail_plugin('acl', backup=backup)
 
-    def configure_acl_settings(self, acl_dir: Optional[str] = None, backup: bool = True) -> bool:
+    def configure_acl_settings(self, acl_dir: Optional[str] = None, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Configure les paramètres du plugin ACL.
 
@@ -1290,7 +1290,7 @@ class DovecotCommands(ConfigFileCommands):
 
     # --- Méthodes de gestion des quotas ---
 
-    def get_quota_rule(self, rule_name: str = 'quota_rule', default: Any = None) -> Any:
+    def get_quota_rule(self, rule_name: str = 'quota_rule', default: Any = None, log_levels: Optional[Dict[str, str]] = None) -> Any:
         """
         Récupère une règle de quota.
 
@@ -1303,7 +1303,7 @@ class DovecotCommands(ConfigFileCommands):
         """
         return self.get_plugin_setting('quota', rule_name, default)
 
-    def set_quota_rule(self, rule_value: str, rule_name: str = 'quota_rule', backup: bool = True) -> bool:
+    def set_quota_rule(self, rule_value: str, rule_name: str = 'quota_rule', backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Définit une règle de quota.
 
@@ -1317,7 +1317,7 @@ class DovecotCommands(ConfigFileCommands):
         """
         return self.set_plugin_setting('quota', rule_name, rule_value, backup=backup)
 
-    def enable_quota(self, backup: bool = True) -> bool:
+    def enable_quota(self, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Active le plugin de quota.
 
@@ -1329,7 +1329,7 @@ class DovecotCommands(ConfigFileCommands):
         """
         return self.add_mail_plugin('quota', backup=backup)
 
-    def configure_quota_backend(self, backend_type: str = 'maildir', desc: str = 'User quota', backup: bool = True) -> bool:
+    def configure_quota_backend(self, backend_type: str = 'maildir', desc: str = 'User quota', backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Configure le backend de quota.
 
@@ -1350,7 +1350,7 @@ class DovecotCommands(ConfigFileCommands):
         return self.set_plugin_setting('quota', 'quota', backend_value, backup=backup)
 
     def set_quota_warning(self, threshold: int, command: str, user_placeholder: bool = True,
-                         warning_num: int = 1, backup: bool = True) -> bool:
+warning_num: int = 1, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Configure un message d'avertissement de quota.
 
@@ -1374,7 +1374,7 @@ class DovecotCommands(ConfigFileCommands):
 
         return self.set_plugin_setting('quota', param_name, value, backup=backup)
 
-    def set_quota_exceeded_message(self, message: str, backup: bool = True) -> bool:
+    def set_quota_exceeded_message(self, message: str, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Configure le message affiché quand le quota est dépassé.
 

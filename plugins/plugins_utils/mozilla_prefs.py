@@ -35,18 +35,18 @@ class MozillaPrefsCommands(ConfigFileCommands):
         super().__init__(logger, target_ip)
         self._pref_cache = {}  # Cache pour les préférences
 
-    def read_prefs_file(self, path: Union[str, Path]) -> Optional[Dict[str, Any]]:
+    def read_prefs_file(self, path: Union[str, Path], log_levels: Optional[Dict[str, str]] = None) -> Optional[Dict[str, Any]]:
         """
         Lit un fichier de préférences Mozilla (prefs.js ou user.js).
         Utilise une analyse plus précise pour préserver le formatage exact.
         """
         file_path = Path(path) if isinstance(path, str) else path
-        self.log_debug(f"Lecture du fichier de préférences: {file_path}")
+        self.log_debug(f"Lecture du fichier de préférences: {file_path}", log_levels=log_levels)
 
         # Vérifier si les préférences sont déjà en cache
         cache_key = str(file_path)
         if cache_key in self._pref_cache:
-            self.log_debug(f"Utilisation des préférences en cache pour {file_path}")
+            self.log_debug(f"Utilisation des préférences en cache pour {file_path}", log_levels=log_levels)
             return self._pref_cache[cache_key].copy()
 
         # Lire le contenu du fichier
@@ -72,22 +72,22 @@ class MozillaPrefsCommands(ConfigFileCommands):
                 try:
                     preferences[key] = self._convert_pref_value(value_str)
                 except Exception as e:
-                    self.log_warning(f"Erreur lors de la conversion de la valeur pour {key}: {e}")
+                    self.log_warning(f"Erreur lors de la conversion de la valeur pour {key}: {e}", log_levels=log_levels)
                     preferences[key] = value_str
 
         # Mettre en cache les préférences lues
         self._pref_cache[cache_key] = preferences.copy()
-        self.log_debug(f"Fichier de préférences lu: {len(preferences)} préférences trouvées")
+        self.log_debug(f"Fichier de préférences lu: {len(preferences)} préférences trouvées", log_levels=log_levels)
 
         return preferences
 
-    def write_prefs_file(self, path: Union[str, Path], prefs: Dict[str, Any], backup: bool = True) -> bool:
+    def write_prefs_file(self, path: Union[str, Path], prefs: Dict[str, Any], backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Écrit un dictionnaire de préférences dans un fichier prefs.js ou user.js.
         Préserve le formatage exact des valeurs.
         """
         file_path = Path(path) if isinstance(path, str) else path
-        self.log_debug(f"Écriture du fichier de préférences: {file_path}")
+        self.log_debug(f"Écriture du fichier de préférences: {file_path}", log_levels=log_levels)
 
         # Entête du fichier
         header = """// Mozilla User Preferences
@@ -118,13 +118,13 @@ class MozillaPrefsCommands(ConfigFileCommands):
         # Mettre à jour le cache si l'écriture réussit
         if success:
             self._pref_cache[str(file_path)] = prefs.copy()
-            self.log_success(f"Fichier de préférences écrit avec succès: {len(prefs)} préférences")
+            self.log_success(f"Fichier de préférences écrit avec succès: {len(prefs)} préférences", log_levels=log_levels)
         else:
-            self.log_error(f"Échec de l'écriture du fichier de préférences: {file_path}")
+            self.log_error(f"Échec de l'écriture du fichier de préférences: {file_path}", log_levels=log_levels)
 
         return success
 
-    def get_pref(self, path: Union[str, Path], pref_name: str, default: Any = None) -> Any:
+    def get_pref(self, path: Union[str, Path], pref_name: str, default: Any = None, log_levels: Optional[Dict[str, str]] = None) -> Any:
         """
         Récupère une préférence spécifique d'un fichier de préférences.
 
@@ -142,7 +142,7 @@ class MozillaPrefsCommands(ConfigFileCommands):
 
         return prefs.get(pref_name, default)
 
-    def set_pref(self, path: Union[str, Path], pref_name: str, value: Any, backup: bool = True) -> bool:
+    def set_pref(self, path: Union[str, Path], pref_name: str, value: Any, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Définit une préférence dans un fichier de préférences.
 
@@ -167,7 +167,7 @@ class MozillaPrefsCommands(ConfigFileCommands):
         # Écrire les préférences mises à jour
         return self.write_prefs_file(path, prefs, backup=backup)
 
-    def remove_pref(self, path: Union[str, Path], pref_name: str, backup: bool = True) -> bool:
+    def remove_pref(self, path: Union[str, Path], pref_name: str, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Supprime une préférence d'un fichier de préférences.
 
@@ -186,7 +186,7 @@ class MozillaPrefsCommands(ConfigFileCommands):
 
         # Vérifier si la préférence existe
         if pref_name not in prefs:
-            self.log_warning(f"La préférence '{pref_name}' n'existe pas dans {path}")
+            self.log_warning(f"La préférence '{pref_name}' n'existe pas dans {path}", log_levels=log_levels)
             return True  # Considéré comme un succès puisque le résultat est le même
 
         # Supprimer la préférence
@@ -195,7 +195,7 @@ class MozillaPrefsCommands(ConfigFileCommands):
         # Écrire les préférences mises à jour
         return self.write_prefs_file(path, prefs, backup=backup)
 
-    def get_prefs_by_prefix(self, path: Union[str, Path], prefix: str) -> Dict[str, Any]:
+    def get_prefs_by_prefix(self, path: Union[str, Path], prefix: str, log_levels: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
         """
         Récupère toutes les préférences dont le nom commence par un préfixe spécifique.
 
@@ -213,7 +213,7 @@ class MozillaPrefsCommands(ConfigFileCommands):
         # Filtrer les préférences par préfixe
         return {key: value for key, value in prefs.items() if key.startswith(prefix)}
 
-    def set_multiple_prefs(self, path: Union[str, Path], prefs_to_set: Dict[str, Any], backup: bool = True) -> bool:
+    def set_multiple_prefs(self, path: Union[str, Path], prefs_to_set: Dict[str, Any], backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Définit plusieurs préférences en une seule opération.
 
@@ -237,7 +237,7 @@ class MozillaPrefsCommands(ConfigFileCommands):
         # Écrire les préférences mises à jour
         return self.write_prefs_file(path, prefs, backup=backup)
 
-    def find_profile_path(self, app_name: str = "thunderbird", profile_name: Optional[str] = None) -> Optional[Path]:
+    def find_profile_path(self, app_name: str = "thunderbird", profile_name: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None) -> Optional[Path]:
         """
         Trouve le chemin d'un profil Mozilla.
 
@@ -294,17 +294,17 @@ class MozillaPrefsCommands(ConfigFileCommands):
                                 profile_path = config.get(section, 'Path')
 
                             if os.path.isdir(profile_path):
-                                self.log_debug(f"Profil {app_name} trouvé: {profile_path}")
+                                self.log_debug(f"Profil {app_name} trouvé: {profile_path}", log_levels=log_levels)
                                 return Path(profile_path)
 
             except (configparser.Error, IOError) as e:
-                self.log_warning(f"Erreur lors de la lecture de {ini_path}: {e}")
+                self.log_warning(f"Erreur lors de la lecture de {ini_path}: {e}", log_levels=log_levels)
 
         self.log_warning(f"Aucun profil {app_name} trouvé" +
-                        (f" avec le nom '{profile_name}'" if profile_name else ""))
+                        (f" avec le nom '{profile_name}'" if profile_name else ""), log_levels=log_levels)
         return None
 
-    def backup_prefs_file(self, path: Union[str, Path]) -> Optional[str]:
+    def backup_prefs_file(self, path: Union[str, Path], log_levels: Optional[Dict[str, str]] = None) -> Optional[str]:
         """
         Crée une sauvegarde d'un fichier de préférences.
 
@@ -316,7 +316,7 @@ class MozillaPrefsCommands(ConfigFileCommands):
         """
         file_path = Path(path) if isinstance(path, str) else path
         if not file_path.exists():
-            self.log_warning(f"Fichier {file_path} non trouvé, impossible de créer une sauvegarde")
+            self.log_warning(f"Fichier {file_path} non trouvé, impossible de créer une sauvegarde", log_levels=log_levels)
             return None
 
         # Créer un nom de fichier de sauvegarde avec timestamp
@@ -324,13 +324,13 @@ class MozillaPrefsCommands(ConfigFileCommands):
 
         try:
             shutil.copy2(file_path, backup_path)
-            self.log_debug(f"Sauvegarde créée: {backup_path}")
+            self.log_debug(f"Sauvegarde créée: {backup_path}", log_levels=log_levels)
             return backup_path
         except Exception as e:
-            self.log_error(f"Erreur lors de la création de la sauvegarde: {e}")
+            self.log_error(f"Erreur lors de la création de la sauvegarde: {e}", log_levels=log_levels)
             return None
 
-    def read_prefs_file(self, path: Union[str, Path]) -> Optional[Dict[str, Any]]:
+    def read_prefs_file(self, path: Union[str, Path], log_levels: Optional[Dict[str, str]] = None) -> Optional[Dict[str, Any]]:
         """
         Lit un fichier de préférences Mozilla (prefs.js ou user.js).
 
@@ -341,12 +341,12 @@ class MozillaPrefsCommands(ConfigFileCommands):
             Optional[Dict[str, Any]]: Dictionnaire des préférences {nom: valeur} ou None en cas d'erreur
         """
         file_path = Path(path) if isinstance(path, str) else path
-        self.log_debug(f"Lecture du fichier de préférences: {file_path}")
+        self.log_debug(f"Lecture du fichier de préférences: {file_path}", log_levels=log_levels)
 
         # Vérifier si les préférences sont déjà en cache
         cache_key = str(file_path)
         if cache_key in self._pref_cache:
-            self.log_debug(f"Utilisation des préférences en cache pour {file_path}")
+            self.log_debug(f"Utilisation des préférences en cache pour {file_path}", log_levels=log_levels)
             return self._pref_cache[cache_key].copy()
 
         # Lire le contenu du fichier
@@ -367,18 +367,18 @@ class MozillaPrefsCommands(ConfigFileCommands):
                 value = self._convert_pref_value(value_str)
                 preferences[key] = value
             except Exception as e:
-                self.log_warning(f"Erreur lors de la conversion de la valeur pour {key}: {e}")
+                self.log_warning(f"Erreur lors de la conversion de la valeur pour {key}: {e}", log_levels=log_levels)
                 # Conserver la valeur brute en cas d'erreur
                 preferences[key] = value_str
 
         # Mettre en cache les préférences lues
         self._pref_cache[cache_key] = preferences.copy()
-        self.log_debug(f"Fichier de préférences lu: {len(preferences)} préférences trouvées")
+        self.log_debug(f"Fichier de préférences lu: {len(preferences)} préférences trouvées", log_levels=log_levels)
 
         return preferences
 
 
-    def read_policies_json(self, path: Union[str, Path]) -> Optional[Dict[str, Any]]:
+    def read_policies_json(self, path: Union[str, Path], log_levels: Optional[Dict[str, str]] = None) -> Optional[Dict[str, Any]]:
         """
         Lit un fichier policies.json de Mozilla.
 
@@ -389,7 +389,7 @@ class MozillaPrefsCommands(ConfigFileCommands):
             Optional[Dict[str, Any]]: Structure de politiques ou None en cas d'erreur
         """
         file_path = Path(path) if isinstance(path, str) else path
-        self.log_debug(f"Lecture du fichier policies.json: {file_path}")
+        self.log_debug(f"Lecture du fichier policies.json: {file_path}", log_levels=log_levels)
 
         # Lire le contenu du fichier
         content = self._read_file_content(file_path)
@@ -399,17 +399,17 @@ class MozillaPrefsCommands(ConfigFileCommands):
         try:
             # Parser le JSON
             policies = json.loads(content)
-            self.log_debug(f"Fichier policies.json lu avec succès: {len(policies)} éléments")
+            self.log_debug(f"Fichier policies.json lu avec succès: {len(policies)} éléments", log_levels=log_levels)
             return policies
         except json.JSONDecodeError as e:
-            self.log_error(f"Erreur JSON dans {file_path}: {e}")
+            self.log_error(f"Erreur JSON dans {file_path}: {e}", log_levels=log_levels)
             return None
         except Exception as e:
-            self.log_error(f"Erreur lors de la lecture de policies.json: {e}")
+            self.log_error(f"Erreur lors de la lecture de policies.json: {e}", log_levels=log_levels)
             return None
 
     def write_policies_json(self, path: Union[str, Path], policies: Dict[str, Any],
-                           backup: bool = True) -> bool:
+backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Écrit un dictionnaire de politiques dans un fichier policies.json.
 
@@ -422,7 +422,7 @@ class MozillaPrefsCommands(ConfigFileCommands):
             bool: True si l'écriture réussit, False sinon
         """
         file_path = Path(path) if isinstance(path, str) else path
-        self.log_debug(f"Écriture du fichier policies.json: {file_path}")
+        self.log_debug(f"Écriture du fichier policies.json: {file_path}", log_levels=log_levels)
 
         try:
             # Formater le JSON
@@ -431,11 +431,11 @@ class MozillaPrefsCommands(ConfigFileCommands):
             # Écrire le fichier
             return self._write_file_content(file_path, content, backup=backup)
         except Exception as e:
-            self.log_error(f"Erreur lors de l'écriture de policies.json: {e}")
+            self.log_error(f"Erreur lors de l'écriture de policies.json: {e}", log_levels=log_levels)
             return False
 
     def configure_firefox_enterprise_policies(self, policies: Dict[str, Any],
-                                            install_dir: Optional[Union[str, Path]] = None) -> bool:
+install_dir: Optional[Union[str, Path]] = None, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Configure les politiques d'entreprise pour Firefox.
 
@@ -464,7 +464,7 @@ class MozillaPrefsCommands(ConfigFileCommands):
             install_dir = next((p for p in possible_paths if os.path.isdir(p)), None)
 
             if install_dir is None:
-                self.log_error("Répertoire d'installation Firefox non trouvé")
+                self.log_error("Répertoire d'installation Firefox non trouvé", log_levels=log_levels)
                 return False
 
         install_dir = Path(install_dir) if isinstance(install_dir, str) else install_dir
@@ -484,7 +484,7 @@ class MozillaPrefsCommands(ConfigFileCommands):
         # Écrire le fichier policies.json
         return self.write_policies_json(policies_path, policies_json)
 
-    def read_cfg_file(self, path: Union[str, Path]) -> Optional[Dict[str, Dict[str, Any]]]:
+    def read_cfg_file(self, path: Union[str, Path], log_levels: Optional[Dict[str, str]] = None) -> Optional[Dict[str, Dict[str, Any]]]:
         """
         Lit un fichier .cfg de Mozilla (format similaire à prefs.js mais avec lockPref, etc.).
 
@@ -495,7 +495,7 @@ class MozillaPrefsCommands(ConfigFileCommands):
             Optional[Dict[str, Dict[str, Any]]]: Dictionnaire des préférences ou None en cas d'erreur
         """
         file_path = Path(path) if isinstance(path, str) else path
-        self.log_debug(f"Lecture du fichier .cfg: {file_path}")
+        self.log_debug(f"Lecture du fichier .cfg: {file_path}", log_levels=log_levels)
 
         # Lire le contenu du fichier
         content = self._read_file_content(file_path)
@@ -535,11 +535,11 @@ class MozillaPrefsCommands(ConfigFileCommands):
             if key not in prefs:
                 prefs[key] = {"value": value, "type": "pref"}
 
-        self.log_debug(f"Fichier .cfg lu: {len(prefs)} préférences trouvées")
+        self.log_debug(f"Fichier .cfg lu: {len(prefs)} préférences trouvées", log_levels=log_levels)
         return prefs
 
     def write_cfg_file(self, path: Union[str, Path], prefs: Dict[str, Dict[str, Any]],
-                      backup: bool = True) -> bool:
+backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Écrit un dictionnaire de préférences dans un fichier .cfg.
 
@@ -552,7 +552,7 @@ class MozillaPrefsCommands(ConfigFileCommands):
             bool: True si l'écriture réussit, False sinon
         """
         file_path = Path(path) if isinstance(path, str) else path
-        self.log_debug(f"Écriture du fichier .cfg: {file_path}")
+        self.log_debug(f"Écriture du fichier .cfg: {file_path}", log_levels=log_levels)
 
         # Regrouper par type de préférence
         lock_prefs = []
@@ -590,7 +590,7 @@ class MozillaPrefsCommands(ConfigFileCommands):
         return self._write_file_content(file_path, content, backup=backup)
 
     def add_lockpref_to_cfg(self, path: Union[str, Path], pref_name: str, value: Any,
-                           backup: bool = True) -> bool:
+backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Ajoute une préférence verrouillée à un fichier .cfg.
 
@@ -615,7 +615,7 @@ class MozillaPrefsCommands(ConfigFileCommands):
         return self.write_cfg_file(path, prefs, backup=backup)
 
     def add_defaultpref_to_cfg(self, path: Union[str, Path], pref_name: str, value: Any,
-                              backup: bool = True) -> bool:
+backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Ajoute une préférence par défaut à un fichier .cfg.
 
@@ -640,7 +640,7 @@ class MozillaPrefsCommands(ConfigFileCommands):
         # Écrire les préférences mises à jour
         return self.write_cfg_file(path, prefs, backup=backup)
 
-    def configure_autoconfig(self, install_dir: Optional[Union[str, Path]] = None) -> bool:
+    def configure_autoconfig(self, install_dir: Optional[Union[str, Path]] = None, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Configure l'autoconfiguration pour Firefox ou Thunderbird.
 
@@ -652,10 +652,10 @@ class MozillaPrefsCommands(ConfigFileCommands):
         """
         # Cette méthode nécessiterait une implémentation spécifique selon vos besoins
         # Elle devrait créer/modifier les fichiers autoconfig.js et mozilla.cfg
-        self.log_warning("Méthode configure_autoconfig non implémentée")
+        self.log_warning("Méthode configure_autoconfig non implémentée", log_levels=log_levels)
         return False
 
-    def get_thunderbird_account_settings(self, profile_path: Optional[Union[str, Path]] = None) -> Dict[str, Dict[str, Any]]:
+    def get_thunderbird_account_settings(self, profile_path: Optional[Union[str, Path]] = None, log_levels: Optional[Dict[str, str]] = None) -> Dict[str, Dict[str, Any]]:
         """
         Récupère les paramètres de compte Thunderbird à partir du fichier prefs.js.
 
@@ -731,7 +731,7 @@ class MozillaPrefsCommands(ConfigFileCommands):
 
     def set_thunderbird_account_setting(self, account_id: str, setting_type: str, setting_id: str,
                                        key: str, value: Any,
-                                       profile_path: Optional[Union[str, Path]] = None) -> bool:
+profile_path: Optional[Union[str, Path]] = None, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Définit un paramètre de compte Thunderbird.
 
@@ -750,7 +750,7 @@ class MozillaPrefsCommands(ConfigFileCommands):
         if profile_path is None:
             profile_path = self.find_profile_path(app_name="thunderbird")
             if profile_path is None:
-                self.log_error("Profil Thunderbird non trouvé")
+                self.log_error("Profil Thunderbird non trouvé", log_levels=log_levels)
                 return False
 
         profile_path = Path(profile_path) if isinstance(profile_path, str) else profile_path
@@ -764,14 +764,14 @@ class MozillaPrefsCommands(ConfigFileCommands):
         elif setting_type == "server":
             full_key = f"mail.server.{setting_id}.{key}"
         else:
-            self.log_error(f"Type de paramètre non reconnu: {setting_type}")
+            self.log_error(f"Type de paramètre non reconnu: {setting_type}", log_levels=log_levels)
             return False
 
         # Définir la préférence
         return self.set_pref(prefs_path, full_key, value)
 
     def configure_thunderbird_proxy(self, proxy_type: str, proxy_host: str, proxy_port: int,
-                                  profile_path: Optional[Union[str, Path]] = None) -> bool:
+profile_path: Optional[Union[str, Path]] = None, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Configure les paramètres de proxy pour Thunderbird.
 
@@ -788,7 +788,7 @@ class MozillaPrefsCommands(ConfigFileCommands):
         if profile_path is None:
             profile_path = self.find_profile_path(app_name="thunderbird")
             if profile_path is None:
-                self.log_error("Profil Thunderbird non trouvé")
+                self.log_error("Profil Thunderbird non trouvé", log_levels=log_levels)
                 return False
 
         profile_path = Path(profile_path) if isinstance(profile_path, str) else profile_path
@@ -814,14 +814,14 @@ class MozillaPrefsCommands(ConfigFileCommands):
         elif proxy_type == "auto":
             proxy_prefs["network.proxy.type"] = 2
         else:
-            self.log_error(f"Type de proxy non reconnu: {proxy_type}")
+            self.log_error(f"Type de proxy non reconnu: {proxy_type}", log_levels=log_levels)
             return False
 
         # Définir les préférences
         return self.set_multiple_prefs(prefs_path, proxy_prefs)
 
     def configure_thunderbird_filters(self, filters: List[Dict[str, Any]],
-                                    profile_path: Optional[Union[str, Path]] = None) -> bool:
+profile_path: Optional[Union[str, Path]] = None, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Configure les filtres de messagerie pour Thunderbird.
 
@@ -836,14 +836,14 @@ class MozillaPrefsCommands(ConfigFileCommands):
         if profile_path is None:
             profile_path = self.find_profile_path(app_name="thunderbird")
             if profile_path is None:
-                self.log_error("Profil Thunderbird non trouvé")
+                self.log_error("Profil Thunderbird non trouvé", log_levels=log_levels)
                 return False
 
         profile_path = Path(profile_path) if isinstance(profile_path, str) else profile_path
 
         # Cette méthode nécessiterait une implémentation plus complexe
         # Les filtres sont stockés dans un format spécifique dans msgFilterRules.dat
-        self.log_warning("Méthode configure_thunderbird_filters non complètement implémentée")
+        self.log_warning("Méthode configure_thunderbird_filters non complètement implémentée", log_levels=log_levels)
 
         # Implémentation simplifiée (pourrait ne pas fonctionner dans tous les cas)
         try:
@@ -854,11 +854,11 @@ class MozillaPrefsCommands(ConfigFileCommands):
 
             return True
         except Exception as e:
-            self.log_error(f"Erreur lors de la configuration des filtres: {e}")
+            self.log_error(f"Erreur lors de la configuration des filtres: {e}", log_levels=log_levels)
             return False
 
     def update_lightning_calendar(self, ics_url: str, name: str, color: str = "#3366CC",
-                                profile_path: Optional[Union[str, Path]] = None) -> bool:
+profile_path: Optional[Union[str, Path]] = None, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Ajoute ou met à jour un calendrier Lightning dans Thunderbird.
 
@@ -875,7 +875,7 @@ class MozillaPrefsCommands(ConfigFileCommands):
         if profile_path is None:
             profile_path = self.find_profile_path(app_name="thunderbird")
             if profile_path is None:
-                self.log_error("Profil Thunderbird non trouvé")
+                self.log_error("Profil Thunderbird non trouvé", log_levels=log_levels)
                 return False
 
         profile_path = Path(profile_path) if isinstance(profile_path, str) else profile_path
@@ -884,7 +884,7 @@ class MozillaPrefsCommands(ConfigFileCommands):
         prefs_path = profile_path / "prefs.js"
         prefs = self.read_prefs_file(prefs_path)
         if prefs is None:
-            self.log_error(f"Impossible de lire le fichier prefs.js: {prefs_path}")
+            self.log_error(f"Impossible de lire le fichier prefs.js: {prefs_path}", log_levels=log_levels)
             return False
 
         # Générer un ID unique pour le calendrier

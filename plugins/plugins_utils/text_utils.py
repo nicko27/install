@@ -24,7 +24,7 @@ class TextUtils(PluginsUtilsBase):
                         text: str,
                         delimiter_pattern: str = r'\s*[:=]\s*', # Regex: : ou = entouré d'espaces optionnels
                         comment_char: Optional[str] = '#',
-                        strip_quotes: bool = True) -> Dict[str, str]:
+strip_quotes: bool = True, log_levels: Optional[Dict[str, str]] = None) -> Dict[str, str]:
         """
         Parse un texte multiligne contenant des paires clé-valeur.
 
@@ -37,7 +37,7 @@ class TextUtils(PluginsUtilsBase):
         Returns:
             Dictionnaire des paires clé-valeur trouvées.
         """
-        self.log_debug(f"Parsing texte clé-valeur avec délimiteur '{delimiter_pattern}'")
+        self.log_debug(f"Parsing texte clé-valeur avec délimiteur '{delimiter_pattern}'", log_levels=log_levels)
         data = {}
         lines = text.splitlines()
         delimiter_re = re.compile(delimiter_pattern)
@@ -63,12 +63,12 @@ class TextUtils(PluginsUtilsBase):
                 if key: # Ne pas ajouter si la clé est vide
                      data[key] = value
                 else:
-                     self.log_warning(f"Ligne {line_num+1}: Clé vide détectée, ligne ignorée: '{line}'")
+                     self.log_warning(f"Ligne {line_num+1}: Clé vide détectée, ligne ignorée: '{line}'", log_levels=log_levels)
 
             else:
-                self.log_warning(f"Ligne {line_num+1}: Format clé-valeur non reconnu ou délimiteur non trouvé: '{line}'")
+                self.log_warning(f"Ligne {line_num+1}: Format clé-valeur non reconnu ou délimiteur non trouvé: '{line}'", log_levels=log_levels)
 
-        self.log_debug(f"{len(data)} paires clé-valeur parsées.")
+        self.log_debug(f"{len(data)} paires clé-valeur parsées.", log_levels=log_levels)
         return data
 
     def parse_table(self,
@@ -76,7 +76,7 @@ class TextUtils(PluginsUtilsBase):
                     delimiter_pattern: str = r'\s+', # Regex: un ou plusieurs espaces
                     header_lines: int = 1,
                     comment_char: Optional[str] = '#',
-                    min_columns: int = 2) -> List[Dict[str, str]]:
+min_columns: int = 2, log_levels: Optional[Dict[str, str]] = None) -> List[Dict[str, str]]:
         """
         Parse un texte tabulaire en une liste de dictionnaires.
 
@@ -92,7 +92,7 @@ class TextUtils(PluginsUtilsBase):
             Liste de dictionnaires, où chaque dictionnaire représente une ligne de données.
             Retourne une liste vide si le parsing échoue ou si aucune donnée n'est trouvée.
         """
-        self.log_debug("Parsing de texte tabulaire...")
+        self.log_debug("Parsing de texte tabulaire...", log_levels=log_levels)
         lines = text.splitlines()
         data = []
         header: List[str] = []
@@ -108,10 +108,10 @@ class TextUtils(PluginsUtilsBase):
                 header_raw = delimiter_re.split(line)
                 # Nettoyer les noms d'en-tête (minuscules, remplacer espaces/caractères spéciaux)
                 header = [re.sub(r'\W+', '_', h.strip().lower()) for h in header_raw if h.strip()]
-                self.log_debug(f"En-tête détecté: {header}")
+                self.log_debug(f"En-tête détecté: {header}", log_levels=log_levels)
 
         if not header:
-            self.log_error("Impossible de déterminer l'en-tête du tableau.")
+            self.log_error("Impossible de déterminer l'en-tête du tableau.", log_levels=log_levels)
             return []
 
         # Lire les lignes de données
@@ -139,15 +139,15 @@ class TextUtils(PluginsUtilsBase):
                            row_dict[f'column_{i+1}'] = values[i]
                  data.append(row_dict)
             else:
-                 self.log_warning(f"Ligne de données ignorée (moins de {min_columns} colonnes): '{line}'")
+                 self.log_warning(f"Ligne de données ignorée (moins de {min_columns} colonnes): '{line}'", log_levels=log_levels)
 
-        self.log_info(f"{len(data)} lignes de données parsées du tableau.")
+        self.log_info(f"{len(data)} lignes de données parsées du tableau.", log_levels=log_levels)
         return data
 
     def extract_sections(self,
                          text: str,
                          section_start_pattern: str,
-                         include_start_line: bool = False) -> Dict[str, str]:
+include_start_line: bool = False, log_levels: Optional[Dict[str, str]] = None) -> Dict[str, str]:
         """
         Extrait des sections d'un texte basé sur un motif de début de section.
         Chaque section s'étend jusqu'au prochain motif de début ou la fin du texte.
@@ -163,7 +163,7 @@ class TextUtils(PluginsUtilsBase):
             Dictionnaire où les clés sont les identifiants de section et les valeurs
             sont le contenu textuel de chaque section.
         """
-        self.log_debug(f"Extraction de sections avec le pattern: '{section_start_pattern}'")
+        self.log_debug(f"Extraction de sections avec le pattern: '{section_start_pattern}'", log_levels=log_levels)
         sections: Dict[str, str] = {}
         current_section_key: Optional[str] = None
         current_section_content: List[str] = []
@@ -186,7 +186,7 @@ class TextUtils(PluginsUtilsBase):
                 current_section_content = []
                 if include_start_line:
                     current_section_content.append(line)
-                self.log_debug(f"Nouvelle section détectée: '{current_section_key}'")
+                self.log_debug(f"Nouvelle section détectée: '{current_section_key}'", log_levels=log_levels)
 
             elif current_section_key is not None:
                 # Ajouter la ligne à la section courante
@@ -196,14 +196,14 @@ class TextUtils(PluginsUtilsBase):
         if current_section_key is not None:
             sections[current_section_key] = "\n".join(current_section_content)
 
-        self.log_info(f"{len(sections)} sections extraites.")
+        self.log_info(f"{len(sections)} sections extraites.", log_levels=log_levels)
         return sections
 
     def advanced_regex_search(self,
                               text: str,
                               pattern: Union[str, Pattern],
                               group_names: Optional[List[str]] = None,
-                              find_all: bool = True) -> Union[Optional[Dict[str, str]], List[Dict[str, str]], None]:
+find_all: bool = True, log_levels: Optional[Dict[str, str]] = None) -> Union[Optional[Dict[str, str]], List[Dict[str, str]], None]:
         """
         Effectue une recherche regex avancée et retourne les résultats structurés.
 
@@ -220,7 +220,7 @@ class TextUtils(PluginsUtilsBase):
             - Si find_all=False: Dictionnaire de la première correspondance ou None si pas de correspondance.
             - None si erreur regex.
         """
-        self.log_debug(f"Recherche regex avancée avec pattern: {pattern}")
+        self.log_debug(f"Recherche regex avancée avec pattern: {pattern}", log_levels=log_levels)
         try:
             if isinstance(pattern, str):
                 regex = re.compile(pattern)
@@ -240,7 +240,7 @@ class TextUtils(PluginsUtilsBase):
                         for i, name in enumerate(group_names):
                             match_dict[name] = match.group(i + 1) # Les groupes sont indexés à partir de 1
                     else:
-                         self.log_warning("Le nombre de group_names ne correspond pas au nombre de groupes capturés dans le pattern.")
+                         self.log_warning("Le nombre de group_names ne correspond pas au nombre de groupes capturés dans le pattern.", log_levels=log_levels)
                          # Fallback vers les noms de groupes numérotés
                          for i, group_val in enumerate(match.groups()):
                               match_dict[f'group_{i+1}'] = group_val
@@ -259,17 +259,17 @@ class TextUtils(PluginsUtilsBase):
             if not find_all:
                 return matches_data[0] if matches_data else None
             else:
-                 self.log_debug(f"{len(matches_data)} correspondance(s) regex trouvée(s).")
+                 self.log_debug(f"{len(matches_data)} correspondance(s) regex trouvée(s).", log_levels=log_levels)
                  return matches_data
 
         except re.error as e:
-            self.log_error(f"Erreur de syntaxe dans l'expression régulière: {e}")
+            self.log_error(f"Erreur de syntaxe dans l'expression régulière: {e}", log_levels=log_levels)
             return None
         except Exception as e:
-            self.log_error(f"Erreur lors de la recherche regex: {e}", exc_info=True)
+            self.log_error(f"Erreur lors de la recherche regex: {e}", exc_info=True, log_levels=log_levels)
             return None
 
-    def sanitize_filename(self, filename: str, replacement: str = '_') -> str:
+    def sanitize_filename(self, filename: str, replacement: str = '_', log_levels: Optional[Dict[str, str]] = None) -> str:
         """
         Nettoie une chaîne pour l'utiliser comme nom de fichier valide.
         Remplace les caractères non alphanumériques (sauf . - _) par un caractère de remplacement.
@@ -291,4 +291,3 @@ class TextUtils(PluginsUtilsBase):
         if not sanitized: # Si tout a été supprimé
              return f"fichier_nettoye_{int(time.time())}"
         return sanitized
-

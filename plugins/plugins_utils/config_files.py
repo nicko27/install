@@ -68,14 +68,14 @@ class ConfigFileCommands(PluginsUtilsBase):
             Optional[str]: Contenu du fichier ou None en cas d'erreur
         """
         file_path = Path(path)
-        self.log_debug(f"Lecture du fichier: {file_path}")
+        self.log_debug(f"Lecture du fichier: {file_path}", log_levels=log_levels)
 
         # Essayer d'abord avec les droits standards
         try:
             if file_path.exists() and os.access(file_path, os.R_OK):
                 return file_path.read_text(encoding='utf-8')
         except (PermissionError, OSError) as e:
-            self.log_debug(f"Lecture standard échouée pour {file_path}: {e}")
+            self.log_debug(f"Lecture standard échouée pour {file_path}: {e}", log_levels=log_levels)
 
         # Si on arrive ici, il faut utiliser sudo
         self._sudo_mode = True
@@ -85,9 +85,9 @@ class ConfigFileCommands(PluginsUtilsBase):
 
         if not success_read:
             if "No such file" in stderr_read or "no such file" in stderr_read.lower():
-                self.log_debug(f"Fichier introuvable: {file_path}")
+                self.log_debug(f"Fichier introuvable: {file_path}", log_levels=log_levels)
             else:
-                self.log_error(f"Impossible de lire le fichier {file_path}. Stderr: {stderr_read}")
+                self.log_error(f"Impossible de lire le fichier {file_path}. Stderr: {stderr_read}", log_levels=log_levels)
             return None
 
         return content
@@ -114,7 +114,7 @@ class ConfigFileCommands(PluginsUtilsBase):
                     'mode': stat.S_IMODE(file_stat.st_mode)
                 }
         except (PermissionError, OSError) as e:
-            self.log_debug(f"Impossible d'obtenir les stats standard pour {file_path}: {e}")
+            self.log_debug(f"Impossible d'obtenir les stats standard pour {file_path}: {e}", log_levels=log_levels)
 
         # Si on arrive ici, il faut utiliser sudo
         self._sudo_mode = True
@@ -131,7 +131,7 @@ class ConfigFileCommands(PluginsUtilsBase):
                     'mode': int(mode_octal, 8)  # Convertir le mode octal en entier
                 }
             except (ValueError, IndexError) as e:
-                self.log_warning(f"Erreur lors du traitement des stats pour {file_path}: {e}")
+                self.log_warning(f"Erreur lors du traitement des stats pour {file_path}: {e}", log_levels=log_levels)
 
         return None
 
@@ -155,10 +155,10 @@ class ConfigFileCommands(PluginsUtilsBase):
                                              check=False, no_output=True,
                                              error_as_warning=True, needs_sudo=True)
                 if not success_test:
-                    self.log_debug(f"Fichier {file_path} non trouvé, pas de sauvegarde nécessaire.")
+                    self.log_debug(f"Fichier {file_path} non trouvé, pas de sauvegarde nécessaire.", log_levels=log_levels)
                     return None
             else:
-                self.log_debug(f"Fichier {file_path} non trouvé, pas de sauvegarde nécessaire.")
+                self.log_debug(f"Fichier {file_path} non trouvé, pas de sauvegarde nécessaire.", log_levels=log_levels)
                 return None
 
         backup_path = file_path.with_suffix(f"{file_path.suffix}.bak_{int(time.time())}")
@@ -167,10 +167,10 @@ class ConfigFileCommands(PluginsUtilsBase):
         try:
             if not self._sudo_mode:
                 shutil.copy2(file_path, backup_path)
-                self.log_debug(f"Sauvegarde créée: {backup_path}")
+                self.log_debug(f"Sauvegarde créée: {backup_path}", log_levels=log_levels)
                 return str(backup_path)
         except (PermissionError, OSError) as e:
-            self.log_debug(f"Sauvegarde standard échouée pour {file_path}: {e}")
+            self.log_debug(f"Sauvegarde standard échouée pour {file_path}: {e}", log_levels=log_levels)
             self._sudo_mode = True
 
         # Si on arrive ici, il faut utiliser sudo
@@ -178,10 +178,10 @@ class ConfigFileCommands(PluginsUtilsBase):
         success, _, stderr = self.run(cmd_cp, check=False, needs_sudo=True)
 
         if not success:
-            self.log_warning(f"Échec de la création de la sauvegarde {backup_path}. Stderr: {stderr}")
+            self.log_warning(f"Échec de la création de la sauvegarde {backup_path}. Stderr: {stderr}", log_levels=log_levels)
             return None
 
-        self.log_debug(f"Sauvegarde créée avec sudo: {backup_path}")
+        self.log_debug(f"Sauvegarde créée avec sudo: {backup_path}", log_levels=log_levels)
         return str(backup_path)
 
     def _apply_file_permissions(self, path: Union[str, Path], stats: Dict[str, int]) -> bool:
@@ -204,7 +204,7 @@ class ConfigFileCommands(PluginsUtilsBase):
                 os.chown(file_path, stats['uid'], stats['gid'])
                 return True
         except (PermissionError, OSError) as e:
-            self.log_debug(f"Application des permissions standard échouée pour {file_path}: {e}")
+            self.log_debug(f"Application des permissions standard échouée pour {file_path}: {e}", log_levels=log_levels)
             self._sudo_mode = True
 
         # Si on arrive ici, il faut utiliser sudo
@@ -228,7 +228,7 @@ class ConfigFileCommands(PluginsUtilsBase):
             bool: True si l'écriture réussit, False sinon
         """
         file_path = Path(path)
-        self.log_debug(f"Écriture dans le fichier: {file_path}")
+        self.log_debug(f"Écriture dans le fichier: {file_path}", log_levels=log_levels)
 
         # Vérifier si sudo est nécessaire
         self._sudo_mode = self._check_sudo_required(file_path)
@@ -255,7 +255,7 @@ class ConfigFileCommands(PluginsUtilsBase):
 
             # Écrire le contenu dans le fichier temporaire
             tmp_file_path.write_text(content, encoding='utf-8')
-            self.log_debug(f"Contenu écrit dans le fichier temporaire: {tmp_file_path}")
+            self.log_debug(f"Contenu écrit dans le fichier temporaire: {tmp_file_path}", log_levels=log_levels)
 
             # Déplacer le fichier temporaire vers la destination finale
             if self._sudo_mode:
@@ -263,7 +263,7 @@ class ConfigFileCommands(PluginsUtilsBase):
                 cmd_cp = ['cp', str(tmp_file_path), str(file_path)]
                 success_cp, _, stderr_cp = self.run(cmd_cp, check=False, needs_sudo=True)
                 if not success_cp:
-                    self.log_error(f"Échec de la copie vers {file_path}. Stderr: {stderr_cp}")
+                    self.log_error(f"Échec de la copie vers {file_path}. Stderr: {stderr_cp}", log_levels=log_levels)
                     return False
             else:
                 # Utiliser les fonctions Python standard
@@ -273,17 +273,17 @@ class ConfigFileCommands(PluginsUtilsBase):
             if original_stats:
                 success_perm = self._apply_file_permissions(file_path, original_stats)
                 if not success_perm:
-                    self.log_warning(f"Impossible de restaurer les permissions originales pour {file_path}")
+                    self.log_warning(f"Impossible de restaurer les permissions originales pour {file_path}", log_levels=log_levels)
             else:
                 # Appliquer des permissions par défaut si aucune info originale
                 default_stats = {'uid': os.getuid(), 'gid': os.getgid(), 'mode': 0o644}
                 self._apply_file_permissions(file_path, default_stats)
 
-            self.log_info(f"Fichier {file_path} écrit/mis à jour avec succès.")
+            self.log_info(f"Fichier {file_path} écrit/mis à jour avec succès.", log_levels=log_levels)
             return True
 
         except Exception as e:
-            self.log_error(f"Erreur lors de l'écriture dans {file_path}: {e}", exc_info=True)
+            self.log_error(f"Erreur lors de l'écriture dans {file_path}: {e}", exc_info=True, log_levels=log_levels)
             return False
 
         finally:
@@ -292,7 +292,7 @@ class ConfigFileCommands(PluginsUtilsBase):
                 try:
                     tmp_file_path.unlink()
                 except Exception as e_unlink:
-                    self.log_warning(f"Impossible de supprimer le fichier temporaire {tmp_file_path}: {e_unlink}")
+                    self.log_warning(f"Impossible de supprimer le fichier temporaire {tmp_file_path}: {e_unlink}", log_levels=log_levels)
 
     # --- Méthodes INI ---
 
@@ -306,7 +306,7 @@ class ConfigFileCommands(PluginsUtilsBase):
         Returns:
             Dict[str, Dict[str, str]]: Structure INI parsée
         """
-        self.log_debug("Tentative de parsing INI manuel simplifié.")
+        self.log_debug("Tentative de parsing INI manuel simplifié.", log_levels=log_levels)
         data = {'DEFAULT': {}}  # Utiliser une section DEFAULT par défaut
         current_section = 'DEFAULT'
 
@@ -346,7 +346,7 @@ class ConfigFileCommands(PluginsUtilsBase):
 
         return data
 
-    def read_ini_file(self, path: Union[str, Path]) -> Optional[Dict[str, Dict[str, str]]]:
+    def read_ini_file(self, path: Union[str, Path], log_levels: Optional[Dict[str, str]] = None) -> Optional[Dict[str, Dict[str, str]]]:
         """
         Lit un fichier INI et le retourne sous forme de dictionnaire imbriqué.
         Gère les fichiers sans section d'en-tête via [DEFAULT].
@@ -359,7 +359,7 @@ class ConfigFileCommands(PluginsUtilsBase):
             Optional[Dict[str, Dict[str, str]]]: Structure INI parsée ou None en cas d'erreur
         """
         file_path = Path(path)
-        self.log_debug(f"Lecture du fichier INI: {file_path}")
+        self.log_debug(f"Lecture du fichier INI: {file_path}", log_levels=log_levels)
 
         # Lire le contenu du fichier
         content = self._read_file_content(file_path)
@@ -387,7 +387,7 @@ class ConfigFileCommands(PluginsUtilsBase):
                     break
 
             if has_content and needs_default_section:
-                self.log_debug("Aucune section détectée via configparser, ajout de [DEFAULT].")
+                self.log_debug("Aucune section détectée via configparser, ajout de [DEFAULT].", log_levels=log_levels)
                 processed_content = "[DEFAULT]\n" + content
 
             # Utiliser un StringIO pour éviter les problèmes de fichiers
@@ -402,16 +402,16 @@ class ConfigFileCommands(PluginsUtilsBase):
 
             # Vérifier si le parsing a réussi mais retourné un dict vide alors qu'il y avait du contenu
             if has_content and not parsed_dict and not config.defaults():
-                self.log_debug("Configparser a retourné un résultat vide malgré du contenu. Tentative de parsing manuel.")
+                self.log_debug("Configparser a retourné un résultat vide malgré du contenu. Tentative de parsing manuel.", log_levels=log_levels)
             else:
                 config_dict = parsed_dict  # Le parsing a fonctionné
 
         except configparser.Error as e:
             # Erreur de parsing explicite, tenter le parsing manuel
-            self.log_warning(f"Erreur de parsing INI standard: {e}. Tentative de parsing manuel.")
+            self.log_warning(f"Erreur de parsing INI standard: {e}. Tentative de parsing manuel.", log_levels=log_levels)
         except Exception as e:
             # Autre erreur inattendue, tenter le parsing manuel
-            self.log_warning(f"Erreur inattendue lors du parsing INI standard: {e}. Tentative de parsing manuel.")
+            self.log_warning(f"Erreur inattendue lors du parsing INI standard: {e}. Tentative de parsing manuel.", log_levels=log_levels)
 
         # 2. Essayer le parsing manuel si configparser a échoué ou retourné vide pour un fichier non vide
         if config_dict is None or (has_content and not config_dict):
@@ -422,16 +422,16 @@ class ConfigFileCommands(PluginsUtilsBase):
                     # Si le parsing manuel a aussi échoué, retourner un dict vide
                     config_dict = {}
                 else:
-                    self.log_debug("Parsing INI réussi via la méthode manuelle.")
+                    self.log_debug("Parsing INI réussi via la méthode manuelle.", log_levels=log_levels)
 
             except Exception as manual_e:
-                self.log_error(f"Le parsing manuel a également échoué: {manual_e}", exc_info=True)
+                self.log_error(f"Le parsing manuel a également échoué: {manual_e}", exc_info=True, log_levels=log_levels)
                 return None  # Échec des deux méthodes
 
-        self.log_debug(f"Contenu INI final lu: {config_dict}")
+        self.log_debug(f"Contenu INI final lu: {config_dict}", log_levels=log_levels)
         return config_dict if config_dict is not None else {}
 
-    def get_ini_value(self, path: Union[str, Path], section: str, key: str, default: Optional[str] = None) -> Optional[str]:
+    def get_ini_value(self, path: Union[str, Path], section: str, key: str, default: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None) -> Optional[str]:
         """
         Récupère une valeur spécifique d'un fichier INI.
 
@@ -460,7 +460,7 @@ class ConfigFileCommands(PluginsUtilsBase):
         return value if value is not None else default
 
     def set_ini_value(self, path: Union[str, Path], section: str, key: str, value: Optional[str],
-                     create_section: bool = True, backup: bool = True) -> bool:
+create_section: bool = True, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Définit ou supprime une valeur dans un fichier INI.
 
@@ -477,9 +477,9 @@ class ConfigFileCommands(PluginsUtilsBase):
         """
         file_path = Path(path)
         action = "Suppression de" if value is None else "Définition de"
-        self.log_debug(f"{action} la clé INI '{key}' dans la section '[{section}]' du fichier: {file_path}")
+        self.log_debug(f"{action} la clé INI '{key}' dans la section '[{section}]' du fichier: {file_path}", log_levels=log_levels)
         if value is not None:
-            self.log_debug(f"  Nouvelle valeur: '{value}'")
+            self.log_debug(f"  Nouvelle valeur: '{value}'", log_levels=log_levels)
 
         # Utiliser un ConfigParser pour préserver la structure et les commentaires
         config = configparser.ConfigParser(interpolation=None)
@@ -522,22 +522,22 @@ class ConfigFileCommands(PluginsUtilsBase):
             target_section = section if section else 'DEFAULT'
             if not config.has_section(target_section) and target_section != 'DEFAULT':
                 if create_section:
-                    self.log_debug(f"Création de la section INI: [{target_section}]")
+                    self.log_debug(f"Création de la section INI: [{target_section}]", log_levels=log_levels)
                     config.add_section(target_section)
                 else:
-                    self.log_error(f"La section INI '[{target_section}]' n'existe pas et create_section=False.")
+                    self.log_error(f"La section INI '[{target_section}]' n'existe pas et create_section=False.", log_levels=log_levels)
                     return False
 
             # Définir ou supprimer la valeur
             if value is None:
                 if config.has_option(target_section, key):
                     config.remove_option(target_section, key)
-                    self.log_debug(f"Clé '{key}' supprimée de la section '[{target_section}]'.")
+                    self.log_debug(f"Clé '{key}' supprimée de la section '[{target_section}]'.", log_levels=log_levels)
                 else:
-                    self.log_debug(f"Clé '{key}' n'existait pas dans la section '[{target_section}]'.")
+                    self.log_debug(f"Clé '{key}' n'existait pas dans la section '[{target_section}]'.", log_levels=log_levels)
             else:
                 config.set(target_section, key, str(value))  # Assurer que la valeur est une chaîne
-                self.log_debug(f"Clé '{key}' définie à '{value}' dans la section '[{target_section}]'.")
+                self.log_debug(f"Clé '{key}' définie à '{value}' dans la section '[{target_section}]'.", log_levels=log_levels)
 
             # Écrire le contenu modifié dans une chaîne
             string_io = io.StringIO()
@@ -550,18 +550,18 @@ class ConfigFileCommands(PluginsUtilsBase):
                 lines = new_content.splitlines()
                 if lines and lines[0].strip() == '[DEFAULT]':
                     new_content = "\n".join(lines[1:])
-                    self.log_debug("En-tête [DEFAULT] retiré avant l'écriture car fichier original sans section.")
+                    self.log_debug("En-tête [DEFAULT] retiré avant l'écriture car fichier original sans section.", log_levels=log_levels)
 
             # Écrire le fichier final
             return self._write_file_content(file_path, new_content, backup=backup)
 
         except Exception as e:
-            self.log_error(f"Erreur lors de la modification de la configuration INI: {e}", exc_info=True)
+            self.log_error(f"Erreur lors de la modification de la configuration INI: {e}", exc_info=True, log_levels=log_levels)
             return False
 
     # --- Méthodes JSON ---
 
-    def read_json_file(self, path: Union[str, Path]) -> Optional[Any]:
+    def read_json_file(self, path: Union[str, Path], log_levels: Optional[Dict[str, str]] = None) -> Optional[Any]:
         """
         Lit un fichier JSON et le retourne comme objet Python.
 
@@ -572,7 +572,7 @@ class ConfigFileCommands(PluginsUtilsBase):
             Optional[Any]: Contenu JSON parsé ou None en cas d'erreur
         """
         file_path = Path(path)
-        self.log_debug(f"Lecture du fichier JSON: {file_path}")
+        self.log_debug(f"Lecture du fichier JSON: {file_path}", log_levels=log_levels)
 
         # Lire le contenu du fichier
         content = self._read_file_content(file_path)
@@ -581,16 +581,16 @@ class ConfigFileCommands(PluginsUtilsBase):
 
         try:
             data = json.loads(content)
-            self.log_debug("Contenu JSON lu avec succès.")
+            self.log_debug("Contenu JSON lu avec succès.", log_levels=log_levels)
             return data
         except json.JSONDecodeError as e:
-            self.log_error(f"Erreur de parsing JSON dans {file_path}: {e}")
+            self.log_error(f"Erreur de parsing JSON dans {file_path}: {e}", log_levels=log_levels)
             return None
         except Exception as e:
-            self.log_error(f"Erreur inattendue lors du parsing JSON pour {file_path}: {e}", exc_info=True)
+            self.log_error(f"Erreur inattendue lors du parsing JSON pour {file_path}: {e}", exc_info=True, log_levels=log_levels)
             return None
 
-    def write_json_file(self, path: Union[str, Path], data: Any, indent: Optional[int] = 2, backup: bool = True) -> bool:
+    def write_json_file(self, path: Union[str, Path], data: Any, indent: Optional[int] = 2, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Écrit un objet Python dans un fichier JSON.
 
@@ -604,19 +604,19 @@ class ConfigFileCommands(PluginsUtilsBase):
             bool: True si l'écriture réussit, False sinon
         """
         file_path = Path(path)
-        self.log_debug(f"Écriture des données JSON dans: {file_path}")
+        self.log_debug(f"Écriture des données JSON dans: {file_path}", log_levels=log_levels)
 
         try:
             # Utiliser ensure_ascii=False pour un meilleur support UTF-8
             json_content = json.dumps(data, indent=indent, ensure_ascii=False) + "\n"
             return self._write_file_content(file_path, json_content, backup=backup)
         except Exception as e:
-            self.log_error(f"Erreur lors de la génération ou écriture du contenu JSON: {e}", exc_info=True)
+            self.log_error(f"Erreur lors de la génération ou écriture du contenu JSON: {e}", exc_info=True, log_levels=log_levels)
             return False
 
     # --- Méthodes Fichiers Texte Génériques ---
 
-    def read_file_lines(self, path: Union[str, Path]) -> Optional[List[str]]:
+    def read_file_lines(self, path: Union[str, Path], log_levels: Optional[Dict[str, str]] = None) -> Optional[List[str]]:
         """
         Lit toutes les lignes d'un fichier texte.
 
@@ -627,7 +627,7 @@ class ConfigFileCommands(PluginsUtilsBase):
             Optional[List[str]]: Liste des lignes ou None en cas d'erreur
         """
         file_path = Path(path)
-        self.log_debug(f"Lecture des lignes du fichier: {file_path}")
+        self.log_debug(f"Lecture des lignes du fichier: {file_path}", log_levels=log_levels)
 
         # Lire le contenu du fichier
         content = self._read_file_content(file_path)
@@ -637,7 +637,7 @@ class ConfigFileCommands(PluginsUtilsBase):
         # Retourner les lignes en gardant les fins de ligne originales
         return content.splitlines(keepends=True)
 
-    def get_line_containing(self, path: Union[str, Path], pattern: str, first_match_only: bool = True) -> Union[Optional[str], List[str], None]:
+    def get_line_containing(self, path: Union[str, Path], pattern: str, first_match_only: bool = True, log_levels: Optional[Dict[str, str]] = None) -> Union[Optional[str], List[str], None]:
         """
         Trouve la première ou toutes les lignes contenant un motif regex.
 
@@ -653,7 +653,7 @@ class ConfigFileCommands(PluginsUtilsBase):
         if lines is None:
             return None
 
-        self.log_debug(f"Recherche du pattern '{pattern}' dans {path}")
+        self.log_debug(f"Recherche du pattern '{pattern}' dans {path}", log_levels=log_levels)
         found_lines = []
 
         try:
@@ -669,10 +669,10 @@ class ConfigFileCommands(PluginsUtilsBase):
             return found_lines if found_lines else ([] if not first_match_only else None)
 
         except re.error as e:
-            self.log_error(f"Erreur de regex dans le pattern '{pattern}': {e}")
+            self.log_error(f"Erreur de regex dans le pattern '{pattern}': {e}", log_levels=log_levels)
             return None
 
-    def replace_line(self, path: Union[str, Path], pattern: str, new_line: str, replace_all: bool = False, backup: bool = True) -> bool:
+    def replace_line(self, path: Union[str, Path], pattern: str, new_line: str, replace_all: bool = False, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Remplace la première ou toutes les lignes correspondant à un motif regex.
 
@@ -687,7 +687,7 @@ class ConfigFileCommands(PluginsUtilsBase):
             bool: True si le remplacement réussit, False sinon
         """
         file_path = Path(path)
-        self.log_debug(f"Remplacement des lignes correspondant à '{pattern}' dans {file_path}")
+        self.log_debug(f"Remplacement des lignes correspondant à '{pattern}' dans {file_path}", log_levels=log_levels)
 
         # Lire le contenu du fichier
         lines = self.read_file_lines(file_path)
@@ -709,25 +709,25 @@ class ConfigFileCommands(PluginsUtilsBase):
                     new_lines.append(new_line_with_eol)
                     modified = True
                     replaced_count += 1
-                    self.log_debug(f"  Ligne remplacée: {line.strip()} -> {new_line.strip()}")
+                    self.log_debug(f"  Ligne remplacée: {line.strip()} -> {new_line.strip()}", log_levels=log_levels)
                 else:
                     new_lines.append(line)  # Garder la ligne originale avec sa fin de ligne
 
             if not modified:
-                self.log_debug("Aucune ligne correspondante trouvée pour remplacement.")
+                self.log_debug("Aucune ligne correspondante trouvée pour remplacement.", log_levels=log_levels)
                 return True  # Pas d'erreur si rien à remplacer
 
             # Écrire le contenu modifié
             return self._write_file_content(file_path, "".join(new_lines), backup=backup)
 
         except re.error as e:
-            self.log_error(f"Erreur de regex dans le pattern '{pattern}': {e}")
+            self.log_error(f"Erreur de regex dans le pattern '{pattern}': {e}", log_levels=log_levels)
             return False
         except Exception as e:
-            self.log_error(f"Erreur lors du remplacement dans {file_path}: {e}", exc_info=True)
+            self.log_error(f"Erreur lors du remplacement dans {file_path}: {e}", exc_info=True, log_levels=log_levels)
             return False
 
-    def comment_line(self, path: Union[str, Path], pattern: str, comment_char: str = '#', backup: bool = True) -> bool:
+    def comment_line(self, path: Union[str, Path], pattern: str, comment_char: str = '#', backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Commente les lignes correspondant à un motif regex.
 
@@ -741,7 +741,7 @@ class ConfigFileCommands(PluginsUtilsBase):
             bool: True si le commentage réussit, False sinon
         """
         file_path = Path(path)
-        self.log_debug(f"Commentage des lignes correspondant à '{pattern}' dans {file_path}")
+        self.log_debug(f"Commentage des lignes correspondant à '{pattern}' dans {file_path}", log_levels=log_levels)
 
         # Lire le contenu du fichier
         lines = self.read_file_lines(file_path)
@@ -761,25 +761,25 @@ class ConfigFileCommands(PluginsUtilsBase):
                     indent = line[:len(line) - len(line.lstrip())]
                     new_lines.append(f"{indent}{comment_char} {line_strip}\n")
                     modified = True
-                    self.log_debug(f"  Ligne commentée: {line_strip}")
+                    self.log_debug(f"  Ligne commentée: {line_strip}", log_levels=log_levels)
                 else:
                     new_lines.append(line)  # Garder la ligne originale
 
             if not modified:
-                self.log_debug("Aucune ligne à commenter trouvée.")
+                self.log_debug("Aucune ligne à commenter trouvée.", log_levels=log_levels)
                 return True
 
             # Écrire le contenu modifié
             return self._write_file_content(file_path, "".join(new_lines), backup=backup)
 
         except re.error as e:
-            self.log_error(f"Erreur de regex dans le pattern '{pattern}': {e}")
+            self.log_error(f"Erreur de regex dans le pattern '{pattern}': {e}", log_levels=log_levels)
             return False
         except Exception as e:
-            self.log_error(f"Erreur lors du commentage dans {file_path}: {e}", exc_info=True)
+            self.log_error(f"Erreur lors du commentage dans {file_path}: {e}", exc_info=True, log_levels=log_levels)
             return False
 
-    def uncomment_line(self, path: Union[str, Path], pattern: str, comment_char: str = '#', backup: bool = True) -> bool:
+    def uncomment_line(self, path: Union[str, Path], pattern: str, comment_char: str = '#', backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Décommente les lignes correspondant à un motif regex.
 
@@ -793,7 +793,7 @@ class ConfigFileCommands(PluginsUtilsBase):
             bool: True si le décommentage réussit, False sinon
         """
         file_path = Path(path)
-        self.log_debug(f"Décommentage des lignes correspondant à '{pattern}' dans {file_path}")
+        self.log_debug(f"Décommentage des lignes correspondant à '{pattern}' dans {file_path}", log_levels=log_levels)
 
         # Lire le contenu du fichier
         lines = self.read_file_lines(file_path)
@@ -816,27 +816,27 @@ class ConfigFileCommands(PluginsUtilsBase):
                     if regex.search(uncommented_content):  # Vérifier le pattern sur le contenu décommenté
                         new_lines.append(f"{indent}{uncommented_content}\n")  # Restaurer indentation
                         modified = True
-                        self.log_debug(f"  Ligne décommentée: {line.strip()}")
+                        self.log_debug(f"  Ligne décommentée: {line.strip()}", log_levels=log_levels)
                     else:
                         new_lines.append(line)  # Ne correspond pas au pattern, garder commenté
                 else:
                     new_lines.append(line)  # Pas commenté, garder tel quel
 
             if not modified:
-                self.log_debug("Aucune ligne à décommenter trouvée.")
+                self.log_debug("Aucune ligne à décommenter trouvée.", log_levels=log_levels)
                 return True
 
             # Écrire le contenu modifié
             return self._write_file_content(file_path, "".join(new_lines), backup=backup)
 
         except re.error as e:
-            self.log_error(f"Erreur de regex dans le pattern '{pattern}': {e}")
+            self.log_error(f"Erreur de regex dans le pattern '{pattern}': {e}", log_levels=log_levels)
             return False
         except Exception as e:
-            self.log_error(f"Erreur lors du décommentage dans {file_path}: {e}", exc_info=True)
+            self.log_error(f"Erreur lors du décommentage dans {file_path}: {e}", exc_info=True, log_levels=log_levels)
             return False
 
-    def append_line(self, path: Union[str, Path], line_to_append: str, ensure_newline: bool = True) -> bool:
+    def append_line(self, path: Union[str, Path], line_to_append: str, ensure_newline: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Ajoute une ligne à la fin d'un fichier.
 
@@ -849,7 +849,7 @@ class ConfigFileCommands(PluginsUtilsBase):
             bool: True si l'ajout réussit, False sinon
         """
         file_path = Path(path)
-        self.log_debug(f"Ajout de la ligne à la fin de {file_path}: {line_to_append[:50]}...")
+        self.log_debug(f"Ajout de la ligne à la fin de {file_path}: {line_to_append[:50]}...", log_levels=log_levels)
 
         # Préparer le contenu à ajouter
         content_to_append = line_to_append
@@ -876,13 +876,13 @@ class ConfigFileCommands(PluginsUtilsBase):
         try:
             with file_path.open('a', encoding='utf-8') as f:
                 f.write(content_to_append)
-            self.log_info(f"Ligne ajoutée avec succès à {file_path}.")
+            self.log_info(f"Ligne ajoutée avec succès à {file_path}.", log_levels=log_levels)
             return True
         except Exception as e:
-            self.log_error(f"Erreur lors de l'ajout de la ligne à {file_path}: {e}", exc_info=True)
+            self.log_error(f"Erreur lors de l'ajout de la ligne à {file_path}: {e}", exc_info=True, log_levels=log_levels)
             return False
 
-    def ensure_line_exists(self, path: Union[str, Path], line_to_ensure: str, pattern_to_check: Optional[str] = None, backup: bool = True) -> bool:
+    def ensure_line_exists(self, path: Union[str, Path], line_to_ensure: str, pattern_to_check: Optional[str] = None, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         S'assure qu'une ligne spécifique existe dans un fichier, l'ajoute sinon.
 
@@ -896,7 +896,7 @@ class ConfigFileCommands(PluginsUtilsBase):
             bool: True si la ligne existe ou a été ajoutée avec succès
         """
         file_path = Path(path)
-        self.log_debug(f"Vérification/Ajout de la ligne dans {file_path}: {line_to_ensure[:50]}...")
+        self.log_debug(f"Vérification/Ajout de la ligne dans {file_path}: {line_to_ensure[:50]}...", log_levels=log_levels)
 
         # Lire le contenu actuel
         current_content = ""
@@ -912,7 +912,7 @@ class ConfigFileCommands(PluginsUtilsBase):
             if re.search(check_pattern, current_content, re.MULTILINE):
                 line_exists = True
         except re.error as e:
-            self.log_error(f"Erreur de regex dans le pattern '{pattern_to_check}': {e}")
+            self.log_error(f"Erreur de regex dans le pattern '{pattern_to_check}': {e}", log_levels=log_levels)
             return False
 
         # Ajouter si nécessaire
@@ -940,7 +940,7 @@ class ConfigFileCommands(PluginsUtilsBase):
         Returns:
             dict: Structure hiérarchique représentant la configuration
         """
-        self.log_debug("Parsing d'un fichier de configuration à blocs")
+        self.log_debug("Parsing d'un fichier de configuration à blocs", log_levels=log_levels)
 
         # Structure pour stocker la configuration parsée
         config = {}
@@ -1047,7 +1047,7 @@ class ConfigFileCommands(PluginsUtilsBase):
                     # Bloc anonyme - créer un nom unique
                     anonymous_block_counter += 1
                     anonymous_key = f"_anonymous_block_{anonymous_block_counter}"
-                    self.log_debug(f"Bloc anonyme trouvé à la ligne {line_num}, utilisation de la clé {anonymous_key}")
+                    self.log_debug(f"Bloc anonyme trouvé à la ligne {line_num}, utilisation de la clé {anonymous_key}", log_levels=log_levels)
 
                     new_block = {}
                     current_context[anonymous_key] = new_block
@@ -1071,7 +1071,7 @@ class ConfigFileCommands(PluginsUtilsBase):
                     stack.pop()
                     current_context = stack[-1]
                 else:
-                    self.log_debug(f"Accolade fermante excessive à la ligne {line_num}, ignorée")
+                    self.log_debug(f"Accolade fermante excessive à la ligne {line_num}, ignorée", log_levels=log_levels)
 
                 buffer = ""
 
@@ -1130,7 +1130,7 @@ class ConfigFileCommands(PluginsUtilsBase):
 
         # Vérifier les blocs non fermés (la pile devrait normalement ne contenir que la racine)
         if len(stack) > 1:
-            self.log_warning(f"Fichier de configuration incomplet : {len(stack) - 1} blocs non fermés")
+            self.log_warning(f"Fichier de configuration incomplet : {len(stack) - 1} blocs non fermés", log_levels=log_levels)
 
         return config
 
@@ -1183,7 +1183,7 @@ class ConfigFileCommands(PluginsUtilsBase):
 
         return "\n".join(lines)
 
-    def read_block_config_file(self, path: Union[str, Path]) -> Optional[Dict]:
+    def read_block_config_file(self, path: Union[str, Path], log_levels: Optional[Dict[str, str]] = None) -> Optional[Dict]:
         """
         Lit un fichier de configuration utilisant une structure en blocs avec accolades.
 
@@ -1194,7 +1194,7 @@ class ConfigFileCommands(PluginsUtilsBase):
             Optional[Dict]: Structure de configuration parsée ou None en cas d'erreur
         """
         file_path = Path(path)
-        self.log_debug(f"Lecture du fichier de configuration à blocs: {file_path}")
+        self.log_debug(f"Lecture du fichier de configuration à blocs: {file_path}", log_levels=log_levels)
 
         # Lire le contenu du fichier
         content = self._read_file_content(file_path)
@@ -1207,10 +1207,10 @@ class ConfigFileCommands(PluginsUtilsBase):
             print(config)
             return config
         except Exception as e:
-            self.log_error(f"Erreur lors du parsing du fichier de configuration {file_path}: {e}", exc_info=True)
+            self.log_error(f"Erreur lors du parsing du fichier de configuration {file_path}: {e}", exc_info=True, log_levels=log_levels)
             return None
 
-    def write_block_config_file(self, path: Union[str, Path], config: dict, backup: bool = True) -> bool:
+    def write_block_config_file(self, path: Union[str, Path], config: dict, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Écrit une structure de configuration en blocs dans un fichier.
 
@@ -1223,7 +1223,7 @@ class ConfigFileCommands(PluginsUtilsBase):
             bool: True si l'écriture réussit, False sinon
         """
         file_path = Path(path)
-        self.log_debug(f"Écriture de la configuration en blocs dans: {file_path}")
+        self.log_debug(f"Écriture de la configuration en blocs dans: {file_path}", log_levels=log_levels)
 
         try:
             # Formater la configuration
@@ -1232,10 +1232,10 @@ class ConfigFileCommands(PluginsUtilsBase):
             # Écrire le fichier
             return self._write_file_content(file_path, content, backup=backup)
         except Exception as e:
-            self.log_error(f"Erreur lors de l'écriture du fichier de configuration {file_path}: {e}", exc_info=True)
+            self.log_error(f"Erreur lors de l'écriture du fichier de configuration {file_path}: {e}", exc_info=True, log_levels=log_levels)
             return False
 
-    def update_block_config(self, path: Union[str, Path], key_path: str, value: Any, backup: bool = True) -> bool:
+    def update_block_config(self, path: Union[str, Path], key_path: str, value: Any, backup: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Met à jour une valeur dans un fichier de configuration à blocs.
 
@@ -1250,7 +1250,7 @@ class ConfigFileCommands(PluginsUtilsBase):
         """
         config = self.read_block_config_file(path)
         if config is None:
-            self.log_error(f"Impossible de lire le fichier de configuration pour mise à jour: {path}")
+            self.log_error(f"Impossible de lire le fichier de configuration pour mise à jour: {path}", log_levels=log_levels)
             return False
 
         # Parcourir le chemin pour trouver et mettre à jour la valeur

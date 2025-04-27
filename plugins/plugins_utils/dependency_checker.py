@@ -31,9 +31,9 @@ class DependencyChecker(PluginsUtilsBase):
         # Instancier AptCommands si disponible
         self._apt = AptCommands(logger, target_ip) if APT_AVAILABLE else None
         if not APT_AVAILABLE:
-             self.log_warning("Module AptCommands non trouvé. La vérification des paquets sera désactivée.")
+             self.log_warning("Module AptCommands non trouvé. La vérification des paquets sera désactivée.", log_levels=log_levels)
 
-    def check_command(self, command_name: str) -> bool:
+    def check_command(self, command_name: str, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Vérifie si une commande externe est disponible dans le PATH.
 
@@ -43,17 +43,17 @@ class DependencyChecker(PluginsUtilsBase):
         Returns:
             bool: True si la commande est trouvée, False sinon.
         """
-        self.log_debug(f"Vérification de la présence de la commande: {command_name}")
+        self.log_debug(f"Vérification de la présence de la commande: {command_name}", log_levels=log_levels)
         # Utiliser 'which' ou 'command -v' via self.run
         success, stdout, _ = self.run(['which', command_name], check=False, no_output=True, error_as_warning=True)
         if success and stdout.strip():
-            self.log_info(f"Commande '{command_name}' trouvée: {stdout.strip()}")
+            self.log_info(f"Commande '{command_name}' trouvée: {stdout.strip()}", log_levels=log_levels)
             return True
         else:
-            self.log_warning(f"Commande '{command_name}' non trouvée dans le PATH.")
+            self.log_warning(f"Commande '{command_name}' non trouvée dans le PATH.", log_levels=log_levels)
             return False
 
-    def check_package(self, package_name: str, min_version: Optional[str] = None) -> bool:
+    def check_package(self, package_name: str, min_version: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Vérifie si un paquet système (Debian/Ubuntu) est installé.
 
@@ -65,20 +65,20 @@ class DependencyChecker(PluginsUtilsBase):
             bool: True si le paquet est installé et satisfait la version minimale.
         """
         if not self._apt:
-            self.log_error("Vérification de paquet impossible: AptCommands non disponible.")
+            self.log_error("Vérification de paquet impossible: AptCommands non disponible.", log_levels=log_levels)
             return False # Ne peut pas vérifier
 
-        self.log_debug(f"Vérification de l'installation du paquet: {package_name} (version min: {min_version or 'N/A'})")
+        self.log_debug(f"Vérification de l'installation du paquet: {package_name} (version min: {min_version or 'N/A'})", log_levels=log_levels)
         installed = self._apt.is_installed(package_name)
 
         if not installed:
-            self.log_warning(f"Paquet requis '{package_name}' non installé.")
+            self.log_warning(f"Paquet requis '{package_name}' non installé.", log_levels=log_levels)
             return False
 
         if min_version:
             current_version = self._apt.get_version(package_name)
             if not current_version:
-                 self.log_warning(f"Paquet '{package_name}' installé mais impossible de récupérer sa version.")
+                 self.log_warning(f"Paquet '{package_name}' installé mais impossible de récupérer sa version.", log_levels=log_levels)
                  # Considérer comme échec si une version minimale est requise
                  return False
             # Comparer les versions (nécessite une logique de comparaison robuste)
@@ -86,15 +86,15 @@ class DependencyChecker(PluginsUtilsBase):
             cmd_compare = ['dpkg', '--compare-versions', current_version, 'ge', min_version] # ge = greater or equal
             success_cmp, _, _ = self.run(cmd_compare, check=False, no_output=True, error_as_warning=True)
             if not success_cmp:
-                 self.log_warning(f"Paquet '{package_name}' installé (version {current_version}) mais ne satisfait pas la version minimale requise ({min_version}).")
+                 self.log_warning(f"Paquet '{package_name}' installé (version {current_version}) mais ne satisfait pas la version minimale requise ({min_version}).", log_levels=log_levels)
                  return False
-            self.log_info(f"Paquet '{package_name}' (version {current_version}) satisfait la version minimale ({min_version}).")
+            self.log_info(f"Paquet '{package_name}' (version {current_version}) satisfait la version minimale ({min_version}).", log_levels=log_levels)
         else:
-            self.log_info(f"Paquet '{package_name}' est installé.")
+            self.log_info(f"Paquet '{package_name}' est installé.", log_levels=log_levels)
 
         return True
 
-    def check_python_module(self, module_name: str) -> bool:
+    def check_python_module(self, module_name: str, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Vérifie si un module Python peut être importé.
 
@@ -104,23 +104,23 @@ class DependencyChecker(PluginsUtilsBase):
         Returns:
             bool: True si le module est trouvable.
         """
-        self.log_debug(f"Vérification de la disponibilité du module Python: {module_name}")
+        self.log_debug(f"Vérification de la disponibilité du module Python: {module_name}", log_levels=log_levels)
         try:
             spec = importlib.util.find_spec(module_name)
             if spec is not None:
-                self.log_info(f"Module Python '{module_name}' trouvé.")
+                self.log_info(f"Module Python '{module_name}' trouvé.", log_levels=log_levels)
                 return True
             else:
-                self.log_warning(f"Module Python requis '{module_name}' non trouvé.")
+                self.log_warning(f"Module Python requis '{module_name}' non trouvé.", log_levels=log_levels)
                 return False
         except ModuleNotFoundError:
-             self.log_warning(f"Module Python requis '{module_name}' non trouvé (ModuleNotFoundError).")
+             self.log_warning(f"Module Python requis '{module_name}' non trouvé (ModuleNotFoundError).", log_levels=log_levels)
              return False
         except Exception as e:
-             self.log_error(f"Erreur lors de la vérification du module Python '{module_name}': {e}")
+             self.log_error(f"Erreur lors de la vérification du module Python '{module_name}': {e}", log_levels=log_levels)
              return False
 
-    def check_file_exists(self, path: Union[str, Path], check_is_file: bool = True) -> bool:
+    def check_file_exists(self, path: Union[str, Path], check_is_file: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Vérifie l'existence d'un fichier.
 
@@ -132,24 +132,24 @@ class DependencyChecker(PluginsUtilsBase):
             bool: True si le fichier existe (et est un fichier si check_is_file=True).
         """
         target_path = Path(path)
-        self.log_debug(f"Vérification de l'existence du fichier: {target_path}")
+        self.log_debug(f"Vérification de l'existence du fichier: {target_path}", log_levels=log_levels)
         exists = target_path.exists()
         is_file = target_path.is_file() if exists else False
 
         if not exists:
-            self.log_warning(f"Fichier requis non trouvé: {target_path}")
+            self.log_warning(f"Fichier requis non trouvé: {target_path}", log_levels=log_levels)
             return False
         elif check_is_file and not is_file:
-            self.log_warning(f"Le chemin requis {target_path} existe mais n'est pas un fichier.")
+            self.log_warning(f"Le chemin requis {target_path} existe mais n'est pas un fichier.", log_levels=log_levels)
             return False
         elif check_is_file and is_file:
-             self.log_info(f"Fichier requis trouvé: {target_path}")
+             self.log_info(f"Fichier requis trouvé: {target_path}", log_levels=log_levels)
              return True
         else: # exists and not check_is_file
-             self.log_info(f"Chemin requis trouvé: {target_path}")
+             self.log_info(f"Chemin requis trouvé: {target_path}", log_levels=log_levels)
              return True
 
-    def check_directory_exists(self, path: Union[str, Path], check_is_dir: bool = True) -> bool:
+    def check_directory_exists(self, path: Union[str, Path], check_is_dir: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Vérifie l'existence d'un répertoire.
 
@@ -161,21 +161,21 @@ class DependencyChecker(PluginsUtilsBase):
             bool: True si le répertoire existe (et est un répertoire si check_is_dir=True).
         """
         target_path = Path(path)
-        self.log_debug(f"Vérification de l'existence du répertoire: {target_path}")
+        self.log_debug(f"Vérification de l'existence du répertoire: {target_path}", log_levels=log_levels)
         exists = target_path.exists()
         is_dir = target_path.is_dir() if exists else False
 
         if not exists:
-            self.log_warning(f"Répertoire requis non trouvé: {target_path}")
+            self.log_warning(f"Répertoire requis non trouvé: {target_path}", log_levels=log_levels)
             return False
         elif check_is_dir and not is_dir:
-            self.log_warning(f"Le chemin requis {target_path} existe mais n'est pas un répertoire.")
+            self.log_warning(f"Le chemin requis {target_path} existe mais n'est pas un répertoire.", log_levels=log_levels)
             return False
         elif check_is_dir and is_dir:
-             self.log_info(f"Répertoire requis trouvé: {target_path}")
+             self.log_info(f"Répertoire requis trouvé: {target_path}", log_levels=log_levels)
              return True
         else: # exists and not check_is_dir
-             self.log_info(f"Chemin requis trouvé: {target_path}")
+             self.log_info(f"Chemin requis trouvé: {target_path}", log_levels=log_levels)
              return True
 
     def check_all(self,
@@ -184,7 +184,7 @@ class DependencyChecker(PluginsUtilsBase):
                   python_modules: Optional[List[str]] = None,
                   files: Optional[List[str]] = None,
                   directories: Optional[List[str]] = None
-                  ) -> Dict[str, Any]:
+, log_levels: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
         """
         Exécute une série de vérifications de dépendances.
 
@@ -213,7 +213,7 @@ class DependencyChecker(PluginsUtilsBase):
                 }
             }
         """
-        self.log_info("Vérification des dépendances requises...")
+        self.log_info("Vérification des dépendances requises...", log_levels=log_levels)
         results: Dict[str, Any] = {
             'overall_status': 'OK',
             'missing': {'commands': [], 'packages': [], 'python_modules': [], 'files': [], 'directories': []},
@@ -223,7 +223,7 @@ class DependencyChecker(PluginsUtilsBase):
 
         # Vérifier les commandes
         if commands:
-            self.log_info(f"Vérification des commandes: {', '.join(commands)}")
+            self.log_info(f"Vérification des commandes: {', '.join(commands)}", log_levels=log_levels)
             for cmd in commands:
                 found = self.check_command(cmd)
                 results['details']['commands'][cmd] = found
@@ -241,9 +241,9 @@ class DependencyChecker(PluginsUtilsBase):
                 pkg_list = list(packages.keys())
                 pkg_versions = packages
 
-            self.log_info(f"Vérification des paquets: {', '.join(pkg_list)}")
+            self.log_info(f"Vérification des paquets: {', '.join(pkg_list)}", log_levels=log_levels)
             if not self._apt:
-                 self.log_error("Impossible de vérifier les paquets: AptCommands non disponible.")
+                 self.log_error("Impossible de vérifier les paquets: AptCommands non disponible.", log_levels=log_levels)
                  results['overall_status'] = 'ERROR' # Erreur de vérification
                  # Marquer tous comme manquants ? Ou juste logguer l'erreur ? Logguer.
             else:
@@ -257,7 +257,7 @@ class DependencyChecker(PluginsUtilsBase):
 
         # Vérifier les modules Python
         if python_modules:
-            self.log_info(f"Vérification des modules Python: {', '.join(python_modules)}")
+            self.log_info(f"Vérification des modules Python: {', '.join(python_modules)}", log_levels=log_levels)
             for mod in python_modules:
                 found = self.check_python_module(mod)
                 results['details']['python_modules'][mod] = found
@@ -267,7 +267,7 @@ class DependencyChecker(PluginsUtilsBase):
 
         # Vérifier les fichiers
         if files:
-            self.log_info(f"Vérification des fichiers: {', '.join(files)}")
+            self.log_info(f"Vérification des fichiers: {', '.join(files)}", log_levels=log_levels)
             for f in files:
                 found = self.check_file_exists(f)
                 results['details']['files'][f] = found
@@ -277,7 +277,7 @@ class DependencyChecker(PluginsUtilsBase):
 
         # Vérifier les répertoires
         if directories:
-            self.log_info(f"Vérification des répertoires: {', '.join(directories)}")
+            self.log_info(f"Vérification des répertoires: {', '.join(directories)}", log_levels=log_levels)
             for d in directories:
                 found = self.check_directory_exists(d)
                 results['details']['directories'][d] = found
@@ -288,13 +288,12 @@ class DependencyChecker(PluginsUtilsBase):
         # Mettre à jour le statut global
         if not all_ok:
             results['overall_status'] = 'MISSING_DEPENDENCIES'
-            self.log_warning("Certaines dépendances sont manquantes.")
+            self.log_warning("Certaines dépendances sont manquantes.", log_levels=log_levels)
             # Logguer les dépendances manquantes
             for dep_type, missing_list in results['missing'].items():
                  if missing_list:
-                      self.log_warning(f"  - Manquants ({dep_type}): {', '.join(missing_list)}")
+                      self.log_warning(f"  - Manquants ({dep_type}): {', '.join(missing_list)}", log_levels=log_levels)
         else:
-            self.log_success("Toutes les dépendances vérifiées sont présentes.")
+            self.log_success("Toutes les dépendances vérifiées sont présentes.", log_levels=log_levels)
 
         return results
-

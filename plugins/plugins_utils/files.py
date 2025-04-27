@@ -33,7 +33,7 @@ class FilesCommands(PluginsUtilsBase):
     def replace_in_file(self, chemin_fichier: Union[str, Path],
                         ancienne_chaine: str,
                         nouvelle_chaine: str,
-                        encodage: str = "utf-8") -> bool:
+encodage: str = "utf-8", log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Remplace toutes les occurrences d'une chaîne de caractères dans un fichier texte.
 
@@ -44,10 +44,10 @@ class FilesCommands(PluginsUtilsBase):
         :return: True si l'opération a réussi, False sinon.
         """
         fichier_path = Path(chemin_fichier)
-        self.log_debug(f"Remplacement de texte dans le fichier : {fichier_path}")
+        self.log_debug(f"Remplacement de texte dans le fichier : {fichier_path}", log_levels=log_levels)
 
         if not fichier_path.is_file():
-            self.log_error(f"Le fichier spécifié n'existe pas ou n'est pas un fichier: {fichier_path}")
+            self.log_error(f"Le fichier spécifié n'existe pas ou n'est pas un fichier: {fichier_path}", log_levels=log_levels)
             return False
 
         try:
@@ -57,7 +57,7 @@ class FilesCommands(PluginsUtilsBase):
 
             # Vérifier si un remplacement est nécessaire
             if ancienne_chaine not in contenu_original:
-                self.log_info(f"Aucune occurrence de la chaîne '{ancienne_chaine}' trouvée dans {fichier_path}")
+                self.log_info(f"Aucune occurrence de la chaîne '{ancienne_chaine}' trouvée dans {fichier_path}", log_levels=log_levels)
                 return True
 
             # Remplacer les occurrences
@@ -66,47 +66,47 @@ class FilesCommands(PluginsUtilsBase):
             # Sauvegarde du fichier d'origine
             sauvegarde_path = fichier_path.with_suffix(fichier_path.suffix + ".bak")
             shutil.copy2(fichier_path, sauvegarde_path)
-            self.log_debug(f"Fichier original sauvegardé sous: {sauvegarde_path}")
+            self.log_debug(f"Fichier original sauvegardé sous: {sauvegarde_path}", log_levels=log_levels)
 
             # Écriture du fichier modifié
             with fichier_path.open('w', encoding=encodage) as f:
                 f.write(contenu_modifie)
 
-            self.log_success(f"Remplacement effectué avec succès dans {fichier_path}")
+            self.log_success(f"Remplacement effectué avec succès dans {fichier_path}", log_levels=log_levels)
             return True
 
         except Exception as e:
-            self.log_error(f"Erreur lors du remplacement de texte dans le fichier {fichier_path}: {e}", exc_info=True)
+            self.log_error(f"Erreur lors du remplacement de texte dans le fichier {fichier_path}: {e}", exc_info=True, log_levels=log_levels)
             return False
 
 
-    def get_file_size(self, path: Union[str, Path]) -> int:
+    def get_file_size(self, path: Union[str, Path], log_levels: Optional[Dict[str, str]] = None) -> int:
         """Retourne la taille d'un fichier en octets."""
         file_path = Path(path)
-        self.log_debug(f"Récupération de la taille du fichier: {file_path}")
+        self.log_debug(f"Récupération de la taille du fichier: {file_path}", log_levels=log_levels)
         try:
             if not file_path.is_file():
-                 self.log_error(f"Le chemin n'est pas un fichier valide ou n'existe pas: {file_path}")
+                 self.log_error(f"Le chemin n'est pas un fichier valide ou n'existe pas: {file_path}", log_levels=log_levels)
                  return -1
             size = os.path.getsize(file_path)
-            self.log_debug(f"Taille du fichier {file_path}: {size} octets")
+            self.log_debug(f"Taille du fichier {file_path}: {size} octets", log_levels=log_levels)
             return size
         except FileNotFoundError:
-            self.log_error(f"Fichier non trouvé: {file_path}")
+            self.log_error(f"Fichier non trouvé: {file_path}", log_levels=log_levels)
             return -1
         except OSError as e:
-             self.log_error(f"Erreur d'accès au fichier {file_path} pour getsize: {e}")
+             self.log_error(f"Erreur d'accès au fichier {file_path} pour getsize: {e}", log_levels=log_levels)
              return -1
         except Exception as e:
-            self.log_error(f"Erreur inattendue lors de la lecture de la taille du fichier {file_path}: {e}", exc_info=True)
+            self.log_error(f"Erreur inattendue lors de la lecture de la taille du fichier {file_path}: {e}", exc_info=True, log_levels=log_levels)
             return -1
 
-    def get_dir_size(self, path: Union[str, Path], follow_symlinks: bool = False) -> int:
+    def get_dir_size(self, path: Union[str, Path], follow_symlinks: bool = False, log_levels: Optional[Dict[str, str]] = None) -> int:
         """Calcule la taille totale d'un dossier en octets (récursivement)."""
         dir_path = Path(path)
-        self.log_info(f"Calcul de la taille du dossier: {dir_path} (follow_symlinks={follow_symlinks})")
+        self.log_info(f"Calcul de la taille du dossier: {dir_path} (follow_symlinks={follow_symlinks})", log_levels=log_levels)
         if not dir_path.is_dir():
-             self.log_error(f"Le chemin n'est pas un dossier valide: {dir_path}")
+             self.log_error(f"Le chemin n'est pas un dossier valide: {dir_path}", log_levels=log_levels)
              return -1
 
         total_size = 0
@@ -130,12 +130,12 @@ class FilesCommands(PluginsUtilsBase):
                         total_size += os.path.getsize(fp)
                     except OSError as e:
                          if e.errno != 2: # Ignorer FileNotFoundError (peut arriver si fichier supprimé pendant scan)
-                              self.log_warning(f"Erreur d'accès au fichier {fp} pendant calcul taille: {e}")
+                              self.log_warning(f"Erreur d'accès au fichier {fp} pendant calcul taille: {e}", log_levels=log_levels)
                               errors_encountered += 1
                          continue # Ignorer les fichiers inaccessibles/disparus
 
                     if items_processed % log_interval == 0:
-                         self.log_debug(f"  ... {items_processed} éléments scannés, taille actuelle: {total_size / (1024*1024):.2f} Mo")
+                         self.log_debug(f"  ... {items_processed} éléments scannés, taille actuelle: {total_size / (1024*1024):.2f} Mo", log_levels=log_levels)
 
                 # Si on ne suit pas les liens, exclure les répertoires qui sont des liens
                 if not follow_symlinks:
@@ -145,12 +145,12 @@ class FilesCommands(PluginsUtilsBase):
                     # Compter les liens de répertoire exclus comme traités
                     items_processed += (len(original_dirs) - len(dirnames))
 
-            self.log_info(f"Taille totale calculée pour {dir_path}: {total_size / (1024*1024):.2f} Mo ({total_size} octets)")
+            self.log_info(f"Taille totale calculée pour {dir_path}: {total_size / (1024*1024):.2f} Mo ({total_size} octets)", log_levels=log_levels)
             if errors_encountered > 0:
-                 self.log_warning(f"{errors_encountered} erreur(s) d'accès rencontrée(s) pendant le calcul.")
+                 self.log_warning(f"{errors_encountered} erreur(s) d'accès rencontrée(s) pendant le calcul.", log_levels=log_levels)
             return total_size
         except Exception as e:
-            self.log_error(f"Erreur majeure lors du calcul de la taille du dossier {dir_path}: {e}", exc_info=True)
+            self.log_error(f"Erreur majeure lors du calcul de la taille du dossier {dir_path}: {e}", exc_info=True, log_levels=log_levels)
             return -1
 
     def _copy_file_with_progress(self, src: Path, dst: Path, total_size: int, task_id: str, chunk_size: int = DEFAULT_CHUNK_SIZE):
@@ -192,11 +192,11 @@ class FilesCommands(PluginsUtilsBase):
                         last_update_time = current_time
 
         except Exception as e:
-             self.log_error(f"Erreur pendant la copie de {src} vers {dst}: {e}")
+             self.log_error(f"Erreur pendant la copie de {src} vers {dst}: {e}", log_levels=log_levels)
              raise
 
     def copy_file(self, src: Union[str, Path], dst: Union[str, Path],
-                  chunk_size: int = DEFAULT_CHUNK_SIZE, task_id: Optional[str] = None) -> bool:
+chunk_size: int = DEFAULT_CHUNK_SIZE, task_id: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Copie un fichier avec une barre de progression basée sur la taille.
         Préserve les métadonnées. Utilise une barre de progression spécifique.
@@ -207,28 +207,28 @@ class FilesCommands(PluginsUtilsBase):
         bar_created = False
 
         if not src_path.is_file():
-            self.log_error(f"Source n'est pas un fichier valide: {src}")
+            self.log_error(f"Source n'est pas un fichier valide: {src}", log_levels=log_levels)
             return False
 
         if dst_path.is_dir():
             final_dst = dst_path / src_path.name
         else:
             final_dst = dst_path
-            self.log_debug(f"Vérification/Création du dossier parent: {final_dst.parent}")
+            self.log_debug(f"Vérification/Création du dossier parent: {final_dst.parent}", log_levels=log_levels)
             try:
                 success_mkdir, _, err_mkdir = self.run(['mkdir', '-p', str(final_dst.parent)], check=False, needs_sudo=True)
                 if not success_mkdir:
-                     self.log_error(f"Impossible de créer le dossier parent {final_dst.parent}. Stderr: {err_mkdir}")
+                     self.log_error(f"Impossible de créer le dossier parent {final_dst.parent}. Stderr: {err_mkdir}", log_levels=log_levels)
                      return False
             except Exception as e:
-                self.log_error(f"Erreur lors de la création de {final_dst.parent}: {e}", exc_info=True)
+                self.log_error(f"Erreur lors de la création de {final_dst.parent}: {e}", exc_info=True, log_levels=log_levels)
                 return False
 
         total_size = self.get_file_size(src_path)
         if total_size < 0: return False
 
         total_mb = total_size / (1024 * 1024)
-        self.log_info(f"Copie de {src_path} vers {final_dst} ({total_mb:.2f} Mo)")
+        self.log_info(f"Copie de {src_path} vers {final_dst} ({total_mb:.2f} Mo)", log_levels=log_levels)
 
         try:
             # Créer la barre spécifique à cette copie (progression 0-100)
@@ -240,15 +240,15 @@ class FilesCommands(PluginsUtilsBase):
 
             # Copier les métadonnées
             try: shutil.copystat(str(src_path), str(final_dst))
-            except OSError as e_stat: self.log_warning(f"Impossible de copier les métadonnées: {e_stat}")
+            except OSError as e_stat: self.log_warning(f"Impossible de copier les métadonnées: {e_stat}", log_levels=log_levels)
 
-            self.log_success(f"Fichier copié avec succès: {final_dst}")
+            self.log_success(f"Fichier copié avec succès: {final_dst}", log_levels=log_levels)
             # Mettre à jour la barre à 100% avant suppression
             self.logger.update_bar(current_task_id, 100, post_text="Terminé")
             return True
 
         except Exception as e:
-            self.log_error(f"Erreur lors de la copie de {src_path} vers {final_dst}: {e}", exc_info=True)
+            self.log_error(f"Erreur lors de la copie de {src_path} vers {final_dst}: {e}", exc_info=True, log_levels=log_levels)
             if final_dst.exists():
                 try: final_dst.unlink()
                 except: pass
@@ -281,7 +281,7 @@ class FilesCommands(PluginsUtilsBase):
                  task_id: Optional[str] = None,
                  copy_symlinks: bool = True,
                  ignore_dangling_symlinks: bool = False
-                 ) -> bool:
+, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Copie un répertoire récursivement avec progression basée sur le nombre d'éléments.
         Utilise une barre de progression spécifique avec l'ID fourni.
@@ -292,12 +292,12 @@ class FilesCommands(PluginsUtilsBase):
         bar_created = False # Indicateur pour savoir si on doit supprimer la barre
 
         if not src_path.is_dir():
-            self.log_error(f"Source n'est pas un dossier valide: {src}")
+            self.log_error(f"Source n'est pas un dossier valide: {src}", log_levels=log_levels)
             return False
 
-        self.log_debug(f"Copie du dossier {src_path} vers {dst_path}")
-        if exclude_patterns: self.log_debug(f"  Exclusions: {exclude_patterns}")
-        self.log_debug(f"  Gestion liens: copy={copy_symlinks}, ignore_dangling={ignore_dangling_symlinks}")
+        self.log_debug(f"Copie du dossier {src_path} vers {dst_path}", log_levels=log_levels)
+        if exclude_patterns: self.log_debug(f"  Exclusions: {exclude_patterns}", log_levels=log_levels)
+        self.log_debug(f"  Gestion liens: copy={copy_symlinks}, ignore_dangling={ignore_dangling_symlinks}", log_levels=log_levels)
 
         # 1. Lister et compter les éléments
         items_to_process = []
@@ -319,14 +319,14 @@ class FilesCommands(PluginsUtilsBase):
 
             total_items = len(items_to_process)
             if total_items == 0:
-                 self.log_info("Aucun fichier ou dossier à copier (ou tout est exclu).")
+                 self.log_info("Aucun fichier ou dossier à copier (ou tout est exclu).", log_levels=log_levels)
                  self.run(['mkdir', '-p', str(dst_path)], check=False, needs_sudo=True)
                  return True
         except Exception as e:
-             self.log_error(f"Erreur lors du listage de {src_path}: {e}", exc_info=True)
+             self.log_error(f"Erreur lors du listage de {src_path}: {e}", exc_info=True, log_levels=log_levels)
              return False
 
-        self.log_debug(f"{total_items} élément(s) à traiter.")
+        self.log_debug(f"{total_items} élément(s) à traiter.", log_levels=log_levels)
         self.logger.create_bar(current_task_id, total_items, description=f"Copie {src_path.name}")
         bar_created = True
 
@@ -347,7 +347,7 @@ class FilesCommands(PluginsUtilsBase):
                         # Utiliser la méthode run pour créer, gère sudo
                         success_mkdir, _, err_mkdir = self.run(['mkdir', '-p', str(abs_dst_path)], check=False, needs_sudo=True)
                         if not success_mkdir:
-                             self.log_error(f"Impossible de créer dossier {abs_dst_path}. Stderr: {err_mkdir}")
+                             self.log_error(f"Impossible de créer dossier {abs_dst_path}. Stderr: {err_mkdir}", log_levels=log_levels)
                              all_success = False
                         item_processed_flag = True # Marquer comme traité même si erreur
                     elif item_type == 'file':
@@ -364,10 +364,10 @@ class FilesCommands(PluginsUtilsBase):
                                 if os.path.lexists(str(abs_dst_path)):
                                     os.remove(str(abs_dst_path))
                                 os.symlink(linkto, str(abs_dst_path))
-                                self.log_debug(f"  Lien symbolique copié: {rel_path}")
+                                self.log_debug(f"  Lien symbolique copié: {rel_path}", log_levels=log_levels)
                             else: # Copier le contenu
                                 shutil.copy2(str(abs_src_path), str(abs_dst_path), follow_symlinks=True)
-                                self.log_debug(f"  Contenu du lien copié: {rel_path}")
+                                self.log_debug(f"  Contenu du lien copié: {rel_path}", log_levels=log_levels)
                         else: # Copier fichier normal
                             shutil.copy2(str(abs_src_path), str(abs_dst_path))
                         item_processed_flag = True # Marquer comme traité
@@ -378,18 +378,18 @@ class FilesCommands(PluginsUtilsBase):
                     if is_link and ignore_dangling_symlinks:
                         try: link_target = os.readlink(str(item['abs_src']))
                         except Exception: link_target = "?"
-                        self.log_warning(f"Lien symbolique cassé ignoré ({e_fnf}): {rel_path} -> {link_target}")
+                        self.log_warning(f"Lien symbolique cassé ignoré ({e_fnf}): {rel_path} -> {link_target}", log_levels=log_levels)
                         item_processed_flag = True # Marquer comme traité (ignoré)
                     else:
-                         self.log_error(f"Erreur Fichier Non Trouvé lors du traitement de {rel_path}: {e_fnf}")
+                         self.log_error(f"Erreur Fichier Non Trouvé lors du traitement de {rel_path}: {e_fnf}", log_levels=log_levels)
                          all_success = False
                          item_processed_flag = True # Marquer comme traité (erreur)
                 except OSError as e_os:
-                    self.log_error(f"Erreur OS lors du traitement de {rel_path}: {e_os}")
+                    self.log_error(f"Erreur OS lors du traitement de {rel_path}: {e_os}", log_levels=log_levels)
                     all_success = False
                     item_processed_flag = True
                 except Exception as e_gen:
-                    self.log_error(f"Erreur inattendue lors du traitement de {rel_path}: {e_gen}", exc_info=True)
+                    self.log_error(f"Erreur inattendue lors du traitement de {rel_path}: {e_gen}", exc_info=True, log_levels=log_levels)
                     all_success = False
                     item_processed_flag = True
 
@@ -403,12 +403,12 @@ class FilesCommands(PluginsUtilsBase):
             self.logger.update_bar(current_task_id, total_items, post_text=f"Terminé {processed_count}/{total_items}")
 
             if all_success:
-                self.log_success(f"Dossier {src_path} copié avec succès vers {dst_path} ({processed_count} éléments traités).")
+                self.log_success(f"Dossier {src_path} copié avec succès vers {dst_path} ({processed_count} éléments traités).", log_levels=log_levels)
             else:
-                 self.log_warning(f"Copie du dossier {src_path} terminée avec des erreurs.")
+                 self.log_warning(f"Copie du dossier {src_path} terminée avec des erreurs.", log_levels=log_levels)
 
         except Exception as e:
-            self.log_error(f"Erreur majeure lors de la copie du dossier {src_path}: {e}", exc_info=True)
+            self.log_error(f"Erreur majeure lors de la copie du dossier {src_path}: {e}", exc_info=True, log_levels=log_levels)
             all_success = False
         finally:
             if bar_created:
@@ -417,7 +417,7 @@ class FilesCommands(PluginsUtilsBase):
 
         return all_success
 
-    def move_file(self, src: Union[str, Path], dst: Union[str, Path], task_id: Optional[str] = None) -> bool:
+    def move_file(self, src: Union[str, Path], dst: Union[str, Path], task_id: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Déplace un fichier. Tente `mv`, sinon copie+supprime.
         Utilise une barre spécifique si la copie est nécessaire.
@@ -427,13 +427,13 @@ class FilesCommands(PluginsUtilsBase):
         current_task_id = task_id or f"move_file_{src_path.name}_{int(time.time())}"
 
         if not src_path.is_file():
-            self.log_error(f"Source n'est pas un fichier valide: {src}")
+            self.log_error(f"Source n'est pas un fichier valide: {src}", log_levels=log_levels)
             return False
 
         if dst_path.is_dir(): final_dst = dst_path / src_path.name
         else: final_dst = dst_path
 
-        self.log_info(f"Déplacement de {src_path} vers {final_dst}")
+        self.log_info(f"Déplacement de {src_path} vers {final_dst}", log_levels=log_levels)
 
         try:
             if not final_dst.parent.exists():
@@ -443,29 +443,29 @@ class FilesCommands(PluginsUtilsBase):
             cmd_mv = ['mv', str(src_path), str(final_dst)]
             success_mv, _, stderr_mv = self.run(cmd_mv, check=False, needs_sudo=True)
             if success_mv:
-                self.log_success(f"Fichier déplacé avec succès (via mv): {final_dst}")
+                self.log_success(f"Fichier déplacé avec succès (via mv): {final_dst}", log_levels=log_levels)
                 return True
             else:
-                self.log_info(f"mv impossible (ex: cross-device, {stderr_mv}), tentative copie+suppression...")
+                self.log_info(f"mv impossible (ex: cross-device, {stderr_mv}), tentative copie+suppression...", log_levels=log_levels)
                 # copy_file gère sa propre barre avec current_task_id
                 copy_success = self.copy_file(src_path, final_dst, task_id=current_task_id)
                 if copy_success:
                     rm_success, _, rm_stderr = self.run(['rm', '-f', str(src_path)], check=False, needs_sudo=True)
                     if rm_success:
-                        self.log_success(f"Fichier déplacé avec succès (copie+suppression): {final_dst}")
+                        self.log_success(f"Fichier déplacé avec succès (copie+suppression): {final_dst}", log_levels=log_levels)
                         return True
                     else:
-                        self.log_error(f"Copie réussie mais échec suppression source {src_path}: {rm_stderr}")
+                        self.log_error(f"Copie réussie mais échec suppression source {src_path}: {rm_stderr}", log_levels=log_levels)
                         return False
                 else:
-                    self.log_error(f"Échec de la copie lors du déplacement de {src_path}")
+                    self.log_error(f"Échec de la copie lors du déplacement de {src_path}", log_levels=log_levels)
                     return False
         except Exception as e:
-            self.log_error(f"Erreur lors du déplacement de {src_path}: {e}", exc_info=True)
+            self.log_error(f"Erreur lors du déplacement de {src_path}: {e}", exc_info=True, log_levels=log_levels)
             return False
 
     def move_dir(self, src: Union[str, Path], dst: Union[str, Path],
-                 exclude_patterns: Optional[List[str]] = None, task_id: Optional[str] = None) -> bool:
+exclude_patterns: Optional[List[str]] = None, task_id: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Déplace un dossier. Tente `mv`, sinon copie+supprime.
         Utilise une barre spécifique si la copie est nécessaire.
@@ -475,10 +475,10 @@ class FilesCommands(PluginsUtilsBase):
         current_task_id = task_id or f"move_dir_{src_path.name}_{int(time.time())}"
 
         if not src_path.is_dir():
-            self.log_error(f"Source n'est pas un dossier valide: {src}")
+            self.log_error(f"Source n'est pas un dossier valide: {src}", log_levels=log_levels)
             return False
 
-        self.log_info(f"Déplacement du dossier {src_path} vers {dst_path}")
+        self.log_info(f"Déplacement du dossier {src_path} vers {dst_path}", log_levels=log_levels)
 
         try:
             if not dst_path.parent.exists():
@@ -488,10 +488,10 @@ class FilesCommands(PluginsUtilsBase):
             cmd_mv = ['mv', str(src_path), str(dst_path)]
             success_mv, _, stderr_mv = self.run(cmd_mv, check=False, needs_sudo=True)
             if success_mv:
-                self.log_success(f"Dossier déplacé avec succès (via mv): {dst_path}")
+                self.log_success(f"Dossier déplacé avec succès (via mv): {dst_path}", log_levels=log_levels)
                 return True
             else:
-                self.log_info(f"mv impossible (ex: cross-device, {stderr_mv}), tentative copie+suppression...")
+                self.log_info(f"mv impossible (ex: cross-device, {stderr_mv}), tentative copie+suppression...", log_levels=log_levels)
                 # copy_dir gère sa propre barre avec current_task_id
                 copy_success = self.copy_dir(src_path, dst_path,
                                              exclude_patterns=exclude_patterns,
@@ -502,14 +502,14 @@ class FilesCommands(PluginsUtilsBase):
                     cmd_rm = ['rm', '-rf', str(src_path)]
                     success_rm, _, stderr_rm = self.run(cmd_rm, check=False, needs_sudo=True)
                     if success_rm:
-                        self.log_success(f"Dossier déplacé avec succès (copie+suppression): {dst_path}")
+                        self.log_success(f"Dossier déplacé avec succès (copie+suppression): {dst_path}", log_levels=log_levels)
                         return True
                     else:
-                        self.log_error(f"Copie réussie mais échec suppression source {src_path}: {stderr_rm}")
+                        self.log_error(f"Copie réussie mais échec suppression source {src_path}: {stderr_rm}", log_levels=log_levels)
                         return False
                 else:
-                    self.log_error(f"Échec de la copie lors du déplacement de {src_path}")
+                    self.log_error(f"Échec de la copie lors du déplacement de {src_path}", log_levels=log_levels)
                     return False
         except Exception as e:
-            self.log_error(f"Erreur lors du déplacement du dossier {src_path}: {e}", exc_info=True)
+            self.log_error(f"Erreur lors du déplacement du dossier {src_path}: {e}", exc_info=True, log_levels=log_levels)
             return False

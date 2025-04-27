@@ -20,14 +20,14 @@ class PrinterCommands(PluginsUtilsBase):
     def __init__(self, logger=None, target_ip=None):
         super().__init__(logger, target_ip)
 
-    def list_printers(self) -> List[str]:
+    def list_printers(self, log_levels: Optional[Dict[str, str]] = None) -> List[str]:
         """
         Liste toutes les imprimantes configurées dans CUPS.
 
         Returns:
             Liste des noms d'imprimantes ou liste vide si erreur.
         """
-        self.log_debug("Listage des imprimantes configurées (lpstat -p)")
+        self.log_debug("Listage des imprimantes configurées (lpstat -p)", log_levels=log_levels)
         # Utiliser check=False car lpstat peut retourner 1 si aucune imprimante n'est trouvée
         success, stdout, stderr = self.run(['lpstat', '-p'], check=False, no_output=True, error_as_warning=True, needs_sudo=False)
 
@@ -40,13 +40,13 @@ class PrinterCommands(PluginsUtilsBase):
                     parts = line.split()
                     if len(parts) > 1:
                         printers.append(parts[1])
-            self.log_debug(f"Imprimantes trouvées: {', '.join(printers) if printers else 'aucune'}")
+            self.log_debug(f"Imprimantes trouvées: {', '.join(printers) if printers else 'aucune'}", log_levels=log_levels)
         else:
-             self.log_error(f"Impossible d'obtenir la liste des imprimantes. Stderr: {stderr}")
+             self.log_error(f"Impossible d'obtenir la liste des imprimantes. Stderr: {stderr}", log_levels=log_levels)
 
         return printers
 
-    def get_printer_details(self, printer_name: Optional[str] = None) -> Dict[str, Dict[str, str]]:
+    def get_printer_details(self, printer_name: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None) -> Dict[str, Dict[str, str]]:
         """
         Récupère les détails (URI, statut, etc.) d'une ou toutes les imprimantes.
 
@@ -56,14 +56,14 @@ class PrinterCommands(PluginsUtilsBase):
         Returns:
             Dictionnaire des détails {nom_imprimante: {uri: ..., status: ...}}.
         """
-        self.log_debug(f"Récupération des détails pour {'toutes les imprimantes' if printer_name is None else printer_name} (lpstat -t)")
+        self.log_debug(f"Récupération des détails pour {'toutes les imprimantes' if printer_name is None else printer_name} (lpstat -t)", log_levels=log_levels)
         # lpstat -t donne toutes les infos, y compris URI et statut
         # check=False car peut retourner 1 si aucune imprimante
         success, stdout, stderr = self.run(['lpstat', '-t'], check=False, no_output=True, error_as_warning=True, needs_sudo=False)
 
         details = {}
         if not success and "no printers found" not in stderr.lower():
-            self.log_error(f"Impossible d'obtenir les détails des imprimantes. Stderr: {stderr}")
+            self.log_error(f"Impossible d'obtenir les détails des imprimantes. Stderr: {stderr}", log_levels=log_levels)
             return details
 
         # Dictionnaire temporaire pour stocker les informations URI avant de les associer aux statuts
@@ -80,9 +80,9 @@ class PrinterCommands(PluginsUtilsBase):
                     printer_name_from_line = parts[0].strip()
                     uri = parts[1].strip()
                     printer_uris[printer_name_from_line] = uri
-                    self.log_debug(f"URI pour {printer_name_from_line}: {uri}")
+                    self.log_debug(f"URI pour {printer_name_from_line}: {uri}", log_levels=log_levels)
                 except (IndexError, KeyError) as e:
-                    self.log_warning(f"Impossible d'extraire l'URI de la ligne: {line}. Erreur: {e}")
+                    self.log_warning(f"Impossible d'extraire l'URI de la ligne: {line}. Erreur: {e}", log_levels=log_levels)
         
         # 2. Ensuite, récupérer les statuts des imprimantes
         for line in stdout.splitlines():
@@ -106,9 +106,9 @@ class PrinterCommands(PluginsUtilsBase):
                         if printer_name_from_line in printer_uris:
                             printer_info_dict[printer_name_from_line]['uri'] = printer_uris[printer_name_from_line]
                         
-                        self.log_debug(f"Statut pour {printer_name_from_line}: {status}")
+                        self.log_debug(f"Statut pour {printer_name_from_line}: {status}", log_levels=log_levels)
                 except Exception as e:
-                    self.log_warning(f"Impossible d'extraire le statut de la ligne: {line}. Erreur: {e}")
+                    self.log_warning(f"Impossible d'extraire le statut de la ligne: {line}. Erreur: {e}", log_levels=log_levels)
 
         # Finaliser le dictionnaire des détails
         details = printer_info_dict
@@ -117,10 +117,10 @@ class PrinterCommands(PluginsUtilsBase):
         if printer_name:
             return {printer_name: details[printer_name]} if printer_name in details else {}
 
-        self.log_debug(f"Détails récupérés pour {len(details)} imprimantes.")
+        self.log_debug(f"Détails récupérés pour {len(details)} imprimantes.", log_levels=log_levels)
         return details
 
-    def remove_all_network_printers(self, exclude_patterns: Optional[List[str]] = None, task_id: Optional[str] = None) -> Tuple[bool, int, List[str]]:
+    def remove_all_network_printers(self, exclude_patterns: Optional[List[str]] = None, task_id: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None) -> Tuple[bool, int, List[str]]:
         """
         Supprime toutes les imprimantes réseau du système.
 
@@ -131,13 +131,13 @@ class PrinterCommands(PluginsUtilsBase):
         Returns:
             Tuple (succès_global: bool, nb_supprimées: int, liste_supprimées: List[str]).
         """
-        self.log_info("Recherche de toutes les imprimantes réseau à supprimer")
+        self.log_info("Recherche de toutes les imprimantes réseau à supprimer", log_levels=log_levels)
         exclude_set = set(exclude_patterns or [])
 
         # 1. Obtenir les détails de toutes les imprimantes
         all_details = self.get_printer_details()
         if not all_details:
-            self.log_info("Aucune imprimante trouvée sur le système.")
+            self.log_info("Aucune imprimante trouvée sur le système.", log_levels=log_levels)
             return True, 0, []
 
         # 2. Identifier les imprimantes réseau à supprimer
@@ -154,12 +154,12 @@ class PrinterCommands(PluginsUtilsBase):
                 network_printers_to_remove.append(name)
 
         if not network_printers_to_remove:
-            self.log_info("Aucune imprimante réseau à supprimer trouvée.")
+            self.log_info("Aucune imprimante réseau à supprimer trouvée.", log_levels=log_levels)
             return True, 0, []
 
         # 3. Supprimer les imprimantes identifiées
         count = len(network_printers_to_remove)
-        self.log_info(f"Suppression de {count} imprimante(s) réseau: {', '.join(network_printers_to_remove)}")
+        self.log_info(f"Suppression de {count} imprimante(s) réseau: {', '.join(network_printers_to_remove)}", log_levels=log_levels)
         current_task_id = task_id or f"remove_printers_{int(time.time())}"
         self.start_task(count, description="Suppression imprimantes réseau", task_id=current_task_id)
 
@@ -179,13 +179,13 @@ class PrinterCommands(PluginsUtilsBase):
         self.complete_task(success=all_success, message=final_message)
 
         if not all_success:
-             self.log_warning(final_message)
+             self.log_warning(final_message, log_levels=log_levels)
         else:
-             self.log_success(final_message)
+             self.log_success(final_message, log_levels=log_levels)
 
         return all_success, success_count, removed_list
 
-    def remove_printer_by_ip(self, ip_address: str, task_id: Optional[str] = None) -> Tuple[bool, int]:
+    def remove_printer_by_ip(self, ip_address: str, task_id: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None) -> Tuple[bool, int]:
         """
         Supprime toutes les imprimantes associées à une adresse IP.
 
@@ -196,24 +196,24 @@ class PrinterCommands(PluginsUtilsBase):
         Returns:
             Tuple (succès_global: bool, nb_supprimées: int).
         """
-        self.log_info(f"Recherche des imprimantes associées à l'IP {ip_address}")
+        self.log_info(f"Recherche des imprimantes associées à l'IP {ip_address}", log_levels=log_levels)
 
         # 1. Obtenir les détails de toutes les imprimantes
         all_details = self.get_printer_details()
         if not all_details:
-            self.log_info("Aucune imprimante trouvée sur le système.")
+            self.log_info("Aucune imprimante trouvée sur le système.", log_levels=log_levels)
             return True, 0
 
         # 2. Identifier les imprimantes avec cette IP
         printers_to_remove = [name for name, info in all_details.items() if ip_address in info.get('uri', '')]
 
         if not printers_to_remove:
-            self.log_info(f"Aucune imprimante trouvée pour l'IP {ip_address}.")
+            self.log_info(f"Aucune imprimante trouvée pour l'IP {ip_address}.", log_levels=log_levels)
             return True, 0
 
         # 3. Supprimer les imprimantes
         count = len(printers_to_remove)
-        self.log_info(f"Suppression de {count} imprimante(s) pour l'IP {ip_address}: {', '.join(printers_to_remove)}")
+        self.log_info(f"Suppression de {count} imprimante(s) pour l'IP {ip_address}: {', '.join(printers_to_remove)}", log_levels=log_levels)
         current_task_id = task_id or f"remove_ip_{ip_address.replace('.', '_')}_{int(time.time())}"
         self.start_task(count, description=f"Suppression imprimantes IP {ip_address}", task_id=current_task_id)
 
@@ -230,9 +230,9 @@ class PrinterCommands(PluginsUtilsBase):
         self.complete_task(success=all_success, message=final_message)
 
         if not all_success:
-             self.log_warning(final_message)
+             self.log_warning(final_message, log_levels=log_levels)
         else:
-             self.log_success(final_message)
+             self.log_success(final_message, log_levels=log_levels)
 
         return all_success, success_count
 
@@ -244,7 +244,7 @@ class PrinterCommands(PluginsUtilsBase):
                     options: Optional[Dict[str, str]] = None,
                     make_default: bool = False,
                     shared: bool = False,
-                    enabled: bool = True) -> bool:
+enabled: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Ajoute une imprimante au système CUPS avec plus de contrôle.
 
@@ -261,20 +261,20 @@ class PrinterCommands(PluginsUtilsBase):
         Returns:
             bool: True si l'ajout a réussi.
         """
-        self.log_debug(f"Tentative d'ajout de l'imprimante: {name} (URI: {uri})")
+        self.log_debug(f"Tentative d'ajout de l'imprimante: {name} (URI: {uri})", log_levels=log_levels)
 
         if not name or not uri:
-             self.log_error("Le nom et l'URI de l'imprimante sont requis.")
+             self.log_error("Le nom et l'URI de l'imprimante sont requis.", log_levels=log_levels)
              return False
         if not ppd_file and not model:
-             self.log_error("Un fichier PPD ou un nom de modèle doit être fourni.")
+             self.log_error("Un fichier PPD ou un nom de modèle doit être fourni.", log_levels=log_levels)
              return False
         if ppd_file and not os.path.isabs(ppd_file):
-             self.log_error(f"Le chemin PPD doit être absolu: {ppd_file}")
+             self.log_error(f"Le chemin PPD doit être absolu: {ppd_file}", log_levels=log_levels)
              # Alternative: essayer de le résoudre relativement à un dossier PPD standard?
              return False
         if ppd_file and not os.path.exists(ppd_file):
-             self.log_error(f"Le fichier PPD n'existe pas: {ppd_file}")
+             self.log_error(f"Le fichier PPD n'existe pas: {ppd_file}", log_levels=log_levels)
              return False
 
         cmd = ['lpadmin', '-p', name, '-v', uri]
@@ -282,10 +282,10 @@ class PrinterCommands(PluginsUtilsBase):
         # Ajouter le pilote
         if ppd_file:
              cmd.extend(['-P', ppd_file])
-             self.log_debug(f"Utilisation du fichier PPD: {ppd_file}")
+             self.log_debug(f"Utilisation du fichier PPD: {ppd_file}", log_levels=log_levels)
         else: # model doit être défini
              cmd.extend(['-m', model])
-             self.log_debug(f"Utilisation du modèle/pilote: {model}")
+             self.log_debug(f"Utilisation du modèle/pilote: {model}", log_levels=log_levels)
 
         # Activer/Désactiver l'imprimante
         cmd.append('-E' if enabled else '-D') # -E active, -D désactive (ancienne syntaxe?)
@@ -298,39 +298,39 @@ class PrinterCommands(PluginsUtilsBase):
 
         for key, value in final_options.items():
             cmd.extend(['-o', f"{key}={value}"])
-        self.log_debug(f"Options appliquées: {final_options}")
+        self.log_debug(f"Options appliquées: {final_options}", log_levels=log_levels)
 
         # Exécuter la commande
         success, stdout, stderr = self.run(cmd, check=False, error_as_warning=True, needs_sudo=False)
 
         if not success:
-            self.log_error(f"Échec de l'ajout de l'imprimante {name}.")
+            self.log_error(f"Échec de l'ajout de l'imprimante {name}.", log_levels=log_levels)
             if "client-error-bad-request" in stderr and ppd_file:
-                 self.log_error("Cela peut indiquer un problème avec le fichier PPD.")
+                 self.log_error("Cela peut indiquer un problème avec le fichier PPD.", log_levels=log_levels)
             elif "client-error-not-found" in stderr:
-                 self.log_error("Vérifier que l'URI ou le modèle/PPD est correct.")
-            self.log_error(f"Stderr: {stderr}")
+                 self.log_error("Vérifier que l'URI ou le modèle/PPD est correct.", log_levels=log_levels)
+            self.log_error(f"Stderr: {stderr}", log_levels=log_levels)
             return False
 
-        self.log_success(f"Imprimante {name} ajoutée avec succès via lpadmin.")
+        self.log_success(f"Imprimante {name} ajoutée avec succès via lpadmin.", log_levels=log_levels)
 
         # Activer explicitement si demandé (plus fiable que -E)
         if enabled:
             enable_success = self.enable_printer(name)
             if not enable_success:
-                 self.log_warning(f"L'imprimante {name} a été ajoutée mais n'a pas pu être activée.")
+                 self.log_warning(f"L'imprimante {name} a été ajoutée mais n'a pas pu être activée.", log_levels=log_levels)
                  # Continuer quand même, l'ajout principal a réussi
 
         # Définir par défaut si demandé
         if make_default:
             default_success = self.set_default_printer(name)
             if not default_success:
-                 self.log_warning(f"L'imprimante {name} a été ajoutée mais n'a pas pu être définie par défaut.")
+                 self.log_warning(f"L'imprimante {name} a été ajoutée mais n'a pas pu être définie par défaut.", log_levels=log_levels)
                  # Continuer quand même
 
         return True # L'ajout principal a réussi
 
-    def remove_printer(self, printer_name: str) -> bool:
+    def remove_printer(self, printer_name: str, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Supprime une imprimante du système CUPS.
 
@@ -340,29 +340,29 @@ class PrinterCommands(PluginsUtilsBase):
         Returns:
             bool: True si la suppression a réussi.
         """
-        self.log_info(f"Suppression de l'imprimante: {printer_name}")
+        self.log_info(f"Suppression de l'imprimante: {printer_name}", log_levels=log_levels)
         # Utiliser check=False pour gérer le cas où l'imprimante n'existe pas déjà
         success, stdout, stderr = self.run(['lpadmin', '-x', printer_name], check=False, error_as_warning=False, needs_sudo=False)
 
         if success:
-             self.log_success(f"Imprimante {printer_name} supprimée avec succès.")
+             self.log_success(f"Imprimante {printer_name} supprimée avec succès.", log_levels=log_levels)
              return True
         else:
              # Vérifier si l'erreur est due au fait que l'imprimante n'existe pas
              if "client-error-not-found" in stderr.lower() or "unknown printer" in stderr.lower():
-                  self.log_warning(f"L'imprimante {printer_name} n'existait déjà pas.")
+                  self.log_warning(f"L'imprimante {printer_name} n'existait déjà pas.", log_levels=log_levels)
                   return True # Considérer comme un succès si elle n'existe pas
              else:
-                  self.log_error(f"Échec de la suppression de l'imprimante {printer_name}. Stderr: {stderr}")
+                  self.log_error(f"Échec de la suppression de l'imprimante {printer_name}. Stderr: {stderr}", log_levels=log_levels)
                   return False
 
-    def get_default_printer(self) -> Optional[str]:
+    def get_default_printer(self, log_levels: Optional[Dict[str, str]] = None) -> Optional[str]:
         """Obtient le nom de l'imprimante par défaut."""
-        self.log_debug("Recherche de l'imprimante par défaut (lpstat -d)")
+        self.log_debug("Recherche de l'imprimante par défaut (lpstat -d)", log_levels=log_levels)
         success, stdout, stderr = self.run(['lpstat', '-d'], check=False, no_output=True, error_as_warning=False, needs_sudo=False)
 
         if not success or "no system default destination" in stdout.lower() or "aucun système destinataire par défaut" in stdout.lower():
-            self.log_info("Aucune imprimante par défaut configurée.")
+            self.log_info("Aucune imprimante par défaut configurée.", log_levels=log_levels)
             return None
 
         # Format EN: "system default destination: PRINTER_NAME"
@@ -370,61 +370,61 @@ class PrinterCommands(PluginsUtilsBase):
         match = re.search(r':\s*(\S+)', stdout.strip())
         if match:
             printer_name = match.group(1)
-            self.log_info(f"Imprimante par défaut: {printer_name}")
+            self.log_info(f"Imprimante par défaut: {printer_name}", log_levels=log_levels)
             return printer_name
 
-        self.log_warning(f"Impossible d'extraire l'imprimante par défaut de la sortie: {stdout}")
+        self.log_warning(f"Impossible d'extraire l'imprimante par défaut de la sortie: {stdout}", log_levels=log_levels)
         return None
 
-    def set_default_printer(self, printer_name: str) -> bool:
+    def set_default_printer(self, printer_name: str, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """Définit une imprimante comme imprimante par défaut."""
-        self.log_info(f"Définition de '{printer_name}' comme imprimante par défaut")
+        self.log_info(f"Définition de '{printer_name}' comme imprimante par défaut", log_levels=log_levels)
         success, _, stderr = self.run(['lpadmin', '-d', printer_name], check=False, error_as_warning=False, needs_sudo=False)
         if success:
-             self.log_success(f"Imprimante '{printer_name}' définie par défaut.")
+             self.log_success(f"Imprimante '{printer_name}' définie par défaut.", log_levels=log_levels)
              return True
         else:
-             self.log_error(f"Échec de la définition de '{printer_name}' par défaut. Stderr: {stderr}")
+             self.log_error(f"Échec de la définition de '{printer_name}' par défaut. Stderr: {stderr}", log_levels=log_levels)
              return False
 
-    def enable_printer(self, printer_name: str) -> bool:
+    def enable_printer(self, printer_name: str, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """Active une imprimante (accepte les travaux)."""
-        self.log_debug(f"Activation de l'imprimante: {printer_name}")
+        self.log_debug(f"Activation de l'imprimante: {printer_name}", log_levels=log_levels)
         success, _, stderr = self.run(['cupsenable', printer_name], check=False, error_as_warning=False, needs_sudo=False)
         if success:
-             self.log_success(f"Imprimante {printer_name} activée.")
+             self.log_success(f"Imprimante {printer_name} activée.", log_levels=log_levels)
              return True
         else:
              # Gérer le cas où elle est déjà activée
              if "already enabled" in stderr.lower():
-                  self.log_info(f"Imprimante {printer_name} déjà activée.")
+                  self.log_info(f"Imprimante {printer_name} déjà activée.", log_levels=log_levels)
                   return True
-             self.log_error(f"Échec de l'activation de {printer_name}. Stderr: {stderr}")
+             self.log_error(f"Échec de l'activation de {printer_name}. Stderr: {stderr}", log_levels=log_levels)
              return False
 
-    def disable_printer(self, printer_name: str) -> bool:
+    def disable_printer(self, printer_name: str, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """Désactive une imprimante (rejette les travaux)."""
-        self.log_info(f"Désactivation de l'imprimante: {printer_name}")
+        self.log_info(f"Désactivation de l'imprimante: {printer_name}", log_levels=log_levels)
         success, _, stderr = self.run(['cupsdisable', printer_name], check=False)
         if success:
-             self.log_success(f"Imprimante {printer_name} désactivée.")
+             self.log_success(f"Imprimante {printer_name} désactivée.", log_levels=log_levels)
              return True
         else:
              # Gérer le cas où elle est déjà désactivée
              if "already stopped" in stderr.lower(): # cupsdisable peut dire 'stopped'
-                  self.log_info(f"Imprimante {printer_name} déjà désactivée.")
+                  self.log_info(f"Imprimante {printer_name} déjà désactivée.", log_levels=log_levels)
                   return True
-             self.log_error(f"Échec de la désactivation de {printer_name}. Stderr: {stderr}")
+             self.log_error(f"Échec de la désactivation de {printer_name}. Stderr: {stderr}", log_levels=log_levels)
              return False
 
-    def get_printer_options(self, printer_name: str) -> Optional[Dict[str, str]]:
+    def get_printer_options(self, printer_name: str, log_levels: Optional[Dict[str, str]] = None) -> Optional[Dict[str, str]]:
         """Obtient les options configurées pour une imprimante."""
-        self.log_debug(f"Récupération des options pour {printer_name} (lpoptions -p ... -l)")
+        self.log_debug(f"Récupération des options pour {printer_name} (lpoptions -p ... -l)", log_levels=log_levels)
         cmd = ['lpoptions', '-p', printer_name, '-l']
         success, stdout, stderr = self.run(cmd, check=False, no_output=True)
 
         if not success:
-            self.log_error(f"Impossible de récupérer les options de {printer_name}. Stderr: {stderr}")
+            self.log_error(f"Impossible de récupérer les options de {printer_name}. Stderr: {stderr}", log_levels=log_levels)
             return None
 
         options = {}
@@ -444,45 +444,45 @@ class PrinterCommands(PluginsUtilsBase):
                         values.append(val)
                 # Stocker la valeur par défaut ou la première si pas de défaut
                 options[key] = default_value if default_value is not None else (values[0] if values else '')
-        self.log_debug(f"Options trouvées pour {printer_name}: {options}")
+        self.log_debug(f"Options trouvées pour {printer_name}: {options}", log_levels=log_levels)
         return options
 
-    def set_printer_option(self, printer_name: str, option: str, value: str) -> bool:
+    def set_printer_option(self, printer_name: str, option: str, value: str, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """Définit une option pour une imprimante."""
-        self.log_info(f"Configuration de l'option {option}={value} pour {printer_name}")
+        self.log_info(f"Configuration de l'option {option}={value} pour {printer_name}", log_levels=log_levels)
         cmd = ['lpoptions', '-p', printer_name, '-o', f"{option}={value}"]
         success, _, stderr = self.run(cmd, check=False)
         if success:
-             self.log_success(f"Option {option} configurée pour {printer_name}.")
+             self.log_success(f"Option {option} configurée pour {printer_name}.", log_levels=log_levels)
              return True
         else:
-             self.log_error(f"Échec de la configuration de l'option {option}. Stderr: {stderr}")
+             self.log_error(f"Échec de la configuration de l'option {option}. Stderr: {stderr}", log_levels=log_levels)
              return False
 
-    def restart_cups(self) -> bool:
+    def restart_cups(self, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """Redémarre le service CUPS."""
-        self.log_info("Redémarrage du service CUPS")
+        self.log_info("Redémarrage du service CUPS", log_levels=log_levels)
         # Utiliser la classe ServiceCommands si disponible, sinon appel direct
         try:
             from .services import ServiceCommands
             service_manager = ServiceCommands(self.logger, self.target_ip)
             return service_manager.restart("cups")
         except ImportError:
-             self.log_warning("Module ServiceCommands non trouvé, utilisation de systemctl directement.")
+             self.log_warning("Module ServiceCommands non trouvé, utilisation de systemctl directement.", log_levels=log_levels)
              success, _, stderr = self.run(['systemctl', 'restart', 'cups'], check=False)
              if success:
-                  self.log_success("Service CUPS redémarré avec succès.")
+                  self.log_success("Service CUPS redémarré avec succès.", log_levels=log_levels)
              else:
-                  self.log_error(f"Échec du redémarrage du service CUPS. Stderr: {stderr}")
+                  self.log_error(f"Échec du redémarrage du service CUPS. Stderr: {stderr}", log_levels=log_levels)
              return success
 
-    def get_printer_status(self, printer_name: str) -> Optional[str]:
+    def get_printer_status(self, printer_name: str, log_levels: Optional[Dict[str, str]] = None) -> Optional[str]:
         """Obtient l'état actuel d'une imprimante."""
         details = self.get_printer_details(printer_name)
         if printer_name in details:
             status = details[printer_name].get('status', 'inconnu')
-            self.log_debug(f"État de {printer_name}: {status}")
+            self.log_debug(f"État de {printer_name}: {status}", log_levels=log_levels)
             return status
         else:
-             self.log_warning(f"Impossible d'obtenir le statut de l'imprimante {printer_name} (non trouvée).")
+             self.log_warning(f"Impossible d'obtenir le statut de l'imprimante {printer_name} (non trouvée).", log_levels=log_levels)
              return None

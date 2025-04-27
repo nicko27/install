@@ -23,6 +23,7 @@ if [ -z "$EXTRACT_DIR" ]; then
     exit 1
 fi
 
+cd $SCRIPT_DIR
 # Créer le dossier logs s'il n'existe pas
 mkdir -p "$EXTRACT_DIR/logs"
 rm -rf "$EXTRACT_DIR/libs/*"

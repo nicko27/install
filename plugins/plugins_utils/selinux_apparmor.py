@@ -43,11 +43,11 @@ class MandatoryAccessControl(PluginsUtilsBase):
                 elif cmd.startswith('aa-'):
                     found_apparmor = True
         if not found_selinux:
-            self.log_debug("Commandes SELinux (sestatus, setsebool...) non trouvées.")
+            self.log_debug("Commandes SELinux (sestatus, setsebool...) non trouvées.", log_levels=log_levels)
         if not found_apparmor:
-            self.log_debug("Commandes AppArmor (aa-status...) non trouvées.")
+            self.log_debug("Commandes AppArmor (aa-status...) non trouvées.", log_levels=log_levels)
 
-    def detect_mac_system(self) -> str:
+    def detect_mac_system(self, log_levels: Optional[Dict[str, str]] = None) -> str:
         """
         Tente de détecter quel système MAC (SELinux ou AppArmor) est actif.
 
@@ -61,11 +61,11 @@ class MandatoryAccessControl(PluginsUtilsBase):
         sestatus_success, sestatus_stdout, _ = self.run(['sestatus'], check=False, no_output=True, error_as_warning=True)
         if sestatus_success and "SELinux status:" in sestatus_stdout:
             if "enabled" in sestatus_stdout:
-                 self.log_info("SELinux détecté et activé.")
+                 self.log_info("SELinux détecté et activé.", log_levels=log_levels)
                  self._mac_system = self.MAC_SYSTEM_SELINUX
                  return self._mac_system
             elif "disabled" in sestatus_stdout:
-                 self.log_info("SELinux détecté mais désactivé.")
+                 self.log_info("SELinux détecté mais désactivé.", log_levels=log_levels)
                  # Continuer pour voir si AppArmor est actif
 
         # 2. Vérifier AppArmor via aa-status
@@ -73,11 +73,11 @@ class MandatoryAccessControl(PluginsUtilsBase):
         if aa_status_success and "apparmor module is loaded" in aa_status_stdout.lower():
              # Vérifier s'il y a des profils chargés
              if "profiles are loaded" in aa_status_stdout.lower() and "0 profiles are loaded" not in aa_status_stdout.lower():
-                  self.log_info("AppArmor détecté et actif (profils chargés).")
+                  self.log_info("AppArmor détecté et actif (profils chargés).", log_levels=log_levels)
                   self._mac_system = self.MAC_SYSTEM_APPARMOR
                   return self._mac_system
              else:
-                  self.log_info("AppArmor détecté mais aucun profil chargé activement.")
+                  self.log_info("AppArmor détecté mais aucun profil chargé activement.", log_levels=log_levels)
                   # Considérer comme inactif s'il n'y a pas de profils ? Ou actif mais vide?
                   # On retourne AppArmor mais l'appelant devra vérifier les profils.
                   self._mac_system = self.MAC_SYSTEM_APPARMOR
@@ -85,32 +85,32 @@ class MandatoryAccessControl(PluginsUtilsBase):
 
         # 3. Si SELinux était désactivé et AppArmor non trouvé/inactif
         if sestatus_success and "disabled" in sestatus_stdout:
-             self.log_info("SELinux est désactivé et AppArmor n'est pas actif.")
+             self.log_info("SELinux est désactivé et AppArmor n'est pas actif.", log_levels=log_levels)
              self._mac_system = self.MAC_SYSTEM_NONE
              return self._mac_system
 
         # 4. Si aucune commande n'a fonctionné ou n'a donné d'info claire
-        self.log_warning("Impossible de déterminer clairement le système MAC actif (SELinux/AppArmor).")
+        self.log_warning("Impossible de déterminer clairement le système MAC actif (SELinux/AppArmor).", log_levels=log_levels)
         self._mac_system = self.MAC_SYSTEM_UNKNOWN
         return self._mac_system
 
     # --- Fonctions SELinux ---
 
-    def get_selinux_status(self) -> Optional[Dict[str, str]]:
+    def get_selinux_status(self, log_levels: Optional[Dict[str, str]] = None) -> Optional[Dict[str, str]]:
         """
         Récupère le statut de SELinux via sestatus.
 
         Returns:
             Dictionnaire avec les informations (status, mode, policy, etc.) ou None si erreur.
         """
-        self.log_info("Récupération du statut SELinux (sestatus)")
+        self.log_info("Récupération du statut SELinux (sestatus)", log_levels=log_levels)
         success, stdout, stderr = self.run(['sestatus'], check=False, no_output=True)
         if not success:
             # Vérifier si l'erreur est due à SELinux non installé/disponible
             if "command not found" in stderr.lower() or "not enabled" in stderr.lower():
-                 self.log_info("SELinux n'est pas installé ou activé sur ce système.")
+                 self.log_info("SELinux n'est pas installé ou activé sur ce système.", log_levels=log_levels)
                  return {'selinux_status': 'disabled'} # Retourner un statut clair
-            self.log_error(f"Échec de la commande sestatus. Stderr: {stderr}")
+            self.log_error(f"Échec de la commande sestatus. Stderr: {stderr}", log_levels=log_levels)
             return None
 
         status_info: Dict[str, str] = {}
@@ -121,10 +121,10 @@ class MandatoryAccessControl(PluginsUtilsBase):
                 key_norm = key.strip().lower().replace(' ', '_').replace('/', '_')
                 status_info[key_norm] = value.strip()
 
-        self.log_debug(f"Statut SELinux: {status_info}")
+        self.log_debug(f"Statut SELinux: {status_info}", log_levels=log_levels)
         return status_info
 
-    def set_selinux_mode_runtime(self, enforcing: bool) -> bool:
+    def set_selinux_mode_runtime(self, enforcing: bool, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Change le mode SELinux (Enforcing/Permissive) pour la session courante.
         Nécessite root. Ne persiste pas après redémarrage.
@@ -137,17 +137,17 @@ class MandatoryAccessControl(PluginsUtilsBase):
         """
         mode_int = 1 if enforcing else 0
         mode_str = "Enforcing" if enforcing else "Permissive"
-        self.log_info(f"Changement du mode SELinux (runtime) en: {mode_str}")
+        self.log_info(f"Changement du mode SELinux (runtime) en: {mode_str}", log_levels=log_levels)
         cmd = ['setenforce', str(mode_int)]
         success, stdout, stderr = self.run(cmd, check=False, needs_sudo=True)
         if success:
-            self.log_success(f"Mode SELinux (runtime) changé en {mode_str}.")
+            self.log_success(f"Mode SELinux (runtime) changé en {mode_str}.", log_levels=log_levels)
             return True
         else:
-            self.log_error(f"Échec du changement de mode SELinux (runtime). Stderr: {stderr}")
+            self.log_error(f"Échec du changement de mode SELinux (runtime). Stderr: {stderr}", log_levels=log_levels)
             return False
 
-    def set_selinux_mode_persistent(self, mode: str) -> bool:
+    def set_selinux_mode_persistent(self, mode: str, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Change le mode SELinux de manière persistante dans /etc/selinux/config.
         Nécessite root et un redémarrage pour être effectif.
@@ -161,12 +161,12 @@ class MandatoryAccessControl(PluginsUtilsBase):
         valid_modes = ['enforcing', 'permissive', 'disabled']
         mode_lower = mode.lower()
         if mode_lower not in valid_modes:
-            self.log_error(f"Mode SELinux invalide: {mode}. Choisir parmi {valid_modes}.")
+            self.log_error(f"Mode SELinux invalide: {mode}. Choisir parmi {valid_modes}.", log_levels=log_levels)
             return False
 
         config_path = "/etc/selinux/config"
-        self.log_info(f"Configuration du mode SELinux persistant à '{mode_lower}' dans {config_path}")
-        self.log_warning("Cette modification nécessite un redémarrage pour prendre effet.")
+        self.log_info(f"Configuration du mode SELinux persistant à '{mode_lower}' dans {config_path}", log_levels=log_levels)
+        self.log_warning("Cette modification nécessite un redémarrage pour prendre effet.", log_levels=log_levels)
 
         if not os.path.exists(config_path):
              # Tenter /etc/sysconfig/selinux pour les anciens systèmes RHEL/CentOS
@@ -174,7 +174,7 @@ class MandatoryAccessControl(PluginsUtilsBase):
              if os.path.exists(alt_config_path):
                   config_path = alt_config_path
              else:
-                  self.log_error(f"Fichier de configuration SELinux introuvable ({config_path} ou {alt_config_path}).")
+                  self.log_error(f"Fichier de configuration SELinux introuvable ({config_path} ou {alt_config_path}).", log_levels=log_levels)
                   return False
 
         # Utiliser sed pour modifier la ligne SELINUX=...
@@ -184,7 +184,7 @@ class MandatoryAccessControl(PluginsUtilsBase):
             # Lire le fichier (nécessite potentiellement root)
             read_success, current_content, read_stderr = self.run(['cat', config_path], check=False, needs_sudo=True)
             if not read_success:
-                 self.log_error(f"Impossible de lire {config_path}. Stderr: {read_stderr}")
+                 self.log_error(f"Impossible de lire {config_path}. Stderr: {read_stderr}", log_levels=log_levels)
                  return False
 
             new_lines = []
@@ -199,7 +199,7 @@ class MandatoryAccessControl(PluginsUtilsBase):
 
             # Si la ligne n'a pas été trouvée, l'ajouter (moins courant)
             if not found:
-                 self.log_warning(f"Ligne 'SELINUX=' non trouvée dans {config_path}, ajout en fin de fichier.")
+                 self.log_warning(f"Ligne 'SELINUX=' non trouvée dans {config_path}, ajout en fin de fichier.", log_levels=log_levels)
                  new_lines.append(f'SELINUX={mode_lower}')
 
             new_content = "\n".join(new_lines) + "\n"
@@ -215,26 +215,26 @@ class MandatoryAccessControl(PluginsUtilsBase):
             os.unlink(tmp_file) # Nettoyer le temporaire
 
             if success_cp:
-                self.log_success(f"Mode SELinux persistant configuré à '{mode_lower}' dans {config_path}.")
+                self.log_success(f"Mode SELinux persistant configuré à '{mode_lower}' dans {config_path}.", log_levels=log_levels)
                 return True
             else:
-                self.log_error(f"Échec de la mise à jour de {config_path}. Stderr: {stderr_cp}")
+                self.log_error(f"Échec de la mise à jour de {config_path}. Stderr: {stderr_cp}", log_levels=log_levels)
                 return False
 
         except Exception as e:
-            self.log_error(f"Erreur lors de la modification de {config_path}: {e}", exc_info=True)
+            self.log_error(f"Erreur lors de la modification de {config_path}: {e}", exc_info=True, log_levels=log_levels)
             return False
 
-    def get_selinux_boolean(self, boolean_name: str) -> Optional[bool]:
+    def get_selinux_boolean(self, boolean_name: str, log_levels: Optional[Dict[str, str]] = None) -> Optional[bool]:
         """Récupère la valeur actuelle d'un booléen SELinux."""
-        self.log_debug(f"Récupération du booléen SELinux: {boolean_name}")
+        self.log_debug(f"Récupération du booléen SELinux: {boolean_name}", log_levels=log_levels)
         # getsebool retourne "boolean --> on|off" ou une erreur si inconnu
         success, stdout, stderr = self.run(['getsebool', boolean_name], check=False, no_output=True)
         if not success:
             if "invalid boolean" in stderr.lower() or "no such file or directory" in stderr.lower():
-                 self.log_warning(f"Booléen SELinux inconnu: {boolean_name}")
+                 self.log_warning(f"Booléen SELinux inconnu: {boolean_name}", log_levels=log_levels)
             else:
-                 self.log_error(f"Échec de getsebool pour {boolean_name}. Stderr: {stderr}")
+                 self.log_error(f"Échec de getsebool pour {boolean_name}. Stderr: {stderr}", log_levels=log_levels)
             return None
 
         try:
@@ -242,10 +242,10 @@ class MandatoryAccessControl(PluginsUtilsBase):
             value_str = stdout.split('-->')[1].strip().lower()
             return value_str == 'on'
         except IndexError:
-            self.log_warning(f"Format de sortie inattendu de getsebool: {stdout}")
+            self.log_warning(f"Format de sortie inattendu de getsebool: {stdout}", log_levels=log_levels)
             return None
 
-    def set_selinux_boolean(self, boolean_name: str, value: bool, persistent: bool = True) -> bool:
+    def set_selinux_boolean(self, boolean_name: str, value: bool, persistent: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Définit la valeur d'un booléen SELinux. Nécessite root pour persistent=True.
 
@@ -259,7 +259,7 @@ class MandatoryAccessControl(PluginsUtilsBase):
         """
         value_str = 'on' if value else 'off'
         persistence_log = " (persistent)" if persistent else " (runtime)"
-        self.log_info(f"Définition du booléen SELinux: {boolean_name} = {value_str}{persistence_log}")
+        self.log_info(f"Définition du booléen SELinux: {boolean_name} = {value_str}{persistence_log}", log_levels=log_levels)
 
         cmd = ['setsebool']
         if persistent:
@@ -271,13 +271,13 @@ class MandatoryAccessControl(PluginsUtilsBase):
         success, stdout, stderr = self.run(cmd, check=False, needs_sudo=persistent, timeout=timeout)
 
         if success:
-            self.log_success(f"Booléen SELinux '{boolean_name}' mis à '{value_str}'{persistence_log}.")
+            self.log_success(f"Booléen SELinux '{boolean_name}' mis à '{value_str}'{persistence_log}.", log_levels=log_levels)
             return True
         else:
-            self.log_error(f"Échec de setsebool pour {boolean_name}. Stderr: {stderr}")
+            self.log_error(f"Échec de setsebool pour {boolean_name}. Stderr: {stderr}", log_levels=log_levels)
             return False
 
-    def restorecon(self, path: Union[str, Path], recursive: bool = False, force: bool = False) -> bool:
+    def restorecon(self, path: Union[str, Path], recursive: bool = False, force: bool = False, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Restaure le contexte de sécurité SELinux par défaut pour un fichier/dossier.
         Nécessite root.
@@ -291,10 +291,10 @@ class MandatoryAccessControl(PluginsUtilsBase):
             bool: True si succès.
         """
         target_path = Path(path)
-        self.log_info(f"Restauration du contexte SELinux pour: {target_path}{' (récursif)' if recursive else ''}")
+        self.log_info(f"Restauration du contexte SELinux pour: {target_path}{' (récursif)' if recursive else ''}", log_levels=log_levels)
 
         if not target_path.exists():
-            self.log_error(f"Le chemin n'existe pas: {target_path}")
+            self.log_error(f"Le chemin n'existe pas: {target_path}", log_levels=log_levels)
             return False
 
         cmd = ['restorecon']
@@ -304,18 +304,18 @@ class MandatoryAccessControl(PluginsUtilsBase):
         cmd.append(str(target_path))
 
         success, stdout, stderr = self.run(cmd, check=False, needs_sudo=True)
-        if stdout: self.log_info(f"Sortie restorecon:\n{stdout}") # Afficher les changements
+        if stdout: self.log_info(f"Sortie restorecon:\n{stdout}", log_levels=log_levels) # Afficher les changements
 
         if success:
-            self.log_success(f"Contexte SELinux restauré pour {target_path}.")
+            self.log_success(f"Contexte SELinux restauré pour {target_path}.", log_levels=log_levels)
             return True
         else:
-            self.log_error(f"Échec de restorecon pour {target_path}. Stderr: {stderr}")
+            self.log_error(f"Échec de restorecon pour {target_path}. Stderr: {stderr}", log_levels=log_levels)
             return False
 
     # --- Fonctions AppArmor ---
 
-    def get_apparmor_status(self) -> Optional[Dict[str, Any]]:
+    def get_apparmor_status(self, log_levels: Optional[Dict[str, str]] = None) -> Optional[Dict[str, Any]]:
         """
         Récupère le statut d'AppArmor via aa-status. Nécessite root.
 
@@ -323,14 +323,14 @@ class MandatoryAccessControl(PluginsUtilsBase):
             Dictionnaire avec les informations (module loaded, profiles loaded,
             enforce count, complain count, processes profiled) ou None si erreur.
         """
-        self.log_info("Récupération du statut AppArmor (aa-status)")
+        self.log_info("Récupération du statut AppArmor (aa-status)", log_levels=log_levels)
         success, stdout, stderr = self.run(['aa-status'], check=False, no_output=True, needs_sudo=True)
 
         if not success:
             if "command not found" in stderr.lower():
-                 self.log_info("AppArmor n'est pas installé ou activé sur ce système.")
+                 self.log_info("AppArmor n'est pas installé ou activé sur ce système.", log_levels=log_levels)
                  return {'apparmor_status': 'disabled'}
-            self.log_error(f"Échec de la commande aa-status. Stderr: {stderr}")
+            self.log_error(f"Échec de la commande aa-status. Stderr: {stderr}", log_levels=log_levels)
             return None
 
         status_info: Dict[str, Any] = {'apparmor_status': 'enabled'}
@@ -358,15 +358,15 @@ class MandatoryAccessControl(PluginsUtilsBase):
             match = re.search(r'(\d+)\s+processes? are unconfined', stdout)
             status_info['processes_unconfined_count'] = int(match.group(1)) if match else 0
 
-            self.log_debug(f"Statut AppArmor: {status_info}")
+            self.log_debug(f"Statut AppArmor: {status_info}", log_levels=log_levels)
             return status_info
 
         except Exception as e:
-             self.log_error(f"Erreur lors du parsing de la sortie aa-status: {e}", exc_info=True)
-             self.log_debug(f"Sortie aa-status brute:\n{stdout}")
+             self.log_error(f"Erreur lors du parsing de la sortie aa-status: {e}", exc_info=True, log_levels=log_levels)
+             self.log_debug(f"Sortie aa-status brute:\n{stdout}", log_levels=log_levels)
              return None # Retourner None si le parsing échoue
 
-    def set_apparmor_profile_mode(self, profile_name: str, mode: str) -> bool:
+    def set_apparmor_profile_mode(self, profile_name: str, mode: str, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Change le mode d'un profil AppArmor (complain ou enforce). Nécessite root.
 
@@ -379,20 +379,19 @@ class MandatoryAccessControl(PluginsUtilsBase):
         """
         mode_lower = mode.lower()
         if mode_lower not in ['complain', 'enforce']:
-            self.log_error(f"Mode AppArmor invalide: {mode}. Utiliser 'complain' ou 'enforce'.")
+            self.log_error(f"Mode AppArmor invalide: {mode}. Utiliser 'complain' ou 'enforce'.", log_levels=log_levels)
             return False
 
         cmd_action = f"aa-{mode_lower}" # aa-complain ou aa-enforce
-        self.log_info(f"Passage du profil AppArmor '{profile_name}' en mode {mode_lower} ({cmd_action})")
+        self.log_info(f"Passage du profil AppArmor '{profile_name}' en mode {mode_lower} ({cmd_action})", log_levels=log_levels)
         cmd = [cmd_action, profile_name]
 
         success, stdout, stderr = self.run(cmd, check=False, needs_sudo=True)
 
         if success:
-            self.log_success(f"Profil AppArmor '{profile_name}' passé en mode {mode_lower}.")
-            if stdout: self.log_info(f"Sortie {cmd_action}:\n{stdout}")
+            self.log_success(f"Profil AppArmor '{profile_name}' passé en mode {mode_lower}.", log_levels=log_levels)
+            if stdout: self.log_info(f"Sortie {cmd_action}:\n{stdout}", log_levels=log_levels)
             return True
         else:
-            self.log_error(f"Échec du passage du profil '{profile_name}' en mode {mode_lower}. Stderr: {stderr}")
+            self.log_error(f"Échec du passage du profil '{profile_name}' en mode {mode_lower}. Stderr: {stderr}", log_levels=log_levels)
             return False
-

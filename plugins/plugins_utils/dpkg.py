@@ -45,9 +45,9 @@ class DpkgCommands(PluginsUtilsBase):
         self.last_run_return_code = 0
         self._apt_cmd = AptCommands(logger, target_ip) if APT_AVAILABLE_FOR_DPKG else None
         if not APT_AVAILABLE_FOR_DPKG:
-             self.log_warning("Module AptCommands non trouvé. L'installation automatique de paquets sera désactivée.")
+             self.log_warning("Module AptCommands non trouvé. L'installation automatique de paquets sera désactivée.", log_levels=log_levels)
 
-    def add_package_selection(self, package: str, status: str = "install"):
+    def add_package_selection(self, package: str, status: str = "install", log_levels: Optional[Dict[str, str]] = None):
         """
         Ajoute ou met à jour une sélection de paquet individuelle dans la liste cumulative interne.
 
@@ -58,19 +58,19 @@ class DpkgCommands(PluginsUtilsBase):
         valid_statuses = ["install", "hold", "deinstall", "purge"]
         status_lower = status.lower()
         if status_lower not in valid_statuses:
-             self.log_warning(f"Statut de sélection dpkg invalide '{status}' pour {package}. Utilisation de 'install'.")
+             self.log_warning(f"Statut de sélection dpkg invalide '{status}' pour {package}. Utilisation de 'install'.", log_levels=log_levels)
              status_lower = "install"
-        self.log_debug(f"Ajout/Mise à jour sélection dpkg: {package} -> {status_lower}")
+        self.log_debug(f"Ajout/Mise à jour sélection dpkg: {package} -> {status_lower}", log_levels=log_levels)
         self._package_selections[package] = status_lower
 
-    def add_package_selections(self, selections: str):
+    def add_package_selections(self, selections: str, log_levels: Optional[Dict[str, str]] = None):
         """
         Ajoute des sélections de paquets depuis une chaîne multiligne à la liste cumulative interne.
 
         Args:
             selections: Chaîne contenant les sélections (une par ligne: "package status").
         """
-        self.log_info("Ajout de sélections de paquets dpkg depuis une chaîne...")
+        self.log_info("Ajout de sélections de paquets dpkg depuis une chaîne...", log_levels=log_levels)
         count = 0
         for line in selections.splitlines():
             line = line.strip()
@@ -83,33 +83,33 @@ class DpkgCommands(PluginsUtilsBase):
                 self.add_package_selection(package.strip(), status.strip())
                 count += 1
             else:
-                 self.log_warning(f"Format invalide pour la sélection dpkg ignorée: {line}")
-        self.log_info(f"{count} sélections de paquets dpkg ajoutées/mises à jour en mémoire.")
+                 self.log_warning(f"Format invalide pour la sélection dpkg ignorée: {line}", log_levels=log_levels)
+        self.log_info(f"{count} sélections de paquets dpkg ajoutées/mises à jour en mémoire.", log_levels=log_levels)
 
-    def load_package_selections_from_file(self, filepath: str) -> bool:
+    def load_package_selections_from_file(self, filepath: str, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """Charge les sélections depuis un fichier et les ajoute à la liste cumulative interne."""
-        self.log_info(f"Chargement des sélections de paquets dpkg depuis: {filepath}")
+        self.log_info(f"Chargement des sélections de paquets dpkg depuis: {filepath}", log_levels=log_levels)
         # La lecture du fichier peut nécessiter sudo
         success_read, content, stderr_read = self.run(['cat', filepath], check=False, needs_sudo=True, no_output=True)
         if not success_read:
              if "no such file" in stderr_read.lower():
-                  self.log_error(f"Le fichier de sélections dpkg '{filepath}' n'existe pas.")
+                  self.log_error(f"Le fichier de sélections dpkg '{filepath}' n'existe pas.", log_levels=log_levels)
              else:
-                  self.log_error(f"Impossible de lire le fichier de sélections dpkg '{filepath}'. Stderr: {stderr_read}")
+                  self.log_error(f"Impossible de lire le fichier de sélections dpkg '{filepath}'. Stderr: {stderr_read}", log_levels=log_levels)
              return False
         try:
             self.add_package_selections(content)
             return True
         except Exception as e:
-            self.log_error(f"Erreur lors du traitement du contenu du fichier de sélections '{filepath}': {e}")
+            self.log_error(f"Erreur lors du traitement du contenu du fichier de sélections '{filepath}': {e}", log_levels=log_levels)
             return False
 
-    def clear_package_selections(self):
+    def clear_package_selections(self, log_levels: Optional[Dict[str, str]] = None):
         """Efface toutes les sélections de paquets dpkg en attente (en mémoire)."""
-        self.log_info("Effacement des sélections de paquets dpkg en attente.")
+        self.log_info("Effacement des sélections de paquets dpkg en attente.", log_levels=log_levels)
         self._package_selections = {}
 
-    def apply_package_selections(self, task_id: Optional[str] = None) -> bool:
+    def apply_package_selections(self, task_id: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Applique toutes les sélections de paquets en attente via `dpkg --set-selections`.
         La liste interne est vidée après une application réussie.
@@ -121,17 +121,17 @@ class DpkgCommands(PluginsUtilsBase):
             bool: True si l'opération a réussi.
         """
         if not self._package_selections:
-            self.log_warning("Aucune sélection de paquet dpkg en attente à appliquer.")
+            self.log_warning("Aucune sélection de paquet dpkg en attente à appliquer.", log_levels=log_levels)
             return True
 
         count = len(self._package_selections)
-        self.log_info(f"Application de {count} sélections de paquets dpkg...")
+        self.log_info(f"Application de {count} sélections de paquets dpkg...", log_levels=log_levels)
         current_task_id = task_id or f"dpkg_set_selections_{int(time.time())}"
         self.start_task(1, description="Application via dpkg --set-selections", task_id=current_task_id)
 
         # Construire la chaîne pour stdin
         selections_str = "\n".join(f"{pkg}\t{status}" for pkg, status in self._package_selections.items()) + "\n"
-        self.log_debug(f"Contenu envoyé à dpkg --set-selections:\n{selections_str}")
+        self.log_debug(f"Contenu envoyé à dpkg --set-selections:\n{selections_str}", log_levels=log_levels)
 
         # Appeler dpkg --set-selections via stdin
         cmd = ['dpkg', '--set-selections']
@@ -139,14 +139,14 @@ class DpkgCommands(PluginsUtilsBase):
         self.update_task() # Termine l'étape
 
         if success:
-             self.log_success(f"{count} sélections de paquets dpkg appliquées avec succès.")
+             self.log_success(f"{count} sélections de paquets dpkg appliquées avec succès.", log_levels=log_levels)
              self.clear_package_selections() # Vider après succès
              self.complete_task(success=True)
              return True
         else:
-             self.log_error("Échec de l'application des sélections de paquets dpkg.")
-             if stderr: self.log_error(f"Stderr: {stderr}")
-             if stdout: self.log_info(f"Stdout: {stdout}") # stdout peut contenir des infos utiles
+             self.log_error("Échec de l'application des sélections de paquets dpkg.", log_levels=log_levels)
+             if stderr: self.log_error(f"Stderr: {stderr}", log_levels=log_levels)
+             if stdout: self.log_info(f"Stdout: {stdout}", log_levels=log_levels) # stdout peut contenir des infos utiles
              self.complete_task(success=False, message="Échec dpkg --set-selections")
              return False
 
@@ -171,13 +171,13 @@ class DpkgCommands(PluginsUtilsBase):
                 available_commands.append(cmd)
         
         if not available_commands:
-            self.log_error("Aucune commande debconf n'est disponible. Les opérations debconf échoueront.")
+            self.log_error("Aucune commande debconf n'est disponible. Les opérations debconf échoueront.", log_levels=log_levels)
             return False, []
         
-        self.log_debug(f"Commandes debconf disponibles: {', '.join(available_commands)}")
+        self.log_debug(f"Commandes debconf disponibles: {', '.join(available_commands)}", log_levels=log_levels)
         return True, available_commands
 
-    def add_debconf_selection(self, package: str, question: str, q_type: str, value: str):
+    def add_debconf_selection(self, package: str, question: str, q_type: str, value: str, log_levels: Optional[Dict[str, str]] = None):
         """
         Ajoute ou met à jour une pré-réponse debconf individuelle dans la liste cumulative interne.
 
@@ -194,12 +194,12 @@ class DpkgCommands(PluginsUtilsBase):
         type_clean = q_type.strip()
         val_clean = value.strip() # Ne pas convertir en booléen ici, garder la chaîne
 
-        self.log_debug(f"Ajout/Mise à jour debconf: {pkg_clean} {quest_clean} {type_clean} '{val_clean}'")
+        self.log_debug(f"Ajout/Mise à jour debconf: {pkg_clean} {quest_clean} {type_clean} '{val_clean}'", log_levels=log_levels)
         self._debconf_selections[(pkg_clean, quest_clean)] = (type_clean, val_clean)
 
-    def add_debconf_selections(self, selections: str):
+    def add_debconf_selections(self, selections: str, log_levels: Optional[Dict[str, str]] = None):
         """Ajoute des pré-réponses debconf depuis une chaîne multiligne à la liste cumulative interne."""
-        self.log_info("Ajout de pré-réponses debconf depuis une chaîne...")
+        self.log_info("Ajout de pré-réponses debconf depuis une chaîne...", log_levels=log_levels)
         count = 0
         for line in selections.splitlines():
             line = line.strip()
@@ -212,34 +212,34 @@ class DpkgCommands(PluginsUtilsBase):
                 self.add_debconf_selection(pkg, quest, q_type, val)
                 count += 1
             else:
-                 self.log_warning(f"Format invalide pour la pré-réponse debconf ignorée: {line}")
-        self.log_info(f"{count} pré-réponses debconf ajoutées/mises à jour en mémoire.")
+                 self.log_warning(f"Format invalide pour la pré-réponse debconf ignorée: {line}", log_levels=log_levels)
+        self.log_info(f"{count} pré-réponses debconf ajoutées/mises à jour en mémoire.", log_levels=log_levels)
 
-    def load_debconf_selections_from_file(self, filepath: str) -> bool:
+    def load_debconf_selections_from_file(self, filepath: str, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """Charge les pré-réponses debconf depuis un fichier et les ajoute à la liste interne."""
-        self.log_info(f"Chargement des pré-réponses debconf depuis: {filepath}")
+        self.log_info(f"Chargement des pré-réponses debconf depuis: {filepath}", log_levels=log_levels)
 
         # Lire le fichier (peut nécessiter sudo)
         success_read, content, stderr_read = self.run(['cat', filepath], check=False, needs_sudo=True, no_output=True)
         if not success_read:
              if "no such file" in stderr_read.lower():
-                  self.log_error(f"Le fichier de pré-réponses debconf '{filepath}' n'existe pas.")
+                  self.log_error(f"Le fichier de pré-réponses debconf '{filepath}' n'existe pas.", log_levels=log_levels)
              else:
-                  self.log_error(f"Impossible de lire le fichier de pré-réponses debconf '{filepath}'. Stderr: {stderr_read}")
+                  self.log_error(f"Impossible de lire le fichier de pré-réponses debconf '{filepath}'. Stderr: {stderr_read}", log_levels=log_levels)
              return False
         try:
             self.add_debconf_selections(content)
             return True
         except Exception as e:
-            self.log_error(f"Erreur lors du traitement du contenu du fichier debconf '{filepath}': {e}")
+            self.log_error(f"Erreur lors du traitement du contenu du fichier debconf '{filepath}': {e}", log_levels=log_levels)
             return False
 
-    def clear_debconf_selections(self):
+    def clear_debconf_selections(self, log_levels: Optional[Dict[str, str]] = None):
         """Efface toutes les pré-réponses debconf en attente (en mémoire)."""
-        self.log_info("Effacement des pré-réponses debconf en attente.")
+        self.log_info("Effacement des pré-réponses debconf en attente.", log_levels=log_levels)
         self._debconf_selections = {}
 
-    def apply_debconf_selections(self, task_id: Optional[str] = None) -> bool:
+    def apply_debconf_selections(self, task_id: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Applique toutes les pré-réponses debconf en attente en utilisant des méthodes alternatives
         qui ne dépendent pas de debconf-utils.
@@ -252,11 +252,11 @@ class DpkgCommands(PluginsUtilsBase):
             bool: True si l'opération a réussi.
         """
         if not self._debconf_selections:
-            self.log_warning("Aucune pré-réponse debconf en attente à appliquer.")
+            self.log_warning("Aucune pré-réponse debconf en attente à appliquer.", log_levels=log_levels)
             return True
 
         count = len(self._debconf_selections)
-        self.log_info(f"Application de {count} pré-réponses debconf...")
+        self.log_info(f"Application de {count} pré-réponses debconf...", log_levels=log_levels)
         current_task_id = task_id or f"debconf_set_selections_{int(time.time())}"
         self.start_task(count, description="Application des pré-réponses debconf", task_id=current_task_id)
 
@@ -264,7 +264,7 @@ class DpkgCommands(PluginsUtilsBase):
         has_debconf, _ = self._ensure_debconf_commands()
         
         if not has_debconf:
-            self.log_error("Les commandes debconf de base ne sont pas disponibles. Impossible d'appliquer les sélections debconf.")
+            self.log_error("Les commandes debconf de base ne sont pas disponibles. Impossible d'appliquer les sélections debconf.", log_levels=log_levels)
             self.complete_task(success=False, message="Commandes debconf non disponibles")
             return False
         
@@ -286,26 +286,26 @@ class DpkgCommands(PluginsUtilsBase):
                 
                 if has_set_selections:
                     # Méthode 1: Essayer d'utiliser debconf-set-selections directement
-                    self.log_debug("Tentative d'application avec debconf-set-selections...")
+                    self.log_debug("Tentative d'application avec debconf-set-selections...", log_levels=log_levels)
                     cmd = f"DEBIAN_FRONTEND=noninteractive debconf-set-selections {temp_file.name}"
                     success1, stdout1, stderr1 = self.run(cmd, shell=True, check=False, needs_sudo=True)
                     
                     if success1:
-                        self.log_debug("Application avec debconf-set-selections réussie")
+                        self.log_debug("Application avec debconf-set-selections réussie", log_levels=log_levels)
                         success = True
                         stdout_all = stdout1
                         stderr_all = stderr1
                         completed = count
                         self.update_task(completed)
                     else:
-                        self.log_warning(f"Échec avec debconf-set-selections: {stderr1}")
+                        self.log_warning(f"Échec avec debconf-set-selections: {stderr1}", log_levels=log_levels)
                         # Continuer avec les méthodes alternatives
                         success = False
                 
                 # Si debconf-set-selections a échoué ou n'est pas disponible, traiter individuellement
                 if not has_set_selections or not success:
                     # Méthode 2: Traiter chaque entrée individuellement avec debconf-communicate
-                    self.log_debug("Tentative avec debconf-communicate pour chaque entrée...")
+                    self.log_debug("Tentative avec debconf-communicate pour chaque entrée...", log_levels=log_levels)
                     success = True
                     completed = 0
                     
@@ -334,30 +334,30 @@ class DpkgCommands(PluginsUtilsBase):
                         self.update_task(completed)
                         
                         if not entry_success:
-                            self.log_warning(f"Échec pour {pkg}/{quest}: {entry_stderr}")
+                            self.log_warning(f"Échec pour {pkg}/{quest}: {entry_stderr}", log_levels=log_levels)
                             
                             # Méthode 3: Essayer avec debconf/db_set directement si disponible
-                            self.log_debug(f"Tentative alternative pour {pkg}/{quest}...")
+                            self.log_debug(f"Tentative alternative pour {pkg}/{quest}...", log_levels=log_levels)
                             alt_cmd = f"DEBIAN_FRONTEND=noninteractive debconf-db-set DB_PATH=/var/cache/debconf/config.dat {pkg} {quest} {value}"
                             alt_success, alt_stdout, alt_stderr = self.run(alt_cmd, shell=True, check=False, needs_sudo=True)
                             
                             if alt_success:
-                                self.log_debug(f"Méthode alternative réussie pour {pkg}/{quest}")
+                                self.log_debug(f"Méthode alternative réussie pour {pkg}/{quest}", log_levels=log_levels)
                                 success = True  # Rétablir le succès pour cette entrée
                 
                 self.update_task(count)  # S'assurer que la tâche est complète
                 
                 if success:
-                    self.log_success(f"{count} pré-réponses debconf appliquées avec succès.")
+                    self.log_success(f"{count} pré-réponses debconf appliquées avec succès.", log_levels=log_levels)
                     self.clear_debconf_selections()  # Vider après succès
                     self.complete_task(success=True)
                     return True
                 else:
-                    self.log_error("Échec de l'application des pré-réponses debconf.")
+                    self.log_error("Échec de l'application des pré-réponses debconf.", log_levels=log_levels)
                     if stderr_all: 
-                        self.log_error(f"Stderr: {stderr_all}")
+                        self.log_error(f"Stderr: {stderr_all}", log_levels=log_levels)
                     if stdout_all: 
-                        self.log_info(f"Stdout: {stdout_all}")
+                        self.log_info(f"Stdout: {stdout_all}", log_levels=log_levels)
                     self.complete_task(success=False, message="Échec de l'application debconf")
                     return False
             finally:
@@ -365,9 +365,9 @@ class DpkgCommands(PluginsUtilsBase):
                 try:
                     os.unlink(temp_file.name)
                 except Exception as e:
-                    self.log_warning(f"Impossible de supprimer le fichier temporaire {temp_file.name}: {e}")
+                    self.log_warning(f"Impossible de supprimer le fichier temporaire {temp_file.name}: {e}", log_levels=log_levels)
 
-    def get_debconf_selections_for_package(self, package_name: str) -> Optional[Dict[Tuple[str, str], str]]:
+    def get_debconf_selections_for_package(self, package_name: str, log_levels: Optional[Dict[str, str]] = None) -> Optional[Dict[Tuple[str, str], str]]:
         """
         Récupère les sélections debconf actuelles pour un paquet spécifique sans utiliser debconf-get-selections.
         Utilise directement la commande debconf-show qui fait partie du paquet debconf de base.
@@ -379,7 +379,7 @@ class DpkgCommands(PluginsUtilsBase):
             Dictionnaire où la clé est un tuple (question, type) et la valeur est la sélection actuelle.
             Retourne None en cas d'erreur, ou un dictionnaire vide si aucune sélection trouvée.
         """
-        self.log_debug(f"Récupération des sélections debconf pour le paquet: {package_name}")
+        self.log_debug(f"Récupération des sélections debconf pour le paquet: {package_name}", log_levels=log_levels)
         
         # Créer un dictionnaire pour stocker les résultats
         selections: Dict[Tuple[str, str], str] = {}
@@ -389,7 +389,7 @@ class DpkgCommands(PluginsUtilsBase):
         
         if not has_debconf_show:
             # Si debconf-show n'est pas disponible, essayer de lire directement les fichiers de config
-            self.log_warning("La commande debconf-show n'est pas disponible. Tentative de lecture directe des fichiers de config.")
+            self.log_warning("La commande debconf-show n'est pas disponible. Tentative de lecture directe des fichiers de config.", log_levels=log_levels)
             
             # Tenter de lire /var/cache/debconf/config.dat (peut nécessiter sudo)
             success, stdout, stderr = self.run(['grep', '-A5', f'^Name: {package_name}/', '/var/cache/debconf/config.dat'], 
@@ -397,10 +397,10 @@ class DpkgCommands(PluginsUtilsBase):
             
             if not success:
                 if self.last_run_return_code == 1:  # grep n'a rien trouvé
-                    self.log_debug(f"Aucune configuration debconf trouvée pour le paquet '{package_name}'.")
+                    self.log_debug(f"Aucune configuration debconf trouvée pour le paquet '{package_name}'.", log_levels=log_levels)
                     return selections  # Retourner un dict vide
                 else:
-                    self.log_error(f"Erreur lors de la lecture des fichiers debconf: {stderr}")
+                    self.log_error(f"Erreur lors de la lecture des fichiers debconf: {stderr}", log_levels=log_levels)
                     return None
                     
             # Traiter les résultats de grep sur config.dat
@@ -436,11 +436,11 @@ class DpkgCommands(PluginsUtilsBase):
             if not success:
                 # Vérifier si c'est parce que le paquet n'a pas de config debconf
                 if "does not exist" in stderr.lower() or "no such package" in stderr.lower():
-                    self.log_debug(f"Aucune configuration debconf trouvée pour le paquet '{package_name}'.")
+                    self.log_debug(f"Aucune configuration debconf trouvée pour le paquet '{package_name}'.", log_levels=log_levels)
                     return selections  # Retourner un dict vide
                 else:
                     # Autre erreur
-                    self.log_error(f"Échec de la récupération des sélections debconf pour '{package_name}'. Stderr: {stderr}")
+                    self.log_error(f"Échec de la récupération des sélections debconf pour '{package_name}'. Stderr: {stderr}", log_levels=log_levels)
                     return None
             
             # Parser la sortie de debconf-show
@@ -467,12 +467,12 @@ class DpkgCommands(PluginsUtilsBase):
                     selections[(question, q_type)] = value
         
         count = len(selections)
-        self.log_debug(f"{count} sélection(s) debconf trouvée(s) pour '{package_name}'.")
+        self.log_debug(f"{count} sélection(s) debconf trouvée(s) pour '{package_name}'.", log_levels=log_levels)
         if count > 0:
-            self.log_debug(f"Sélections pour {package_name}: {selections}")
+            self.log_debug(f"Sélections pour {package_name}: {selections}", log_levels=log_levels)
         return selections
 
-    def get_debconf_value(self, package_name: str, question_name: str) -> Optional[str]:
+    def get_debconf_value(self, package_name: str, question_name: str, log_levels: Optional[Dict[str, str]] = None) -> Optional[str]:
         """
         Récupère la valeur d'une question debconf spécifique pour un paquet donné.
         Cette version fonctionne sans debconf-utils en utilisant les outils de base.
@@ -484,19 +484,19 @@ class DpkgCommands(PluginsUtilsBase):
         Returns:
             La valeur de la sélection sous forme de chaîne, ou None si non trouvée ou en cas d'erreur.
         """
-        self.log_debug(f"Recherche de la valeur debconf pour: {package_name} -> {question_name}")
+        self.log_debug(f"Recherche de la valeur debconf pour: {package_name} -> {question_name}", log_levels=log_levels)
         
         # Récupérer toutes les sélections pour le paquet
         package_selections = self.get_debconf_selections_for_package(package_name)
         
         if package_selections is None:
-            self.log_error(f"Impossible de récupérer les sélections pour {package_name}.")
+            self.log_error(f"Impossible de récupérer les sélections pour {package_name}.", log_levels=log_levels)
             return None
         
         # Chercher la question dans les sélections récupérées
         for (question, q_type), value in package_selections.items():
             if question == question_name:
-                self.log_debug(f"Valeur trouvée pour '{question_name}' ({package_name}): '{value}' (type: {q_type})")
+                self.log_debug(f"Valeur trouvée pour '{question_name}' ({package_name}): '{value}' (type: {q_type})", log_levels=log_levels)
                 return value
         
         # Si on ne trouve pas dans les sélections, essayer avec debconf-communicate
@@ -512,10 +512,10 @@ class DpkgCommands(PluginsUtilsBase):
                     # Analyser la sortie (typiquement "0 value")
                     parts = stdout.strip().split(' ', 1)
                     if len(parts) == 2 and parts[0] == '0':
-                        self.log_debug(f"Valeur trouvée via debconf-communicate: '{parts[1]}'")
+                        self.log_debug(f"Valeur trouvée via debconf-communicate: '{parts[1]}'", log_levels=log_levels)
                         return parts[1]
             except Exception as e:
-                self.log_warning(f"Erreur lors de l'utilisation de debconf-communicate: {e}")
+                self.log_warning(f"Erreur lors de l'utilisation de debconf-communicate: {e}", log_levels=log_levels)
         
         # Méthode de secours: lecture directe des fichiers
         try:
@@ -527,10 +527,10 @@ class DpkgCommands(PluginsUtilsBase):
                 for line in stdout.splitlines():
                     if line.startswith('Value:'):
                         value = line.split(':', 1)[1].strip()
-                        self.log_debug(f"Valeur trouvée via lecture directe des fichiers: '{value}'")
+                        self.log_debug(f"Valeur trouvée via lecture directe des fichiers: '{value}'", log_levels=log_levels)
                         return value
         except Exception as e:
-            self.log_warning(f"Erreur lors de la lecture directe des fichiers debconf: {e}")
+            self.log_warning(f"Erreur lors de la lecture directe des fichiers debconf: {e}", log_levels=log_levels)
         
-        self.log_debug(f"Aucune valeur debconf trouvée pour la question '{question_name}' du paquet '{package_name}'.")
+        self.log_debug(f"Aucune valeur debconf trouvée pour la question '{question_name}' du paquet '{package_name}'.", log_levels=log_levels)
         return None

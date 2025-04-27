@@ -35,7 +35,7 @@ class CronCommands(PluginsUtilsBase):
 
     # --- Gestion Crontab Utilisateur ---
 
-    def list_user_cron(self, username: Optional[str] = None) -> Optional[List[str]]:
+    def list_user_cron(self, username: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None) -> Optional[List[str]]:
         """
         Liste les tâches cron pour un utilisateur spécifique ou l'utilisateur courant.
 
@@ -46,7 +46,7 @@ class CronCommands(PluginsUtilsBase):
             Liste des lignes de la crontab, ou None si erreur ou crontab vide.
         """
         user_log = f"pour l'utilisateur '{username}'" if username else "pour l'utilisateur courant"
-        self.log_info(f"Listage des tâches cron {user_log}")
+        self.log_info(f"Listage des tâches cron {user_log}", log_levels=log_levels)
         cmd = ['crontab', '-l']
         needs_sudo = False
         if username:
@@ -69,22 +69,22 @@ class CronCommands(PluginsUtilsBase):
         if not success:
             # Gérer le cas "no crontab for user" qui n'est pas une erreur fatale
             if "no crontab for" in stderr.lower():
-                self.log_info(f"Aucune crontab trouvée {user_log}.")
+                self.log_info(f"Aucune crontab trouvée {user_log}.", log_levels=log_levels)
                 return [] # Retourner liste vide
             else:
-                self.log_error(f"Échec du listage de la crontab {user_log}. Stderr: {stderr}")
+                self.log_error(f"Échec du listage de la crontab {user_log}. Stderr: {stderr}", log_levels=log_levels)
                 return None # Erreur réelle
 
         lines = [line for line in stdout.splitlines() if line.strip() and not line.strip().startswith('#')]
-        self.log_info(f"{len(lines)} tâche(s) cron trouvée(s) {user_log}.")
-        self.log_debug(f"Crontab {user_log}:\n{stdout}")
+        self.log_info(f"{len(lines)} tâche(s) cron trouvée(s) {user_log}.", log_levels=log_levels)
+        self.log_debug(f"Crontab {user_log}:\n{stdout}", log_levels=log_levels)
         return stdout.splitlines() # Retourner toutes les lignes, y compris commentaires
 
     def add_user_cron_job(self,
                           job_line: str,
                           username: Optional[str] = None,
                           marker: Optional[str] = None,
-                          replace_existing: bool = True) -> bool:
+replace_existing: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Ajoute ou remplace une tâche dans la crontab d'un utilisateur.
 
@@ -100,13 +100,13 @@ class CronCommands(PluginsUtilsBase):
             bool: True si l'ajout/remplacement a réussi.
         """
         user_log = f"pour l'utilisateur '{username}'" if username else "pour l'utilisateur courant"
-        self.log_info(f"Ajout/Remplacement de la tâche cron {user_log}: {job_line[:50]}...")
+        self.log_info(f"Ajout/Remplacement de la tâche cron {user_log}: {job_line[:50]}...", log_levels=log_levels)
 
         # 1. Récupérer la crontab actuelle
         current_lines = self.list_user_cron(username)
         if current_lines is None:
             # Erreur lors de la lecture, on ne peut pas continuer
-            self.log_error("Impossible de lire la crontab actuelle pour ajouter la tâche.")
+            self.log_error("Impossible de lire la crontab actuelle pour ajouter la tâche.", log_levels=log_levels)
             return False
         # Si list_user_cron retourne [], c'est une crontab vide, c'est ok.
 
@@ -136,7 +136,7 @@ class CronCommands(PluginsUtilsBase):
                     new_crontab_lines.append(identifier_comment)
                     new_crontab_lines.append(job_line)
                     job_added_or_replaced = True
-                    self.log_info(f"Tâche existante trouvée ({identifier_comment}), remplacée.")
+                    self.log_info(f"Tâche existante trouvée ({identifier_comment}), remplacée.", log_levels=log_levels)
                     # Sauter la ligne de job suivante (l'ancienne)
                     if i + 1 < len(current_lines) and not current_lines[i+1].strip().startswith('#'):
                          skip_next = True
@@ -154,11 +154,11 @@ class CronCommands(PluginsUtilsBase):
                  new_crontab_lines.append("")
             new_crontab_lines.append(identifier_comment)
             new_crontab_lines.append(job_line)
-            self.log_info("Nouvelle tâche ajoutée à la fin de la crontab.")
+            self.log_info("Nouvelle tâche ajoutée à la fin de la crontab.", log_levels=log_levels)
 
         # 5. Installer la nouvelle crontab
         new_crontab_content = "\n".join(new_crontab_lines) + "\n" # Assurer une fin de ligne
-        self.log_debug(f"Nouveau contenu de la crontab:\n{new_crontab_content}")
+        self.log_debug(f"Nouveau contenu de la crontab:\n{new_crontab_content}", log_levels=log_levels)
 
         cmd_install = ['crontab', '-'] # Lire depuis stdin
         needs_sudo = False
@@ -175,18 +175,18 @@ class CronCommands(PluginsUtilsBase):
         success, stdout, stderr = self.run(cmd_install, input_data=new_crontab_content, check=False, needs_sudo=needs_sudo)
 
         if success:
-            self.log_success(f"Crontab {user_log} mise à jour avec succès.")
+            self.log_success(f"Crontab {user_log} mise à jour avec succès.", log_levels=log_levels)
             return True
         else:
-            self.log_error(f"Échec de la mise à jour de la crontab {user_log}. Stderr: {stderr}")
+            self.log_error(f"Échec de la mise à jour de la crontab {user_log}. Stderr: {stderr}", log_levels=log_levels)
             # stderr peut contenir "installing new crontab" qui n'est pas une erreur
             if "installing new crontab" in stderr:
-                 self.log_warning("La sortie stderr mentionne 'installing new crontab', vérifier manuellement.")
+                 self.log_warning("La sortie stderr mentionne 'installing new crontab', vérifier manuellement.", log_levels=log_levels)
                  # On pourrait considérer cela comme un succès si le code retour est 0 ?
                  # Pour l'instant, on se fie au code retour.
             return False
 
-    def remove_user_cron_job(self, job_pattern: Optional[str] = None, marker: Optional[str] = None, username: Optional[str] = None) -> bool:
+    def remove_user_cron_job(self, job_pattern: Optional[str] = None, marker: Optional[str] = None, username: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Supprime une ou plusieurs tâches de la crontab d'un utilisateur.
 
@@ -201,20 +201,20 @@ class CronCommands(PluginsUtilsBase):
                   False en cas d'erreur de lecture/écriture.
         """
         if not job_pattern and not marker:
-            self.log_error("Il faut fournir soit un pattern (job_pattern) soit un marqueur (marker) pour supprimer une tâche.")
+            self.log_error("Il faut fournir soit un pattern (job_pattern) soit un marqueur (marker) pour supprimer une tâche.", log_levels=log_levels)
             return False
 
         user_log = f"pour l'utilisateur '{username}'" if username else "pour l'utilisateur courant"
         target_id = f"marqueur '{marker}'" if marker else f"pattern '{job_pattern}'"
-        self.log_info(f"Suppression des tâches cron {user_log} correspondant à {target_id}")
+        self.log_info(f"Suppression des tâches cron {user_log} correspondant à {target_id}", log_levels=log_levels)
 
         # 1. Récupérer la crontab actuelle
         current_lines = self.list_user_cron(username)
         if current_lines is None:
-            self.log_error("Impossible de lire la crontab actuelle pour supprimer la tâche.")
+            self.log_error("Impossible de lire la crontab actuelle pour supprimer la tâche.", log_levels=log_levels)
             return False
         if not current_lines:
-             self.log_info("La crontab est vide, aucune tâche à supprimer.")
+             self.log_info("La crontab est vide, aucune tâche à supprimer.", log_levels=log_levels)
              return True
 
         # 2. Filtrer les lignes à garder
@@ -247,18 +247,18 @@ class CronCommands(PluginsUtilsBase):
 
             if remove_this:
                 removed_count += 1
-                self.log_info(f"  - Ligne supprimée: {line_strip}")
+                self.log_info(f"  - Ligne supprimée: {line_strip}", log_levels=log_levels)
             else:
                 new_crontab_lines.append(line)
 
         # 3. Vérifier si des modifications ont été faites
         if removed_count == 0:
-            self.log_info(f"Aucune tâche correspondant à {target_id} trouvée {user_log}.")
+            self.log_info(f"Aucune tâche correspondant à {target_id} trouvée {user_log}.", log_levels=log_levels)
             return True
 
         # 4. Installer la nouvelle crontab
         new_crontab_content = "\n".join(new_crontab_lines) + "\n"
-        self.log_debug(f"Nouveau contenu de la crontab après suppression:\n{new_crontab_content}")
+        self.log_debug(f"Nouveau contenu de la crontab après suppression:\n{new_crontab_content}", log_levels=log_levels)
 
         cmd_install = ['crontab', '-']
         needs_sudo = False
@@ -275,45 +275,45 @@ class CronCommands(PluginsUtilsBase):
         success, stdout, stderr = self.run(cmd_install, input_data=new_crontab_content, check=False, needs_sudo=needs_sudo)
 
         if success:
-            self.log_success(f"{removed_count} tâche(s) cron supprimée(s) avec succès {user_log}.")
+            self.log_success(f"{removed_count} tâche(s) cron supprimée(s) avec succès {user_log}.", log_levels=log_levels)
             return True
         else:
-            self.log_error(f"Échec de la mise à jour de la crontab après suppression {user_log}. Stderr: {stderr}")
+            self.log_error(f"Échec de la mise à jour de la crontab après suppression {user_log}. Stderr: {stderr}", log_levels=log_levels)
             return False
 
     # --- Gestion /etc/cron.d ---
 
-    def list_system_cron_d_files(self) -> List[str]:
+    def list_system_cron_d_files(self, log_levels: Optional[Dict[str, str]] = None) -> List[str]:
         """Liste les fichiers dans /etc/cron.d."""
         cron_d_path = "/etc/cron.d"
-        self.log_info(f"Listage des fichiers dans {cron_d_path}")
+        self.log_info(f"Listage des fichiers dans {cron_d_path}", log_levels=log_levels)
         if not os.path.isdir(cron_d_path):
-            self.log_warning(f"Le répertoire {cron_d_path} n'existe pas.")
+            self.log_warning(f"Le répertoire {cron_d_path} n'existe pas.", log_levels=log_levels)
             return []
         try:
             files = [f for f in os.listdir(cron_d_path) if os.path.isfile(os.path.join(cron_d_path, f)) and not f.startswith('.')]
-            self.log_info(f"{len(files)} fichiers trouvés dans {cron_d_path}.")
+            self.log_info(f"{len(files)} fichiers trouvés dans {cron_d_path}.", log_levels=log_levels)
             return files
         except Exception as e:
-            self.log_error(f"Erreur lors du listage de {cron_d_path}: {e}")
+            self.log_error(f"Erreur lors du listage de {cron_d_path}: {e}", log_levels=log_levels)
             return []
 
-    def read_cron_d_file(self, filename: str) -> Optional[List[str]]:
+    def read_cron_d_file(self, filename: str, log_levels: Optional[Dict[str, str]] = None) -> Optional[List[str]]:
         """Lit le contenu d'un fichier dans /etc/cron.d."""
         filepath = Path("/etc/cron.d") / filename
-        self.log_info(f"Lecture du fichier cron.d: {filepath}")
+        self.log_info(f"Lecture du fichier cron.d: {filepath}", log_levels=log_levels)
         if not filepath.is_file():
-            self.log_error(f"Le fichier {filepath} n'existe pas ou n'est pas un fichier.")
+            self.log_error(f"Le fichier {filepath} n'existe pas ou n'est pas un fichier.", log_levels=log_levels)
             return None
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
                 lines = f.readlines()
             return lines
         except Exception as e:
-            self.log_error(f"Erreur lors de la lecture de {filepath}: {e}")
+            self.log_error(f"Erreur lors de la lecture de {filepath}: {e}", log_levels=log_levels)
             return None
 
-    def add_system_cron_d_job(self, job_line: str, filename: str, user: str = 'root', marker: Optional[str] = None, replace_existing: bool = True) -> bool:
+    def add_system_cron_d_job(self, job_line: str, filename: str, user: str = 'root', marker: Optional[str] = None, replace_existing: bool = True, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Ajoute ou remplace une tâche dans un fichier /etc/cron.d/. Nécessite root.
 
@@ -328,12 +328,12 @@ class CronCommands(PluginsUtilsBase):
             bool: True si succès.
         """
         filepath = Path("/etc/cron.d") / filename
-        self.log_info(f"Ajout/Remplacement tâche dans {filepath} (utilisateur: {user})")
+        self.log_info(f"Ajout/Remplacement tâche dans {filepath} (utilisateur: {user})", log_levels=log_levels)
 
         # Valider le nom de fichier (alphanumérique, tirets, underscores)
         if not re.match(r'^[a-zA-Z0-9_-]+$', filename):
             self.log_error(f"Nom de fichier invalide pour /etc/cron.d: {filename}. "
-                           "Utiliser uniquement lettres, chiffres, tirets, underscores.")
+                           "Utiliser uniquement lettres, chiffres, tirets, underscores.", log_levels=log_levels)
             return False
 
         # Construire la ligne complète avec l'utilisateur
@@ -345,11 +345,11 @@ class CronCommands(PluginsUtilsBase):
         if filepath.exists():
             read_lines = self.read_cron_d_file(filename)
             if read_lines is None:
-                self.log_error(f"Impossible de lire le fichier existant {filepath}.")
+                self.log_error(f"Impossible de lire le fichier existant {filepath}.", log_levels=log_levels)
                 return False
             current_lines = read_lines
         else:
-            self.log_info(f"Le fichier {filepath} n'existe pas, il sera créé.")
+            self.log_info(f"Le fichier {filepath} n'existe pas, il sera créé.", log_levels=log_levels)
 
         # Préparer les nouvelles lignes
         new_lines = []
@@ -374,7 +374,7 @@ class CronCommands(PluginsUtilsBase):
                     new_lines.append(identifier_comment + "\n")
                     new_lines.append(full_job_line + "\n")
                     job_added_or_replaced = True
-                    self.log_info(f"Tâche existante trouvée ({identifier_comment}), remplacée dans {filename}.")
+                    self.log_info(f"Tâche existante trouvée ({identifier_comment}), remplacée dans {filename}.", log_levels=log_levels)
                     # Sauter l'ancienne ligne de job si elle existe et n'est pas un commentaire
                     if i + 1 < len(current_lines) and not current_lines[i+1].strip().startswith('#'):
                          skip_next = True
@@ -390,7 +390,7 @@ class CronCommands(PluginsUtilsBase):
                  new_lines.append("\n") # Séparateur
             new_lines.append(identifier_comment + "\n")
             new_lines.append(full_job_line + "\n")
-            self.log_info(f"Nouvelle tâche ajoutée à {filename}.")
+            self.log_info(f"Nouvelle tâche ajoutée à {filename}.", log_levels=log_levels)
 
         # Écrire le nouveau contenu dans un fichier temporaire
         tmp_file = None
@@ -398,7 +398,7 @@ class CronCommands(PluginsUtilsBase):
             with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=f".{filename}.tmp") as tf:
                 tf.writelines(new_lines)
                 tmp_file = tf.name
-            self.log_debug(f"Fichier temporaire créé: {tmp_file}")
+            self.log_debug(f"Fichier temporaire créé: {tmp_file}", log_levels=log_levels)
 
             # Déplacer le fichier temporaire avec les droits root
             # Utiliser `mv` est plus sûr que d'écrire directement avec tee pour les permissions
@@ -409,23 +409,23 @@ class CronCommands(PluginsUtilsBase):
                 # Assurer les bonnes permissions (typiquement 644 pour cron.d)
                 cmd_chmod = ['chmod', '644', str(filepath)]
                 self.run(cmd_chmod, check=False, needs_sudo=True)
-                self.log_success(f"Fichier {filepath} mis à jour avec succès.")
+                self.log_success(f"Fichier {filepath} mis à jour avec succès.", log_levels=log_levels)
                 return True
             else:
-                self.log_error(f"Échec du déplacement du fichier temporaire vers {filepath}. Stderr: {stderr}")
+                self.log_error(f"Échec du déplacement du fichier temporaire vers {filepath}. Stderr: {stderr}", log_levels=log_levels)
                 # Nettoyer le fichier temporaire si mv a échoué
                 if tmp_file and os.path.exists(tmp_file): os.unlink(tmp_file)
                 return False
 
         except Exception as e:
-            self.log_error(f"Erreur lors de l'écriture dans {filepath}: {e}", exc_info=True)
+            self.log_error(f"Erreur lors de l'écriture dans {filepath}: {e}", exc_info=True, log_levels=log_levels)
             # Nettoyer le fichier temporaire en cas d'erreur
             if tmp_file and os.path.exists(tmp_file):
                  try: os.unlink(tmp_file)
                  except: pass
             return False
 
-    def remove_system_cron_d_job(self, filename: str, job_pattern: Optional[str] = None, marker: Optional[str] = None) -> bool:
+    def remove_system_cron_d_job(self, filename: str, job_pattern: Optional[str] = None, marker: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Supprime une ou plusieurs tâches d'un fichier /etc/cron.d/. Nécessite root.
 
@@ -438,15 +438,15 @@ class CronCommands(PluginsUtilsBase):
             bool: True si succès ou si tâche non trouvée. False si erreur.
         """
         if not job_pattern and not marker:
-            self.log_error("Il faut fournir soit job_pattern soit marker.")
+            self.log_error("Il faut fournir soit job_pattern soit marker.", log_levels=log_levels)
             return False
 
         filepath = Path("/etc/cron.d") / filename
         target_id = f"marqueur '{marker}'" if marker else f"pattern '{job_pattern}'"
-        self.log_info(f"Suppression des tâches dans {filepath} correspondant à {target_id}")
+        self.log_info(f"Suppression des tâches dans {filepath} correspondant à {target_id}", log_levels=log_levels)
 
         if not filepath.is_file():
-            self.log_warning(f"Le fichier {filepath} n'existe pas, aucune suppression nécessaire.")
+            self.log_warning(f"Le fichier {filepath} n'existe pas, aucune suppression nécessaire.", log_levels=log_levels)
             return True
 
         # Lire le contenu
@@ -483,13 +483,13 @@ class CronCommands(PluginsUtilsBase):
 
             if remove_this:
                 removed_count += 1
-                self.log_info(f"  - Ligne supprimée de {filename}: {line_strip}")
+                self.log_info(f"  - Ligne supprimée de {filename}: {line_strip}", log_levels=log_levels)
             else:
                 new_lines.append(line_content)
 
         # Vérifier si des modifications ont été faites
         if removed_count == 0:
-            self.log_info(f"Aucune tâche correspondant à {target_id} trouvée dans {filename}.")
+            self.log_info(f"Aucune tâche correspondant à {target_id} trouvée dans {filename}.", log_levels=log_levels)
             return True
 
         # Écrire le nouveau contenu
@@ -505,16 +505,15 @@ class CronCommands(PluginsUtilsBase):
             if success:
                 cmd_chmod = ['chmod', '644', str(filepath)] # Restaurer permissions
                 self.run(cmd_chmod, check=False, needs_sudo=True)
-                self.log_success(f"{removed_count} tâche(s) supprimée(s) de {filepath}.")
+                self.log_success(f"{removed_count} tâche(s) supprimée(s) de {filepath}.", log_levels=log_levels)
                 return True
             else:
-                self.log_error(f"Échec de la mise à jour de {filepath} après suppression. Stderr: {stderr}")
+                self.log_error(f"Échec de la mise à jour de {filepath} après suppression. Stderr: {stderr}", log_levels=log_levels)
                 if tmp_file and os.path.exists(tmp_file): os.unlink(tmp_file)
                 return False
         except Exception as e:
-            self.log_error(f"Erreur lors de la mise à jour de {filepath}: {e}", exc_info=True)
+            self.log_error(f"Erreur lors de la mise à jour de {filepath}: {e}", exc_info=True, log_levels=log_levels)
             if tmp_file and os.path.exists(tmp_file):
                  try: os.unlink(tmp_file)
                  except: pass
             return False
-

@@ -46,7 +46,7 @@ class DatabaseCommands(PluginsUtilsBase):
             self.log_warning(f"Commandes client de base de données potentiellement manquantes: {', '.join(missing)}. "
                              f"Installer les paquets clients appropriés (ex: 'mysql-client', 'postgresql-client').")
 
-    def detect_db_type(self) -> str:
+    def detect_db_type(self, log_levels: Optional[Dict[str, str]] = None) -> str:
         """Tente de détecter le type de SGBD principal installé."""
         if self._cmd_paths.get('mysql'):
             # Vérifier si le service est actif
@@ -154,7 +154,7 @@ class DatabaseCommands(PluginsUtilsBase):
 
     # --- Opérations MySQL / MariaDB ---
 
-    def mysql_db_exists(self, db_name: str, **kwargs) -> bool:
+    def mysql_db_exists(self, db_name: str, **kwargs, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """Vérifie si une base de données MySQL/MariaDB existe."""
         self.log_debug(f"Vérification de l'existence de la DB MySQL: {db_name}")
         # Utiliser INFORMATION_SCHEMA est plus standard que SHOW DATABASES
@@ -166,7 +166,7 @@ class DatabaseCommands(PluginsUtilsBase):
         self.log_debug(f"DB MySQL '{db_name}' existe: {exists}")
         return exists
 
-    def mysql_user_exists(self, username: str, host: str = 'localhost', **kwargs) -> bool:
+    def mysql_user_exists(self, username: str, host: str = 'localhost', **kwargs, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """Vérifie si un utilisateur MySQL/MariaDB existe."""
         self.log_debug(f"Vérification de l'existence de l'utilisateur MySQL: {username}@{host}")
         query = f"SELECT User FROM mysql.user WHERE User = '{username}' AND Host = '{host}'"
@@ -175,7 +175,7 @@ class DatabaseCommands(PluginsUtilsBase):
         self.log_debug(f"Utilisateur MySQL '{username}@{host}' existe: {exists}")
         return exists
 
-    def mysql_create_db(self, db_name: str, charset: str = 'utf8mb4', collate: str = 'utf8mb4_unicode_ci', **kwargs) -> bool:
+    def mysql_create_db(self, db_name: str, charset: str = 'utf8mb4', collate: str = 'utf8mb4_unicode_ci', **kwargs, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """Crée une base de données MySQL/MariaDB."""
         if self.mysql_db_exists(db_name, **kwargs):
             self.log_warning(f"La base de données MySQL '{db_name}' existe déjà.")
@@ -190,7 +190,7 @@ class DatabaseCommands(PluginsUtilsBase):
             self.log_error(f"Échec de la création de la DB MySQL '{db_name}'. Stderr: {stderr}")
             return False
 
-    def mysql_drop_db(self, db_name: str, **kwargs) -> bool:
+    def mysql_drop_db(self, db_name: str, **kwargs, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """Supprime une base de données MySQL/MariaDB."""
         if not self.mysql_db_exists(db_name, **kwargs):
             self.log_warning(f"La base de données MySQL '{db_name}' n'existe pas, suppression ignorée.")
@@ -205,7 +205,7 @@ class DatabaseCommands(PluginsUtilsBase):
             self.log_error(f"Échec de la suppression de la DB MySQL '{db_name}'. Stderr: {stderr}")
             return False
 
-    def mysql_create_user(self, username: str, password: str, host: str = 'localhost', **kwargs) -> bool:
+    def mysql_create_user(self, username: str, password: str, host: str = 'localhost', **kwargs, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """Crée un utilisateur MySQL/MariaDB."""
         if self.mysql_user_exists(username, host, **kwargs):
             self.log_warning(f"L'utilisateur MySQL '{username}@{host}' existe déjà.")
@@ -222,7 +222,7 @@ class DatabaseCommands(PluginsUtilsBase):
             self.log_error(f"Échec de la création de l'utilisateur MySQL '{username}@{host}'. Stderr: {stderr}")
             return False
 
-    def mysql_drop_user(self, username: str, host: str = 'localhost', **kwargs) -> bool:
+    def mysql_drop_user(self, username: str, host: str = 'localhost', **kwargs, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """Supprime un utilisateur MySQL/MariaDB."""
         if not self.mysql_user_exists(username, host, **kwargs):
             self.log_warning(f"L'utilisateur MySQL '{username}@{host}' n'existe pas, suppression ignorée.")
@@ -237,7 +237,7 @@ class DatabaseCommands(PluginsUtilsBase):
             self.log_error(f"Échec de la suppression de l'utilisateur MySQL '{username}@{host}'. Stderr: {stderr}")
             return False
 
-    def mysql_grant_privileges(self, db_name: str, username: str, host: str = 'localhost', privileges: str = 'ALL', table: str = '*', **kwargs) -> bool:
+    def mysql_grant_privileges(self, db_name: str, username: str, host: str = 'localhost', privileges: str = 'ALL', table: str = '*', **kwargs, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """Accorde des privilèges à un utilisateur sur une base de données/table."""
         target = f"`{db_name}`.{table}" if db_name else '*.*' # *.* pour global
         priv_list = privileges.upper()
@@ -258,7 +258,7 @@ class DatabaseCommands(PluginsUtilsBase):
         self.log_success(f"Privilèges '{priv_list}' accordés sur {target} à '{username}@{host}'.")
         return True
 
-    def mysql_set_root_password(self, new_password: str, host: str = 'localhost', current_password: Optional[str] = None, **kwargs) -> bool:
+    def mysql_set_root_password(self, new_password: str, host: str = 'localhost', current_password: Optional[str] = None, **kwargs, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """Tente de définir le mot de passe root MySQL/MariaDB."""
         self.log_info(f"Tentative de définition du mot de passe root@'{host}' MySQL/MariaDB.")
         self.log_warning("Cette opération peut varier selon la version de MySQL/MariaDB.")
@@ -286,7 +286,7 @@ class DatabaseCommands(PluginsUtilsBase):
             self.log_error("Impossible de définir le mot de passe root via ALTER USER.")
             return False
 
-    def mysql_execute_script(self, script_path: Union[str, Path], db_name: Optional[str] = None, **kwargs) -> bool:
+    def mysql_execute_script(self, script_path: Union[str, Path], db_name: Optional[str] = None, **kwargs, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """Exécute un script SQL depuis un fichier."""
         script_p = Path(script_path)
         if not script_p.is_file():
@@ -316,7 +316,7 @@ class DatabaseCommands(PluginsUtilsBase):
              self.log_error(f"Erreur lors de la lecture/exécution du script {script_p}: {e}", exc_info=True)
              return False
 
-    def mysql_dump(self, db_name: str, output_file: Union[str, Path], **kwargs) -> bool:
+    def mysql_dump(self, db_name: str, output_file: Union[str, Path], **kwargs, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """Effectue une sauvegarde d'une base de données MySQL/MariaDB."""
         output_p = Path(output_file)
         self.log_info(f"Sauvegarde de la DB MySQL '{db_name}' vers: {output_p}")
@@ -359,7 +359,7 @@ class DatabaseCommands(PluginsUtilsBase):
 
     # --- Opérations PostgreSQL ---
 
-    def psql_db_exists(self, db_name: str, **kwargs) -> bool:
+    def psql_db_exists(self, db_name: str, **kwargs, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """Vérifie si une base de données PostgreSQL existe."""
         self.log_debug(f"Vérification de l'existence de la DB PostgreSQL: {db_name}")
         # Utiliser psql pour lister les DB et grep
@@ -376,7 +376,7 @@ class DatabaseCommands(PluginsUtilsBase):
         self.log_debug(f"DB PostgreSQL '{db_name}' existe: {exists}")
         return exists
 
-    def psql_user_exists(self, username: str, **kwargs) -> bool:
+    def psql_user_exists(self, username: str, **kwargs, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """Vérifie si un rôle (utilisateur) PostgreSQL existe."""
         self.log_debug(f"Vérification de l'existence de l'utilisateur PostgreSQL: {username}")
         query = f"SELECT 1 FROM pg_roles WHERE rolname='{username}'"
@@ -387,7 +387,7 @@ class DatabaseCommands(PluginsUtilsBase):
         self.log_debug(f"Utilisateur PostgreSQL '{username}' existe: {exists}")
         return exists
 
-    def psql_create_db(self, db_name: str, owner: Optional[str] = None, **kwargs) -> bool:
+    def psql_create_db(self, db_name: str, owner: Optional[str] = None, **kwargs, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """Crée une base de données PostgreSQL."""
         if self.psql_db_exists(db_name, **kwargs):
             self.log_warning(f"La base de données PostgreSQL '{db_name}' existe déjà.")
@@ -427,4 +427,3 @@ class DatabaseCommands(PluginsUtilsBase):
     #     psql_set_user_password, psql_execute_script, psql_dump de manière similaire,
     #     en utilisant les commandes dropdb, createuser, dropuser, psql -c, psql -f, pg_dump
     #     et en gérant l'exécution en tant qu'utilisateur postgres via sudo -u si nécessaire.
-

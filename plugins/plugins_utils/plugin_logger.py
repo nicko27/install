@@ -58,7 +58,7 @@ BAR_COLORS = {
 }
 
 
-def is_debugger_active() -> bool:
+def is_debugger_active(log_levels: Optional[Dict[str, str]] = None) -> bool:
     """Détecte si un débogueur est actif - version robuste."""
     # Méthode 1: Vérifier sys.gettrace
     if hasattr(sys, 'gettrace') and sys.gettrace():
@@ -226,7 +226,7 @@ class PluginLogger:
                 "current_step": 0
             }
 
-    def init_logs(self):
+    def init_logs(self, log_levels: Optional[Dict[str, str]] = None):
         """Initialise le chemin du fichier log."""
         if self.plugin_name is None or self.instance_id is None:
             internal_logger.debug("Plugin name ou ID manquant, initialisation logs ignorée")
@@ -480,7 +480,7 @@ class PluginLogger:
     # --- Méthodes publiques de logging ---
     # Elles appellent toutes _emit_log
 
-    def info(self, message: str, target_ip: Optional[str] = None, force_flush: bool = False):
+    def info(self, message: str, target_ip: Optional[str] = None, force_flush: bool = False, log_levels: Optional[Dict[str, str]] = None):
         """
         Enregistre un message d'information.
 
@@ -491,7 +491,7 @@ class PluginLogger:
         """
         self._emit_log("info", message, target_ip, force_flush)
 
-    def warning(self, message: str, target_ip: Optional[str] = None, force_flush: bool = False):
+    def warning(self, message: str, target_ip: Optional[str] = None, force_flush: bool = False, log_levels: Optional[Dict[str, str]] = None):
         """
         Enregistre un message d'avertissement.
 
@@ -502,7 +502,7 @@ class PluginLogger:
         """
         self._emit_log("warning", message, target_ip, force_flush)
 
-    def error(self, message: str, target_ip: Optional[str] = None, force_flush: bool = False):
+    def error(self, message: str, target_ip: Optional[str] = None, force_flush: bool = False, log_levels: Optional[Dict[str, str]] = None):
         """
         Enregistre un message d'erreur.
 
@@ -513,7 +513,7 @@ class PluginLogger:
         """
         self._emit_log("error", message, target_ip, force_flush)
 
-    def success(self, message: str, target_ip: Optional[str] = None, force_flush: bool = False):
+    def success(self, message: str, target_ip: Optional[str] = None, force_flush: bool = False, log_levels: Optional[Dict[str, str]] = None):
         """
         Enregistre un message de succès.
 
@@ -524,7 +524,7 @@ class PluginLogger:
         """
         self._emit_log("success", message, target_ip, force_flush)
 
-    def debug(self, message: str, target_ip: Optional[str] = None):
+    def debug(self, message: str, target_ip: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None):
         """
         Enregistre un message de débogage (uniquement si debug_mode=True).
 
@@ -535,7 +535,7 @@ class PluginLogger:
         if self.debug_mode:
             self._emit_log("debug", message, target_ip)
 
-    def start(self, message: str, target_ip: Optional[str] = None, force_flush: bool = False):
+    def start(self, message: str, target_ip: Optional[str] = None, force_flush: bool = False, log_levels: Optional[Dict[str, str]] = None):
         """
         Enregistre un message de début d'opération.
 
@@ -546,7 +546,7 @@ class PluginLogger:
         """
         self._emit_log("start", message, target_ip, force_flush)
 
-    def end(self, message: str, target_ip: Optional[str] = None, force_flush: bool = False):
+    def end(self, message: str, target_ip: Optional[str] = None, force_flush: bool = False, log_levels: Optional[Dict[str, str]] = None):
         """
         Enregistre un message de fin d'opération.
 
@@ -559,7 +559,7 @@ class PluginLogger:
 
     # --- Gestion Progression Numérique (pour JSONL) ---
 
-    def set_total_steps(self, total: int, pb_id: Optional[str] = None):
+    def set_total_steps(self, total: int, pb_id: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None):
         """
         Définit le nombre total d'étapes pour une progression numérique.
 
@@ -574,7 +574,7 @@ class PluginLogger:
         # Émettre un message initial à 0% (sera mis en queue)
         self._emit_progress_update(bar_id)
 
-    def next_step(self, pb_id: Optional[str] = None, current_step: Optional[int] = None) -> int:
+    def next_step(self, pb_id: Optional[str] = None, current_step: Optional[int] = None, log_levels: Optional[Dict[str, str]] = None) -> int:
         """
         Avance la progression numérique ou la définit.
 
@@ -644,7 +644,7 @@ class PluginLogger:
 
     # --- Gestion Progression Visuelle (Texte ou JSONL) ---
 
-    def enable_visual_bars(self, enable: bool = True):
+    def enable_visual_bars(self, enable: bool = True, log_levels: Optional[Dict[str, str]] = None):
         """
         Active/désactive l'utilisation des barres de progression visuelles.
 
@@ -660,7 +660,7 @@ class PluginLogger:
                    color: str = "blue",
                    filled_char: Optional[str] = None,
                    empty_char: Optional[str] = None,
-                   bar_width: Optional[int] = None):
+bar_width: Optional[int] = None, log_levels: Optional[Dict[str, str]] = None):
         """
         Crée et affiche une nouvelle barre de progression visuelle.
 
@@ -705,7 +705,7 @@ class PluginLogger:
 
     def update_bar(self, id: str, current: int, total: Optional[int] = None,
                    pre_text: Optional[str] = None, post_text: Optional[str] = None,
-                   color: Optional[str] = None):
+color: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None):
         """
         Met à jour une barre visuelle existante avec throttling.
 
@@ -742,7 +742,7 @@ class PluginLogger:
         self._emit_bar(id, current)
 
     def next_bar(self, id: str, current_step: Optional[int] = None,
-                 pre_text: Optional[str] = None, post_text: Optional[str] = None) -> int:
+pre_text: Optional[str] = None, post_text: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None) -> int:
         """
         Avance ou définit l'étape d'une barre visuelle avec throttling.
 
@@ -856,7 +856,7 @@ class PluginLogger:
             }
             self._emit_log("progress-text", progress_message)
 
-    def delete_bar(self, id: str):
+    def delete_bar(self, id: str, log_levels: Optional[Dict[str, str]] = None):
         """
         Supprime une barre de progression visuelle.
 
@@ -898,7 +898,7 @@ class PluginLogger:
         else:
             internal_logger.warning(f"Tentative delete barre visuelle inexistante: {id}")
 
-    def set_default_bar_style(self, filled_char: str, empty_char: str):
+    def set_default_bar_style(self, filled_char: str, empty_char: str, log_levels: Optional[Dict[str, str]] = None):
         """
         Définit le style par défaut pour les nouvelles barres visuelles.
 
@@ -909,7 +909,7 @@ class PluginLogger:
         self.default_filled_char = filled_char
         self.default_empty_char = empty_char
 
-    def set_default_bar_width(self, width: int):
+    def set_default_bar_width(self, width: int, log_levels: Optional[Dict[str, str]] = None):
         """
         Définit la largeur par défaut pour les nouvelles barres visuelles.
 
@@ -918,7 +918,7 @@ class PluginLogger:
         """
         self.bar_width = max(5, width)
 
-    def flush(self):
+    def flush(self, log_levels: Optional[Dict[str, str]] = None):
         """
         Force le traitement immédiat des messages en attente.
 
@@ -955,7 +955,7 @@ class PluginLogger:
         except Exception as e:
             internal_logger.error(f"Erreur lors du flush: {e}", exc_info=True)
 
-    def shutdown(self):
+    def shutdown(self, log_levels: Optional[Dict[str, str]] = None):
         """
         Arrête proprement le thread de traitement des messages.
 

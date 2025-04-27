@@ -41,7 +41,7 @@ class HealthChecker(PluginsUtilsBase):
         super().__init__(logger, target_ip)
         if not UTILS_AVAILABLE:
             self.log_error("Certains modules utilitaires (Storage, Network, Services) sont manquants. "
-                           "Les vérifications de santé seront limitées.")
+                           "Les vérifications de santé seront limitées.", log_levels=log_levels)
             self._storage = None
             self._network = None
             self._services = None
@@ -59,20 +59,20 @@ class HealthChecker(PluginsUtilsBase):
             success, stdout, _ = self.run(['grep', '-c', '^processor', '/proc/cpuinfo'], check=False, no_output=True)
             if success and stdout.strip().isdigit():
                 cores = int(stdout.strip())
-                self.log_debug(f"Nombre de coeurs CPU trouvés (cpuinfo): {cores}")
+                self.log_debug(f"Nombre de coeurs CPU trouvés (cpuinfo): {cores}", log_levels=log_levels)
                 return cores if cores > 0 else 1
             # Méthode 2: nproc
             success, stdout, _ = self.run(['nproc'], check=False, no_output=True)
             if success and stdout.strip().isdigit():
                 cores = int(stdout.strip())
-                self.log_debug(f"Nombre de coeurs CPU trouvés (nproc): {cores}")
+                self.log_debug(f"Nombre de coeurs CPU trouvés (nproc): {cores}", log_levels=log_levels)
                 return cores if cores > 0 else 1
         except Exception as e:
-            self.log_warning(f"Impossible de déterminer le nombre de coeurs CPU: {e}")
+            self.log_warning(f"Impossible de déterminer le nombre de coeurs CPU: {e}", log_levels=log_levels)
         return 1 # Retourner 1 par défaut
 
     def check_disk_space(self, threshold_percent: int = DEFAULT_DISK_THRESHOLD_PERCENT,
-                         paths: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+paths: Optional[List[str]] = None, log_levels: Optional[Dict[str, str]] = None) -> List[Dict[str, Any]]:
         """
         Vérifie l'espace disque utilisé sur les systèmes de fichiers montés.
 
@@ -85,12 +85,12 @@ class HealthChecker(PluginsUtilsBase):
             'filesystem', 'size', 'used', 'avail', 'use_pct', 'mounted_on'.
         """
         if not self._storage: return [{"error": "StorageCommands non disponible"}]
-        self.log_info(f"Vérification de l'utilisation disque (seuil: >{threshold_percent}%)")
+        self.log_info(f"Vérification de l'utilisation disque (seuil: >{threshold_percent}%)", log_levels=log_levels)
         alerts = []
         try:
             usage_data = self._storage.get_disk_usage(path=paths[0] if paths and len(paths)==1 else None) # df ne prend qu'un path optionnel
             if not usage_data:
-                 self.log_warning("Aucune donnée d'utilisation disque obtenue.")
+                 self.log_warning("Aucune donnée d'utilisation disque obtenue.", log_levels=log_levels)
                  return alerts
 
             # Filtrer les données pour ne garder que les chemins demandés si spécifié
@@ -120,20 +120,20 @@ class HealthChecker(PluginsUtilsBase):
                             'mounted_on': mounted_on
                         }
                         alerts.append(alert_info)
-                        self.log_warning(f"Utilisation disque élevée sur {mounted_on} ({filesystem}): {use_pct}%")
+                        self.log_warning(f"Utilisation disque élevée sur {mounted_on} ({filesystem}): {use_pct}%", log_levels=log_levels)
                 except (ValueError, TypeError):
-                     self.log_warning(f"Impossible de parser le pourcentage d'utilisation pour {mounted_on}: '{use_pct_str}'")
+                     self.log_warning(f"Impossible de parser le pourcentage d'utilisation pour {mounted_on}: '{use_pct_str}'", log_levels=log_levels)
 
             if not alerts:
-                 self.log_info("Utilisation disque OK.")
+                 self.log_info("Utilisation disque OK.", log_levels=log_levels)
 
         except Exception as e:
-            self.log_error(f"Erreur lors de la vérification de l'espace disque: {e}", exc_info=True)
+            self.log_error(f"Erreur lors de la vérification de l'espace disque: {e}", exc_info=True, log_levels=log_levels)
             alerts.append({"error": f"Erreur lors de la vérification: {e}"})
 
         return alerts
 
-    def check_memory_usage(self, threshold_percent: int = DEFAULT_MEMORY_THRESHOLD_PERCENT) -> Optional[Dict[str, Any]]:
+    def check_memory_usage(self, threshold_percent: int = DEFAULT_MEMORY_THRESHOLD_PERCENT, log_levels: Optional[Dict[str, str]] = None) -> Optional[Dict[str, Any]]:
         """
         Vérifie l'utilisation de la mémoire RAM et Swap.
 
@@ -143,7 +143,7 @@ class HealthChecker(PluginsUtilsBase):
         Returns:
             Dictionnaire avec l'état ('OK', 'WARNING') et les détails, ou None si erreur.
         """
-        self.log_info(f"Vérification de l'utilisation mémoire (seuil: >{threshold_percent}%)")
+        self.log_info(f"Vérification de l'utilisation mémoire (seuil: >{threshold_percent}%)", log_levels=log_levels)
         mem_info = {'status': 'ERROR', 'message': 'Impossible de lire /proc/meminfo'}
         try:
             # Lire /proc/meminfo
@@ -175,9 +175,9 @@ class HealthChecker(PluginsUtilsBase):
             if available_ram is None:
                  # Estimation fallback: Free + Buffers + Cached (partie réutilisable)
                  available_ram = free_ram + buffers + cached + sreclaimable
-                 self.log_debug("MemAvailable non trouvé, estimation de la mémoire disponible.")
+                 self.log_debug("MemAvailable non trouvé, estimation de la mémoire disponible.", log_levels=log_levels)
             else:
-                 self.log_debug("Utilisation de MemAvailable pour la mémoire disponible.")
+                 self.log_debug("Utilisation de MemAvailable pour la mémoire disponible.", log_levels=log_levels)
 
             used_ram = total_ram - available_ram
             used_ram_pct = int((used_ram / total_ram) * 100) if total_ram > 0 else 0
@@ -206,22 +206,22 @@ class HealthChecker(PluginsUtilsBase):
             if used_ram_pct > threshold_percent or (total_swap is not None and total_swap > 0 and used_swap_pct > threshold_percent):
                  mem_info['status'] = 'WARNING'
                  mem_info['message'] = f"Utilisation mémoire élevée: RAM={used_ram_pct}%, Swap={used_swap_pct}%"
-                 self.log_warning(mem_info['message'])
+                 self.log_warning(mem_info['message'], log_levels=log_levels)
             else:
                  mem_info['status'] = 'OK'
                  mem_info['message'] = f"Utilisation mémoire OK: RAM={used_ram_pct}%, Swap={used_swap_pct}%"
-                 self.log_info(mem_info['message'])
+                 self.log_info(mem_info['message'], log_levels=log_levels)
 
         except FileNotFoundError:
-             self.log_error("Fichier /proc/meminfo introuvable.")
+             self.log_error("Fichier /proc/meminfo introuvable.", log_levels=log_levels)
              mem_info['message'] = "/proc/meminfo introuvable"
         except Exception as e:
-            self.log_error(f"Erreur lors de la vérification de la mémoire: {e}", exc_info=True)
+            self.log_error(f"Erreur lors de la vérification de la mémoire: {e}", exc_info=True, log_levels=log_levels)
             mem_info['message'] = f"Erreur: {e}"
 
         return mem_info
 
-    def check_cpu_load(self, threshold_factor: float = DEFAULT_LOAD_THRESHOLD_FACTOR) -> Optional[Dict[str, Any]]:
+    def check_cpu_load(self, threshold_factor: float = DEFAULT_LOAD_THRESHOLD_FACTOR, log_levels: Optional[Dict[str, str]] = None) -> Optional[Dict[str, Any]]:
         """
         Vérifie la charge moyenne du CPU (load average).
 
@@ -233,7 +233,7 @@ class HealthChecker(PluginsUtilsBase):
         Returns:
             Dictionnaire avec l'état ('OK', 'WARNING') et les valeurs, ou None si erreur.
         """
-        self.log_info(f"Vérification de la charge CPU (seuil: > {threshold_factor} * nb_coeurs)")
+        self.log_info(f"Vérification de la charge CPU (seuil: > {threshold_factor} * nb_coeurs)", log_levels=log_levels)
         load_info = {'status': 'ERROR', 'message': 'Impossible de lire /proc/loadavg'}
         try:
             with open('/proc/loadavg', 'r') as f:
@@ -255,9 +255,9 @@ class HealthChecker(PluginsUtilsBase):
 
             # Vérifier si un des load average dépasse le seuil
             high_load = False
-            if load_1m > threshold: high_load = True; self.log_warning(f"Charge CPU (1m) élevée: {load_1m:.2f} (seuil: {threshold:.2f})")
-            if load_5m > threshold: high_load = True; self.log_warning(f"Charge CPU (5m) élevée: {load_5m:.2f} (seuil: {threshold:.2f})")
-            if load_15m > threshold: high_load = True; self.log_warning(f"Charge CPU (15m) élevée: {load_15m:.2f} (seuil: {threshold:.2f})")
+            if load_1m > threshold: high_load = True; self.log_warning(f"Charge CPU (1m) élevée: {load_1m:.2f} (seuil: {threshold:.2f})", log_levels=log_levels)
+            if load_5m > threshold: high_load = True; self.log_warning(f"Charge CPU (5m) élevée: {load_5m:.2f} (seuil: {threshold:.2f})", log_levels=log_levels)
+            if load_15m > threshold: high_load = True; self.log_warning(f"Charge CPU (15m) élevée: {load_15m:.2f} (seuil: {threshold:.2f})", log_levels=log_levels)
 
             if high_load:
                  load_info['status'] = 'WARNING'
@@ -265,18 +265,18 @@ class HealthChecker(PluginsUtilsBase):
             else:
                  load_info['status'] = 'OK'
                  load_info['message'] = f"Charge CPU OK (1m={load_1m:.2f}, 5m={load_5m:.2f}, 15m={load_15m:.2f})"
-                 self.log_info(load_info['message'])
+                 self.log_info(load_info['message'], log_levels=log_levels)
 
         except FileNotFoundError:
-             self.log_error("Fichier /proc/loadavg introuvable.")
+             self.log_error("Fichier /proc/loadavg introuvable.", log_levels=log_levels)
              load_info['message'] = "/proc/loadavg introuvable"
         except Exception as e:
-            self.log_error(f"Erreur lors de la vérification de la charge CPU: {e}", exc_info=True)
+            self.log_error(f"Erreur lors de la vérification de la charge CPU: {e}", exc_info=True, log_levels=log_levels)
             load_info['message'] = f"Erreur: {e}"
 
         return load_info
 
-    def check_network_connectivity(self, hosts_to_ping: Optional[List[str]] = None) -> bool:
+    def check_network_connectivity(self, hosts_to_ping: Optional[List[str]] = None, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Vérifie la connectivité réseau de base en pinguant des hôtes essentiels.
 
@@ -288,7 +288,7 @@ class HealthChecker(PluginsUtilsBase):
             bool: True si tous les hôtes essentiels répondent.
         """
         if not self._network:
-             self.log_error("NetworkCommands non disponible, impossible de vérifier la connectivité.")
+             self.log_error("NetworkCommands non disponible, impossible de vérifier la connectivité.", log_levels=log_levels)
              return False
 
         targets = []
@@ -303,25 +303,25 @@ class HealthChecker(PluginsUtilsBase):
             targets.append("8.8.8.8") # Google DNS comme test externe standard
 
         if not targets:
-             self.log_warning("Aucune cible spécifiée ou trouvée pour le test de connectivité.")
+             self.log_warning("Aucune cible spécifiée ou trouvée pour le test de connectivité.", log_levels=log_levels)
              return False # Ne peut pas tester
 
-        self.log_info(f"Vérification de la connectivité réseau vers: {', '.join(targets)}")
+        self.log_info(f"Vérification de la connectivité réseau vers: {', '.join(targets)}", log_levels=log_levels)
         all_ok = True
         for host in targets:
             if not self._network.ping(host, count=1, timeout=2): # Ping court
-                 self.log_warning(f"Échec du ping vers {host}.")
+                 self.log_warning(f"Échec du ping vers {host}.", log_levels=log_levels)
                  all_ok = False
                  # Arrêter au premier échec ? Ou tester tous ? Tester tous pour l'instant.
 
         if all_ok:
-             self.log_success("Connectivité réseau de base OK.")
+             self.log_success("Connectivité réseau de base OK.", log_levels=log_levels)
         else:
-             self.log_error("Problème de connectivité réseau détecté.")
+             self.log_error("Problème de connectivité réseau détecté.", log_levels=log_levels)
 
         return all_ok
 
-    def check_critical_services(self, service_names: List[str]) -> bool:
+    def check_critical_services(self, service_names: List[str], log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Vérifie si une liste de services système critiques sont actifs.
 
@@ -332,27 +332,27 @@ class HealthChecker(PluginsUtilsBase):
             bool: True si tous les services sont actifs.
         """
         if not self._services:
-             self.log_error("ServiceCommands non disponible, impossible de vérifier les services.")
+             self.log_error("ServiceCommands non disponible, impossible de vérifier les services.", log_levels=log_levels)
              return False
         if not service_names:
-             self.log_warning("Aucun service critique spécifié pour la vérification.")
+             self.log_warning("Aucun service critique spécifié pour la vérification.", log_levels=log_levels)
              return True # Pas d'échec si rien à vérifier
 
-        self.log_info(f"Vérification du statut des services critiques: {', '.join(service_names)}")
+        self.log_info(f"Vérification du statut des services critiques: {', '.join(service_names)}", log_levels=log_levels)
         all_ok = True
         for service in service_names:
             if not self._services.is_active(service):
-                 self.log_error(f"Service critique '{service}' n'est pas actif !")
+                 self.log_error(f"Service critique '{service}' n'est pas actif !", log_levels=log_levels)
                  all_ok = False
 
         if all_ok:
-             self.log_success("Tous les services critiques vérifiés sont actifs.")
+             self.log_success("Tous les services critiques vérifiés sont actifs.", log_levels=log_levels)
         else:
-             self.log_error("Un ou plusieurs services critiques ne sont pas actifs.")
+             self.log_error("Un ou plusieurs services critiques ne sont pas actifs.", log_levels=log_levels)
 
         return all_ok
 
-    def check_dmesg_errors(self, patterns: Optional[List[str]] = None, time_since: str = "1 hour ago") -> List[str]:
+    def check_dmesg_errors(self, patterns: Optional[List[str]] = None, time_since: str = "1 hour ago", log_levels: Optional[Dict[str, str]] = None) -> List[str]:
         """
         Recherche les erreurs récentes dans la sortie de dmesg. Nécessite root.
 
@@ -363,7 +363,7 @@ class HealthChecker(PluginsUtilsBase):
         Returns:
             Liste des lignes d'erreur/warning trouvées.
         """
-        self.log_info(f"Recherche d'erreurs/warnings dans dmesg (depuis {time_since})")
+        self.log_info(f"Recherche d'erreurs/warnings dans dmesg (depuis {time_since})", log_levels=log_levels)
         # -T pour l'horodatage lisible
         cmd = ['dmesg', '-T']
         # Filtrer par temps
@@ -372,7 +372,7 @@ class HealthChecker(PluginsUtilsBase):
         success, stdout, stderr = self.run(cmd, check=False, needs_sudo=True)
         errors = []
         if not success:
-            self.log_error(f"Échec de la lecture de dmesg. Stderr: {stderr}")
+            self.log_error(f"Échec de la lecture de dmesg. Stderr: {stderr}", log_levels=log_levels)
             return errors
 
         # Combiner les patterns par défaut et ceux fournis
@@ -385,13 +385,13 @@ class HealthChecker(PluginsUtilsBase):
                 errors.append(line)
 
         if errors:
-             self.log_warning(f"{len(errors)} erreur(s)/warning(s) potentiel(s) trouvé(s) dans dmesg récemment.")
+             self.log_warning(f"{len(errors)} erreur(s)/warning(s) potentiel(s) trouvé(s) dans dmesg récemment.", log_levels=log_levels)
              # Logguer les premières erreurs trouvées
              for err_line in errors[:5]:
-                  self.log_warning(f"  - {err_line}")
-             if len(errors) > 5: self.log_warning("  - ... et autres.")
+                  self.log_warning(f"  - {err_line}", log_levels=log_levels)
+             if len(errors) > 5: self.log_warning("  - ... et autres.", log_levels=log_levels)
         else:
-             self.log_info("Aucune erreur/warning récent trouvé dans dmesg.")
+             self.log_info("Aucune erreur/warning récent trouvé dans dmesg.", log_levels=log_levels)
 
         return errors
 
@@ -401,7 +401,7 @@ class HealthChecker(PluginsUtilsBase):
                        load_factor: float = DEFAULT_LOAD_THRESHOLD_FACTOR,
                        ping_hosts: Optional[List[str]] = None,
                        critical_services: Optional[List[str]] = None,
-                       dmesg_since: str = "1 hour ago") -> Dict[str, Any]:
+dmesg_since: str = "1 hour ago", log_levels: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
         """
         Exécute une série de vérifications de santé et retourne un rapport.
 
@@ -417,7 +417,7 @@ class HealthChecker(PluginsUtilsBase):
             Dictionnaire contenant les résultats de chaque vérification.
             La clé 'overall_status' indique 'OK' ou 'WARNING'/'ERROR'.
         """
-        self.log_info("Exécution des vérifications de santé système...")
+        self.log_info("Exécution des vérifications de santé système...", log_levels=log_levels)
         results: Dict[str, Any] = {'checks_performed': []}
         overall_ok = True
 
@@ -460,7 +460,6 @@ class HealthChecker(PluginsUtilsBase):
 
         # Statut global
         results['overall_status'] = 'OK' if overall_ok else 'WARNING/ERROR'
-        self.log_info(f"Vérifications de santé terminées. Statut global: {results['overall_status']}")
+        self.log_info(f"Vérifications de santé terminées. Statut global: {results['overall_status']}", log_levels=log_levels)
 
         return results
-

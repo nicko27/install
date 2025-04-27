@@ -96,7 +96,7 @@ class OcsManagerCommands(PluginsUtilsBase):
                       server_url: Optional[str] = None,
                       local_path: Optional[str] = None,
                       options: Optional[List[str]] = None,
-                      timeout: int = 600) -> bool:
+timeout: int = 600, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Déclenche un inventaire OCS avec l'agent local. Nécessite root.
 
@@ -147,19 +147,19 @@ class OcsManagerCommands(PluginsUtilsBase):
             if stdout: self.log_info(f"Stdout:\n{stdout}")
             return False
 
-    def get_agent_config(self) -> Dict[str, str]:
+    def get_agent_config(self, log_levels: Optional[Dict[str, str]] = None) -> Dict[str, str]:
         """Lit et parse la configuration de l'agent OCS."""
         self.log_info("Lecture de la configuration de l'agent OCS")
         return self._parse_agent_config()
 
-    def get_agent_log_path(self) -> Optional[str]:
+    def get_agent_log_path(self, log_levels: Optional[Dict[str, str]] = None) -> Optional[str]:
         """Tente de déterminer le chemin du fichier log de l'agent."""
         config = self.get_agent_config()
         log_path = config.get('LOGFILE', self.DEFAULT_AGENT_LOG_PATH) # Clé typique dans le XML/cfg
         self.log_debug(f"Chemin du log de l'agent déterminé: {log_path}")
         return log_path
 
-    def check_last_run_status_from_log(self, log_path: Optional[str] = None) -> Optional[bool]:
+    def check_last_run_status_from_log(self, log_path: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None) -> Optional[bool]:
         """
         Analyse le fichier log de l'agent pour déterminer le succès de la dernière exécution.
 
@@ -275,7 +275,7 @@ class OcsManagerCommands(PluginsUtilsBase):
              self.log_error(f"Erreur inattendue lors de la requête API: {e}", exc_info=True)
              return False, {"error": "UnexpectedError", "message": str(e)}
 
-    def get_computer_id(self, deviceid: str, server_url: str, user: Optional[str], password: Optional[str]) -> Optional[int]:
+    def get_computer_id(self, deviceid: str, server_url: str, user: Optional[str], password: Optional[str], log_levels: Optional[Dict[str, str]] = None) -> Optional[int]:
         """Trouve l'ID interne OCS d'une machine via son DEVICEID."""
         self.log_info(f"Recherche de l'ID OCS pour DEVICEID={deviceid}")
         client = self._get_api_client(server_url, user, password)
@@ -301,7 +301,7 @@ class OcsManagerCommands(PluginsUtilsBase):
         self.log_error(f"Impossible de trouver l'ID OCS pour DEVICEID={deviceid} via l'API.")
         return None
 
-    def get_computer_details(self, ocs_id: int, section: Optional[str] = None, **api_kwargs) -> Optional[Dict]:
+    def get_computer_details(self, ocs_id: int, section: Optional[str] = None, **api_kwargs, log_levels: Optional[Dict[str, str]] = None) -> Optional[Dict]:
         """Récupère les détails d'un ordinateur via son ID OCS."""
         action = f"la section '{section}'" if section else "les détails"
         self.log_info(f"Récupération {action} pour l'ordinateur OCS ID={ocs_id}")
@@ -315,7 +315,7 @@ class OcsManagerCommands(PluginsUtilsBase):
         success, data = self._api_request('GET', endpoint, client)
         return data if success and isinstance(data, dict) else None
 
-    def check_administrative_data(self, ocs_id: int, data_key: str, expected_value: str, **api_kwargs) -> bool:
+    def check_administrative_data(self, ocs_id: int, data_key: str, expected_value: str, **api_kwargs, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Vérifie si une donnée administrative spécifique a la valeur attendue sur le serveur OCS.
 
@@ -361,4 +361,3 @@ class OcsManagerCommands(PluginsUtilsBase):
         else:
             self.log_error(f"La donnée administrative '{data_key}' a une valeur différente ('{actual_value}') de celle attendue ('{expected_value}') pour OCS ID={ocs_id}.")
             return False
-

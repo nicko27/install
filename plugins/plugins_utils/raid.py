@@ -38,16 +38,16 @@ class RaidCommands(PluginsUtilsBase):
         for path in ['/sbin/mdadm', '/usr/sbin/mdadm', '/bin/mdadm', '/usr/bin/mdadm']:
             success, _, _ = self.run(['test', '-x', path], check=False, no_output=True, error_as_warning=True)
             if success:
-                self.log_debug(f"Exécutable mdadm trouvé: {path}")
+                self.log_debug(f"Exécutable mdadm trouvé: {path}", log_levels=log_levels)
                 return path
         # Si non trouvé, essayer 'which'
         success_which, path_which, _ = self.run(['which', 'mdadm'], check=False, no_output=True, error_as_warning=True)
         if success_which and path_which.strip():
             path_str = path_which.strip()
-            self.log_debug(f"Exécutable mdadm trouvé via which: {path_str}")
+            self.log_debug(f"Exécutable mdadm trouvé via which: {path_str}", log_levels=log_levels)
             return path_str
 
-        self.log_error("Exécutable 'mdadm' introuvable. Les opérations RAID échoueront. Installer le paquet 'mdadm'.")
+        self.log_error("Exécutable 'mdadm' introuvable. Les opérations RAID échoueront. Installer le paquet 'mdadm'.", log_levels=log_levels)
         return None
 
     def _run_mdadm(self, args: List[str], check: bool = False, needs_sudo: bool = True, **kwargs) -> Tuple[bool, str, str]:
@@ -67,11 +67,11 @@ class RaidCommands(PluginsUtilsBase):
             # Pas besoin de sudo pour 'test -b' généralement
             success, _, _ = self.run(['test', '-b', dev_path], check=False, no_output=True, error_as_warning=True, needs_sudo=False)
             if not success:
-                self.log_debug(f"Prochain périphérique md disponible: {dev_path}")
+                self.log_debug(f"Prochain périphérique md disponible: {dev_path}", log_levels=log_levels)
                 return dev_path
             md_num += 1
             if md_num > 128: # Limite de sécurité raisonnable
-                self.log_error("Impossible de trouver un périphérique /dev/mdX disponible (limite atteinte?).")
+                self.log_error("Impossible de trouver un périphérique /dev/mdX disponible (limite atteinte?).", log_levels=log_levels)
                 raise RuntimeError("Limite de périphériques md atteinte")
 
     def create_raid_array(self,
@@ -83,7 +83,7 @@ class RaidCommands(PluginsUtilsBase):
                           metadata: str = "1.2", # Défaut moderne
                           force: bool = False,
                           assume_clean: bool = False,
-                          task_id: Optional[str] = None) -> Optional[str]:
+task_id: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None) -> Optional[str]:
         """
         Crée un nouveau tableau RAID via `mdadm --create`.
 
@@ -106,7 +106,7 @@ class RaidCommands(PluginsUtilsBase):
         # Valider le nombre de disques
         min_disks = self._min_devices_for_level(raid_level)
         if not devices or len(devices) < min_disks:
-            self.log_error(f"Nombre insuffisant de périphériques ({len(devices)}) pour RAID {raid_level}. Minimum requis: {min_disks}.")
+            self.log_error(f"Nombre insuffisant de périphériques ({len(devices)}) pour RAID {raid_level}. Minimum requis: {min_disks}.", log_levels=log_levels)
             return None
 
         # Déterminer le chemin du tableau
@@ -115,17 +115,17 @@ class RaidCommands(PluginsUtilsBase):
             try:
                 target_array_path = self._get_available_md_device()
             except RuntimeError as e:
-                self.log_error(str(e))
+                self.log_error(str(e), log_levels=log_levels)
                 return None
         elif not target_array_path.startswith('/dev/md'):
-            self.log_error(f"Chemin de tableau invalide: {target_array_path}. Doit commencer par /dev/md.")
+            self.log_error(f"Chemin de tableau invalide: {target_array_path}. Doit commencer par /dev/md.", log_levels=log_levels)
             return None
 
         array_name = os.path.basename(target_array_path)
-        self.log_info(f"Création du tableau RAID {raid_level} '{array_name}' sur {target_array_path}")
-        self.log_info(f"  Périphériques: {', '.join(devices)}")
+        self.log_info(f"Création du tableau RAID {raid_level} '{array_name}' sur {target_array_path}", log_levels=log_levels)
+        self.log_info(f"  Périphériques: {', '.join(devices)}", log_levels=log_levels)
         if spare_devices:
-            self.log_info(f"  Secours: {', '.join(spare_devices)}")
+            self.log_info(f"  Secours: {', '.join(spare_devices)}", log_levels=log_levels)
 
         current_task_id = task_id or f"raid_create_{array_name}_{int(time.time())}"
         # Étapes: 1 (commande create) + 1 (attente sync/rebuild) + 1 (update conf)
@@ -141,7 +141,7 @@ class RaidCommands(PluginsUtilsBase):
             cmd.append(f'--metadata={metadata}')
         if assume_clean:
              # Attention: à utiliser seulement si on est sûr que les données sont identiques (ex: nouveaux disques)
-             self.log_warning("Utilisation de --assume-clean : suppose les disques synchronisés.")
+             self.log_warning("Utilisation de --assume-clean : suppose les disques synchronisés.", log_levels=log_levels)
              cmd.append('--assume-clean')
 
         cmd.extend(devices)
@@ -152,7 +152,7 @@ class RaidCommands(PluginsUtilsBase):
         # Ajouter --force si demandé explicitement
         if force:
             cmd.append('--force')
-            self.log_info("  Option --force activée.")
+            self.log_info("  Option --force activée.", log_levels=log_levels)
 
         # Exécuter la commande mdadm --create
         # Utiliser un timeout très long ou None, car la création peut prendre du temps
@@ -162,26 +162,26 @@ class RaidCommands(PluginsUtilsBase):
         # Gérer le cas où la création échoue à cause de superblocs existants sans --force
         if not create_success and not force and \
            re.search(r'(blocks found on|contains a .* filesystem|member device)', stderr_create, re.IGNORECASE):
-            self.log_warning("Superblocs ou systèmes de fichiers existants détectés. Relance avec --force.")
+            self.log_warning("Superblocs ou systèmes de fichiers existants détectés. Relance avec --force.", log_levels=log_levels)
             cmd_force = cmd + ['--force'] # Ajouter --force à la commande précédente
             create_success, stdout_create, stderr_create = self._run_mdadm(cmd_force, check=False, timeout=None)
 
         # Si toujours en échec après la relance potentielle
         if not create_success:
-            self.log_error(f"Échec de la création du tableau RAID '{array_name}'.")
-            self.log_error(f"Stderr: {stderr_create}")
-            if stdout_create: self.log_info(f"Stdout: {stdout_create}")
+            self.log_error(f"Échec de la création du tableau RAID '{array_name}'.", log_levels=log_levels)
+            self.log_error(f"Stderr: {stderr_create}", log_levels=log_levels)
+            if stdout_create: self.log_info(f"Stdout: {stdout_create}", log_levels=log_levels)
             self.complete_task(success=False, message="Échec création mdadm")
             return None
 
-        self.log_success(f"Commande de création pour {array_name} réussie.")
+        self.log_success(f"Commande de création pour {array_name} réussie.", log_levels=log_levels)
         self.update_task(description=f"Création RAID {array_name} - Étape 2/3: Attente Synchro")
 
         # Attendre la fin de la synchro/reconstruction initiale
         # (mdadm --create --run retourne souvent avant la fin)
         sync_success = self.wait_for_raid_sync(target_array_path, task_id=current_task_id) # Utilise le même task_id
         if not sync_success:
-             self.log_warning(f"La synchronisation initiale de {array_name} a échoué ou a dépassé le timeout.")
+             self.log_warning(f"La synchronisation initiale de {array_name} a échoué ou a dépassé le timeout.", log_levels=log_levels)
              # Continuer quand même pour mettre à jour la conf ? Ou retourner échec ? Retourner échec.
              self.complete_task(success=False, message="Échec/Timeout synchro RAID")
              return None
@@ -190,12 +190,12 @@ class RaidCommands(PluginsUtilsBase):
         # Mettre à jour mdadm.conf pour l'assemblage au démarrage
         conf_updated = self._update_mdadm_conf()
         if not conf_updated:
-             self.log_warning("La mise à jour de mdadm.conf a échoué, le RAID pourrait ne pas être assemblé au démarrage.")
+             self.log_warning("La mise à jour de mdadm.conf a échoué, le RAID pourrait ne pas être assemblé au démarrage.", log_levels=log_levels)
 
         self.complete_task(success=True, message=f"RAID {array_name} créé")
         return target_array_path
 
-    def stop_raid_array(self, array_path: str) -> bool:
+    def stop_raid_array(self, array_path: str, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Arrête (désactive) un tableau RAID via `mdadm --stop`.
         Le tableau ne doit pas être monté ou utilisé.
@@ -207,7 +207,7 @@ class RaidCommands(PluginsUtilsBase):
             bool: True si succès (ou si déjà arrêté).
         """
         array_name = os.path.basename(array_path)
-        self.log_info(f"Arrêt du tableau RAID: {array_name} ({array_path})")
+        self.log_info(f"Arrêt du tableau RAID: {array_name} ({array_path})", log_levels=log_levels)
 
         # Vérifier si le tableau existe (en tant que block device)
         if not self._check_array_exists(array_path):
@@ -219,31 +219,31 @@ class RaidCommands(PluginsUtilsBase):
              from .storage import StorageCommands # Import local
              storage = StorageCommands(self.logger, self.target_ip)
              if storage.is_mounted(array_path):
-                  self.log_error(f"Impossible d'arrêter {array_name}: le périphérique est monté.")
+                  self.log_error(f"Impossible d'arrêter {array_name}: le périphérique est monté.", log_levels=log_levels)
                   return False
         except ImportError:
-             self.log_warning("Module StorageCommands non trouvé, impossible de vérifier si le RAID est monté.")
+             self.log_warning("Module StorageCommands non trouvé, impossible de vérifier si le RAID est monté.", log_levels=log_levels)
         except Exception as e_mount_check:
-             self.log_warning(f"Erreur lors de la vérification du montage de {array_path}: {e_mount_check}")
+             self.log_warning(f"Erreur lors de la vérification du montage de {array_path}: {e_mount_check}", log_levels=log_levels)
 
         # Exécuter mdadm --stop
         success, stdout, stderr = self._run_mdadm(['--stop', array_path], check=False)
         if success:
-            self.log_success(f"Tableau RAID '{array_name}' arrêté.")
+            self.log_success(f"Tableau RAID '{array_name}' arrêté.", log_levels=log_levels)
             return True
         else:
             # Gérer l'erreur "not active" ou "No such file" comme un succès potentiel
             if re.search(r'(not active|no such file or directory)', stderr, re.IGNORECASE):
-                 self.log_warning(f"Le tableau RAID '{array_name}' n'était déjà pas actif.")
+                 self.log_warning(f"Le tableau RAID '{array_name}' n'était déjà pas actif.", log_levels=log_levels)
                  return True
             # Gérer l'erreur "device or resource busy"
             elif "device or resource busy" in stderr.lower():
-                 self.log_error(f"Échec de l'arrêt: Le périphérique {array_name} est occupé (probablement monté).")
+                 self.log_error(f"Échec de l'arrêt: Le périphérique {array_name} est occupé (probablement monté).", log_levels=log_levels)
             else:
-                 self.log_error(f"Échec de l'arrêt du tableau RAID '{array_name}'. Stderr: {stderr}")
+                 self.log_error(f"Échec de l'arrêt du tableau RAID '{array_name}'. Stderr: {stderr}", log_levels=log_levels)
             return False
 
-    def check_raid_status(self, array_path: Optional[str] = None) -> Union[Dict[str, Any], List[Dict[str, Any]], None]:
+    def check_raid_status(self, array_path: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None) -> Union[Dict[str, Any], List[Dict[str, Any]], None]:
         """
         Vérifie l'état d'un ou tous les tableaux RAID.
 
@@ -258,7 +258,7 @@ class RaidCommands(PluginsUtilsBase):
         """
         if array_path:
             array_name = os.path.basename(array_path)
-            self.log_info(f"Vérification de l'état du tableau RAID '{array_name}' ({array_path})")
+            self.log_info(f"Vérification de l'état du tableau RAID '{array_name}' ({array_path})", log_levels=log_levels)
             if not self._check_array_exists(array_path): return None
 
             # Utiliser --detail pour un array spécifique
@@ -266,22 +266,22 @@ class RaidCommands(PluginsUtilsBase):
             if not success:
                 # Gérer le cas où l'array n'est pas actif
                 if "does not appear to be an md device" in stderr or "No such file or directory" in stderr:
-                     self.log_warning(f"Le périphérique '{array_path}' n'est pas un array mdadm actif.")
+                     self.log_warning(f"Le périphérique '{array_path}' n'est pas un array mdadm actif.", log_levels=log_levels)
                      return {'device': array_path, 'state': 'inactive'}
-                self.log_error(f"Échec de la récupération des détails de {array_name}. Stderr: {stderr}")
+                self.log_error(f"Échec de la récupération des détails de {array_name}. Stderr: {stderr}", log_levels=log_levels)
                 return None
             return self._parse_mdadm_detail(stdout)
         else:
             # Lire /proc/mdstat pour tous les arrays
-            self.log_info("Vérification de l'état de tous les tableaux RAID actifs (/proc/mdstat)")
+            self.log_info("Vérification de l'état de tous les tableaux RAID actifs (/proc/mdstat)", log_levels=log_levels)
             # Pas besoin de sudo pour lire /proc/mdstat
             success, stdout, stderr = self.run(['cat', '/proc/mdstat'], check=False, no_output=True, needs_sudo=False)
             if not success:
-                self.log_error(f"Impossible de lire /proc/mdstat. Stderr: {stderr}")
+                self.log_error(f"Impossible de lire /proc/mdstat. Stderr: {stderr}", log_levels=log_levels)
                 return None
             return self._parse_mdstat(stdout)
 
-    def wait_for_raid_sync(self, array_path: str, timeout: int = 3600, task_id: Optional[str] = None) -> bool:
+    def wait_for_raid_sync(self, array_path: str, timeout: int = 3600, task_id: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Attend la fin de la synchronisation/reconstruction/reshape d'un array
         en surveillant `/proc/mdstat`. Met à jour une tâche de progression si `task_id` est fourni.
@@ -296,14 +296,14 @@ class RaidCommands(PluginsUtilsBase):
             bool: True si la synchronisation est terminée dans le délai imparti, False sinon.
         """
         array_name = os.path.basename(array_path)
-        self.log_info(f"Attente de la fin de la synchronisation/reconstruction pour {array_name}...")
+        self.log_info(f"Attente de la fin de la synchronisation/reconstruction pour {array_name}...", log_levels=log_levels)
         start_time = time.monotonic()
         last_pct_reported = -1
 
         while True:
             elapsed = time.monotonic() - start_time
             if elapsed > timeout:
-                self.log_error(f"Timeout ({timeout}s) dépassé en attendant la synchronisation de {array_name}.")
+                self.log_error(f"Timeout ({timeout}s) dépassé en attendant la synchronisation de {array_name}.", log_levels=log_levels)
                 # Mettre à jour la tâche à 100% avec un message d'erreur ? Ou laisser tel quel ?
                 if task_id: self.update_task(description=f"Timeout Synchro {array_name}", task_id=task_id)
                 return False
@@ -311,7 +311,7 @@ class RaidCommands(PluginsUtilsBase):
             # Lire /proc/mdstat pour vérifier l'état
             success, mdstat_out, _ = self.run(['cat', '/proc/mdstat'], check=False, no_output=True, error_as_warning=True, needs_sudo=False)
             if not success:
-                 self.log_warning("Impossible de lire /proc/mdstat pour vérifier la synchro. Réessai dans 10s.")
+                 self.log_warning("Impossible de lire /proc/mdstat pour vérifier la synchro. Réessai dans 10s.", log_levels=log_levels)
                  time.sleep(10)
                  continue
 
@@ -353,12 +353,12 @@ class RaidCommands(PluginsUtilsBase):
                          self.logger.update_bar(task_id, current_step, 100, post_text=f"{percentage:.1f}% {eta}")
                     last_pct_reported = int(percentage)
 
-                self.log_debug(f"Progression synchro {array_name}: {sync_line}")
+                self.log_debug(f"Progression synchro {array_name}: {sync_line}", log_levels=log_levels)
                 # Continuer d'attendre
                 time.sleep(5) # Intervalle de vérification
             else:
                 # Aucune ligne de synchro/recovery/reshape/check trouvée pour cet array
-                self.log_info(f"Synchronisation/Reconstruction de {array_name} terminée (ou non en cours).")
+                self.log_info(f"Synchronisation/Reconstruction de {array_name} terminée (ou non en cours).", log_levels=log_levels)
                 # Mettre à jour la tâche à 100% si elle était suivie
                 if task_id:
                      self.update_task(advance=0, description=f"Synchro {array_name}: Terminé", task_id=task_id)
@@ -372,7 +372,7 @@ class RaidCommands(PluginsUtilsBase):
         """Vérifie si un périphérique bloc md existe."""
         success, _, _ = self.run(['test', '-b', array_path], check=False, no_output=True, error_as_warning=True, needs_sudo=False)
         if not success:
-            self.log_error(f"Le tableau RAID '{os.path.basename(array_path)}' ({array_path}) n'existe pas ou n'est pas un périphérique bloc.")
+            self.log_error(f"Le tableau RAID '{os.path.basename(array_path)}' ({array_path}) n'existe pas ou n'est pas un périphérique bloc.", log_levels=log_levels)
             return False
         return True
 
@@ -385,7 +385,7 @@ class RaidCommands(PluginsUtilsBase):
         if level_str == '5': return 3
         if level_str == '6': return 4
         if level_str == '10': return 2 # Minimum 2 pour un miroir, 4 pour miroir de stripes
-        self.log_warning(f"Niveau RAID inconnu: {level_str}, suppose minimum 2 disques.")
+        self.log_warning(f"Niveau RAID inconnu: {level_str}, suppose minimum 2 disques.", log_levels=log_levels)
         return 2
 
     def _parse_mdadm_detail(self, detail_output: str) -> Dict[str, Any]:
@@ -434,7 +434,7 @@ class RaidCommands(PluginsUtilsBase):
                         }
                         info['devices'].append(device_info)
                     except (ValueError, IndexError):
-                         self.log_warning(f"Impossible de parser la ligne device mdadm: '{line_strip}'")
+                         self.log_warning(f"Impossible de parser la ligne device mdadm: '{line_strip}'", log_levels=log_levels)
             elif ':' in line_strip:
                 # Parser les informations générales clé: valeur
                 key, value = line_strip.split(':', 1)
@@ -523,12 +523,12 @@ class RaidCommands(PluginsUtilsBase):
         #     details = self.check_raid_status(f"/dev/{arr['name']}")
         #     if details: arr.update(details) # Fusionner les détails
 
-        self.log_info(f"{len(arrays)} array(s) RAID trouvés dans /proc/mdstat.")
+        self.log_info(f"{len(arrays)} array(s) RAID trouvés dans /proc/mdstat.", log_levels=log_levels)
         return arrays
 
     def _update_mdadm_conf(self) -> bool:
         """Met à jour /etc/mdadm/mdadm.conf ou /etc/mdadm.conf via `mdadm --detail --scan`."""
-        self.log_info("Mise à jour de la configuration mdadm (/etc/mdadm/mdadm.conf)")
+        self.log_info("Mise à jour de la configuration mdadm (/etc/mdadm/mdadm.conf)", log_levels=log_levels)
         # Déterminer le chemin du fichier de conf
         conf_path = "/etc/mdadm/mdadm.conf"
         alt_path = "/etc/mdadm.conf"
@@ -540,7 +540,7 @@ class RaidCommands(PluginsUtilsBase):
         else:
              # Si aucun n'existe, créer celui dans /etc/mdadm/
              target_conf_path = conf_path
-             self.log_info(f"Fichier {target_conf_path} non trouvé, il sera créé.")
+             self.log_info(f"Fichier {target_conf_path} non trouvé, il sera créé.", log_levels=log_levels)
              mdadm_dir = os.path.dirname(target_conf_path)
              if not os.path.exists(mdadm_dir):
                   # Créer le dossier avec sudo
@@ -549,18 +549,18 @@ class RaidCommands(PluginsUtilsBase):
         # Sauvegarde de l'ancien fichier si existant
         if os.path.exists(target_conf_path):
             backup_path = f"{target_conf_path}.bak_{int(time.time())}"
-            self.log_info(f"Sauvegarde de la configuration existante dans {backup_path}")
+            self.log_info(f"Sauvegarde de la configuration existante dans {backup_path}", log_levels=log_levels)
             # Utiliser cp -a via self.run pour gérer sudo et préserver les permissions
             cp_success, _, cp_stderr = self.run(['cp', '-a', target_conf_path, backup_path], check=False, needs_sudo=True)
             if not cp_success:
-                 self.log_warning(f"Échec de la sauvegarde de {target_conf_path}: {cp_stderr}")
+                 self.log_warning(f"Échec de la sauvegarde de {target_conf_path}: {cp_stderr}", log_levels=log_levels)
 
         # Générer la nouvelle configuration via mdadm --detail --scan
         # Exécuter avec sudo car peut nécessiter de lire les superblocs
         scan_success, scan_stdout, scan_stderr = self._run_mdadm(['--detail', '--scan'], check=False, no_output=True, needs_sudo=True)
 
         if not scan_success:
-            self.log_error(f"Impossible de générer la configuration mdadm via '--detail --scan'. Stderr: {scan_stderr}")
+            self.log_error(f"Impossible de générer la configuration mdadm via '--detail --scan'. Stderr: {scan_stderr}", log_levels=log_levels)
             return False
 
         # Construire le contenu final du fichier
@@ -580,11 +580,10 @@ class RaidCommands(PluginsUtilsBase):
         success_write = cfg_writer._write_file_content(target_conf_path, conf_content, backup=False)
 
         if success_write:
-            self.log_success(f"Fichier {target_conf_path} mis à jour avec succès.")
+            self.log_success(f"Fichier {target_conf_path} mis à jour avec succès.", log_levels=log_levels)
             # Recommander la mise à jour de l'initramfs
-            self.log_info("Il est fortement recommandé de mettre à jour l'initramfs (ex: update-initramfs -u) pour assurer l'assemblage au démarrage.")
+            self.log_info("Il est fortement recommandé de mettre à jour l'initramfs (ex: update-initramfs -u) pour assurer l'assemblage au démarrage.", log_levels=log_levels)
             return True
         else:
-            self.log_error(f"Échec de l'écriture dans {target_conf_path}.")
+            self.log_error(f"Échec de l'écriture dans {target_conf_path}.", log_levels=log_levels)
             return False
-

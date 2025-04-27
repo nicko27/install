@@ -107,15 +107,15 @@ class PluginsUtilsBase:
 
     # --- Méthodes de Logging (Déléguées au logger) ---
 
-    def log_info(self, msg: str):
+    def log_info(self, msg: str, log_levels: Optional[Dict[str, str]] = None):
         """Enregistre un message d'information."""
         self.logger.info(msg, target_ip=self.target_ip)
 
-    def log_warning(self, msg: str):
+    def log_warning(self, msg: str, log_levels: Optional[Dict[str, str]] = None):
         """Enregistre un message d'avertissement."""
         self.logger.warning(msg, target_ip=self.target_ip)
 
-    def log_error(self, msg: str, exc_info: bool = False):
+    def log_error(self, msg: str, exc_info: bool = False, log_levels: Optional[Dict[str, str]] = None):
         """
         Enregistre un message d'erreur.
 
@@ -128,17 +128,17 @@ class PluginsUtilsBase:
             # Utiliser traceback.format_exc() pour obtenir le traceback formaté
             self.logger.error(f"Traceback:\n{traceback.format_exc()}", target_ip=self.target_ip)
 
-    def log_debug(self, msg: str):
+    def log_debug(self, msg: str, log_levels: Optional[Dict[str, str]] = None):
         """Enregistre un message de débogage."""
         self.logger.debug(msg, target_ip=self.target_ip)
 
-    def log_success(self, msg: str):
+    def log_success(self, msg: str, log_levels: Optional[Dict[str, str]] = None):
         """Enregistre un message de succès."""
         self.logger.success(msg, target_ip=self.target_ip)
 
     # --- Méthodes de Gestion de Progression ---
 
-    def start_task(self, total_steps: int, description: str = "", task_id: Optional[str] = None):
+    def start_task(self, total_steps: int, description: str = "", task_id: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None):
         """
         Démarre une nouvelle tâche avec un nombre défini d'étapes pour le suivi de progression.
 
@@ -157,9 +157,9 @@ class PluginsUtilsBase:
             # Utiliser la description comme pre_text pour la barre visuelle
             self.logger.create_bar(self._current_task_id, self._task_total_steps, pre_text=description)
         else:
-            self.log_info(f"Démarrage tâche: {description} ({self._task_total_steps} étapes)")
+            self.log_info(f"Démarrage tâche: {description} ({self._task_total_steps} étapes)", log_levels=log_levels)
 
-    def update_task(self, advance: int = 1, description: Optional[str] = None):
+    def update_task(self, advance: int = 1, description: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None):
         """
         Met à jour la progression de la tâche en cours.
 
@@ -168,7 +168,7 @@ class PluginsUtilsBase:
             description: Nouvelle description à afficher pour cette étape (optionnel).
         """
         if self._current_task_id is None:
-            self.log_warning("Impossible de mettre à jour : aucune tâche démarrée.")
+            self.log_warning("Impossible de mettre à jour : aucune tâche démarrée.", log_levels=log_levels)
             return
 
         self._task_current_step += advance
@@ -187,9 +187,9 @@ class PluginsUtilsBase:
             self.logger.next_bar(self._current_task_id, current_step=current, post_text=step_text)
         elif description:
             # Afficher la description comme log si pas de barre visuelle
-            self.log_info(description)
+            self.log_info(description, log_levels=log_levels)
 
-    def complete_task(self, success: bool = True, message: Optional[str] = None):
+    def complete_task(self, success: bool = True, message: Optional[str] = None, log_levels: Optional[Dict[str, str]] = None):
         """
         Marque la tâche en cours comme terminée.
 
@@ -198,7 +198,7 @@ class PluginsUtilsBase:
             message: Message final à afficher (optionnel).
         """
         if self._current_task_id is None:
-            self.log_warning("Impossible de compléter : aucune tâche démarrée.")
+            self.log_warning("Impossible de compléter : aucune tâche démarrée.", log_levels=log_levels)
             return  # Aucune tâche active
 
         final_step = self._task_total_steps
@@ -222,16 +222,16 @@ class PluginsUtilsBase:
         elif message:
             # Afficher le message final si pas de barre visuelle
             if success:
-                self.log_success(message)
+                self.log_success(message, log_levels=log_levels)
             else:
-                self.log_error(message)
+                self.log_error(message, log_levels=log_levels)
 
         # Réinitialiser l'état de la tâche
         self._current_task_id = None
         self._task_total_steps = 1
         self._task_current_step = 0
 
-    def enable_visual_bars(self, enable: bool = True):
+    def enable_visual_bars(self, enable: bool = True, log_levels: Optional[Dict[str, str]] = None):
         """Active ou désactive l'utilisation des barres de progression visuelles."""
         self.use_visual_bars = enable
 
@@ -250,7 +250,7 @@ class PluginsUtilsBase:
                 cwd: Optional[str] = None,
                 env: Optional[Dict[str, str]] = None,
                 needs_sudo: Optional[bool] = None,
-                show_progress: bool = True) -> Tuple[bool, str, str]:
+show_progress: bool = True, log_levels: Optional[Dict[str, str]] = None) -> Tuple[bool, str, str]:
             """
             Exécute une commande système, en utilisant sudo si nécessaire et non déjà root.
             Version optimisée pour le traitement en temps réel des sorties et la détection
@@ -299,7 +299,7 @@ class PluginsUtilsBase:
                 try:
                     cmd_list = shlex.split(cmd)
                 except ValueError as e:
-                    self.log_error(f"Erreur lors du découpage de la commande: '{cmd}'. Erreur: {e}")
+                    self.log_error(f"Erreur lors du découpage de la commande: '{cmd}'. Erreur: {e}", log_levels=log_levels)
                     # Flush des logs avant de lever l'exception
                     if hasattr(self.logger, 'flush'):
                         self.logger.flush()
@@ -309,7 +309,7 @@ class PluginsUtilsBase:
             elif isinstance(cmd, str) and shell:
                 cmd_list = cmd  # Le shell interprétera la chaîne
             else:
-                self.log_error(f"Type de commande invalide: {type(cmd)}")
+                self.log_error(f"Type de commande invalide: {type(cmd)}", log_levels=log_levels)
                 # Flush des logs avant de lever l'exception
                 if hasattr(self.logger, 'flush'):
                     self.logger.flush()
@@ -319,7 +319,7 @@ class PluginsUtilsBase:
             use_sudo = False
             if needs_sudo is True:
                 if self._is_root:
-                    self.log_debug("needs_sudo=True mais déjà root, sudo non utilisé.")
+                    self.log_debug("needs_sudo=True mais déjà root, sudo non utilisé.", log_levels=log_levels)
                 else:
                     use_sudo = True
             elif needs_sudo is None and not self._is_root:
@@ -330,7 +330,7 @@ class PluginsUtilsBase:
             if use_sudo:
                 # Vérifier si sudo est disponible
                 if subprocess.run(['which', 'sudo'], capture_output=True, text=True).returncode != 0:
-                    self.log_error("Commande 'sudo' non trouvée. Impossible d'exécuter avec des privilèges élevés.")
+                    self.log_error("Commande 'sudo' non trouvée. Impossible d'exécuter avec des privilèges élevés.", log_levels=log_levels)
                     # Flush des logs avant de lever l'exception
                     if hasattr(self.logger, 'flush'):
                         self.logger.flush()
@@ -356,7 +356,7 @@ class PluginsUtilsBase:
                     quoted_cmd = shlex.quote(cmd_list)
                     cmd_to_run = f"{' '.join(sudo_prefix)} sh -c {quoted_cmd}"
                     shell = True  # Assurer que shell est True pour Popen
-                    self.log_warning("Utilisation combinée de sudo et shell=True. Vérifier la commande.")
+                    self.log_warning("Utilisation combinée de sudo et shell=True. Vérifier la commande.", log_levels=log_levels)
 
             else:
                 cmd_to_run = cmd_list
@@ -368,7 +368,7 @@ class PluginsUtilsBase:
                 logged_cmd = cmd_str_for_log
                 if sudo_password:
                     logged_cmd = logged_cmd.replace(sudo_password, '********')
-                self.log_info(f"Exécution: {logged_cmd}")
+                self.log_info(f"Exécution: {logged_cmd}", log_levels=log_levels)
 
             # Générer un ID unique pour cette commande
             command_id = hash(str(cmd_to_run) + str(time.time()))
@@ -408,7 +408,7 @@ class PluginsUtilsBase:
                         process.stdin.write(input_full)
                         process.stdin.flush()
                     except (BrokenPipeError, IOError) as e:
-                        self.log_warning(f"Impossible d'écrire dans stdin: {e}")
+                        self.log_warning(f"Impossible d'écrire dans stdin: {e}", log_levels=log_levels)
                     finally:
                         process.stdin.close()  # Fermer stdin après l'envoi
 
@@ -462,7 +462,7 @@ class PluginsUtilsBase:
                             stdout_lines = [line.strip() for line in stdout_data if line.strip()]
                             if stdout_lines:
                                 for line in stdout_lines:
-                                    self.log_info(line)
+                                    self.log_info(line, log_levels=log_levels)
 
                             # Puis traiter toutes les lignes stderr
                             stderr_lines = [line.strip() for line in stderr_data if line.strip()]
@@ -475,11 +475,11 @@ class PluginsUtilsBase:
 
                     except subprocess.TimeoutExpired:
                         elapsed = time.monotonic() - start_time
-                        self.log_error(f"Timeout ({timeout}s, écoulé: {elapsed:.2f}s) dépassé pour la commande: {cmd_str_for_log}")
+                        self.log_error(f"Timeout ({timeout}s, écoulé: {elapsed:.2f}s) dépassé pour la commande: {cmd_str_for_log}", log_levels=log_levels)
                         try:
                             process.kill()
                         except Exception as e:
-                            self.log_debug(f"Erreur lors de la tentative de kill du processus: {e}")
+                            self.log_debug(f"Erreur lors de la tentative de kill du processus: {e}", log_levels=log_levels)
 
                         # Essayer de lire ce qui reste après kill
                         try:
@@ -487,7 +487,7 @@ class PluginsUtilsBase:
                             if stdout_res: stdout_data.extend(stdout_res.splitlines())
                             if stderr_res: stderr_data.extend(stderr_res.splitlines())
                         except Exception as e:
-                            self.log_debug(f"Erreur lors de la récupération des sorties après timeout: {e}")
+                            self.log_debug(f"Erreur lors de la récupération des sorties après timeout: {e}", log_levels=log_levels)
 
                         # Flush des logs avant de relancer l'exception
                         if hasattr(self.logger, 'flush'):
@@ -508,7 +508,7 @@ class PluginsUtilsBase:
                                                         ["incorrect password attempt",
                                                         "sudo: a password is required"]):
                     err_msg = "Échec de l'authentification sudo."
-                    self.log_error(err_msg)
+                    self.log_error(err_msg, log_levels=log_levels)
 
                     # Flush des logs avant de retourner ou lever une exception
                     if hasattr(self.logger, 'flush'):
@@ -523,8 +523,8 @@ class PluginsUtilsBase:
                 # Gérer check=True
                 if check and not success:
                     error_msg_detail = f"Commande échouée avec code {return_code}.\nStderr: {stderr}\nStdout: {stdout}"
-                    self.log_error(f"Erreur lors de l'exécution de: {cmd_str_for_log}")
-                    self.log_error(error_msg_detail)
+                    self.log_error(f"Erreur lors de l'exécution de: {cmd_str_for_log}", log_levels=log_levels)
+                    self.log_error(error_msg_detail, log_levels=log_levels)
 
                     # Flush des logs avant de lever l'exception
                     if hasattr(self.logger, 'flush'):
@@ -545,7 +545,7 @@ class PluginsUtilsBase:
 
             except FileNotFoundError as e:
                 # Commande (ou sudo) non trouvée
-                self.log_error(f"Erreur: Commande ou dépendance introuvable: {e.filename}")
+                self.log_error(f"Erreur: Commande ou dépendance introuvable: {e.filename}", log_levels=log_levels)
 
                 # Flush des logs avant de relancer l'exception
                 if hasattr(self.logger, 'flush'):
@@ -555,7 +555,7 @@ class PluginsUtilsBase:
 
             except PermissionError as e:
                 # Erreur de permission (souvent sudo)
-                self.log_error(f"Erreur de permission: {e}")
+                self.log_error(f"Erreur de permission: {e}", log_levels=log_levels)
 
                 # Flush des logs avant de relancer l'exception
                 if hasattr(self.logger, 'flush'):
@@ -565,7 +565,7 @@ class PluginsUtilsBase:
 
             except Exception as e:
                 # Autres erreurs inattendues
-                self.log_error(f"Erreur inattendue lors de l'exécution de {cmd_str_for_log}: {e}", exc_info=True)
+                self.log_error(f"Erreur inattendue lors de l'exécution de {cmd_str_for_log}: {e}", exc_info=True, log_levels=log_levels)
 
                 # Essayer de récupérer stdout/stderr si possible
                 stdout_err = "\n".join(stdout_data)
@@ -685,7 +685,7 @@ class PluginsUtilsBase:
 
                             # Traiter immédiatement sans batching
                             if log_output:
-                                self.log_info(line)
+                                self.log_info(line, log_levels=log_levels)
                                 if hasattr(self.logger, 'flush'):
                                     self.logger.flush()
 
@@ -706,7 +706,7 @@ class PluginsUtilsBase:
                                                 last_percentage_update = progress_percentage
                                                 self._update_command_progress(task_id, progress_percentage)
                     except (IOError, OSError) as e:
-                        self.log_debug(f"Erreur lors de la lecture de stdout: {e}")
+                        self.log_debug(f"Erreur lors de la lecture de stdout: {e}", log_levels=log_levels)
                         break
 
                 if stderr_fd in ready:
@@ -723,7 +723,7 @@ class PluginsUtilsBase:
                                 if hasattr(self.logger, 'flush'):
                                     self.logger.flush()
                     except (IOError, OSError) as e:
-                        self.log_debug(f"Erreur lors de la lecture de stderr: {e}")
+                        self.log_debug(f"Erreur lors de la lecture de stderr: {e}", log_levels=log_levels)
                         break
             else:
                 # Mode standard: Traitement par lots basé sur le temps écoulé
@@ -765,7 +765,7 @@ class PluginsUtilsBase:
                                         if match:
                                             # Estimer à partir du premier numéro trouvé
                                             total_items = int(match.group(1)) * 2  # Estimation approximative
-                                            self.log_debug(f"Nombre total d'éléments apt estimé: {total_items}")
+                                            self.log_debug(f"Nombre total d'éléments apt estimé: {total_items}", log_levels=log_levels)
 
                                     # Compter les éléments traités (Get:X ou Setting up pkg)
                                     if "Get:" in line or "Setting up " in line:
@@ -782,7 +782,7 @@ class PluginsUtilsBase:
                                 # Détecter les patterns génériques
                                 self._detect_progress_in_line(line, task_id)
                     except (IOError, OSError) as e:
-                        self.log_debug(f"Erreur lors de la lecture de stdout: {e}")
+                        self.log_debug(f"Erreur lors de la lecture de stdout: {e}", log_levels=log_levels)
                         break
 
                 # Lire stderr si prêt
@@ -796,7 +796,7 @@ class PluginsUtilsBase:
                             # Ajouter au batch pour traitement groupé
                             stderr_batch.append(line)
                     except (IOError, OSError) as e:
-                        self.log_debug(f"Erreur lors de la lecture de stderr: {e}")
+                        self.log_debug(f"Erreur lors de la lecture de stderr: {e}", log_levels=log_levels)
                         break
 
             # Si aucun flux prêt, petite pause pour éviter de monopoliser le CPU
@@ -810,7 +810,7 @@ class PluginsUtilsBase:
             if enforce_sequential:
                 # Traiter immédiatement ligne par ligne
                 for line in remaining_stdout:
-                    self.log_info(line)
+                    self.log_info(line, log_levels=log_levels)
                     if hasattr(self.logger, 'flush'):
                         self.logger.flush()
             else:
@@ -964,7 +964,7 @@ class PluginsUtilsBase:
 
                 except (ValueError, IndexError, TypeError) as e:
                      # Logguer discrètement l'erreur de parsing de progression
-                     self.log_debug(f"Erreur parsing progression ligne '{line}': {e}")
+                     self.log_debug(f"Erreur parsing progression ligne '{line}': {e}", log_levels=log_levels)
                      pass # Continuer avec le pattern suivant
 
         return False
@@ -1048,7 +1048,7 @@ class PluginsUtilsBase:
             self._async_commands.add(command_id)
 
         # Fonction qui sera exécutée dans un thread à part
-        def thread_run():
+        def thread_run(log_levels: Optional[Dict[str, str]] = None):
             try:
                 # Exécuter la commande de manière synchrone
                 success, stdout, stderr = self.run(
@@ -1062,7 +1062,7 @@ class PluginsUtilsBase:
                 result["stderr"] = stderr
             except Exception as e:
                 # Enregistrer l'erreur
-                self.log_error(f"Erreur dans l'exécution asynchrone: {e}", exc_info=True)
+                self.log_error(f"Erreur dans l'exécution asynchrone: {e}", exc_info=True, log_levels=log_levels)
                 result["stderr"] = str(e)
             finally:
                 # Signaler que l'exécution est terminée
@@ -1085,7 +1085,7 @@ class PluginsUtilsBase:
             return result["success"], result["stdout"], result["stderr"]
         except asyncio.CancelledError:
             # Si la tâche asyncio est annulée, tenter d'annuler la commande
-            self.log_warning(f"Annulation de la commande asynchrone: {cmd}")
+            self.log_warning(f"Annulation de la commande asynchrone: {cmd}", log_levels=log_levels)
             # L'annulation propre n'est pas possible directement
             # Le mieux est de marquer la commande comme ne devant plus être traitée
             with self._command_lock:
@@ -1097,7 +1097,7 @@ class PluginsUtilsBase:
             # Relever l'exception pour propager l'annulation
             raise
 
-    def get_running_commands(self) -> List[str]:
+    def get_running_commands(self, log_levels: Optional[Dict[str, str]] = None) -> List[str]:
         """
         Retourne la liste des commandes actuellement en cours d'exécution.
         Utile pour le débogage.
@@ -1108,7 +1108,7 @@ class PluginsUtilsBase:
         with self._command_lock:
             return list(self._running_commands.values())
 
-    def is_command_running(self) -> bool:
+    def is_command_running(self, log_levels: Optional[Dict[str, str]] = None) -> bool:
         """
         Vérifie si des commandes sont en cours d'exécution.
 
